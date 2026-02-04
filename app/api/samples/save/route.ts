@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { auth } from "@/lib/auth"
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -22,6 +20,9 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+
+    // Lazy load prisma
+    const { prisma } = await import("@/lib/db")
 
     // Check if sample exists
     const sample = await prisma.sample.findUnique({
@@ -61,10 +62,10 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error saving sample:", error)
     return NextResponse.json(
-      { error: "Failed to save sample" },
+      { error: error?.message || "Failed to save sample" },
       { status: 500 }
     )
   }

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server"
-import { prisma } from "@/lib/db"
 import bcrypt from "bcryptjs"
 
 export async function POST(request: Request) {
@@ -12,6 +11,9 @@ export async function POST(request: Request) {
         { status: 400 }
       )
     }
+
+    // Lazy load prisma to avoid errors if database is not available
+    const { prisma } = await import("@/lib/db")
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -42,10 +44,11 @@ export async function POST(request: Request) {
       email: user.email,
       name: user.name,
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error registering user:", error)
+    const errorMessage = error?.message || "Failed to register user"
     return NextResponse.json(
-      { error: "Failed to register user" },
+      { error: errorMessage },
       { status: 500 }
     )
   }

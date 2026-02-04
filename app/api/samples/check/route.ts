@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { auth } from "@/lib/auth"
 
 export async function GET(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (!session?.user?.id) {
       return NextResponse.json({ isSaved: false })
@@ -21,6 +19,9 @@ export async function GET(request: Request) {
       )
     }
 
+    // Lazy load prisma
+    const { prisma } = await import("@/lib/db")
+
     const userSample = await prisma.userSample.findUnique({
       where: {
         userId_sampleId: {
@@ -31,10 +32,10 @@ export async function GET(request: Request) {
     })
 
     return NextResponse.json({ isSaved: !!userSample })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error checking sample:", error)
     return NextResponse.json(
-      { error: "Failed to check sample" },
+      { error: error?.message || "Failed to check sample" },
       { status: 500 }
     )
   }

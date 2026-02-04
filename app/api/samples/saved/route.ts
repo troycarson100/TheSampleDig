@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { auth } from "@/lib/auth"
 
 export async function GET() {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -13,6 +11,9 @@ export async function GET() {
         { status: 401 }
       )
     }
+
+    // Lazy load prisma
+    const { prisma } = await import("@/lib/db")
 
     // Get all saved samples for the user
     const userSamples = await prisma.userSample.findMany({
@@ -39,10 +40,10 @@ export async function GET() {
     }))
 
     return NextResponse.json(samples)
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching saved samples:", error)
     return NextResponse.json(
-      { error: "Failed to fetch saved samples" },
+      { error: error?.message || "Failed to fetch saved samples" },
       { status: 500 }
     )
   }

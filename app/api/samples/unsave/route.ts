@@ -1,11 +1,9 @@
 import { NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { authOptions } from "@/lib/auth"
-import { prisma } from "@/lib/db"
+import { auth } from "@/lib/auth"
 
 export async function POST(request: Request) {
   try {
-    const session = await getServerSession(authOptions)
+    const session = await auth()
 
     if (!session?.user?.id) {
       return NextResponse.json(
@@ -23,6 +21,9 @@ export async function POST(request: Request) {
       )
     }
 
+    // Lazy load prisma
+    const { prisma } = await import("@/lib/db")
+
     // Delete the saved sample
     await prisma.userSample.deleteMany({
       where: {
@@ -32,10 +33,10 @@ export async function POST(request: Request) {
     })
 
     return NextResponse.json({ success: true })
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error unsaving sample:", error)
     return NextResponse.json(
-      { error: "Failed to unsave sample" },
+      { error: error?.message || "Failed to unsave sample" },
       { status: 500 }
     )
   }

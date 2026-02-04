@@ -2,15 +2,10 @@ import { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import bcrypt from "bcryptjs"
 
-// Lazy load prisma to avoid errors if it's not available
+// Lazy load prisma to avoid initialization issues
 async function getPrisma() {
-  try {
-    const { prisma } = await import("./db")
-    return prisma
-  } catch (error) {
-    console.warn("Prisma not available:", error)
-    return null
-  }
+  const { prisma } = await import("./db")
+  return prisma
 }
 
 export const authOptions: NextAuthOptions = {
@@ -26,12 +21,8 @@ export const authOptions: NextAuthOptions = {
           return null
         }
 
-        const prisma = await getPrisma()
-        if (!prisma) {
-          return null
-        }
-
         try {
+          const prisma = await getPrisma()
           const user = await prisma.user.findUnique({
             where: { email: credentials.email }
           })
@@ -82,4 +73,13 @@ export const authOptions: NextAuthOptions = {
       return session
     },
   },
+  secret: process.env.NEXTAUTH_SECRET,
+}
+
+// Export auth function for NextAuth v5
+// Create it lazily to avoid circular dependencies
+export async function auth() {
+  const NextAuth = (await import("next-auth")).default
+  const { auth: nextAuth } = NextAuth(authOptions)
+  return nextAuth()
 }
