@@ -39,6 +39,8 @@ model UserSample {
   id        String   @id @default(cuid())
   userId    String   @map("user_id")
   sampleId  String   @map("sample_id")
+  startTime Int?     @map("start_time")
+  notes     String?
   createdAt DateTime @default(now()) @map("created_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   sample    Sample   @relation(fields: [sampleId], references: [id], onDelete: Cascade)

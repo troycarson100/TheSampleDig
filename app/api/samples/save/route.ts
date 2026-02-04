@@ -12,7 +12,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const { sampleId } = await request.json()
+    const { sampleId, startTime } = await request.json()
 
     if (!sampleId) {
       return NextResponse.json(
@@ -58,6 +58,7 @@ export async function POST(request: Request) {
       data: {
         userId: session.user.id,
         sampleId: sampleId,
+        startTime: startTime ? parseInt(startTime) : null,
       }
     })
 

@@ -2,6 +2,8 @@
 
 import { useEffect, useRef, useMemo } from "react"
 
+import HeartToggle from "./HeartToggle"
+
 interface SamplePlayerProps {
   youtubeId: string
   title: string
@@ -11,6 +13,9 @@ interface SamplePlayerProps {
   autoplay?: boolean
   startTime?: number
   duration?: number // Video duration in seconds
+  isSaved?: boolean
+  onSaveToggle?: () => void
+  showHeart?: boolean
 }
 
 /**
@@ -97,6 +102,9 @@ export default function SamplePlayer({
   autoplay = true,
   startTime,
   duration,
+  isSaved = false,
+  onSaveToggle,
+  showHeart = false,
 }: SamplePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   
@@ -115,7 +123,7 @@ export default function SamplePlayer({
 
   return (
     <div className="w-full">
-      <div className="aspect-video w-full rounded-lg overflow-hidden bg-black">
+      <div className="aspect-video w-full rounded-lg overflow-hidden bg-black relative">
         <iframe
           ref={iframeRef}
           width="100%"
@@ -126,6 +134,16 @@ export default function SamplePlayer({
           allowFullScreen
           className="w-full h-full"
         />
+        {showHeart && onSaveToggle && (
+          <div className="absolute top-4 right-4 z-10">
+            <HeartToggle
+              isSaved={isSaved}
+              onToggle={onSaveToggle}
+              size="lg"
+              className="bg-black/50 backdrop-blur-sm rounded-full p-2"
+            />
+          </div>
+        )}
       </div>
       <div className="mt-4">
         <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
