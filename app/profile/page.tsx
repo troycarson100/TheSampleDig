@@ -72,7 +72,7 @@ export default function ProfilePage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900">
       <nav className="p-6 flex justify-between items-center">
         <Link href="/dig" className="text-2xl font-bold text-white">
-          Sample Dig
+          Sample Roll
         </Link>
         <div className="flex gap-4 items-center">
           <Link

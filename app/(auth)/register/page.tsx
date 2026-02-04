@@ -44,7 +44,7 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-black to-purple-900">
       <div className="w-full max-w-md p-8 bg-black/50 backdrop-blur-sm rounded-lg border border-purple-500/20">
         <h1 className="text-3xl font-bold text-center mb-8 text-white">
-          Sample Dig
+          Sample Roll
         </h1>
         <h2 className="text-xl font-semibold text-center mb-6 text-purple-300">
           Register

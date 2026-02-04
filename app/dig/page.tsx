@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import SamplePlayer from "@/components/SamplePlayer"
-import DigButton from "@/components/DigButton"
+import DiceButton from "@/components/DiceButton"
 import AutoplayToggle from "@/components/AutoplayToggle"
 import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import Link from "next/link"
@@ -28,6 +28,7 @@ export default function DigPage() {
   const [error, setError] = useState("")
   const [isSaved, setIsSaved] = useState(false)
   const [autoplay, setAutoplay] = useState(true)
+  const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
 
   // Load autoplay preference from localStorage
   useEffect(() => {
@@ -43,8 +44,27 @@ export default function DigPage() {
   }, [autoplay])
 
   const handleDig = async () => {
+    // Track if this is a quick skip (user clicked Dig again within 5 seconds)
+    const currentTime = Date.now()
+    if (sample && sampleLoadTime && (currentTime - sampleLoadTime) < 5000) {
+      // User skipped quickly - report as implicit negative feedback
+      try {
+        await fetch("/api/samples/report", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            sampleId: sample.id,
+            reason: "other" // Implicit skip
+          }),
+        })
+      } catch (error) {
+        console.error("Error reporting skip:", error)
+      }
+    }
+    
     setLoading(true)
     setError("")
+    setSampleLoadTime(Date.now())
     
     try {
       const response = await fetch("/api/samples/dig")
@@ -66,6 +86,7 @@ export default function DigPage() {
         console.log("Previous sample saved:", sample.title)
       }
       
+      // Set the new sample
       setSample({
         ...data,
         startTime: smartStartTime,
@@ -123,7 +144,7 @@ export default function DigPage() {
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900">
       <nav className="p-6 flex justify-between items-center">
         <Link href="/dig" className="text-2xl font-bold text-white">
-          Sample Dig
+          Sample Roll
         </Link>
         <div className="flex gap-4 items-center">
           {session ? (
@@ -188,7 +209,7 @@ export default function DigPage() {
                       </svg>
                     </button>
                   )}
-                  <DigButton onClick={handleDig} loading={loading} />
+                  <DiceButton onClick={handleDig} loading={loading} />
                 </div>
                 <AutoplayToggle enabled={autoplay} onChange={setAutoplay} />
               </div>
@@ -224,17 +245,30 @@ export default function DigPage() {
                             startTime: sample.startTime || Math.floor(Math.random() * 300) + 30 // Use current startTime or generate one
                           }),
                         })
+                        
+                        const data = await response.json()
+                        
                         if (response.ok) {
                           setIsSaved(!isSaved)
                           // Trigger sidebar refresh by dispatching a custom event
                           window.dispatchEvent(new CustomEvent('samplesUpdated'))
+                        } else {
+                          // Show error to user
+                          console.error("Save error:", data.error)
+                          alert(data.error || "Failed to save sample. Please try again.")
                         }
                       } catch (error) {
                         console.error("Error saving/unsaving:", error)
+                        alert("Failed to save sample. Please try again.")
                       }
                     }
                   }}
                   showHeart={!!session}
+                  onVideoError={() => {
+                    // Video is unavailable, automatically get next one
+                    console.log("Video unavailable, fetching next sample...")
+                    handleDig()
+                  }}
                 />
               </div>
             )}

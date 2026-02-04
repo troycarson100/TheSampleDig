@@ -27,10 +27,12 @@ export default function HeartToggle({
     <button
       onClick={(e) => {
         e.stopPropagation()
+        e.preventDefault()
         onToggle()
       }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      type="button"
       className={`${sizeClasses[size]} ${className} transition-all duration-200 hover:scale-110 active:scale-95`}
       aria-label={isSaved ? "Remove from saved" : "Save sample"}
     >

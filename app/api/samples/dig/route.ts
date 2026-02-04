@@ -15,8 +15,8 @@ export async function GET() {
 
     const video = await findRandomSample()
 
-    // Try to save to database, but don't fail if database is unavailable
-    let sampleId = video.id // Use YouTube ID as fallback ID
+    // Always try to save to database - this is required for saving functionality
+    let sampleId = video.id // Fallback to YouTube ID if DB fails
     try {
       // Lazy load prisma to avoid errors if it's not available
       const { prisma } = await import("@/lib/db")
@@ -25,13 +25,32 @@ export async function GET() {
         where: { youtubeId: video.id }
       })
 
-      // If not, create it
+      // Get YouTube channel ID from the video object if available
+      const youtubeChannelId = video.channelId || video.channelTitle
+      
+      // Get or create channel
+      let channel = await prisma.channel.findUnique({
+        where: { channelId: youtubeChannelId }
+      })
+      
+      if (!channel) {
+        channel = await prisma.channel.create({
+          data: {
+            channelId: youtubeChannelId,
+            name: video.channelTitle,
+            reputation: 0.5,
+          }
+        })
+      }
+      
+      // Create sample if it doesn't exist
       if (!sample) {
         sample = await prisma.sample.create({
           data: {
             youtubeId: video.id,
             title: video.title,
             channel: video.channelTitle,
+            channelId: channel.id,
             thumbnailUrl: video.thumbnail,
             genre: video.genre || null,
             era: video.era || null,
@@ -40,8 +59,9 @@ export async function GET() {
       }
       sampleId = sample.id
     } catch (dbError: any) {
-      // Database not available, but we can still return the video
-      console.warn("Database not available, returning video without saving:", dbError?.message || dbError)
+      // Log error but continue - user can still view video
+      console.error("Database error when saving sample:", dbError?.message || dbError)
+      // Note: If DB fails, sampleId will be YouTube ID, and save endpoint will handle it
     }
 
     return NextResponse.json({

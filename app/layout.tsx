@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Sample Dig - Discover Rare Vinyl Samples",
+  title: "Sample Roll - Discover Rare Vinyl Samples",
   description: "Find and save rare vinyl samples for beat making",
 };
 

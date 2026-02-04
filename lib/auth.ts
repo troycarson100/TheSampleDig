@@ -78,8 +78,18 @@ export const authOptions: NextAuthOptions = {
 
 // Export auth function for NextAuth v5
 // Create it lazily to avoid circular dependencies
+let authInstance: Awaited<ReturnType<typeof import("next-auth").default>> | null = null
+
 export async function auth() {
-  const NextAuth = (await import("next-auth")).default
-  const { auth: nextAuth } = NextAuth(authOptions)
-  return nextAuth()
+  try {
+    if (!authInstance) {
+      const NextAuth = (await import("next-auth")).default
+      authInstance = NextAuth(authOptions)
+    }
+    const { auth: nextAuth } = authInstance
+    return await nextAuth()
+  } catch (error: any) {
+    console.error("Error in auth function:", error)
+    throw error
+  }
 }

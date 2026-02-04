@@ -21,16 +21,33 @@ model User {
   @@map("users")
 }
 
+model Channel {
+  id          String   @id @default(cuid())
+  channelId   String   @unique @map("channel_id")
+  name        String
+  reputation  Float    @default(0.5) // 0.0 = bad, 1.0 = good
+  sampleCount Int      @default(0) @map("sample_count")
+  skipCount   Int      @default(0) @map("skip_count")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  samples     Sample[]
+  
+  @@map("channels")
+}
+
 model Sample {
   id          String        @id @default(cuid())
   youtubeId   String        @unique @map("youtube_id")
   title       String
   channel     String
+  channelId   String?       @map("channel_id")
   thumbnailUrl String       @map("thumbnail_url")
   genre       String?
   era         String?
   createdAt   DateTime      @default(now()) @map("created_at")
   userSamples UserSample[]
+  channelRel  Channel?      @relation(fields: [channelId], references: [id])
 
   @@map("samples")
 }

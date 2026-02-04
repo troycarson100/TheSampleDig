@@ -2,6 +2,7 @@ export interface YouTubeVideo {
   id: string
   title: string
   channelTitle: string
+  channelId?: string // YouTube channel ID
   thumbnail: string
   publishedAt: string
   duration?: number // Duration in seconds

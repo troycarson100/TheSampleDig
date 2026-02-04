@@ -16,6 +16,7 @@ interface SamplePlayerProps {
   isSaved?: boolean
   onSaveToggle?: () => void
   showHeart?: boolean
+  onVideoError?: () => void // Callback when video is unavailable
 }
 
 /**
@@ -105,8 +106,10 @@ export default function SamplePlayer({
   isSaved = false,
   onSaveToggle,
   showHeart = false,
+  onVideoError,
 }: SamplePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
+  const errorCheckTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   
   // Generate a new start time only when the video changes
   const actualStartTime = useMemo(() => {
@@ -114,17 +117,70 @@ export default function SamplePlayer({
   }, [youtubeId, startTime, duration])
 
   useEffect(() => {
-    // Update iframe src when autoplay or startTime changes
-    if (iframeRef.current) {
-      const autoplayParam = autoplay ? "1" : "0"
-      iframeRef.current.src = `https://www.youtube.com/embed/${youtubeId}?autoplay=${autoplayParam}&start=${actualStartTime}&rel=0&enablejsapi=1`
+    // Check for video errors after a delay
+    if (errorCheckTimeoutRef.current) {
+      clearTimeout(errorCheckTimeoutRef.current)
     }
-  }, [youtubeId, autoplay, actualStartTime])
+    
+    // Set up error detection - check if video loads properly
+    errorCheckTimeoutRef.current = setTimeout(() => {
+      // Listen for iframe load events
+      const currentIframe = iframeRef.current
+      if (currentIframe) {
+        // Check if iframe loaded successfully
+        // YouTube shows error pages for unavailable videos
+        currentIframe.onload = () => {
+          // Try to detect if the video is unavailable
+          // This is a best-effort check since we can't directly access iframe content
+          try {
+            // If onVideoError is provided, we'll rely on it being called from parent
+            // For now, we'll check via a message listener
+          } catch (error) {
+            // Ignore cross-origin errors
+          }
+        }
+      }
+    }, 2000)
+    
+    return () => {
+      if (errorCheckTimeoutRef.current) {
+        clearTimeout(errorCheckTimeoutRef.current)
+      }
+    }
+  }, [youtubeId, onVideoError])
+
+  // Check if video is available via our API endpoint
+  useEffect(() => {
+    if (!onVideoError) return
+    
+    const checkVideoAvailability = async () => {
+      try {
+        // Check via our API endpoint which uses YouTube oEmbed
+        const apiResponse = await fetch(`/api/samples/check-availability?youtubeId=${youtubeId}`)
+        const data = await apiResponse.json()
+        
+        if (!data.available) {
+          // Video is unavailable
+          console.log("Video unavailable, triggering error callback")
+          onVideoError()
+        }
+      } catch (error) {
+        // If check fails, assume video might be available and don't auto-skip
+        console.warn("Could not check video availability:", error)
+      }
+    }
+    
+    // Check after a short delay to allow iframe to load
+    const timeout = setTimeout(checkVideoAvailability, 3000)
+    
+    return () => clearTimeout(timeout)
+  }, [youtubeId, onVideoError])
 
   return (
     <div className="w-full">
       <div className="aspect-video w-full rounded-lg overflow-hidden bg-black relative">
         <iframe
+          key={youtubeId} // Force React to recreate iframe when YouTube ID changes - prevents audio glitches
           ref={iframeRef}
           width="100%"
           height="100%"
@@ -133,6 +189,12 @@ export default function SamplePlayer({
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
           className="w-full h-full"
+          onError={() => {
+            // If iframe fails to load, trigger error callback
+            if (onVideoError) {
+              onVideoError()
+            }
+          }}
         />
         {showHeart && onSaveToggle && (
           <div className="absolute top-4 right-4 z-10">
