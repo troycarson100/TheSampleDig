@@ -4,60 +4,70 @@ const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/search"
 
 // Curated search queries targeting rare vinyl samples
-// Exclude review videos, people talking, etc.
+// Prioritize static vinyl record videos (image of record with audio)
+// Exclude review videos, people talking, live performances, etc.
 const SEARCH_QUERIES = [
-  // Bossa Nova & Brazilian - Enhanced
-  "bossa nova 1970s vinyl rip -review -reaction -talking -interview",
-  "rare bossa nova instrumental -review -talking -discussion",
-  "brazilian jazz 1960s full album -review -reaction",
-  "obscure bossa nova LP -review -reaction -unboxing",
-  "bossa nova drum break -review -talking",
-  "brazilian jazz sample -review -explained",
+  // Bossa Nova & Brazilian - Prioritize vinyl record videos
+  "bossa nova 1970s vinyl rip record spinning -review -reaction -talking -live -performance",
+  "rare bossa nova vinyl record image -review -talking -discussion -live",
+  "brazilian jazz 1960s full album vinyl -review -reaction -live -performance",
+  "obscure bossa nova LP record -review -reaction -unboxing -live",
+  "bossa nova drum break vinyl rip -review -talking -live -performance",
+  "brazilian jazz sample vinyl record -review -explained -live",
   
-  // Prog & Psychedelic - Enhanced
-  "prog psychedelic jazz groove instrumental -review -reaction",
-  "rare prog rock sample break -review -talking -discussion",
-  "psychedelic jazz 1970s full album -review -reaction",
-  "obscure prog rock vinyl rip -review -unboxing",
-  "prog rock drum break -review -talking",
-  "psychedelic jazz loop -review -explained",
+  // Prog & Psychedelic - Prioritize vinyl record videos
+  "prog psychedelic jazz groove vinyl record -review -reaction -live -performance",
+  "rare prog rock sample break vinyl rip -review -talking -discussion -live",
+  "psychedelic jazz 1970s full album vinyl -review -reaction -live",
+  "obscure prog rock vinyl rip record -review -unboxing -live",
+  "prog rock drum break vinyl -review -talking -live -performance",
+  "psychedelic jazz loop vinyl record -review -explained -live",
   
-  // Jazz & Fusion - Enhanced
-  "rare jazz vinyl 1970s instrumental -review -reaction -talking",
-  "obscure jazz sample break -review -talking -discussion",
-  "jazz fusion 1970s full album -review -reaction",
-  "rare groove jazz instrumental -review -reaction -interview",
-  "jazz drum break -review -talking",
-  "jazz fusion sample -review -explained",
+  // Jazz & Fusion - Prioritize vinyl record videos
+  "rare jazz vinyl 1970s record spinning -review -reaction -talking -live",
+  "obscure jazz sample break vinyl rip -review -talking -discussion -live",
+  "jazz fusion 1970s full album vinyl -review -reaction -live",
+  "rare groove jazz instrumental vinyl record -review -reaction -interview -live",
+  "jazz drum break vinyl rip -review -talking -live",
+  "jazz fusion sample vinyl -review -explained -live",
   
-  // Funk & Soul - Enhanced
-  "rare funk vinyl 1970s instrumental -review -reaction -talking",
-  "obscure soul sample break -review -talking -discussion",
-  "rare groove funk instrumental -review -reaction",
-  "deep funk 1970s vinyl rip -review -unboxing",
-  "funk drum break -review -talking",
-  "soul sample loop -review -explained",
+  // Funk & Soul - Prioritize vinyl record videos
+  "rare funk vinyl 1970s record image -review -reaction -talking -live",
+  "obscure soul sample break vinyl rip -review -talking -discussion -live",
+  "rare groove funk instrumental vinyl -review -reaction -live",
+  "deep funk 1970s vinyl rip record -review -unboxing -live",
+  "funk drum break vinyl -review -talking -live -performance",
+  "soul sample loop vinyl record -review -explained -live",
   
-  // Instrumental & Sample-Friendly Formats
-  "instrumental jazz 1970s -review -talking -type beat -remix -flip",
-  "drum break rare -review -reaction -type beat -remix -flip",
-  "breakbeat vinyl -review -talking -type beat -remix -flip",
-  "instrumental soul -review -talking -type beat -remix -flip",
+  // Instrumental & Sample-Friendly Formats - Prioritize vinyl
+  "instrumental jazz 1970s vinyl record -review -talking -type beat -remix -flip -live",
+  "drum break rare vinyl rip -review -reaction -type beat -remix -flip -live",
+  "breakbeat vinyl record spinning -review -talking -type beat -remix -flip -live",
+  "instrumental soul vinyl -review -talking -type beat -remix -flip -live",
   
-  // Full Album & LP Formats
-  "full album jazz 1970s -review -reaction",
-  "LP vinyl rip funk -review -talking",
-  "complete album soul -review -discussion",
-  "full record jazz -review -reaction",
+  // Full Album & LP Formats - Prioritize vinyl
+  "full album jazz 1970s vinyl -review -reaction -live -performance",
+  "LP vinyl rip funk record -review -talking -live",
+  "complete album soul vinyl -review -discussion -live",
+  "full record jazz vinyl -review -reaction -live",
   
-  // General Rare Vinyl - Enhanced
-  "rare vinyl rip instrumental -review -reaction -talking",
-  "obscure sample break -review -talking -discussion",
-  "rare groove instrumental -review -reaction -interview",
-  "crate digger sample break -review -talking",
-  "vinyl only sample instrumental -review -talking -discussion",
-  "rare record full album -review -reaction",
-  "obscure record LP -review -unboxing",
+  // General Rare Vinyl - Prioritize static record videos
+  "rare vinyl rip instrumental record spinning -review -reaction -talking -live",
+  "obscure sample break vinyl record -review -talking -discussion -live",
+  "rare groove instrumental vinyl rip -review -reaction -interview -live",
+  "crate digger sample break vinyl -review -talking -live",
+  "vinyl only sample instrumental record -review -talking -discussion -live",
+  "rare record full album vinyl -review -reaction -live",
+  "obscure record LP vinyl rip -review -unboxing -live",
+  
+  // Explicit vinyl record image queries
+  "vinyl record spinning audio", 
+  "record spinning music",
+  "vinyl rip with record image",
+  "old vinyl record audio",
+  "vintage record spinning",
+  "LP record audio",
+  "vinyl record playback"
 ]
 
 // Keywords that indicate review/talking videos (to filter out)
@@ -238,23 +248,26 @@ function isReviewOrTalkingVideo(
     "beat making", "original beat", "instrumental beat"
   ]
   
-  // Check for performance/playing videos
+  // Check for performance/playing videos - more aggressive filtering
   const performanceKeywords = [
     "playing", "plays", "performs", "performance", "live performance",
-    "guitar", "guitarist", "playing guitar", "guitar cover",
-    "bass", "bassist", "playing bass", "bass cover",
-    "drums", "drummer", "playing drums", "drum cover",
-    "piano", "pianist", "playing piano", "piano cover",
-    "saxophone", "sax", "playing sax",
-    "trumpet", "trumpeter", "playing trumpet",
-    "violin", "violinist", "playing violin",
-    "covers", "cover song", "cover version",
-    "acoustic", "acoustic version", "acoustic cover",
-    "solo", "solo performance", "solo guitar",
+    "live", "live at", "live from", "live recording", "live session",
+    "concert", "gig", "show", "tour", "on stage", "stage performance",
+    "guitar", "guitarist", "playing guitar", "guitar cover", "guitar solo",
+    "bass", "bassist", "playing bass", "bass cover", "bass solo",
+    "drums", "drummer", "playing drums", "drum cover", "drum solo",
+    "piano", "pianist", "playing piano", "piano cover", "piano solo",
+    "saxophone", "sax", "playing sax", "sax solo",
+    "trumpet", "trumpeter", "playing trumpet", "trumpet solo",
+    "violin", "violinist", "playing violin", "violin solo",
+    "covers", "cover song", "cover version", "cover by",
+    "acoustic", "acoustic version", "acoustic cover", "acoustic session",
+    "solo", "solo performance", "solo guitar", "solo bass",
     "fingerstyle", "fingerpicking",
-    "jam session", "jamming", "improv",
-    "session", "recording session",
-    "live at", "live from"
+    "jam session", "jamming", "improv", "improvisation",
+    "session", "recording session", "studio session",
+    "performed by", "performed live", "live version",
+    "in concert", "at the", "venue", "club", "bar", "festival"
   ]
   
   // Check all exclusion keywords
@@ -439,10 +452,18 @@ async function searchWithQuery(
     return []
   }
 
-  // Filter and randomly select from results
+  // Filter and score videos - prioritize static vinyl record videos
   // Limit to first 20 videos to speed up processing
   const videosToCheck = data.items.slice(0, 20)
-  const validVideos = []
+  const scoredVideos = []
+  
+  // Keywords that indicate desirable static vinyl record videos
+  const vinylRecordKeywords = [
+    "vinyl record", "record spinning", "vinyl rip", "LP record",
+    "vinyl LP", "record image", "vinyl playback", "record audio",
+    "old vinyl", "vintage record", "vinyl album", "LP audio",
+    "full album vinyl", "vinyl only", "record player"
+  ]
   
   for (const video of videosToCheck) {
     // Get video details including duration, description, and tags
@@ -457,57 +478,71 @@ async function searchWithQuery(
       continue
     }
     
+    const text = `${video.snippet.title} ${video.snippet.channelTitle} ${details.description || ""} ${(details.tags || []).join(" ")}`.toLowerCase()
+    
+    // Check for live/performance keywords - reject immediately if found
+    const liveKeywords = ["live", "live at", "live from", "live performance", "live recording", "concert", "gig", "show", "on stage", "stage performance", "performed live", "in concert"]
+    const hasLiveKeyword = liveKeywords.some(keyword => text.includes(keyword))
+    
+    if (hasLiveKeyword) {
+      continue // Immediately reject live videos
+    }
+    
     // Skip review/talking videos using enhanced metadata checking
     // Use stricter threshold if strictFiltering is true
     const excludeThreshold = strictFiltering ? 2 : 3
-    const text = `${video.snippet.title} ${video.snippet.channelTitle} ${details.description || ""} ${(details.tags || []).join(" ")}`.toLowerCase()
     const excludeMatches = EXCLUDE_KEYWORDS.filter(keyword => text.includes(keyword)).length
     
     if (excludeMatches >= excludeThreshold) {
       continue
     }
     
+    // Score video based on desirable keywords (vinyl record indicators)
+    let score = 0
+    for (const keyword of vinylRecordKeywords) {
+      if (text.includes(keyword)) {
+        score += 2 // Boost score for vinyl record keywords
+      }
+    }
+    
+    // Prefer videos with "full album", "LP", "vinyl" in title
+    if (video.snippet.title.toLowerCase().includes("vinyl") || 
+        video.snippet.title.toLowerCase().includes("LP") ||
+        video.snippet.title.toLowerCase().includes("full album")) {
+      score += 3 // Extra boost for title matches
+    }
+    
+    // Prefer duration in 2-10 minute range
+    const preferred = details.duration >= 120 && details.duration <= 600
+    if (preferred) {
+      score += 1
+    }
+    
+    scoredVideos.push({
+      ...video,
+      details,
+      score,
+      preferred
+    })
+    
     // If we have enough valid videos, break early
-    if (validVideos.length >= 5) {
+    if (scoredVideos.length >= 10) {
       break
     }
-    
-    // Check channel reputation (with error handling to not block if DB fails)
-    // Skip reputation check for now to speed up - can be enabled later
-    let channelReputation = 0.5 // Default neutral
-    // Uncomment below to enable channel reputation filtering (slower)
-    /*
-    try {
-      const channelId = video.snippet.channelId
-      channelReputation = await getChannelReputation(channelId, video.snippet.channelTitle)
-      
-      // Filter out channels with very low reputation (< 0.3)
-      if (channelReputation < 0.3) {
-        continue
-      }
-    } catch (error) {
-      // If channel reputation check fails, continue anyway (don't block)
-      console.warn("Channel reputation check failed, continuing:", error)
-    }
-    */
-    
-    // Prefer videos in the 2-10 minute range (better for sampling)
-    const isPreferredDuration = details.duration >= 120 && details.duration <= 600
-    
-    // Boost channels with high reputation (> 0.7)
-    const isHighReputation = channelReputation > 0.7
-    
-    validVideos.push({ 
-      ...video, 
-      duration: details.duration,
-      description: details.description,
-      tags: details.tags,
-      preferred: isPreferredDuration || isHighReputation,
-      channelReputation
-    })
   }
   
-  return validVideos
+  // Sort by score (highest first) to prioritize vinyl record videos
+  scoredVideos.sort((a, b) => b.score - a.score)
+  
+  // Return top scored videos with proper structure
+  return scoredVideos.slice(0, 5).map(v => ({
+    ...v,
+    duration: v.details.duration,
+    description: v.details.description,
+    tags: v.details.tags,
+    preferred: v.preferred,
+    channelReputation: 0.5 // Default neutral (reputation check disabled for speed)
+  }))
 }
 
 /**
