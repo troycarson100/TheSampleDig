@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id            String        @id @default(cuid())
+  email         String        @unique
+  passwordHash  String        @map("password_hash")
+  name          String?
+  createdAt     DateTime      @default(now()) @map("created_at")
+  savedSamples  UserSample[]
+
+  @@map("users")
+}
+
+model Sample {
+  id          String        @id @default(cuid())
+  youtubeId   String        @unique @map("youtube_id")
+  title       String
+  channel     String
+  thumbnailUrl String       @map("thumbnail_url")
+  genre       String?
+  era         String?
+  createdAt   DateTime      @default(now()) @map("created_at")
+  userSamples UserSample[]
+
+  @@map("samples")
+}
+
+model UserSample {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  sampleId  String   @map("sample_id")
+  createdAt DateTime @default(now()) @map("created_at")
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sample    Sample   @relation(fields: [sampleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, sampleId])
+  @@map("user_samples")
+}
