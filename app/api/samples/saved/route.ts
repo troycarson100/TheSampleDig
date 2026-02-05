@@ -36,6 +36,9 @@ export async function GET() {
       thumbnailUrl: us.sample.thumbnailUrl,
       genre: us.sample.genre,
       era: us.sample.era,
+      bpm: us.sample.bpm,
+      key: us.sample.key,
+      analysisStatus: us.sample.analysisStatus,
       startTime: us.startTime || undefined,
       savedAt: us.createdAt,
     }))

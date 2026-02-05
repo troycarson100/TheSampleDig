@@ -10,6 +10,9 @@ interface SamplePlayerProps {
   channel: string
   genre?: string | null
   era?: string | null
+  bpm?: number | null
+  key?: string | null
+  analysisStatus?: string | null
   autoplay?: boolean
   startTime?: number
   duration?: number // Video duration in seconds
@@ -100,6 +103,9 @@ export default function SamplePlayer({
   channel,
   genre,
   era,
+  bpm,
+  key: keyProp,
+  analysisStatus,
   autoplay = true,
   startTime,
   duration,
@@ -210,7 +216,7 @@ export default function SamplePlayer({
       <div className="mt-4">
         <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
         <p className="text-gray-400 mb-2">{channel}</p>
-        {(genre || era) && (
+        {(genre || era || bpm || keyProp || analysisStatus === "processing" || analysisStatus === "pending") && (
           <div className="flex gap-2 flex-wrap">
             {genre && (
               <span className="px-3 py-1 bg-purple-600/30 text-purple-300 rounded-full text-sm">
@@ -220,6 +226,21 @@ export default function SamplePlayer({
             {era && (
               <span className="px-3 py-1 bg-purple-600/30 text-purple-300 rounded-full text-sm">
                 {era}
+              </span>
+            )}
+            {bpm && (
+              <span className="px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-mono">
+                {bpm} BPM
+              </span>
+            )}
+            {keyProp && (
+              <span className="px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-mono">
+                {keyProp}
+              </span>
+            )}
+            {(analysisStatus === "processing" || analysisStatus === "pending") && !bpm && !keyProp && (
+              <span className="px-3 py-1 bg-yellow-600/30 text-yellow-300 rounded-full text-sm">
+                Analyzing...
               </span>
             )}
           </div>

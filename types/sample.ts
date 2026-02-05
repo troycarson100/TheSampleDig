@@ -16,6 +16,9 @@ export interface Sample {
   thumbnailUrl: string
   genre?: string | null
   era?: string | null
+  bpm?: number | null
+  key?: string | null
+  analysisStatus?: string | null
   createdAt: Date
 }
 

@@ -16,6 +16,9 @@ interface Sample {
   thumbnailUrl: string
   genre?: string | null
   era?: string | null
+  bpm?: number | null
+  key?: string | null
+  analysisStatus?: string | null
   startTime?: number
   duration?: number
 }
@@ -87,10 +90,12 @@ export default function DigPage() {
       }
       
       // Set the new sample
-      setSample({
+      const newSample = {
         ...data,
         startTime: smartStartTime,
-      })
+      }
+      console.log('Sample loaded:', newSample)
+      setSample(newSample)
       
       // Check if sample is already saved (only if logged in)
       if (data.id && status === "authenticated") {
@@ -121,6 +126,62 @@ export default function DigPage() {
       setIsSaved(false)
     }
   }, [sample?.id, status])
+
+  // Poll for analysis updates if status is processing or pending (with shorter timeout)
+  useEffect(() => {
+    if (sample?.id && (sample.analysisStatus === "processing" || sample.analysisStatus === "pending")) {
+      let pollCount = 0
+      const maxPolls = 8 // Stop after 8 polls (40 seconds) - analysis should complete in 30s
+      
+      const pollInterval = setInterval(async () => {
+        pollCount++
+        
+        // Stop polling after max attempts
+        if (pollCount > maxPolls) {
+          console.warn(`[Poll] Timeout after ${pollCount} polls - marking as failed`)
+          setSample(prev => prev ? {
+            ...prev,
+            analysisStatus: "failed"
+          } : null)
+          clearInterval(pollInterval)
+          return
+        }
+        
+        try {
+          const response = await fetch(`/api/samples/get?sampleId=${sample.id}`)
+          if (response.ok) {
+            const data = await response.json()
+            console.log(`[Poll ${pollCount}] Status:`, data.analysisStatus, "BPM:", data.bpm, "Key:", data.key)
+            
+            // Update if analysis completed or we have BPM/key data
+            if (data.analysisStatus === "completed" || data.analysisStatus === "failed" || data.bpm || data.key) {
+              setSample(prev => prev ? {
+                ...prev,
+                bpm: data.bpm ?? prev.bpm,
+                key: data.key ?? prev.key,
+                analysisStatus: data.analysisStatus ?? prev.analysisStatus
+              } : null)
+              if (data.analysisStatus === "completed" || data.analysisStatus === "failed") {
+                console.log(`[Poll] Stopping - analysis ${data.analysisStatus}`)
+                clearInterval(pollInterval)
+              }
+            }
+          } else {
+            console.warn(`[Poll ${pollCount}] Response not OK:`, response.status)
+          }
+        } catch (error) {
+          console.error(`[Poll ${pollCount}] Error:`, error)
+          // Stop polling on repeated errors
+          if (pollCount > 3) {
+            console.warn(`[Poll] Stopping after ${pollCount} errors`)
+            clearInterval(pollInterval)
+          }
+        }
+      }, 5000) // Poll every 5 seconds
+
+      return () => clearInterval(pollInterval)
+    }
+  }, [sample?.id, sample?.analysisStatus])
 
   const handleGoBack = () => {
     if (previousSample) {
@@ -229,40 +290,60 @@ export default function DigPage() {
                   channel={sample.channel}
                   genre={sample.genre}
                   era={sample.era}
+                  bpm={sample.bpm}
+                  key={sample.key}
+                  analysisStatus={sample.analysisStatus}
                   autoplay={autoplay}
                   startTime={sample.startTime}
                   duration={sample.duration}
                   isSaved={isSaved}
-                  onSaveToggle={async () => {
-                    if (session && sample) {
-                      const endpoint = isSaved ? "/api/samples/unsave" : "/api/samples/save"
-                      try {
-                        const response = await fetch(endpoint, {
-                          method: "POST",
-                          headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ 
+                      onSaveToggle={async () => {
+                        if (session && sample) {
+                          const endpoint = isSaved ? "/api/samples/unsave" : "/api/samples/save"
+                          console.log("[Frontend] Saving sample:", {
                             sampleId: sample.id,
-                            startTime: sample.startTime || Math.floor(Math.random() * 300) + 30 // Use current startTime or generate one
-                          }),
-                        })
+                            youtubeId: sample.youtubeId,
+                            title: sample.title,
+                            channel: sample.channel,
+                            isSaved: isSaved
+                          })
+                          try {
+                            const response = await fetch(endpoint, {
+                              method: "POST",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ 
+                                sampleId: sample.id,
+                                startTime: sample.startTime || Math.floor(Math.random() * 300) + 30, // Use current startTime or generate one
+                                // Include video metadata in case we need to create the sample on-the-fly
+                                youtubeId: sample.youtubeId,
+                                title: sample.title,
+                                channel: sample.channel,
+                                thumbnailUrl: sample.thumbnailUrl,
+                              }),
+                            })
                         
-                        const data = await response.json()
+                            const data = await response.json()
+                            console.log("[Frontend] Save response:", { status: response.status, data })
                         
-                        if (response.ok) {
-                          setIsSaved(!isSaved)
-                          // Trigger sidebar refresh by dispatching a custom event
-                          window.dispatchEvent(new CustomEvent('samplesUpdated'))
-                        } else {
-                          // Show error to user
-                          console.error("Save error:", data.error)
-                          alert(data.error || "Failed to save sample. Please try again.")
+                            if (response.ok) {
+                              setIsSaved(!isSaved)
+                              // Trigger sidebar refresh by dispatching a custom event
+                              window.dispatchEvent(new CustomEvent('samplesUpdated'))
+                            } else {
+                              // Show error to user with full details
+                              console.error("[Frontend] Save error:", data.error, "Response status:", response.status, "Full data:", data)
+                              const errorMsg = data.error || "Failed to save sample"
+                              const detailsMsg = data.details ? `\n\nDetails: ${data.details}` : ""
+                              const codeMsg = data.code ? `\n\nError Code: ${data.code}` : ""
+                              const debugMsg = data.debug ? `\n\nDebug: ${JSON.stringify(data.debug)}` : ""
+                              alert(`${errorMsg}${detailsMsg}${codeMsg}${debugMsg}\n\nPlease check the console for more details.`)
+                            }
+                          } catch (error: any) {
+                            console.error("[Frontend] Error saving/unsaving:", error)
+                            alert(`Failed to save sample: ${error?.message || "Unknown error"}. Please try again.`)
+                          }
                         }
-                      } catch (error) {
-                        console.error("Error saving/unsaving:", error)
-                        alert("Failed to save sample. Please try again.")
-                      }
-                    }
-                  }}
+                      }}
                   showHeart={!!session}
                   onVideoError={() => {
                     // Video is unavailable, automatically get next one
@@ -299,6 +380,9 @@ export default function DigPage() {
                       thumbnailUrl: savedSample.thumbnailUrl,
                       genre: savedSample.genre,
                       era: savedSample.era,
+                      bpm: savedSample.bpm,
+                      key: savedSample.key,
+                      analysisStatus: savedSample.analysisStatus,
                       startTime: savedSample.startTime,
                       duration: undefined,
                     })

@@ -21,7 +21,10 @@ export async function POST(request: Request) {
       )
     }
 
-    const { sampleId: inputSampleId, startTime } = await request.json()
+    const body = await request.json()
+    const { sampleId: inputSampleId, startTime, youtubeId } = body
+
+    console.log(`[Save] Request: sampleId=${inputSampleId}, youtubeId=${youtubeId}, userId=${session.user.id}`)
 
     if (!inputSampleId) {
       return NextResponse.json(
@@ -33,38 +36,30 @@ export async function POST(request: Request) {
     // Lazy load prisma
     const { prisma } = await import("@/lib/db")
 
-    // Check if sample exists by database ID
+    // SIMPLIFIED: Just find the sample - dig route should have created it
     let sample = await prisma.sample.findUnique({
       where: { id: inputSampleId }
     })
 
-    // Track the actual database ID to use
-    let sampleId = inputSampleId
-
-    // If not found by ID, try finding by YouTube ID (in case sampleId is actually a YouTube ID)
-    if (!sample && inputSampleId.length === 11) {
-      // YouTube IDs are 11 characters - try to find by YouTube ID
+    // If not found by ID, try YouTube ID
+    if (!sample && youtubeId) {
       sample = await prisma.sample.findUnique({
-        where: { youtubeId: inputSampleId }
+        where: { youtubeId: youtubeId }
       })
-      
-      if (sample) {
-        // Use the database ID instead
-        sampleId = sample.id
-      } else {
-        // Sample doesn't exist - we need to create it, but we don't have all the info
-        // Return error asking user to try again (the dig endpoint should create it)
-        return NextResponse.json(
-          { error: "Sample not found in database. Please roll again to create the sample." },
-          { status: 404 }
-        )
-      }
-    } else if (!sample) {
+    }
+
+    if (!sample) {
+      console.error(`[Save] Sample not found: ID=${inputSampleId}, YouTubeID=${youtubeId}`)
       return NextResponse.json(
-        { error: "Sample not found" },
+        { 
+          error: "Sample not found. Please roll the dice again - the sample needs to be created first.",
+        },
         { status: 404 }
       )
     }
+
+    const sampleId = sample.id
+    console.log(`[Save] Found sample: ${sampleId}`)
 
     // Check if already saved
     const existing = await prisma.userSample.findUnique({
@@ -84,6 +79,7 @@ export async function POST(request: Request) {
     }
 
     // Save the sample
+    console.log(`[Save] Creating UserSample: userId=${session.user.id}, sampleId=${sampleId}`)
     await prisma.userSample.create({
       data: {
         userId: session.user.id,
@@ -92,11 +88,20 @@ export async function POST(request: Request) {
       }
     })
 
+    console.log(`[Save] Success!`)
     return NextResponse.json({ success: true })
   } catch (error: any) {
-    console.error("Error saving sample:", error)
+    console.error("[Save] Error:", error)
+    console.error("[Save] Error details:", {
+      message: error?.message,
+      code: error?.code,
+      meta: error?.meta
+    })
     return NextResponse.json(
-      { error: error?.message || "Failed to save sample" },
+      { 
+        error: error?.message || "Failed to save sample",
+        code: error?.code || "UNKNOWN"
+      },
       { status: 500 }
     )
   }

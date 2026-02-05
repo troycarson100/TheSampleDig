@@ -15,6 +15,9 @@ interface SavedSample {
   thumbnailUrl: string
   genre?: string | null
   era?: string | null
+  bpm?: number | null
+  key?: string | null
+  analysisStatus?: string | null
   savedAt: string
   startTime?: number
 }
@@ -181,6 +184,9 @@ export default function ProfilePage() {
                     channel={selectedSample.channel}
                     genre={selectedSample.genre}
                     era={selectedSample.era}
+                    bpm={selectedSample.bpm}
+                    key={selectedSample.key}
+                    analysisStatus={selectedSample.analysisStatus}
                     autoplay={true}
                     startTime={selectedSample.startTime}
                     isSaved={true}
@@ -256,7 +262,7 @@ export default function ProfilePage() {
                         {sample.title}
                       </h3>
                       <p className="text-gray-400 text-xs mb-2">{sample.channel}</p>
-                      {(sample.genre || sample.era) && (
+                      {(sample.genre || sample.era || sample.bpm || sample.key) && (
                         <div className="flex gap-2 flex-wrap">
                           {sample.genre && (
                             <span className="px-2 py-1 bg-purple-600/30 text-purple-300 rounded text-xs">
@@ -266,6 +272,16 @@ export default function ProfilePage() {
                           {sample.era && (
                             <span className="px-2 py-1 bg-purple-600/30 text-purple-300 rounded text-xs">
                               {sample.era}
+                            </span>
+                          )}
+                          {sample.bpm && (
+                            <span className="px-2 py-1 bg-blue-600/30 text-blue-300 rounded text-xs font-mono">
+                              {sample.bpm} BPM
+                            </span>
+                          )}
+                          {sample.key && (
+                            <span className="px-2 py-1 bg-green-600/30 text-green-300 rounded text-xs font-mono">
+                              {sample.key}
                             </span>
                           )}
                         </div>

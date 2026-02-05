@@ -5,69 +5,69 @@ const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/search"
 
 // Curated search queries targeting rare vinyl samples
 // Prioritize static vinyl record videos (image of record with audio)
-// Exclude review videos, people talking, live performances, etc.
+// Exclude review videos, people talking, live performances, covers, etc.
 const SEARCH_QUERIES = [
   // Bossa Nova & Brazilian - Prioritize vinyl record videos
-  "bossa nova 1970s vinyl rip record spinning -review -reaction -talking -live -performance",
-  "rare bossa nova vinyl record image -review -talking -discussion -live",
-  "brazilian jazz 1960s full album vinyl -review -reaction -live -performance",
-  "obscure bossa nova LP record -review -reaction -unboxing -live",
-  "bossa nova drum break vinyl rip -review -talking -live -performance",
-  "brazilian jazz sample vinyl record -review -explained -live",
+  "bossa nova 1970s vinyl rip record spinning -review -reaction -talking -live -performance -cover -covers -playing",
+  "rare bossa nova vinyl record image -review -talking -discussion -live -cover -covers -playing",
+  "brazilian jazz 1960s full album vinyl -review -reaction -live -performance -cover -covers -playing",
+  "obscure bossa nova LP record -review -reaction -unboxing -live -cover -covers -playing",
+  "bossa nova drum break vinyl rip -review -talking -live -performance -cover -covers -playing",
+  "brazilian jazz sample vinyl record -review -explained -live -cover -covers -playing",
   
   // Prog & Psychedelic - Prioritize vinyl record videos
-  "prog psychedelic jazz groove vinyl record -review -reaction -live -performance",
-  "rare prog rock sample break vinyl rip -review -talking -discussion -live",
-  "psychedelic jazz 1970s full album vinyl -review -reaction -live",
-  "obscure prog rock vinyl rip record -review -unboxing -live",
-  "prog rock drum break vinyl -review -talking -live -performance",
-  "psychedelic jazz loop vinyl record -review -explained -live",
+  "prog psychedelic jazz groove vinyl record -review -reaction -live -performance -cover -covers -playing",
+  "rare prog rock sample break vinyl rip -review -talking -discussion -live -cover -covers -playing",
+  "psychedelic jazz 1970s full album vinyl -review -reaction -live -cover -covers -playing",
+  "obscure prog rock vinyl rip record -review -unboxing -live -cover -covers -playing",
+  "prog rock drum break vinyl -review -talking -live -performance -cover -covers -playing",
+  "psychedelic jazz loop vinyl record -review -explained -live -cover -covers -playing",
   
   // Jazz & Fusion - Prioritize vinyl record videos
-  "rare jazz vinyl 1970s record spinning -review -reaction -talking -live",
-  "obscure jazz sample break vinyl rip -review -talking -discussion -live",
-  "jazz fusion 1970s full album vinyl -review -reaction -live",
-  "rare groove jazz instrumental vinyl record -review -reaction -interview -live",
-  "jazz drum break vinyl rip -review -talking -live",
-  "jazz fusion sample vinyl -review -explained -live",
+  "rare jazz vinyl 1970s record spinning -review -reaction -talking -live -cover -covers -playing",
+  "obscure jazz sample break vinyl rip -review -talking -discussion -live -cover -covers -playing",
+  "jazz fusion 1970s full album vinyl -review -reaction -live -cover -covers -playing",
+  "rare groove jazz instrumental vinyl record -review -reaction -interview -live -cover -covers -playing",
+  "jazz drum break vinyl rip -review -talking -live -cover -covers -playing",
+  "jazz fusion sample vinyl -review -explained -live -cover -covers -playing",
   
   // Funk & Soul - Prioritize vinyl record videos
-  "rare funk vinyl 1970s record image -review -reaction -talking -live",
-  "obscure soul sample break vinyl rip -review -talking -discussion -live",
-  "rare groove funk instrumental vinyl -review -reaction -live",
-  "deep funk 1970s vinyl rip record -review -unboxing -live",
-  "funk drum break vinyl -review -talking -live -performance",
-  "soul sample loop vinyl record -review -explained -live",
+  "rare funk vinyl 1970s record image -review -reaction -talking -live -cover -covers -playing",
+  "obscure soul sample break vinyl rip -review -talking -discussion -live -cover -covers -playing",
+  "rare groove funk instrumental vinyl -review -reaction -live -cover -covers -playing",
+  "deep funk 1970s vinyl rip record -review -unboxing -live -cover -covers -playing",
+  "funk drum break vinyl -review -talking -live -performance -cover -covers -playing",
+  "soul sample loop vinyl record -review -explained -live -cover -covers -playing",
   
   // Instrumental & Sample-Friendly Formats - Prioritize vinyl
-  "instrumental jazz 1970s vinyl record -review -talking -type beat -remix -flip -live",
-  "drum break rare vinyl rip -review -reaction -type beat -remix -flip -live",
-  "breakbeat vinyl record spinning -review -talking -type beat -remix -flip -live",
-  "instrumental soul vinyl -review -talking -type beat -remix -flip -live",
+  "instrumental jazz 1970s vinyl record -review -talking -type beat -remix -flip -live -cover -covers -playing",
+  "drum break rare vinyl rip -review -reaction -type beat -remix -flip -live -cover -covers -playing",
+  "breakbeat vinyl record spinning -review -talking -type beat -remix -flip -live -cover -covers -playing",
+  "instrumental soul vinyl -review -talking -type beat -remix -flip -live -cover -covers -playing",
   
   // Full Album & LP Formats - Prioritize vinyl
-  "full album jazz 1970s vinyl -review -reaction -live -performance",
-  "LP vinyl rip funk record -review -talking -live",
-  "complete album soul vinyl -review -discussion -live",
-  "full record jazz vinyl -review -reaction -live",
+  "full album jazz 1970s vinyl -review -reaction -live -performance -cover -covers -playing",
+  "LP vinyl rip funk record -review -talking -live -cover -covers -playing",
+  "complete album soul vinyl -review -discussion -live -cover -covers -playing",
+  "full record jazz vinyl -review -reaction -live -cover -covers -playing",
   
   // General Rare Vinyl - Prioritize static record videos
-  "rare vinyl rip instrumental record spinning -review -reaction -talking -live",
-  "obscure sample break vinyl record -review -talking -discussion -live",
-  "rare groove instrumental vinyl rip -review -reaction -interview -live",
-  "crate digger sample break vinyl -review -talking -live",
-  "vinyl only sample instrumental record -review -talking -discussion -live",
-  "rare record full album vinyl -review -reaction -live",
-  "obscure record LP vinyl rip -review -unboxing -live",
+  "rare vinyl rip instrumental record spinning -review -reaction -talking -live -cover -covers -playing",
+  "obscure sample break vinyl record -review -talking -discussion -live -cover -covers -playing",
+  "rare groove instrumental vinyl rip -review -reaction -interview -live -cover -covers -playing",
+  "crate digger sample break vinyl -review -talking -live -cover -covers -playing",
+  "vinyl only sample instrumental record -review -talking -discussion -live -cover -covers -playing",
+  "rare record full album vinyl -review -reaction -live -cover -covers -playing",
+  "obscure record LP vinyl rip -review -unboxing -live -cover -covers -playing",
   
   // Explicit vinyl record image queries
-  "vinyl record spinning audio", 
-  "record spinning music",
-  "vinyl rip with record image",
-  "old vinyl record audio",
-  "vintage record spinning",
-  "LP record audio",
-  "vinyl record playback"
+  "vinyl record spinning audio -cover -covers -playing", 
+  "record spinning music -cover -covers -playing",
+  "vinyl rip with record image -cover -covers -playing",
+  "old vinyl record audio -cover -covers -playing",
+  "vintage record spinning -cover -covers -playing",
+  "LP record audio -cover -covers -playing",
+  "vinyl record playback -cover -covers -playing"
 ]
 
 // Keywords that indicate review/talking videos (to filter out)
@@ -96,22 +96,26 @@ const EXCLUDE_KEYWORDS = [
   "original beat", "original instrumental",
   "beat instrumental", "instrumental beat",
   "custom beat", "custom type beat",
-  // Performance/playing videos
-  "playing", "plays", "performs", "performance",
-  "live performance", "live at", "live from",
-  "guitar", "guitarist", "playing guitar", "guitar cover",
-  "bass", "bassist", "playing bass",
-  "drums", "drummer", "playing drums", "drum cover",
-  "piano", "pianist", "playing piano", "piano cover",
-  "saxophone", "sax", "playing sax",
-  "trumpet", "trumpeter", "playing trumpet",
-  "violin", "violinist", "playing violin",
-  "covers", "cover song", "cover version",
-  "acoustic", "acoustic version", "acoustic cover",
-  "solo", "solo performance", "solo guitar",
-  "fingerstyle", "fingerpicking",
-  "jam session", "jamming", "improv",
-  "session", "recording session",
+  // Performance/playing videos - IMMEDIATE REJECTION
+  "cover", "covers", "cover song", "cover version", "cover by", "covered by",
+  "playing", "plays", "performs", "performance", "performer",
+  "live performance", "live at", "live from", "live recording", "live session",
+  "guitar", "guitarist", "playing guitar", "guitar cover", "guitar solo", "guitar player",
+  "bass", "bassist", "playing bass", "bass cover", "bass solo", "bass player",
+  "drums", "drummer", "playing drums", "drum cover", "drum solo", "drum player",
+  "piano", "pianist", "playing piano", "piano cover", "piano solo", "piano player",
+  "saxophone", "sax", "playing sax", "sax solo", "sax player",
+  "trumpet", "trumpeter", "playing trumpet", "trumpet solo", "trumpet player",
+  "violin", "violinist", "playing violin", "violin solo", "violin player",
+  "acoustic", "acoustic version", "acoustic cover", "acoustic session",
+  "solo", "solo performance", "solo guitar", "solo bass", "solo piano",
+  "fingerstyle", "fingerpicking", "finger picking",
+  "jam session", "jamming", "improv", "improvisation",
+  "session", "recording session", "studio session",
+  "performed by", "performed live", "live version",
+  "instrumental cover", "instrumental version",
+  "tribute", "tribute to", "in memory of",
+  "recreation", "recreated", "recreating",
   // New additions - talking patterns
   "talks about", "discusses", "explains", "shows", "presents",
   "tells you", "goes through", "walks through", "breaks down",
@@ -239,6 +243,38 @@ function isReviewOrTalkingVideo(
   const descText = (description || "").toLowerCase()
   const tagsText = (tags || []).join(" ").toLowerCase()
   
+  // IMMEDIATE REJECTION - Cover videos (highest priority)
+  const coverKeywords = [
+    "cover", "covers", "cover song", "cover version", "cover by", "covered by",
+    "bass cover", "guitar cover", "drum cover", "piano cover", "instrumental cover"
+  ]
+  
+  for (const keyword of coverKeywords) {
+    if (titleText.includes(keyword)) {
+      console.log(`[Filter] REJECTED: Cover video detected in title: "${title}"`)
+      return true
+    }
+    if (channelText.includes(keyword)) {
+      console.log(`[Filter] REJECTED: Cover channel detected: "${channelTitle}"`)
+      return true
+    }
+  }
+  
+  // IMMEDIATE REJECTION - People playing instruments
+  const playingKeywords = [
+    "playing", "plays", "performs", "performer",
+    "playing bass", "playing guitar", "playing drums", "playing piano",
+    "bassist", "guitarist", "drummer", "pianist",
+    "bass player", "guitar player", "drum player", "piano player"
+  ]
+  
+  for (const keyword of playingKeywords) {
+    if (titleText.includes(keyword)) {
+      console.log(`[Filter] REJECTED: Playing video detected in title: "${title}"`)
+      return true
+    }
+  }
+  
   // Check for beat-making/producer content first (higher weight)
   const beatKeywords = [
     "type beat", "made this beat", "producer", "beatmaker", "beat maker",
@@ -272,7 +308,7 @@ function isReviewOrTalkingVideo(
   
   // Check all exclusion keywords
   const allExcludeKeywords = [...beatKeywords, ...performanceKeywords]
-  
+
   for (const keyword of allExcludeKeywords) {
     if (titleText.includes(keyword)) return true
     if (channelText.includes(keyword)) return true
@@ -480,11 +516,23 @@ async function searchWithQuery(
     
     const text = `${video.snippet.title} ${video.snippet.channelTitle} ${details.description || ""} ${(details.tags || []).join(" ")}`.toLowerCase()
     
+    // Check for cover/playing keywords - reject immediately if found (HIGHEST PRIORITY)
+    const coverKeywords = ["cover", "covers", "cover song", "cover version", "bass cover", "guitar cover", "drum cover", "piano cover", "instrumental cover"]
+    const playingKeywords = ["playing", "plays", "performs", "playing bass", "playing guitar", "playing drums", "bassist", "guitarist", "drummer", "pianist"]
+    const hasCoverKeyword = coverKeywords.some(keyword => text.includes(keyword))
+    const hasPlayingKeyword = playingKeywords.some(keyword => text.includes(keyword))
+    
+    if (hasCoverKeyword || hasPlayingKeyword) {
+      console.log(`[Filter] REJECTED: ${video.snippet.title} - Cover/Playing detected`)
+      continue // Immediately reject cover/playing videos
+    }
+    
     // Check for live/performance keywords - reject immediately if found
     const liveKeywords = ["live", "live at", "live from", "live performance", "live recording", "concert", "gig", "show", "on stage", "stage performance", "performed live", "in concert"]
     const hasLiveKeyword = liveKeywords.some(keyword => text.includes(keyword))
     
     if (hasLiveKeyword) {
+      console.log(`[Filter] REJECTED: ${video.snippet.title} - Live performance detected`)
       continue // Immediately reject live videos
     }
     
