@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, memo } from "react"
 
 interface HeartToggleProps {
   isSaved: boolean
@@ -9,7 +9,7 @@ interface HeartToggleProps {
   className?: string
 }
 
-export default function HeartToggle({
+function HeartToggle({
   isSaved,
   onToggle,
   size = "md",
@@ -52,3 +52,6 @@ export default function HeartToggle({
     </button>
   )
 }
+
+// Memoize to prevent unnecessary re-renders
+export default memo(HeartToggle)

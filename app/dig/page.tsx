@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 import { useSession } from "next-auth/react"
 import SamplePlayer from "@/components/SamplePlayer"
 import DiceButton from "@/components/DiceButton"
@@ -32,6 +32,17 @@ export default function DigPage() {
   const [isSaved, setIsSaved] = useState(false)
   const [autoplay, setAutoplay] = useState(true)
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
+  const isSavedRef = useRef(isSaved)
+  const sampleRef = useRef(sample)
+  
+  // Keep refs in sync with state
+  useEffect(() => {
+    isSavedRef.current = isSaved
+  }, [isSaved])
+  
+  useEffect(() => {
+    sampleRef.current = sample
+  }, [sample])
 
   // Load autoplay preference from localStorage
   useEffect(() => {
@@ -154,13 +165,24 @@ export default function DigPage() {
             console.log(`[Poll ${pollCount}] Status:`, data.analysisStatus, "BPM:", data.bpm, "Key:", data.key)
             
             // Update if analysis completed or we have BPM/key data
+            // Use functional update to preserve object reference when possible
             if (data.analysisStatus === "completed" || data.analysisStatus === "failed" || data.bpm || data.key) {
-              setSample(prev => prev ? {
-                ...prev,
-                bpm: data.bpm ?? prev.bpm,
-                key: data.key ?? prev.key,
-                analysisStatus: data.analysisStatus ?? prev.analysisStatus
-              } : null)
+              setSample(prev => {
+                if (!prev) return null
+                // Only update if values actually changed to prevent unnecessary re-renders
+                const hasChanges = (
+                  prev.bpm !== data.bpm ||
+                  prev.key !== data.key ||
+                  prev.analysisStatus !== data.analysisStatus
+                )
+                if (!hasChanges) return prev // Return same reference if no changes
+                return {
+                  ...prev,
+                  bpm: data.bpm ?? prev.bpm,
+                  key: data.key ?? prev.key,
+                  analysisStatus: data.analysisStatus ?? prev.analysisStatus
+                }
+              })
               if (data.analysisStatus === "completed" || data.analysisStatus === "failed") {
                 console.log(`[Poll] Stopping - analysis ${data.analysisStatus}`)
                 clearInterval(pollInterval)
@@ -199,6 +221,57 @@ export default function DigPage() {
       }
     }
   }
+
+  // Memoize the save toggle handler to prevent unnecessary re-renders
+  // Use refs to keep callback completely stable - no dependencies
+  const handleSaveToggle = useCallback(async () => {
+    const currentSample = sampleRef.current
+    const currentSession = session
+    if (currentSession && currentSample) {
+      const currentlySaved = isSavedRef.current
+      const endpoint = currentlySaved ? "/api/samples/unsave" : "/api/samples/save"
+      console.log("[Frontend] Saving sample:", {
+        sampleId: currentSample.id,
+        youtubeId: currentSample.youtubeId,
+        title: currentSample.title,
+        channel: currentSample.channel,
+        isSaved: currentlySaved
+      })
+      try {
+        const response = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ 
+            sampleId: currentSample.id,
+            startTime: currentSample.startTime || Math.floor(Math.random() * 300) + 30,
+            youtubeId: currentSample.youtubeId,
+            title: currentSample.title,
+            channel: currentSample.channel,
+            thumbnailUrl: currentSample.thumbnailUrl,
+          }),
+        })
+    
+        const data = await response.json()
+        console.log("[Frontend] Save response:", { status: response.status, data })
+    
+        if (response.ok) {
+          // Update state - memoized SamplePlayer will prevent iframe re-render
+          setIsSaved(!currentlySaved)
+          // Trigger sidebar refresh
+          window.dispatchEvent(new CustomEvent('samplesUpdated'))
+        } else {
+          console.error("[Frontend] Save error:", data.error, "Response status:", response.status, "Full data:", data)
+          const errorMsg = data.error || "Failed to save sample"
+          const detailsMsg = data.details ? `\n\nDetails: ${data.details}` : ""
+          const codeMsg = data.code ? `\n\nError Code: ${data.code}` : ""
+          alert(`${errorMsg}${detailsMsg}${codeMsg}\n\nPlease check the console for more details.`)
+        }
+      } catch (error: any) {
+        console.error("[Frontend] Error saving/unsaving:", error)
+        alert(`Failed to save sample: ${error?.message || "Unknown error"}. Please try again.`)
+      }
+    }
+  }, []) // No dependencies - callback is completely stable
 
 
   return (
@@ -285,65 +358,20 @@ export default function DigPage() {
             {sample && (
               <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20 relative">
                 <SamplePlayer
+                  key={sample.youtubeId} // Key based on YouTube ID to prevent remounts when only isSaved changes
                   youtubeId={sample.youtubeId}
                   title={sample.title}
                   channel={sample.channel}
                   genre={sample.genre}
                   era={sample.era}
                   bpm={sample.bpm}
-                  key={sample.key}
+                  musicalKey={sample.key}
                   analysisStatus={sample.analysisStatus}
                   autoplay={autoplay}
                   startTime={sample.startTime}
                   duration={sample.duration}
                   isSaved={isSaved}
-                      onSaveToggle={async () => {
-                        if (session && sample) {
-                          const endpoint = isSaved ? "/api/samples/unsave" : "/api/samples/save"
-                          console.log("[Frontend] Saving sample:", {
-                            sampleId: sample.id,
-                            youtubeId: sample.youtubeId,
-                            title: sample.title,
-                            channel: sample.channel,
-                            isSaved: isSaved
-                          })
-                          try {
-                            const response = await fetch(endpoint, {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ 
-                                sampleId: sample.id,
-                                startTime: sample.startTime || Math.floor(Math.random() * 300) + 30, // Use current startTime or generate one
-                                // Include video metadata in case we need to create the sample on-the-fly
-                                youtubeId: sample.youtubeId,
-                                title: sample.title,
-                                channel: sample.channel,
-                                thumbnailUrl: sample.thumbnailUrl,
-                              }),
-                            })
-                        
-                            const data = await response.json()
-                            console.log("[Frontend] Save response:", { status: response.status, data })
-                        
-                            if (response.ok) {
-                              setIsSaved(!isSaved)
-                              // Trigger sidebar refresh by dispatching a custom event
-                              window.dispatchEvent(new CustomEvent('samplesUpdated'))
-                            } else {
-                              // Show error to user with full details
-                              console.error("[Frontend] Save error:", data.error, "Response status:", response.status, "Full data:", data)
-                              const errorMsg = data.error || "Failed to save sample"
-                              const detailsMsg = data.details ? `\n\nDetails: ${data.details}` : ""
-                              const codeMsg = data.code ? `\n\nError Code: ${data.code}` : ""
-                              const debugMsg = data.debug ? `\n\nDebug: ${JSON.stringify(data.debug)}` : ""
-                              alert(`${errorMsg}${detailsMsg}${codeMsg}${debugMsg}\n\nPlease check the console for more details.`)
-                            }
-                          } catch (error: any) {
-                            console.error("[Frontend] Error saving/unsaving:", error)
-                            alert(`Failed to save sample: ${error?.message || "Unknown error"}. Please try again.`)
-                          }
-                        }
-                      }}
+                  onSaveToggle={handleSaveToggle}
                   showHeart={!!session}
                   onVideoError={() => {
                     // Video is unavailable, automatically get next one

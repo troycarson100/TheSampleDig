@@ -527,6 +527,23 @@ async function searchWithQuery(
       continue // Immediately reject cover/playing videos
     }
     
+    // Check for beat-making/producer content - reject immediately if found (HIGHEST PRIORITY)
+    const beatMakingKeywords = [
+      "type beat", "made this beat", "i made this beat", "producer", "beatmaker", "beat maker",
+      "making beats", "flip", "sample flip", "flipped", "remix", "remixed", "chopped",
+      "lofi beat", "hip hop beat", "rap beat", "trap beat", "beat tape", "beat compilation",
+      "free beat", "beat for sale", "lease", "exclusive beat", "sampled this",
+      "drum kit", "beat breakdown", "how i made", "making of", "beat tutorial",
+      "fl studio", "ableton", "logic pro", "pro tools", "beat making", "beat production",
+      "original beat", "instrumental beat", "custom beat", "custom type beat", "beat instrumental"
+    ]
+    const hasBeatMakingKeyword = beatMakingKeywords.some(keyword => text.includes(keyword))
+    
+    if (hasBeatMakingKeyword) {
+      console.log(`[Filter] REJECTED: ${video.snippet.title} - Beat-making/Producer detected`)
+      continue // Immediately reject beat-making videos
+    }
+    
     // Check for live/performance keywords - reject immediately if found
     const liveKeywords = ["live", "live at", "live from", "live performance", "live recording", "concert", "gig", "show", "on stage", "stage performance", "performed live", "in concert"]
     const hasLiveKeyword = liveKeywords.some(keyword => text.includes(keyword))

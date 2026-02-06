@@ -185,7 +185,7 @@ export default function ProfilePage() {
                     genre={selectedSample.genre}
                     era={selectedSample.era}
                     bpm={selectedSample.bpm}
-                    key={selectedSample.key}
+                        musicalKey={selectedSample.key}
                     analysisStatus={selectedSample.analysisStatus}
                     autoplay={true}
                     startTime={selectedSample.startTime}
