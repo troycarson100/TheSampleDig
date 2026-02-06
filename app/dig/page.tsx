@@ -62,6 +62,36 @@ export default function DigPage() {
     localStorage.setItem("autoplay", autoplay.toString())
   }, [autoplay])
 
+  // Get seen video IDs from sessionStorage
+  const getSeenVideoIds = (): string[] => {
+    if (typeof window === "undefined") return []
+    try {
+      const seen = sessionStorage.getItem("seenVideos")
+      if (!seen) return []
+      const ids = JSON.parse(seen) as string[]
+      // Keep only last 100 to prevent sessionStorage from getting too large
+      return ids.slice(-100)
+    } catch {
+      return []
+    }
+  }
+
+  // Add video ID to seen list
+  const addSeenVideo = (youtubeId: string) => {
+    if (typeof window === "undefined") return
+    try {
+      const seen = getSeenVideoIds()
+      if (!seen.includes(youtubeId)) {
+        seen.push(youtubeId)
+        // Keep only last 100
+        const trimmed = seen.slice(-100)
+        sessionStorage.setItem("seenVideos", JSON.stringify(trimmed))
+      }
+    } catch (error) {
+      console.error("Error saving seen video:", error)
+    }
+  }
+
   const handleDig = async () => {
     // Track if this is a quick skip (user clicked Dig again within 5 seconds)
     const currentTime = Date.now()
@@ -86,7 +116,13 @@ export default function DigPage() {
     setSampleLoadTime(Date.now())
     
     try {
-      const response = await fetch("/api/samples/dig")
+      // Get list of seen videos to exclude
+      const excludedIds = getSeenVideoIds()
+      const url = excludedIds.length > 0 
+        ? `/api/samples/dig?excluded=${excludedIds.join(",")}`
+        : "/api/samples/dig"
+      
+      const response = await fetch(url)
       const responseData = await response.json()
       
       if (!response.ok) {
@@ -112,6 +148,9 @@ export default function DigPage() {
       }
       console.log('Sample loaded:', newSample)
       setSample(newSample)
+      
+      // Add this video to seen list to prevent repeats
+      addSeenVideo(data.youtubeId)
       
       // Check if sample is already saved (only if logged in)
       if (data.id && status === "authenticated") {
@@ -378,11 +417,14 @@ export default function DigPage() {
                   isSaved={isSaved}
                   onSaveToggle={handleSaveToggle}
                   showHeart={!!session}
-                  onVideoError={() => {
-                    // Video is unavailable, automatically get next one
-                    console.log("Video unavailable, fetching next sample...")
-                    handleDig()
-                  }}
+                      onVideoError={() => {
+                        // Video is unavailable, add to seen list and automatically get next one
+                        if (sample?.youtubeId) {
+                          addSeenVideo(sample.youtubeId)
+                        }
+                        console.log("Video unavailable, fetching next sample...")
+                        handleDig()
+                      }}
                 />
               </div>
             )}
@@ -420,6 +462,8 @@ export default function DigPage() {
                       duration: undefined,
                     })
                     setIsSaved(true)
+                    // Add to seen list to prevent it from showing again when rolling dice
+                    addSeenVideo(savedSample.youtubeId)
                   }}
                   currentSampleId={sample?.id}
                 />

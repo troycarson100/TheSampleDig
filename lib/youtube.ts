@@ -459,7 +459,8 @@ async function getChannelReputation(youtubeChannelId: string, channelName: strin
  */
 async function searchWithQuery(
   query: string,
-  strictFiltering: boolean = false
+  strictFiltering: boolean = false,
+  excludedVideoIds: string[] = []
 ): Promise<Array<any>> {
   if (!YOUTUBE_API_KEY) {
     throw new Error("YOUTUBE_API_KEY is not set")
@@ -503,6 +504,12 @@ async function searchWithQuery(
   ]
   
   for (const video of videosToCheck) {
+    // Skip if this video has already been shown
+    if (excludedVideoIds.includes(video.id.videoId)) {
+      console.log(`[Filter] SKIPPED: ${video.snippet.title} - Already shown`)
+      continue
+    }
+    
     // Get video details including duration, description, and tags
     const details = await getVideoDetails(video.id.videoId)
     
@@ -614,8 +621,9 @@ async function searchWithQuery(
 
 /**
  * Search YouTube for a random sample with multi-pass strategy
+ * @param excludedVideoIds - Array of YouTube video IDs to exclude (already shown videos)
  */
-export async function findRandomSample(): Promise<YouTubeVideo & { genre?: string; era?: string; duration?: number }> {
+export async function findRandomSample(excludedVideoIds: string[] = []): Promise<YouTubeVideo & { genre?: string; era?: string; duration?: number }> {
   if (!YOUTUBE_API_KEY) {
     throw new Error("YOUTUBE_API_KEY is not set")
   }
@@ -624,26 +632,31 @@ export async function findRandomSample(): Promise<YouTubeVideo & { genre?: strin
   const strictQueries = SEARCH_QUERIES.filter(q => q.includes("instrumental") || q.includes("full album") || q.includes("drum break"))
   const strictQuery = strictQueries[Math.floor(Math.random() * strictQueries.length)]
   
-  let validVideos = await searchWithQuery(strictQuery, true)
+  let validVideos = await searchWithQuery(strictQuery, true, excludedVideoIds)
   let usedQuery = strictQuery
   
   // Second pass: If no results, try broader queries with normal filtering
   if (validVideos.length === 0) {
     const query = getRandomSearchQuery()
     usedQuery = query
-    validVideos = await searchWithQuery(query, false)
+    validVideos = await searchWithQuery(query, false, excludedVideoIds)
   }
   
   // Third pass: If still no results, try even broader search
   if (validVideos.length === 0) {
     const fallbackQuery = "rare vinyl -review -talking"
     usedQuery = fallbackQuery
-    validVideos = await searchWithQuery(fallbackQuery, false)
+    validVideos = await searchWithQuery(fallbackQuery, false, excludedVideoIds)
   }
 
   if (validVideos.length === 0) {
-    // Last resort: try again with a different query
-    return findRandomSample()
+    // If we've excluded too many videos, try again with fewer exclusions (last 50 only)
+    if (excludedVideoIds.length > 50) {
+      const recentExclusions = excludedVideoIds.slice(-50)
+      return findRandomSample(recentExclusions)
+    }
+    // Last resort: try again with a different query (but keep exclusions)
+    return findRandomSample(excludedVideoIds)
   }
 
   try {

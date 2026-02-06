@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { findRandomSample } from "@/lib/youtube"
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     // Check if YouTube API key is configured
     if (!process.env.YOUTUBE_API_KEY || process.env.YOUTUBE_API_KEY === "") {
@@ -13,10 +13,19 @@ export async function GET() {
       )
     }
 
+    // Get excluded video IDs from query params (videos already shown)
+    const { searchParams } = new URL(request.url)
+    const excludedParam = searchParams.get("excluded")
+    const excludedVideoIds: string[] = excludedParam ? excludedParam.split(",").filter(id => id.length === 11) : []
+    
+    if (excludedVideoIds.length > 0) {
+      console.log(`[Dig] Excluding ${excludedVideoIds.length} previously shown videos`)
+    }
+
     let video
     try {
       console.log(`[Dig] Calling findRandomSample...`)
-      video = await findRandomSample()
+      video = await findRandomSample(excludedVideoIds)
       console.log(`[Dig] ✓ Found video: ${video.id} - ${video.title}`)
     } catch (youtubeError: any) {
       console.error("[Dig] ✗ YouTube API error:", youtubeError)
