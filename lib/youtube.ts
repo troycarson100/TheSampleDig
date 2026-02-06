@@ -78,7 +78,7 @@ const EXCLUDE_KEYWORDS = [
   "unboxing", "unbox", "first listen", "first impression",
   // Beat making and producer content
   "type beat", "type beat", "made this beat", "i made this beat",
-  "producer", "beatmaker", "beat maker", "making beats",
+  "producer", "beatmaker", "beat maker", "beatmaking", "making beats",
   "flip", "sample flip", "flipped", "remix", "remixed",
   "chopped", "chopped up", "chopped and screwed",
   "lofi beat", "lofi hip hop", "lofi hiphop",
@@ -149,9 +149,10 @@ function getRandomSearchQuery(): string {
 
 /**
  * Extract genre and era from search query and video metadata
+ * Checks title, description, tags, and query equally - first pattern match wins
  */
-function extractMetadata(query: string, description?: string, tags?: string[]): { genre?: string; era?: string; label?: string } {
-  const allText = `${query} ${description || ""} ${(tags || []).join(" ")}`.toLowerCase()
+function extractMetadata(query: string, title?: string, description?: string, tags?: string[]): { genre?: string; era?: string; label?: string } {
+  const allText = `${query} ${title || ""} ${description || ""} ${(tags || []).join(" ")}`.toLowerCase()
   
   // Genre detection - check query first, then description/tags
   const genrePatterns = [
@@ -277,11 +278,11 @@ function isReviewOrTalkingVideo(
   
   // Check for beat-making/producer content first (higher weight)
   const beatKeywords = [
-    "type beat", "made this beat", "producer", "beatmaker", "beat maker",
+    "type beat", "made this beat", "producer", "beatmaker", "beat maker", "beatmaking",
     "flip", "sample flip", "remix", "chopped", "lofi beat", "hip hop beat",
     "rap beat", "trap beat", "beat tape", "free beat", "beat for sale",
     "sampled this", "drum kit", "beat breakdown", "fl studio", "ableton",
-    "beat making", "original beat", "instrumental beat"
+    "beat making", "original beat", "instrumental beat", "midi controller", "mpd", "mpc", "akai"
   ]
   
   // Check for performance/playing videos - more aggressive filtering
@@ -529,13 +530,14 @@ async function searchWithQuery(
     
     // Check for beat-making/producer content - reject immediately if found (HIGHEST PRIORITY)
     const beatMakingKeywords = [
-      "type beat", "made this beat", "i made this beat", "producer", "beatmaker", "beat maker",
+      "type beat", "made this beat", "i made this beat", "producer", "beatmaker", "beat maker", "beatmaking",
       "making beats", "flip", "sample flip", "flipped", "remix", "remixed", "chopped",
       "lofi beat", "hip hop beat", "rap beat", "trap beat", "beat tape", "beat compilation",
       "free beat", "beat for sale", "lease", "exclusive beat", "sampled this",
       "drum kit", "beat breakdown", "how i made", "making of", "beat tutorial",
       "fl studio", "ableton", "logic pro", "pro tools", "beat making", "beat production",
-      "original beat", "instrumental beat", "custom beat", "custom type beat", "beat instrumental"
+      "original beat", "instrumental beat", "custom beat", "custom type beat", "beat instrumental",
+      "midi controller", "mpd", "mpc", "akai", "making a beat", "creating a beat"
     ]
     const hasBeatMakingKeyword = beatMakingKeywords.some(keyword => text.includes(keyword))
     
@@ -621,21 +623,21 @@ export async function findRandomSample(): Promise<YouTubeVideo & { genre?: strin
   // First pass: Try with strict filtering
   const strictQueries = SEARCH_QUERIES.filter(q => q.includes("instrumental") || q.includes("full album") || q.includes("drum break"))
   const strictQuery = strictQueries[Math.floor(Math.random() * strictQueries.length)]
-  const metadata = extractMetadata(strictQuery)
   
   let validVideos = await searchWithQuery(strictQuery, true)
+  let usedQuery = strictQuery
   
   // Second pass: If no results, try broader queries with normal filtering
   if (validVideos.length === 0) {
     const query = getRandomSearchQuery()
-    const queryMetadata = extractMetadata(query)
-    Object.assign(metadata, queryMetadata) // Merge metadata
+    usedQuery = query
     validVideos = await searchWithQuery(query, false)
   }
   
   // Third pass: If still no results, try even broader search
   if (validVideos.length === 0) {
     const fallbackQuery = "rare vinyl -review -talking"
+    usedQuery = fallbackQuery
     validVideos = await searchWithQuery(fallbackQuery, false)
   }
 
@@ -645,7 +647,6 @@ export async function findRandomSample(): Promise<YouTubeVideo & { genre?: strin
   }
 
   try {
-
     // Prioritize preferred duration videos (2-10 minutes)
     const preferredVideos = validVideos.filter(v => v.preferred)
     const candidates = preferredVideos.length > 0 ? preferredVideos : validVideos
@@ -653,6 +654,19 @@ export async function findRandomSample(): Promise<YouTubeVideo & { genre?: strin
     // Randomly select from candidates
     const randomIndex = Math.floor(Math.random() * candidates.length)
     const video = candidates[randomIndex]
+
+    // Get video details including description and tags for accurate genre detection
+    // Note: getVideoDetails is already called in searchWithQuery, but we need it here for metadata extraction
+    const videoDetails = await getVideoDetails(video.id.videoId)
+    
+    // Extract metadata AFTER video selection using actual video title, description, and tags
+    // This ensures genre is determined from the actual video content, not just the search query
+    const metadata = extractMetadata(
+      usedQuery, // Keep query for context
+      video.snippet.title, // Video title - important for genre detection
+      videoDetails?.description, // Video description
+      videoDetails?.tags // Video tags
+    )
 
     return {
       id: video.id.videoId,

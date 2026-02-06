@@ -34,6 +34,7 @@ export default function DigPage() {
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
   const isSavedRef = useRef(isSaved)
   const sampleRef = useRef(sample)
+  const sessionRef = useRef(session)
   
   // Keep refs in sync with state
   useEffect(() => {
@@ -43,6 +44,10 @@ export default function DigPage() {
   useEffect(() => {
     sampleRef.current = sample
   }, [sample])
+  
+  useEffect(() => {
+    sessionRef.current = session
+  }, [session])
 
   // Load autoplay preference from localStorage
   useEffect(() => {
@@ -226,7 +231,7 @@ export default function DigPage() {
   // Use refs to keep callback completely stable - no dependencies
   const handleSaveToggle = useCallback(async () => {
     const currentSample = sampleRef.current
-    const currentSession = session
+    const currentSession = sessionRef.current
     if (currentSession && currentSample) {
       const currentlySaved = isSavedRef.current
       const endpoint = currentlySaved ? "/api/samples/unsave" : "/api/samples/save"
