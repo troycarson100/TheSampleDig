@@ -1,11 +1,72 @@
 import { YouTubeVideo } from "@/types/sample"
+import {
+  VINYL_RIP_KEYWORDS,
+  NEGATIVE_KEYWORDS,
+  HARD_FILTER_PATTERNS,
+  SCORING_WEIGHTS,
+  DURATION_PATTERNS
+} from "./youtube-config"
 
 const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/search"
 
-// Curated search queries targeting rare vinyl samples
-// Prioritize static vinyl record videos (image of record with audio)
-// Exclude review videos, people talking, live performances, covers, etc.
+/**
+ * Generate high-signal query templates
+ * Rotates through templates that strongly correlate with record-rip uploads
+ */
+function generateQueryTemplates(): string[] {
+  const templates: string[] = []
+  
+  // Template 1: Rare groove + vinyl rip + full album
+  templates.push(`"rare groove" "vinyl rip" "full album" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 2: Library music + needle drop
+  templates.push(`"library music" "needle drop" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 3: 45 rpm + from vinyl
+  templates.push(`"45 rpm" "from vinyl" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 4: Full LP + vinyl rip
+  templates.push(`"full LP" "vinyl rip" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 5: Private press + needle drop
+  templates.push(`"private press" "needle drop" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 6: Obscure + vinyl rip + instrumental
+  templates.push(`"obscure" "vinyl rip" "instrumental" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 7: Rare soul + from vinyl
+  templates.push(`"rare soul" "from vinyl" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 8: B-side + 45 rpm
+  templates.push(`"b-side" "45 rpm" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 9: Library music + KPM/Bruton
+  templates.push(`"library music" "KPM" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  templates.push(`"library music" "Bruton" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 10: Full EP + vinyl rip
+  templates.push(`"full EP" "vinyl rip" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 11: 7 inch + from vinyl
+  templates.push(`"7 inch" "from vinyl" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 12: Promo + vinyl rip
+  templates.push(`"promo" "vinyl rip" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 13: Crate digger + needle drop
+  templates.push(`"crate digger" "needle drop" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 14: Deep funk + vinyl rip
+  templates.push(`"deep funk" "vinyl rip" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  // Template 15: Psych + full album + vinyl
+  templates.push(`"psych" "full album" "vinyl" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  
+  return templates
+}
+
+// Legacy queries (kept for backward compatibility, will be phased out)
 const SEARCH_QUERIES = [
   // Bossa Nova & Brazilian - Prioritize vinyl record videos
   "bossa nova 1970s vinyl rip record spinning -review -reaction -talking -live -performance -cover -covers -playing",
@@ -141,10 +202,18 @@ const EXCLUDE_KEYWORDS = [
 ]
 
 /**
- * Get a random search query from the curated list
+ * Get a random search query from the curated list (legacy)
  */
 function getRandomSearchQuery(): string {
   return SEARCH_QUERIES[Math.floor(Math.random() * SEARCH_QUERIES.length)]
+}
+
+/**
+ * Get a random high-signal query template
+ */
+function getRandomQueryTemplate(): string {
+  const templates = generateQueryTemplates()
+  return templates[Math.floor(Math.random() * templates.length)]
 }
 
 /**
@@ -455,7 +524,192 @@ async function getChannelReputation(youtubeChannelId: string, channelName: strin
 }
 
 /**
- * Search YouTube with a specific query and return filtered results
+ * Hard filter: Remove obvious bad matches before scoring
+ * Returns true if video should be rejected immediately
+ */
+function shouldHardFilter(
+  title: string,
+  channelTitle: string,
+  description?: string
+): boolean {
+  const titleLower = title.toLowerCase()
+  const channelLower = channelTitle.toLowerCase()
+  const descLower = (description || "").toLowerCase()
+  
+  // Check title/channel patterns
+  for (const pattern of HARD_FILTER_PATTERNS.titleChannel) {
+    if (titleLower.includes(pattern) || channelLower.includes(pattern)) {
+      console.log(`[Hard Filter] REJECTED: ${title} - Matches pattern: ${pattern}`)
+      return true
+    }
+  }
+  
+  // Check description patterns
+  for (const pattern of HARD_FILTER_PATTERNS.description) {
+    if (descLower.includes(pattern)) {
+      console.log(`[Hard Filter] REJECTED: ${title} - Description matches: ${pattern}`)
+      return true
+    }
+  }
+  
+  return false
+}
+
+/**
+ * Calculate VinylRipScore (0-100) for a candidate video
+ */
+function calculateVinylRipScore(
+  title: string,
+  channelTitle: string,
+  description: string,
+  duration: number,
+  channelReputation: number
+): number {
+  let score = 0
+  const titleLower = title.toLowerCase()
+  const channelLower = channelTitle.toLowerCase()
+  const descLower = description.toLowerCase()
+  
+  // POSITIVE SIGNALS
+  
+  // Title: Vinyl rip keywords (highest weight)
+  const vinylRipTerms = ["vinyl rip", "needle drop", "needledrop", "from vinyl"]
+  for (const term of vinylRipTerms) {
+    if (titleLower.includes(term)) {
+      score += SCORING_WEIGHTS.title.vinylRip
+      break // Only count once
+    }
+  }
+  
+  // Title: Format indicators
+  for (const format of VINYL_RIP_KEYWORDS.format) {
+    if (titleLower.includes(format)) {
+      score += SCORING_WEIGHTS.title.format
+      break
+    }
+  }
+  
+  // Title: Library music labels
+  for (const label of VINYL_RIP_KEYWORDS.libraryMusic) {
+    if (titleLower.includes(label)) {
+      score += SCORING_WEIGHTS.title.libraryMusic
+      break
+    }
+  }
+  
+  // Title: Private press / rare groove
+  for (const term of VINYL_RIP_KEYWORDS.genre) {
+    if (titleLower.includes(term)) {
+      score += SCORING_WEIGHTS.title.privatePress
+      break
+    }
+  }
+  
+  // Description: Vinyl-related terms
+  const vinylTerms = ["rip", "needle", "turntable", "vinyl", "record"]
+  for (const term of vinylTerms) {
+    if (descLower.includes(term)) {
+      score += SCORING_WEIGHTS.description.vinylTerms
+      break
+    }
+  }
+  
+  // Duration: Single track (1:30-8:00)
+  if (duration >= DURATION_PATTERNS.singleTrack.min && duration <= DURATION_PATTERNS.singleTrack.max) {
+    score += SCORING_WEIGHTS.duration.singleTrack
+  }
+  
+  // Duration: Full album (20:00-70:00)
+  if (duration >= DURATION_PATTERNS.fullAlbum.min && duration <= DURATION_PATTERNS.fullAlbum.max) {
+    score += SCORING_WEIGHTS.duration.fullAlbum
+  }
+  
+  // Channel: Rip/dig channel indicators
+  const channelIndicators = ["records", "vinyl", "rare groove", "45", "LP", "archives", "library music"]
+  for (const indicator of channelIndicators) {
+    if (channelLower.includes(indicator)) {
+      score += SCORING_WEIGHTS.channel.ripChannel
+      break
+    }
+  }
+  
+  // Channel reputation boost (0.0-1.0, convert to 0-20 points)
+  score += Math.round(channelReputation * 20)
+  
+  // NEGATIVE SIGNALS
+  
+  // Interview/talking patterns (high penalty)
+  const interviewTerms = ["interview", "interviews", "talks about", "discusses", "explains", "what i think", "my thoughts", "opinion on"]
+  for (const term of interviewTerms) {
+    if (titleLower.includes(term) || descLower.includes(term)) {
+      score += SCORING_WEIGHTS.negative.interview
+      break
+    }
+  }
+  
+  // Filming/equipment patterns (high penalty)
+  // These indicate videos about the equipment/process, not actual audio rips
+  const filmingTerms = [
+    "filming", "filming my", "my record player", "record player setup", 
+    "turntable setup", "equipment", "gear", "setup", "unboxing",
+    "showing my", "my collection", "collection tour", "what's in my"
+  ]
+  for (const term of filmingTerms) {
+    if (titleLower.includes(term) || descLower.includes(term)) {
+      score += SCORING_WEIGHTS.negative.filming
+      break
+    }
+  }
+  
+  // If title mentions "record player" but doesn't have strong vinyl rip signals, penalize
+  // This catches videos like "Filming my record player" or "My record player setup"
+  if (titleLower.includes("record player") || titleLower.includes("turntable")) {
+    const hasStrongSignal = titleLower.includes("vinyl rip") || 
+                           titleLower.includes("needle drop") || 
+                           titleLower.includes("from vinyl") ||
+                           titleLower.includes("full album") ||
+                           titleLower.includes("45 rpm")
+    if (!hasStrongSignal) {
+      score += SCORING_WEIGHTS.negative.filming // Additional penalty
+    }
+  }
+  
+  // Review/reaction patterns (high penalty)
+  const reviewTerms = ["review", "reviews", "reaction", "reacts to", "breakdown", "analysis", "explained", "first listen", "unboxing"]
+  for (const term of reviewTerms) {
+    if (titleLower.includes(term) || descLower.includes(term)) {
+      score += SCORING_WEIGHTS.negative.review
+      break
+    }
+  }
+  
+  // Live/cover/lesson/tutorial/session/performance
+  const negativeTerms = ["live", "cover", "lesson", "tutorial", "session", "performance", "playing"]
+  for (const term of negativeTerms) {
+    if (titleLower.includes(term) || descLower.includes(term)) {
+      score += SCORING_WEIGHTS.negative.liveCover
+      break
+    }
+  }
+  
+  // Timestamps pattern (common in lessons/covers)
+  // Look for patterns like "00:00", "0:00", "1:23" followed by text
+  const timestampPattern = /\d{1,2}:\d{2}\s+(intro|verse|chorus|bridge|solo|break|outro)/i
+  if (descLower.match(timestampPattern)) {
+    score += SCORING_WEIGHTS.negative.timestamps
+  }
+  
+  // Very short clips (<45s)
+  if (duration < 45) {
+    score += SCORING_WEIGHTS.negative.shortClip
+  }
+  
+  // Clamp score to 0-100
+  return Math.max(0, Math.min(100, score))
+}
+
+/**
+ * Search YouTube with a specific query and return filtered + scored results
  */
 async function searchWithQuery(
   query: string,
@@ -490,23 +744,15 @@ async function searchWithQuery(
     return []
   }
 
-  // Filter and score videos - prioritize static vinyl record videos
-  // Limit to first 20 videos to speed up processing
-  const videosToCheck = data.items.slice(0, 20)
+  // Filter and score videos using new algorithm
+  // Limit to first 50 videos to get good candidates
+  const videosToCheck = data.items.slice(0, 50)
   const scoredVideos = []
   
-  // Keywords that indicate desirable static vinyl record videos
-  const vinylRecordKeywords = [
-    "vinyl record", "record spinning", "vinyl rip", "LP record",
-    "vinyl LP", "record image", "vinyl playback", "record audio",
-    "old vinyl", "vintage record", "vinyl album", "LP audio",
-    "full album vinyl", "vinyl only", "record player"
-  ]
-  
   for (const video of videosToCheck) {
-    // Skip if this video has already been shown
+    // Skip if this video has already been shown (CRITICAL: Check first, before any processing)
     if (excludedVideoIds.includes(video.id.videoId)) {
-      console.log(`[Filter] SKIPPED: ${video.snippet.title} - Already shown`)
+      console.log(`[Filter] SKIPPED: ${video.snippet.title} (${video.id.videoId}) - Already shown (${excludedVideoIds.length} total excluded)`)
       continue
     }
     
@@ -517,106 +763,56 @@ async function searchWithQuery(
       continue
     }
     
-    // Check duration: prefer 2-10 minutes (120-600 seconds), but allow 30s-30min
-    if (details.duration < 30 || details.duration > 1800) {
+    // Hard filter: Remove obvious bad matches before scoring
+    if (shouldHardFilter(video.snippet.title, video.snippet.channelTitle, details.description)) {
       continue
     }
     
-    const text = `${video.snippet.title} ${video.snippet.channelTitle} ${details.description || ""} ${(details.tags || []).join(" ")}`.toLowerCase()
-    
-    // Check for cover/playing keywords - reject immediately if found (HIGHEST PRIORITY)
-    const coverKeywords = ["cover", "covers", "cover song", "cover version", "bass cover", "guitar cover", "drum cover", "piano cover", "instrumental cover"]
-    const playingKeywords = ["playing", "plays", "performs", "playing bass", "playing guitar", "playing drums", "bassist", "guitarist", "drummer", "pianist"]
-    const hasCoverKeyword = coverKeywords.some(keyword => text.includes(keyword))
-    const hasPlayingKeyword = playingKeywords.some(keyword => text.includes(keyword))
-    
-    if (hasCoverKeyword || hasPlayingKeyword) {
-      console.log(`[Filter] REJECTED: ${video.snippet.title} - Cover/Playing detected`)
-      continue // Immediately reject cover/playing videos
-    }
-    
-    // Check for beat-making/producer content - reject immediately if found (HIGHEST PRIORITY)
-    const beatMakingKeywords = [
-      "type beat", "made this beat", "i made this beat", "producer", "beatmaker", "beat maker", "beatmaking",
-      "making beats", "flip", "sample flip", "flipped", "remix", "remixed", "chopped",
-      "lofi beat", "hip hop beat", "rap beat", "trap beat", "beat tape", "beat compilation",
-      "free beat", "beat for sale", "lease", "exclusive beat", "sampled this",
-      "drum kit", "beat breakdown", "how i made", "making of", "beat tutorial",
-      "fl studio", "ableton", "logic pro", "pro tools", "beat making", "beat production",
-      "original beat", "instrumental beat", "custom beat", "custom type beat", "beat instrumental",
-      "midi controller", "mpd", "mpc", "akai", "making a beat", "creating a beat"
-    ]
-    const hasBeatMakingKeyword = beatMakingKeywords.some(keyword => text.includes(keyword))
-    
-    if (hasBeatMakingKeyword) {
-      console.log(`[Filter] REJECTED: ${video.snippet.title} - Beat-making/Producer detected`)
-      continue // Immediately reject beat-making videos
-    }
-    
-    // Check for live/performance keywords - reject immediately if found
-    const liveKeywords = ["live", "live at", "live from", "live performance", "live recording", "concert", "gig", "show", "on stage", "stage performance", "performed live", "in concert"]
-    const hasLiveKeyword = liveKeywords.some(keyword => text.includes(keyword))
-    
-    if (hasLiveKeyword) {
-      console.log(`[Filter] REJECTED: ${video.snippet.title} - Live performance detected`)
-      continue // Immediately reject live videos
-    }
-    
-    // Skip review/talking videos using enhanced metadata checking
-    // Use stricter threshold if strictFiltering is true
-    const excludeThreshold = strictFiltering ? 2 : 3
-    const excludeMatches = EXCLUDE_KEYWORDS.filter(keyword => text.includes(keyword)).length
-    
-    if (excludeMatches >= excludeThreshold) {
+    // Duration filter: Allow 30s-70min (vinyl rips can be short tracks or full albums)
+    if (details.duration < 30 || details.duration > 4200) {
       continue
     }
     
-    // Score video based on desirable keywords (vinyl record indicators)
-    let score = 0
-    for (const keyword of vinylRecordKeywords) {
-      if (text.includes(keyword)) {
-        score += 2 // Boost score for vinyl record keywords
-      }
+    // Get channel reputation
+    const channelReputation = await getChannelReputation(
+      video.snippet.channelId || video.snippet.channelTitle,
+      video.snippet.channelTitle
+    )
+    
+    // Calculate VinylRipScore
+    const vinylRipScore = calculateVinylRipScore(
+      video.snippet.title,
+      video.snippet.channelTitle,
+      details.description || "",
+      details.duration,
+      channelReputation
+    )
+    
+    // Only include videos with score >= 10 (filter out low-quality matches)
+    // This ensures we only get high-signal vinyl rips, not borderline cases
+    if (vinylRipScore >= 10) {
+      scoredVideos.push({
+        ...video,
+        details,
+        vinylRipScore,
+        duration: details.duration,
+        description: details.description,
+        tags: details.tags,
+        channelReputation
+      })
     }
     
-    // Prefer videos with "full album", "LP", "vinyl" in title
-    if (video.snippet.title.toLowerCase().includes("vinyl") || 
-        video.snippet.title.toLowerCase().includes("LP") ||
-        video.snippet.title.toLowerCase().includes("full album")) {
-      score += 3 // Extra boost for title matches
-    }
-    
-    // Prefer duration in 2-10 minute range
-    const preferred = details.duration >= 120 && details.duration <= 600
-    if (preferred) {
-      score += 1
-    }
-    
-    scoredVideos.push({
-      ...video,
-      details,
-      score,
-      preferred
-    })
-    
-    // If we have enough valid videos, break early
-    if (scoredVideos.length >= 10) {
+    // If we have enough high-scoring videos, break early
+    if (scoredVideos.length >= 20) {
       break
     }
   }
   
-  // Sort by score (highest first) to prioritize vinyl record videos
-  scoredVideos.sort((a, b) => b.score - a.score)
+  // Sort by VinylRipScore (highest first)
+  scoredVideos.sort((a, b) => b.vinylRipScore - a.vinylRipScore)
   
-  // Return top scored videos with proper structure
-  return scoredVideos.slice(0, 5).map(v => ({
-    ...v,
-    duration: v.details.duration,
-    description: v.details.description,
-    tags: v.details.tags,
-    preferred: v.preferred,
-    channelReputation: 0.5 // Default neutral (reputation check disabled for speed)
-  }))
+  // Return top 10 highest-scoring videos
+  return scoredVideos.slice(0, 10)
 }
 
 /**
@@ -628,57 +824,87 @@ export async function findRandomSample(excludedVideoIds: string[] = []): Promise
     throw new Error("YOUTUBE_API_KEY is not set")
   }
 
-  // First pass: Try with strict filtering
-  const strictQueries = SEARCH_QUERIES.filter(q => q.includes("instrumental") || q.includes("full album") || q.includes("drum break"))
-  const strictQuery = strictQueries[Math.floor(Math.random() * strictQueries.length)]
+  // First pass: Try high-signal query templates
+  const queryTemplate = getRandomQueryTemplate()
+  let validVideos = await searchWithQuery(queryTemplate, false, excludedVideoIds)
+  let usedQuery = queryTemplate
   
-  let validVideos = await searchWithQuery(strictQuery, true, excludedVideoIds)
-  let usedQuery = strictQuery
-  
-  // Second pass: If no results, try broader queries with normal filtering
+  // Second pass: If no results, try another template
   if (validVideos.length === 0) {
-    const query = getRandomSearchQuery()
-    usedQuery = query
-    validVideos = await searchWithQuery(query, false, excludedVideoIds)
+    const queryTemplate2 = getRandomQueryTemplate()
+    usedQuery = queryTemplate2
+    validVideos = await searchWithQuery(queryTemplate2, false, excludedVideoIds)
   }
   
-  // Third pass: If still no results, try even broader search
+  // Third pass: If still no results, try legacy queries as fallback
   if (validVideos.length === 0) {
-    const fallbackQuery = "rare vinyl -review -talking"
+    const fallbackQuery = getRandomSearchQuery()
     usedQuery = fallbackQuery
     validVideos = await searchWithQuery(fallbackQuery, false, excludedVideoIds)
   }
 
   if (validVideos.length === 0) {
+    console.log(`[Dig] No valid videos found with ${excludedVideoIds.length} exclusions`)
     // If we've excluded too many videos, try again with fewer exclusions (last 50 only)
     if (excludedVideoIds.length > 50) {
       const recentExclusions = excludedVideoIds.slice(-50)
+      console.log(`[Dig] Retrying with only last 50 exclusions`)
       return findRandomSample(recentExclusions)
     }
     // Last resort: try again with a different query (but keep exclusions)
+    console.log(`[Dig] Retrying with same exclusions`)
     return findRandomSample(excludedVideoIds)
+  }
+  
+  // Additional safety check: Filter out any excluded videos that might have slipped through
+  const filteredVideos = validVideos.filter(v => !excludedVideoIds.includes(v.id.videoId))
+  if (filteredVideos.length === 0 && validVideos.length > 0) {
+    console.log(`[Dig] All ${validVideos.length} candidates were excluded, retrying...`)
+    // All candidates were excluded - retry
+    return findRandomSample(excludedVideoIds)
+  }
+  
+  // Use filtered list if we filtered anything out
+  if (filteredVideos.length < validVideos.length) {
+    console.log(`[Dig] Filtered out ${validVideos.length - filteredVideos.length} excluded videos from candidates`)
+    validVideos = filteredVideos
   }
 
   try {
-    // Prioritize preferred duration videos (2-10 minutes)
-    const preferredVideos = validVideos.filter(v => v.preferred)
-    const candidates = preferredVideos.length > 0 ? preferredVideos : validVideos
+    // Select from top-scoring videos (prefer top 3, but allow random selection from top 10)
+    // This gives some variety while still prioritizing high scores
+    const topCandidates = validVideos.slice(0, Math.min(3, validVideos.length))
+    const candidates = topCandidates.length > 0 ? topCandidates : validVideos
     
-    // Randomly select from candidates
-    const randomIndex = Math.floor(Math.random() * candidates.length)
-    const video = candidates[randomIndex]
+    // Final safety check: Ensure selected video is not in excluded list
+    const availableCandidates = candidates.filter(v => !excludedVideoIds.includes(v.id.videoId))
+    if (availableCandidates.length === 0) {
+      console.log(`[Dig] All candidates were excluded, retrying...`)
+      return findRandomSample(excludedVideoIds)
+    }
+    
+    // Randomly select from available candidates
+    const randomIndex = Math.floor(Math.random() * availableCandidates.length)
+    const video = availableCandidates[randomIndex]
+    
+    console.log(`[Dig] Selected video with VinylRipScore: ${video.vinylRipScore || 0}/100, YouTube ID: ${video.id.videoId}`)
+    
+    // Double-check this video is not excluded
+    if (excludedVideoIds.includes(video.id.videoId)) {
+      console.error(`[Dig] ERROR: Selected excluded video ${video.id.videoId}! Retrying...`)
+      return findRandomSample(excludedVideoIds)
+    }
 
-    // Get video details including description and tags for accurate genre detection
-    // Note: getVideoDetails is already called in searchWithQuery, but we need it here for metadata extraction
-    const videoDetails = await getVideoDetails(video.id.videoId)
+    // Video details are already fetched in searchWithQuery, use them if available
+    const videoDetails = video.details || await getVideoDetails(video.id.videoId)
     
     // Extract metadata AFTER video selection using actual video title, description, and tags
     // This ensures genre is determined from the actual video content, not just the search query
     const metadata = extractMetadata(
       usedQuery, // Keep query for context
       video.snippet.title, // Video title - important for genre detection
-      videoDetails?.description, // Video description
-      videoDetails?.tags // Video tags
+      videoDetails?.description || video.description, // Video description
+      videoDetails?.tags || video.tags // Video tags
     )
 
     return {
@@ -690,7 +916,7 @@ export async function findRandomSample(excludedVideoIds: string[] = []): Promise
       publishedAt: video.snippet.publishedAt,
       genre: metadata.genre,
       era: metadata.era,
-      duration: video.duration,
+      duration: video.duration || videoDetails?.duration,
     }
   } catch (error) {
     console.error("Error fetching YouTube sample:", error)

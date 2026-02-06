@@ -118,6 +118,8 @@ export default function DigPage() {
     try {
       // Get list of seen videos to exclude
       const excludedIds = getSeenVideoIds()
+      console.log(`[Repeat Prevention] Excluding ${excludedIds.length} videos:`, excludedIds.slice(0, 5).join(", "), excludedIds.length > 5 ? "..." : "")
+      
       const url = excludedIds.length > 0 
         ? `/api/samples/dig?excluded=${excludedIds.join(",")}`
         : "/api/samples/dig"
@@ -141,6 +143,15 @@ export default function DigPage() {
         console.log("Previous sample saved:", sample.title)
       }
       
+      // Add this video to seen list IMMEDIATELY to prevent repeats (before setting sample)
+      // This ensures it's excluded from the next request even if user clicks quickly
+      if (data.youtubeId && data.youtubeId.length === 11) {
+        addSeenVideo(data.youtubeId)
+        console.log(`[Repeat Prevention] Added ${data.youtubeId} to seen list`)
+      } else {
+        console.warn(`[Repeat Prevention] Invalid YouTube ID: ${data.youtubeId}`)
+      }
+      
       // Set the new sample
       const newSample = {
         ...data,
@@ -148,9 +159,6 @@ export default function DigPage() {
       }
       console.log('Sample loaded:', newSample)
       setSample(newSample)
-      
-      // Add this video to seen list to prevent repeats
-      addSeenVideo(data.youtubeId)
       
       // Check if sample is already saved (only if logged in)
       if (data.id && status === "authenticated") {

@@ -12,6 +12,9 @@ interface SavedSample {
   thumbnailUrl: string
   genre?: string | null
   era?: string | null
+  bpm?: number | null
+  key?: string | null
+  analysisStatus?: string | null
   savedAt: string
   startTime?: number
 }

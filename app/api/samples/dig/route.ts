@@ -19,7 +19,7 @@ export async function GET(request: Request) {
     const excludedVideoIds: string[] = excludedParam ? excludedParam.split(",").filter(id => id.length === 11) : []
     
     if (excludedVideoIds.length > 0) {
-      console.log(`[Dig] Excluding ${excludedVideoIds.length} previously shown videos`)
+      console.log(`[Dig] Excluding ${excludedVideoIds.length} previously shown videos:`, excludedVideoIds.slice(0, 5).join(", "), excludedVideoIds.length > 5 ? "..." : "")
     }
 
     let video
