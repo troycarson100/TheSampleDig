@@ -32,6 +32,13 @@ const GENRE_OPTIONS: { value: string; label: string }[] = [
   { value: "world", label: "World" },
 ]
 
+interface Chop {
+  key: string
+  time: number
+  color: string
+  index: number
+}
+
 interface Sample {
   id: string
   youtubeId: string
@@ -45,6 +52,7 @@ interface Sample {
   analysisStatus?: string | null
   startTime?: number
   duration?: number
+  chops?: Chop[]
 }
 
 export default function DigPage() {
@@ -345,7 +353,7 @@ export default function DigPage() {
 
   // Memoize the save toggle handler to prevent unnecessary re-renders
   // Use refs to keep callback completely stable - no dependencies
-  const handleSaveToggle = useCallback(async () => {
+  const handleSaveToggle = useCallback(async (opts?: { chops?: Chop[] }) => {
     const currentSample = sampleRef.current
     const currentSession = sessionRef.current
     if (currentSession && currentSample) {
@@ -356,20 +364,26 @@ export default function DigPage() {
         youtubeId: currentSample.youtubeId,
         title: currentSample.title,
         channel: currentSample.channel,
-        isSaved: currentlySaved
+        isSaved: currentlySaved,
+        chopsCount: opts?.chops?.length ?? 0,
       })
       try {
         const response = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            sampleId: currentSample.id,
-            startTime: currentSample.startTime || Math.floor(Math.random() * 300) + 30,
-            youtubeId: currentSample.youtubeId,
-            title: currentSample.title,
-            channel: currentSample.channel,
-            thumbnailUrl: currentSample.thumbnailUrl,
-          }),
+          body: JSON.stringify(
+            currentlySaved
+              ? { sampleId: currentSample.id }
+              : {
+                  sampleId: currentSample.id,
+                  startTime: currentSample.startTime || Math.floor(Math.random() * 300) + 30,
+                  youtubeId: currentSample.youtubeId,
+                  title: currentSample.title,
+                  channel: currentSample.channel,
+                  thumbnailUrl: currentSample.thumbnailUrl,
+                  chops: opts?.chops,
+                }
+          ),
         })
     
         const data = await response.json()
@@ -402,6 +416,21 @@ export default function DigPage() {
     }
   }, []) // No dependencies - callback is completely stable
 
+  // Auto-save chops when sample is already saved and user edits chops (debounced in SamplePlayer)
+  const handleSavedChopsChange = useCallback(async (chops: Chop[]) => {
+    const currentSample = sampleRef.current
+    if (!currentSample?.id) return
+    try {
+      const res = await fetch("/api/samples/update-chops", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sampleId: currentSample.id, chops }),
+      })
+      if (res.ok) window.dispatchEvent(new CustomEvent("samplesUpdated"))
+    } catch (e) {
+      console.warn("[Dig] Failed to auto-save chops:", e)
+    }
+  }, [])
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
@@ -470,6 +499,8 @@ export default function DigPage() {
                   isSaved={isSaved}
                   onSaveToggle={handleSaveToggle}
                   showHeart={!!session}
+                  initialChops={sample.chops}
+                  onSavedChopsChange={session ? handleSavedChopsChange : undefined}
                   onVideoError={() => {
                     if (sample?.youtubeId) {
                       addSeenVideo(sample.youtubeId)
@@ -492,7 +523,7 @@ export default function DigPage() {
                     if (sample) {
                       setPreviousSample(sample)
                     }
-                    // Load the saved sample as the current sample
+                    // Load the saved sample as the current sample (with saved chops and duration if any)
                     setSample({
                       id: savedSample.id,
                       youtubeId: savedSample.youtubeId,
@@ -505,7 +536,8 @@ export default function DigPage() {
                       key: savedSample.key,
                       analysisStatus: savedSample.analysisStatus,
                       startTime: savedSample.startTime,
-                      duration: undefined,
+                      duration: savedSample.duration,
+                      chops: savedSample.chops,
                     })
                     setIsSaved(true)
                     // Add to seen list to prevent it from showing again when rolling dice

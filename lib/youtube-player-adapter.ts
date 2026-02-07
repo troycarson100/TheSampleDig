@@ -7,6 +7,8 @@ export interface YouTubePlayerAdapter {
   getCurrentTime(): number
   seekTo(seconds: number): void
   play(): void
+  /** 1 = playing, 2 = paused, 0 = ended, 3 = buffering, 5 = cued, -1 = unstarted */
+  getPlayerState(): number
 }
 
 declare global {
@@ -25,6 +27,7 @@ interface YTPlayerInstance {
   getCurrentTime: () => number
   seekTo: (seconds: number, allowSeekAhead: boolean) => void
   playVideo: () => void
+  getPlayerState: () => number
 }
 
 let apiReadyResolve: (() => void) | null = null
@@ -65,6 +68,7 @@ export function createAdapterFromIframe(
           getCurrentTime: () => target.getCurrentTime(),
           seekTo: (seconds: number) => target.seekTo(seconds, true),
           play: () => target.playVideo(),
+          getPlayerState: () => target.getPlayerState(),
         })
       },
     },

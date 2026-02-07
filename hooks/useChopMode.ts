@@ -33,6 +33,8 @@ export interface YouTubePlayerAdapter {
   getCurrentTime(): number
   seekTo(seconds: number): void
   play(): void
+  /** 1 = playing, 2 = paused */
+  getPlayerState?(): number
 }
 
 const SPACE_DEBOUNCE_MS = 250
@@ -40,7 +42,9 @@ const SPACE_DEBOUNCE_MS = 250
 export function useChopMode(
   playerRef: React.RefObject<YouTubePlayerAdapter | null>,
   enabled: boolean,
-  videoId?: string | null
+  videoId?: string | null,
+  initialChops?: Chop[] | null,
+  onAfterChopPlay?: () => void
 ): {
   chops: Chop[]
   clearChops: () => void
@@ -55,8 +59,10 @@ export function useChopMode(
   const pressedKeyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
-    if (videoId != null) setChops([])
-  }, [videoId])
+    if (videoId != null) {
+      setChops(Array.isArray(initialChops) && initialChops.length > 0 ? initialChops : [])
+    }
+  }, [videoId, initialChops])
 
   const clearChops = useCallback(() => {
     setChops([])
@@ -94,10 +100,14 @@ export function useChopMode(
       const adapter = playerRef.current
       if (!adapter) return
       adapter.seekTo(chop.time)
-      adapter.play()
+      const state = adapter.getPlayerState?.()
+      if (state === 2) {
+        adapter.play()
+        onAfterChopPlay?.()
+      }
       setPressedKeyBriefly(key)
     },
-    [enabled, chops, playerRef, setPressedKeyBriefly]
+    [enabled, chops, playerRef, setPressedKeyBriefly, onAfterChopPlay]
   )
 
   const updateChopTime = useCallback((key: string, time: number) => {
@@ -130,7 +140,11 @@ export function useChopMode(
           const adapter = playerRef.current
           if (adapter) {
             adapter.seekTo(chop.time)
-            adapter.play()
+            const state = adapter.getPlayerState?.()
+            if (state === 2) {
+              adapter.play()
+              onAfterChopPlay?.()
+            }
             setPressedKeyBriefly(key)
           }
         }
@@ -139,7 +153,7 @@ export function useChopMode(
 
     window.addEventListener("keydown", handleKeyDown, { capture: true })
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
-  }, [enabled, chops, addChop, playerRef, setPressedKeyBriefly])
+  }, [enabled, chops, addChop, playerRef, setPressedKeyBriefly, onAfterChopPlay])
 
   const slotsFull = chops.length >= CHOP_KEYS.length
 

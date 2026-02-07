@@ -28,20 +28,33 @@ export async function GET() {
       }
     })
 
-    const samples = userSamples.map(us => ({
-      id: us.sample.id,
-      youtubeId: us.sample.youtubeId,
-      title: us.sample.title,
-      channel: us.sample.channel,
-      thumbnailUrl: us.sample.thumbnailUrl,
-      genre: us.sample.genre,
-      era: us.sample.era,
-      bpm: us.sample.bpm,
-      key: us.sample.key,
-      analysisStatus: us.sample.analysisStatus,
-      startTime: us.startTime || undefined,
-      savedAt: us.createdAt,
-    }))
+    const samples = userSamples.map(us => {
+      let chops: unknown = us.chops && Array.isArray(us.chops) ? us.chops : undefined
+      if (!chops && us.notes) {
+        try {
+          const parsed = JSON.parse(us.notes) as unknown
+          if (Array.isArray(parsed) && parsed.length > 0) chops = parsed
+        } catch {
+          // notes was not chops JSON, ignore
+        }
+      }
+      return {
+        id: us.sample.id,
+        youtubeId: us.sample.youtubeId,
+        title: us.sample.title,
+        channel: us.sample.channel,
+        thumbnailUrl: us.sample.thumbnailUrl,
+        genre: us.sample.genre,
+        era: us.sample.era,
+        bpm: us.sample.bpm,
+        key: us.sample.key,
+        analysisStatus: us.sample.analysisStatus,
+        startTime: us.startTime || undefined,
+        duration: us.sample.duration ?? undefined,
+        chops,
+        savedAt: us.createdAt,
+      }
+    })
 
     return NextResponse.json(samples)
   } catch (error: any) {

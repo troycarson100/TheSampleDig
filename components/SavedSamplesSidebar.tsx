@@ -17,6 +17,8 @@ interface SavedSample {
   analysisStatus?: string | null
   savedAt: string
   startTime?: number
+  duration?: number
+  chops?: { key: string; time: number; color: string; index: number }[]
 }
 
 interface SavedSamplesSidebarProps {

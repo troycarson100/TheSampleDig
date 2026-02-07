@@ -66,7 +66,7 @@ export default function ChopTimelineMarkers({
   return (
     <div
       ref={barRef}
-      className="absolute bottom-0 left-0 right-0 h-6 bg-black/40 pointer-events-auto z-10"
+      className="absolute bottom-0 left-0 right-0 h-6 bg-black/50 pointer-events-auto z-20"
       style={{ borderRadius: "0 0 8px 8px" }}
     >
       {chops.map((chop) => {

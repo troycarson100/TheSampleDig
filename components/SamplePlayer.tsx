@@ -1,13 +1,13 @@
 "use client"
 
-import { useEffect, useRef, useMemo, memo, useState } from "react"
+import { useEffect, useRef, useMemo, memo, useState, useCallback } from "react"
 
 import HeartToggle from "./HeartToggle"
 import ChopPads from "./ChopPads"
 import ChopTimelineMarkers from "./ChopTimelineMarkers"
 import { useChopMode } from "@/hooks/useChopMode"
 import { loadYouTubeIframeAPI, createAdapterFromIframe } from "@/lib/youtube-player-adapter"
-import type { YouTubePlayerAdapter } from "@/hooks/useChopMode"
+import type { YouTubePlayerAdapter, Chop } from "@/hooks/useChopMode"
 
 interface SamplePlayerProps {
   youtubeId: string
@@ -22,8 +22,13 @@ interface SamplePlayerProps {
   startTime?: number
   duration?: number // Video duration in seconds
   isSaved?: boolean
-  onSaveToggle?: () => void
+  /** Called when user toggles save. When saving (not unsaving), opts.chops are the active Chop Mode points to store. */
+  onSaveToggle?: (opts?: { chops?: Chop[] }) => void
   showHeart?: boolean
+  /** Restore saved chops when loading a saved sample. */
+  initialChops?: Chop[] | null
+  /** When sample is saved, called (debounced) when chops change so parent can persist them. */
+  onSavedChopsChange?: (chops: Chop[]) => void
   onVideoError?: () => void // Callback when video is unavailable
 }
 
@@ -132,6 +137,8 @@ function SamplePlayer({
   onSaveToggle,
   showHeart = false,
   onVideoError,
+  initialChops,
+  onSavedChopsChange,
 }: SamplePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const youtubeIdRef = useRef<string | null>(null)
@@ -139,11 +146,27 @@ function SamplePlayer({
   const adapterRef = useRef<YouTubePlayerAdapter | null>(null)
   const [chopModeEnabled, setChopModeEnabled] = useState(false)
   const [iframeLoaded, setIframeLoaded] = useState(false)
+  const chopKeysFocusTrapRef = useRef<HTMLDivElement>(null)
+  const onAfterChopPlay = useCallback(() => {
+    chopKeysFocusTrapRef.current?.focus()
+  }, [])
   const { chops, clearChops, slotsFull, onPadKeyPress, updateChopTime, pressedKey } = useChopMode(
     adapterRef,
     chopModeEnabled,
-    youtubeId
+    youtubeId,
+    initialChops,
+    onAfterChopPlay
   )
+
+  // Auto-save chops when sample is already saved and chops change (debounced)
+  const SAVED_CHOPS_DEBOUNCE_MS = 600
+  useEffect(() => {
+    if (!isSaved || !onSavedChopsChange) return
+    const t = setTimeout(() => {
+      onSavedChopsChange(chops)
+    }, SAVED_CHOPS_DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [isSaved, chops, onSavedChopsChange])
   
   // Use a ref to store the initial start time and never change it for this video
   // This prevents the iframe src from changing after initial load
@@ -374,7 +397,7 @@ function SamplePlayer({
           <div className="absolute top-4 right-4 z-10 pointer-events-auto">
             <HeartToggle
               isSaved={isSaved}
-              onToggle={onSaveToggle}
+              onToggle={() => onSaveToggle(isSaved ? undefined : { chops: chops.length > 0 ? chops : undefined })}
               size="lg"
               className="rounded-full p-2 shadow-sm"
               style={{ background: "var(--card)" }}
@@ -392,8 +415,17 @@ function SamplePlayer({
         )}
       </div>
 
-      {/* Chop Mode */}
-      <div className="mt-4 flex flex-col gap-3">
+      {/* Chop Mode: focus trap so chop keys (A–L) work after playing from iframe; clicking this area refocuses the page */}
+      <div
+        className="mt-4 flex flex-col gap-3"
+        onMouseDown={() => chopKeysFocusTrapRef.current?.focus()}
+      >
+        <div
+          ref={chopKeysFocusTrapRef}
+          tabIndex={-1}
+          className="sr-only"
+          aria-label="Focus for chop keys"
+        />
         <div className="flex flex-wrap items-center gap-3">
           <label className="flex items-center gap-2 cursor-pointer">
             <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>Chop Mode</span>
@@ -478,7 +510,9 @@ export default memo(SamplePlayer, (prevProps, nextProps) => {
   
   const otherPropsEqual = (
     prevProps.showHeart === nextProps.showHeart &&
-    prevProps.onVideoError === nextProps.onVideoError
+    prevProps.onVideoError === nextProps.onVideoError &&
+    prevProps.initialChops === nextProps.initialChops &&
+    prevProps.onSavedChopsChange === nextProps.onSavedChopsChange
   )
   
   // onSaveToggle comparison - use reference equality
@@ -486,6 +520,6 @@ export default memo(SamplePlayer, (prevProps, nextProps) => {
   
   // Return true if props are equal (no re-render needed)
   // bpm, key, analysisStatus, and isSaved changes won't trigger iframe re-render
-  // Only youtubeId, autoplay, startTime, duration changes will trigger iframe update
+  // Only youtubeId, autoplay, startTime, duration, initialChops changes will trigger iframe/player update
   return iframePropsEqual && displayMetadataEqual && otherPropsEqual && callbackEqual
 })

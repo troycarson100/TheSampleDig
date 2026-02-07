@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { sampleId: inputSampleId, startTime, youtubeId } = body
+    const { sampleId: inputSampleId, startTime, youtubeId, chops } = body
 
     console.log(`[Save] Request: sampleId=${inputSampleId}, youtubeId=${youtubeId}, userId=${session.user.id}`)
 
@@ -78,13 +78,16 @@ export async function POST(request: Request) {
       )
     }
 
-    // Save the sample
-    console.log(`[Save] Creating UserSample: userId=${session.user.id}, sampleId=${sampleId}`)
+    // Save the sample (chops stored in notes as JSON so it works even if chops column wasn’t migrated)
+    const chopsData = Array.isArray(chops) && chops.length > 0 ? chops : null
+    const notesValue = chopsData ? JSON.stringify(chopsData) : null
+    console.log(`[Save] Creating UserSample: userId=${session.user.id}, sampleId=${sampleId}, chops=${chopsData?.length ?? 0}`)
     await prisma.userSample.create({
       data: {
         userId: session.user.id,
         sampleId: sampleId,
-        startTime: startTime ? parseInt(startTime) : null,
+        startTime: startTime != null ? parseInt(String(startTime), 10) : null,
+        notes: notesValue,
       }
     })
 

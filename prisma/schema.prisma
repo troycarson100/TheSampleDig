@@ -92,6 +92,7 @@ model UserSample {
   sampleId  String   @map("sample_id")
   startTime Int?     @map("start_time")
   notes     String?
+  chops     Json?    // Chop points from Chop Mode: [{ key, time, color, index }]
   createdAt DateTime @default(now()) @map("created_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   sample    Sample   @relation(fields: [sampleId], references: [id], onDelete: Cascade)
