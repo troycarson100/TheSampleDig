@@ -1,8 +1,7 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo } from "react"
 import { useSession } from "next-auth/react"
-import SampleCard from "@/components/SampleCard"
 import Link from "next/link"
 import HeartToggle from "@/components/HeartToggle"
 import SamplePlayer from "@/components/SamplePlayer"
@@ -22,12 +21,16 @@ interface SavedSample {
   startTime?: number
 }
 
+type FilterType = "genre" | "key"
+
 export default function ProfilePage() {
   const { data: session, status } = useSession()
   const [samples, setSamples] = useState<SavedSample[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
   const [selectedSample, setSelectedSample] = useState<SavedSample | null>(null)
+  const [genreFilter, setGenreFilter] = useState<string | null>(null)
+  const [keyFilter, setKeyFilter] = useState<string | null>(null)
 
   useEffect(() => {
     if (session) {
@@ -79,6 +82,39 @@ export default function ProfilePage() {
     const secs = seconds % 60
     return `${mins}:${secs.toString().padStart(2, "0")}`
   }
+
+  // Derive filter options from current samples
+  const genreOptions = useMemo(
+    () => [...new Set(samples.map((s) => s.genre).filter(Boolean))].sort() as string[],
+    [samples]
+  )
+  const keyOptions = useMemo(
+    () => [...new Set(samples.map((s) => s.key).filter(Boolean))].sort() as string[],
+    [samples]
+  )
+
+  // Filter samples by active filters
+  const filteredSamples = useMemo(() => {
+    return samples.filter((s) => {
+      if (genreFilter != null && genreFilter !== "" && s.genre !== genreFilter) return false
+      if (keyFilter != null && keyFilter !== "" && s.key !== keyFilter) return false
+      return true
+    })
+  }, [samples, genreFilter, keyFilter])
+
+  const clearFilter = (type: FilterType) => {
+    if (type === "genre") setGenreFilter(null)
+    if (type === "key") setKeyFilter(null)
+  }
+
+  const hasActiveFilters = genreFilter != null || keyFilter != null
+
+  // Clear selected sample if it's no longer in the filtered list
+  useEffect(() => {
+    if (selectedSample && !filteredSamples.some((s) => s.id === selectedSample.id)) {
+      setSelectedSample(null)
+    }
+  }, [filteredSamples, selectedSample])
 
   if (status === "loading" || loading) {
     return (
@@ -145,7 +181,7 @@ export default function ProfilePage() {
       </nav>
 
       <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-8">
+        <div className="mb-6">
           <h1 className="text-4xl font-bold text-white mb-2">
             My Saved Samples
           </h1>
@@ -153,6 +189,71 @@ export default function ProfilePage() {
             {samples.length} {samples.length === 1 ? "sample" : "samples"} saved
           </p>
         </div>
+
+        {/* Filters: dropdowns + active filter tags */}
+        {samples.length > 0 && (
+          <div className="mb-6 flex flex-col gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="text-gray-400 text-sm font-medium">Filter:</span>
+              <select
+                value={genreFilter ?? ""}
+                onChange={(e) => setGenreFilter(e.target.value ? e.target.value : null)}
+                className="bg-black/50 border border-purple-500/30 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+              >
+                <option value="">Genre</option>
+                {genreOptions.map((g) => (
+                  <option key={g} value={g}>{g}</option>
+                ))}
+              </select>
+              <select
+                value={keyFilter ?? ""}
+                onChange={(e) => setKeyFilter(e.target.value ? e.target.value : null)}
+                className="bg-black/50 border border-purple-500/30 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+              >
+                <option value="">Key</option>
+                {keyOptions.map((k) => (
+                  <option key={k} value={k}>{k}</option>
+                ))}
+              </select>
+            </div>
+            {hasActiveFilters && (
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-gray-500 text-sm">Active:</span>
+                {genreFilter != null && genreFilter !== "" && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600/40 text-purple-200 rounded-full text-sm">
+                    {genreFilter}
+                    <button
+                      type="button"
+                      onClick={() => clearFilter("genre")}
+                      className="hover:bg-purple-500/50 rounded-full p-0.5 transition"
+                      aria-label="Remove genre filter"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </span>
+                )}
+                {keyFilter != null && keyFilter !== "" && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600/40 text-green-200 rounded-full text-sm font-mono">
+                    {keyFilter}
+                    <button
+                      type="button"
+                      onClick={() => clearFilter("key")}
+                      className="hover:bg-green-500/50 rounded-full p-0.5 transition"
+                      aria-label="Remove key filter"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </span>
+                )}
+              </div>
+            )}
+            {hasActiveFilters && (
+              <p className="text-gray-500 text-sm">
+                Showing {filteredSamples.length} of {samples.length} samples
+              </p>
+            )}
+          </div>
+        )}
 
         {error && (
           <div className="mb-6 p-4 bg-red-500/20 border border-red-500 rounded text-red-300">
@@ -171,6 +272,22 @@ export default function ProfilePage() {
             >
               Start Digging
             </Link>
+          </div>
+        ) : filteredSamples.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-400 text-lg mb-4">
+              No samples match your filters.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setGenreFilter(null)
+                setKeyFilter(null)
+              }}
+              className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition"
+            >
+              Clear filters
+            </button>
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -207,7 +324,7 @@ export default function ProfilePage() {
             {/* Samples Grid - Takes up 2 columns on large screens */}
             <div className="lg:col-span-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {samples.map((sample) => (
+                {filteredSamples.map((sample) => (
                   <div
                     key={sample.id}
                     className={`bg-black/50 backdrop-blur-sm rounded-lg overflow-hidden border transition-all cursor-pointer ${
