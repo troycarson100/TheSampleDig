@@ -48,6 +48,8 @@ export function useChopMode(
 ): {
   chops: Chop[]
   clearChops: () => void
+  removeChop: (key: string) => void
+  addChop: () => void
   slotsFull: boolean
   onPadKeyPress: (key: string) => void
   updateChopTime: (key: string, time: number) => void
@@ -66,6 +68,14 @@ export function useChopMode(
 
   const clearChops = useCallback(() => {
     setChops([])
+  }, [])
+
+  const removeChop = useCallback((key: string) => {
+    setChops((prev) =>
+      prev
+        .filter((c) => c.key !== key)
+        .map((c, i) => ({ ...c, index: i }))
+    )
   }, [])
 
   const addChop = useCallback(() => {
@@ -157,5 +167,5 @@ export function useChopMode(
 
   const slotsFull = chops.length >= CHOP_KEYS.length
 
-  return { chops, clearChops, slotsFull, onPadKeyPress, updateChopTime, pressedKey }
+  return { chops, clearChops, removeChop, addChop, slotsFull, onPadKeyPress, updateChopTime, pressedKey }
 }

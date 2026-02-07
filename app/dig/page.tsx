@@ -55,6 +55,8 @@ interface Sample {
   chops?: Chop[]
 }
 
+const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
+
 export default function DigPage() {
   const { data: session, status } = useSession()
   const [sample, setSample] = useState<Sample | null>(null)
@@ -68,6 +70,23 @@ export default function DigPage() {
   const isSavedRef = useRef(isSaved)
   const sampleRef = useRef(sample)
   const sessionRef = useRef(session)
+
+  // Load sample from My Samples page (profile): open in dig and start playing
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(DIG_LOAD_SAMPLE_KEY)
+      if (!raw) return
+      sessionStorage.removeItem(DIG_LOAD_SAMPLE_KEY)
+      const data = JSON.parse(raw) as Sample
+      if (data?.youtubeId && data.youtubeId.length === 11) {
+        setSample(data)
+        setIsSaved(true)
+        setAutoplay(true)
+      }
+    } catch {
+      sessionStorage.removeItem(DIG_LOAD_SAMPLE_KEY)
+    }
+  }, [])
   
   // Keep refs in sync with state
   useEffect(() => {

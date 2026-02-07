@@ -7,6 +7,7 @@ interface ChopTimelineMarkersProps {
   chops: Chop[]
   duration: number
   onUpdateChopTime: (key: string, time: number) => void
+  onRemoveChop: (key: string) => void
   pressedKey: string | null
 }
 
@@ -14,6 +15,7 @@ export default function ChopTimelineMarkers({
   chops,
   duration,
   onUpdateChopTime,
+  onRemoveChop,
   pressedKey,
 }: ChopTimelineMarkersProps) {
   const barRef = useRef<HTMLDivElement>(null)
@@ -34,10 +36,14 @@ export default function ChopTimelineMarkers({
   const handlePointerDown = useCallback(
     (e: React.PointerEvent, key: string) => {
       e.preventDefault()
+      if (e.shiftKey) {
+        onRemoveChop(key)
+        return
+      }
       draggingKeyRef.current = key
       ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
     },
-    []
+    [onRemoveChop]
   )
 
   const handlePointerMove = useCallback(
@@ -92,7 +98,7 @@ export default function ChopTimelineMarkers({
               }
             }}
             role="slider"
-            aria-label={`Chop ${chop.key} at ${chop.time.toFixed(1)}s`}
+            aria-label={`Chop ${chop.key} at ${chop.time.toFixed(1)}s (shift+click to clear)`}
             tabIndex={0}
           >
             {/* Triangle (pointed top) */}

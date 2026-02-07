@@ -25,7 +25,7 @@ export default function SiteNav() {
           alt="Sample Roll"
           width={800}
           height={264}
-          className="h-[7rem] sm:h-[7.75rem] w-auto object-contain"
+          className="h-[82px] sm:h-[94px] w-auto object-contain"
           priority
         />
       </Link>

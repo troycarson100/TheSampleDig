@@ -23,10 +23,11 @@ const TOP_LEFT_REM = [
 interface ChopPadsProps {
   chops: Chop[]
   onPadKeyPress: (key: string) => void
+  onRemoveChop: (key: string) => void
   pressedKey: string | null
 }
 
-export default function ChopPads({ chops, onPadKeyPress, pressedKey }: ChopPadsProps) {
+export default function ChopPads({ chops, onPadKeyPress, onRemoveChop, pressedKey }: ChopPadsProps) {
   const chopByKey = new Map(chops.map((c) => [c.key, c]))
 
   const pad = (key: string) => {
@@ -38,7 +39,13 @@ export default function ChopPads({ chops, onPadKeyPress, pressedKey }: ChopPadsP
       <button
         key={key}
         type="button"
-        onClick={() => onPadKeyPress(key)}
+        onClick={(e) => {
+          if (e.shiftKey && chop) {
+            onRemoveChop(key)
+          } else if (chop) {
+            onPadKeyPress(key)
+          }
+        }}
         className="flex h-full w-full min-h-9 min-w-9 items-center justify-center rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 border-2"
         style={
           isActive
@@ -55,7 +62,7 @@ export default function ChopPads({ chops, onPadKeyPress, pressedKey }: ChopPadsP
                 borderColor: "rgba(0,0,0,0.08)",
               }
         }
-        aria-label={isActive ? `Chop ${key} at ${chop?.time.toFixed(1)}s` : `Key ${key} (no chop)`}
+        aria-label={isActive ? `Chop ${key} at ${chop?.time.toFixed(1)}s (shift+click to clear)` : `Key ${key} (no chop)`}
       >
         {key}
       </button>

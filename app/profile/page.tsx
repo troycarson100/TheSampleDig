@@ -3,9 +3,11 @@
 import { useState, useEffect, useMemo } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import HeartToggle from "@/components/HeartToggle"
-import SamplePlayer from "@/components/SamplePlayer"
 import SiteNav from "@/components/SiteNav"
+
+const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
 
 interface SavedSample {
   id: string
@@ -20,16 +22,19 @@ interface SavedSample {
   analysisStatus?: string | null
   savedAt: string
   startTime?: number
+  duration?: number
+  chops?: { key: string; time: number; color: string; index: number }[]
 }
 
 type FilterType = "genre" | "key"
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()
+  const router = useRouter()
   const [samples, setSamples] = useState<SavedSample[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
-  const [selectedSample, setSelectedSample] = useState<SavedSample | null>(null)
+  const [searchQuery, setSearchQuery] = useState("")
   const [genreFilter, setGenreFilter] = useState<string | null>(null)
   const [keyFilter, setKeyFilter] = useState<string | null>(null)
 
@@ -67,9 +72,6 @@ export default function ProfilePage() {
 
       if (response.ok) {
         setSamples(samples.filter((s) => s.id !== sampleId))
-        if (selectedSample?.id === sampleId) {
-          setSelectedSample(null)
-        }
         window.dispatchEvent(new CustomEvent('samplesUpdated'))
       }
     } catch (error) {
@@ -94,28 +96,55 @@ export default function ProfilePage() {
     [samples]
   )
 
-  // Filter samples by active filters
+  // Filter samples by search (title, bpm, key, genre) and dropdown filters
   const filteredSamples = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
     return samples.filter((s) => {
+      if (q) {
+        const titleMatch = s.title?.toLowerCase().includes(q)
+        const genreMatch = s.genre?.toLowerCase().includes(q)
+        const keyMatch = s.key?.toLowerCase().includes(q)
+        const bpmMatch = s.bpm != null && String(s.bpm).includes(q)
+        if (!titleMatch && !genreMatch && !keyMatch && !bpmMatch) return false
+      }
       if (genreFilter != null && genreFilter !== "" && s.genre !== genreFilter) return false
       if (keyFilter != null && keyFilter !== "" && s.key !== keyFilter) return false
       return true
     })
-  }, [samples, genreFilter, keyFilter])
+  }, [samples, searchQuery, genreFilter, keyFilter])
 
   const clearFilter = (type: FilterType) => {
     if (type === "genre") setGenreFilter(null)
     if (type === "key") setKeyFilter(null)
   }
 
-  const hasActiveFilters = genreFilter != null || keyFilter != null
+  const hasActiveFilters = searchQuery.trim() !== "" || genreFilter != null || keyFilter != null
 
-  // Clear selected sample if it's no longer in the filtered list
-  useEffect(() => {
-    if (selectedSample && !filteredSamples.some((s) => s.id === selectedSample.id)) {
-      setSelectedSample(null)
+  const openInDig = (s: SavedSample) => {
+    try {
+      sessionStorage.setItem(
+        DIG_LOAD_SAMPLE_KEY,
+        JSON.stringify({
+          id: s.id,
+          youtubeId: s.youtubeId,
+          title: s.title,
+          channel: s.channel,
+          thumbnailUrl: s.thumbnailUrl,
+          genre: s.genre,
+          era: s.era,
+          bpm: s.bpm,
+          key: s.key,
+          analysisStatus: s.analysisStatus,
+          startTime: s.startTime,
+          duration: s.duration,
+          chops: s.chops,
+        })
+      )
+      router.push("/dig")
+    } catch (e) {
+      console.warn("Failed to store sample for dig", e)
     }
-  }, [filteredSamples, selectedSample])
+  }
 
   if (status === "loading" || loading) {
     return (
@@ -129,11 +158,11 @@ export default function ProfilePage() {
     return (
       <div className="min-h-screen" style={{ background: "var(--background)" }}>
         <header className="w-full py-1" style={{ background: "#F6F0E8" }}>
-          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <div className="max-w-6xl mx-auto px-3 sm:px-4">
             <SiteNav />
           </div>
         </header>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
           <div className="flex flex-col items-center justify-center text-center py-16">
             <h1 className="text-3xl font-semibold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Saved Samples</h1>
             <p className="text-lg mb-6" style={{ color: "var(--muted)" }}>Please log in to view your saved samples.</p>
@@ -147,19 +176,28 @@ export default function ProfilePage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <header className="w-full py-1" style={{ background: "#F6F0E8" }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4">
           <SiteNav />
         </div>
       </header>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <div className="px-2 sm:px-4 pt-2 pb-4">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="pt-2 pb-4">
           <h1 className="text-3xl sm:text-4xl font-semibold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Saved Samples</h1>
             <p className="text-[15px]" style={{ color: "var(--muted)" }}>{samples.length} {samples.length === 1 ? "sample" : "samples"} saved</p>
           </div>
 
           {samples.length > 0 && (
-            <div className="px-2 sm:px-4 mb-6 flex flex-col gap-3">
+            <div className="mb-6 flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-3">
+                <input
+                  type="search"
+                  placeholder="Search by title, BPM, key or genre..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="flex-1 min-w-[200px] rounded-full border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-offset-1"
+                  style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--foreground)" }}
+                  aria-label="Search samples by title, BPM, key or genre"
+                />
                 <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Filter:</span>
                 <select
                   value={genreFilter ?? ""}
@@ -187,6 +225,14 @@ export default function ProfilePage() {
             {hasActiveFilters && (
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm" style={{ color: "var(--muted)" }}>Active:</span>
+                {searchQuery.trim() !== "" && (
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>
+                    Search: {searchQuery.trim()}
+                    <button type="button" onClick={() => setSearchQuery("")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Clear search">
+                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                  </span>
+                )}
                 {genreFilter != null && genreFilter !== "" && (
                   <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>
                     {genreFilter}
@@ -212,64 +258,34 @@ export default function ProfilePage() {
           )}
 
           {error && (
-            <div className="mx-2 sm:mx-4 mb-6 p-4 rounded-xl border" style={{ background: "rgba(185,28,28,0.06)", borderColor: "rgba(185,28,28,0.2)", color: "#b91c1c" }}>{error}</div>
+            <div className="mb-6 p-4 rounded-xl border" style={{ background: "rgba(185,28,28,0.06)", borderColor: "rgba(185,28,28,0.2)", color: "#b91c1c" }}>{error}</div>
           )}
 
           {samples.length === 0 && !loading ? (
-            <div className="px-2 sm:px-4 text-center py-12">
+            <div className="text-center py-12">
               <p className="text-lg mb-4" style={{ color: "var(--muted)" }}>You haven't saved any samples yet.</p>
               <Link href="/dig" className="inline-block px-5 py-2.5 rounded-[var(--radius-button)] font-medium text-white transition opacity-90 hover:opacity-100" style={{ background: "var(--primary)" }}>Start Digging</Link>
             </div>
           ) : filteredSamples.length === 0 ? (
-            <div className="px-2 sm:px-4 text-center py-12">
+            <div className="text-center py-12">
               <p className="text-lg mb-4" style={{ color: "var(--muted)" }}>No samples match your filters.</p>
-              <button type="button" onClick={() => { setGenreFilter(null); setKeyFilter(null) }} className="inline-block px-5 py-2.5 rounded-[var(--radius-button)] font-medium text-white transition opacity-90 hover:opacity-100" style={{ background: "var(--primary)" }}>Clear filters</button>
+              <button type="button" onClick={() => { setSearchQuery(""); setGenreFilter(null); setKeyFilter(null) }} className="inline-block px-5 py-2.5 rounded-[var(--radius-button)] font-medium text-white transition opacity-90 hover:opacity-100" style={{ background: "var(--primary)" }}>Clear filters</button>
             </div>
           ) : (
-          <div className="px-2 sm:px-4 grid grid-cols-1 lg:grid-cols-4 gap-8 pb-8">
-            {selectedSample ? (
-              <div className="lg:col-span-2">
-                <div className="sticky top-8 rounded-2xl border overflow-hidden" style={{ borderColor: "var(--border)", background: "rgba(0,0,0,0.02)" }}>
-                  <SamplePlayer
-                    youtubeId={selectedSample.youtubeId}
-                    title={selectedSample.title}
-                    channel={selectedSample.channel}
-                    genre={selectedSample.genre}
-                    era={selectedSample.era}
-                    bpm={selectedSample.bpm}
-                        musicalKey={selectedSample.key}
-                    analysisStatus={selectedSample.analysisStatus}
-                    autoplay={true}
-                    startTime={selectedSample.startTime}
-                    isSaved={true}
-                    onSaveToggle={() => handleUnsave(selectedSample.id)}
-                    showHeart={true}
-                  />
-                </div>
-              </div>
-            ) : (
-              <div className="lg:col-span-2 flex items-center justify-center rounded-2xl border min-h-[400px]" style={{ background: "var(--muted-light)", borderColor: "var(--border)" }}>
-                <div className="text-center">
-                  <p className="text-lg mb-2" style={{ color: "var(--muted)" }}>Select a sample to play</p>
-                  <p className="text-sm" style={{ color: "var(--muted)" }}>Click on any sample card to start listening</p>
-                </div>
-              </div>
-            )}
-
-            <div className="lg:col-span-2">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="pb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {filteredSamples.map((sample) => (
                   <div
                     key={sample.id}
-                    className={`rounded-2xl overflow-hidden border transition-all cursor-pointer ${
-                      selectedSample?.id === sample.id ? "ring-2 ring-offset-2" : ""
-                    }`}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => openInDig(sample)}
+                    onKeyDown={(e) => e.key === "Enter" && openInDig(sample)}
+                    className="rounded-2xl overflow-hidden border transition-all cursor-pointer hover:border-[var(--primary)]/40"
                     style={{
                       background: "var(--card)",
-                      borderColor: selectedSample?.id === sample.id ? "var(--primary)" : "var(--border)",
-                      boxShadow: selectedSample?.id === sample.id ? "0 4px 14px var(--card-shadow)" : "none"
+                      borderColor: "var(--border)",
                     }}
-                    onClick={() => setSelectedSample(sample)}
                   >
                     <div className="aspect-video w-full bg-black/10 relative group">
                       <img src={sample.thumbnailUrl} alt={sample.title} className="w-full h-full object-cover" />
@@ -304,11 +320,10 @@ export default function ProfilePage() {
                   </div>
                 ))}
               </div>
-            </div>
           </div>
           )}
 
-        <footer className="mt-12 pt-8 border-t px-2 sm:px-4" style={{ borderColor: "var(--border)" }}>
+        <footer className="mt-10 pt-8 border-t" style={{ borderColor: "var(--border)" }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
               <p className="text-lg font-semibold" style={{ fontFamily: "var(--font-halant), Georgia, serif", color: "var(--foreground)" }}>Sample Roll</p>

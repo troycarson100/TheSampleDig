@@ -150,7 +150,7 @@ function SamplePlayer({
   const onAfterChopPlay = useCallback(() => {
     chopKeysFocusTrapRef.current?.focus()
   }, [])
-  const { chops, clearChops, slotsFull, onPadKeyPress, updateChopTime, pressedKey } = useChopMode(
+  const { chops, clearChops, removeChop, addChop, slotsFull, onPadKeyPress, updateChopTime, pressedKey } = useChopMode(
     adapterRef,
     chopModeEnabled,
     youtubeId,
@@ -410,6 +410,7 @@ function SamplePlayer({
             chops={chops}
             duration={duration}
             onUpdateChopTime={updateChopTime}
+            onRemoveChop={removeChop}
             pressedKey={pressedKey}
           />
         )}
@@ -453,7 +454,17 @@ function SamplePlayer({
                 className="text-sm font-medium px-3 py-1.5 rounded-lg border transition hover:opacity-80"
                 style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
               >
-                Clear Chops
+                Clear
+              </button>
+              <button
+                type="button"
+                onClick={addChop}
+                disabled={slotsFull}
+                className="md:hidden text-sm font-medium px-3 py-1.5 rounded-lg border transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ background: "var(--primary)", color: "var(--primary-foreground)", borderColor: "var(--primary)" }}
+                aria-label="Add chop at current time (same as space bar)"
+              >
+                Chop
               </button>
               {slotsFull && (
                 <span className="text-sm" style={{ color: "var(--muted)" }}>Chop slots full</span>
@@ -462,7 +473,7 @@ function SamplePlayer({
           )}
         </div>
         {chopModeEnabled && (
-          <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} pressedKey={pressedKey} />
+          <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} onRemoveChop={removeChop} pressedKey={pressedKey} />
         )}
       </div>
 
