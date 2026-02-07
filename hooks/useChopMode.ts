@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from "react"
 
-export const CHOP_KEYS = ["A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J", "K", "O", "L", "P"] as const
+export const CHOP_KEYS = ["A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J", "K", "O", "L"] as const
 
 export const KEY_COLORS: Record<string, string> = {
   A: "#E63946",
@@ -20,7 +20,6 @@ export const KEY_COLORS: Record<string, string> = {
   K: "#EF476F",
   O: "#118AB2",
   L: "#FFD166",
-  P: "#073B4C",
 }
 
 export interface Chop {
@@ -48,9 +47,12 @@ export function useChopMode(
   slotsFull: boolean
   onPadKeyPress: (key: string) => void
   updateChopTime: (key: string, time: number) => void
+  pressedKey: string | null
 } {
   const [chops, setChops] = useState<Chop[]>([])
+  const [pressedKey, setPressedKey] = useState<string | null>(null)
   const lastSpaceRef = useRef(0)
+  const pressedKeyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
     if (videoId != null) setChops([])
@@ -75,6 +77,15 @@ export function useChopMode(
     setChops((prev) => [...prev, { key, time, color, index: prev.length }])
   }, [chops.length, playerRef])
 
+  const setPressedKeyBriefly = useCallback((key: string) => {
+    if (pressedKeyTimeoutRef.current) clearTimeout(pressedKeyTimeoutRef.current)
+    setPressedKey(key)
+    pressedKeyTimeoutRef.current = setTimeout(() => {
+      setPressedKey(null)
+      pressedKeyTimeoutRef.current = null
+    }, 220)
+  }, [])
+
   const onPadKeyPress = useCallback(
     (key: string) => {
       if (!enabled) return
@@ -84,8 +95,9 @@ export function useChopMode(
       if (!adapter) return
       adapter.seekTo(chop.time)
       adapter.play()
+      setPressedKeyBriefly(key)
     },
-    [enabled, chops, playerRef]
+    [enabled, chops, playerRef, setPressedKeyBriefly]
   )
 
   const updateChopTime = useCallback((key: string, time: number) => {
@@ -104,6 +116,7 @@ export function useChopMode(
 
       if (e.code === "Space") {
         e.preventDefault()
+        e.stopPropagation()
         addChop()
         return
       }
@@ -113,10 +126,12 @@ export function useChopMode(
         const chop = chops.find((c) => c.key === key)
         if (chop) {
           e.preventDefault()
+          e.stopPropagation()
           const adapter = playerRef.current
           if (adapter) {
             adapter.seekTo(chop.time)
             adapter.play()
+            setPressedKeyBriefly(key)
           }
         }
       }
@@ -124,9 +139,9 @@ export function useChopMode(
 
     window.addEventListener("keydown", handleKeyDown, { capture: true })
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
-  }, [enabled, chops, addChop, playerRef])
+  }, [enabled, chops, addChop, playerRef, setPressedKeyBriefly])
 
   const slotsFull = chops.length >= CHOP_KEYS.length
 
-  return { chops, clearChops, slotsFull, onPadKeyPress, updateChopTime }
+  return { chops, clearChops, slotsFull, onPadKeyPress, updateChopTime, pressedKey }
 }

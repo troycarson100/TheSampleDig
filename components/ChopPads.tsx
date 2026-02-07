@@ -2,35 +2,52 @@
 
 import { KEY_COLORS, type Chop } from "@/hooks/useChopMode"
 
-/** QWERTY-style layout: top row then bottom row (staggered). */
-const ROW_1 = ["W", "E", "T", "Y", "U", "O", "P"]
+/** Top row: W E T Y U O — each centered between two bottom keys. */
+const ROW_1 = ["W", "E", "T", "Y", "U", "O"]
+/** Bottom row: A S D F G H J K L. */
 const ROW_2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"]
+
+/** Key size and gap (rem) so top-row positions match bottom-row midpoints. */
+const KEY_W = 2.5
+const GAP = 0.5
+/** Left position (rem) for each top key so it’s centered between the given bottom keys. */
+const TOP_LEFT_REM = [
+  1.5,   /* W between A and S */
+  4.5,   /* E between S and D */
+  10.5,  /* T between F and G */
+  13.5,  /* Y between G and H */
+  16.5,  /* U between H and J */
+  22.5,  /* O between K and L */
+]
 
 interface ChopPadsProps {
   chops: Chop[]
   onPadKeyPress: (key: string) => void
+  pressedKey: string | null
 }
 
-export default function ChopPads({ chops, onPadKeyPress }: ChopPadsProps) {
+export default function ChopPads({ chops, onPadKeyPress, pressedKey }: ChopPadsProps) {
   const chopByKey = new Map(chops.map((c) => [c.key, c]))
 
   const pad = (key: string) => {
     const chop = chopByKey.get(key)
     const isActive = !!chop
+    const isPressed = pressedKey === key
     const color = chop?.color ?? KEY_COLORS[key] ?? "#888"
     return (
       <button
         key={key}
         type="button"
         onClick={() => onPadKeyPress(key)}
-        className="w-9 h-9 sm:w-10 sm:h-10 flex items-center justify-center rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 border-2 min-w-[2.25rem] sm:min-w-[2.5rem]"
+        className="flex h-full w-full min-h-9 min-w-9 items-center justify-center rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 border-2"
         style={
           isActive
             ? {
                 background: color,
                 color: "#fff",
-                borderColor: "rgba(0,0,0,0.15)",
-                boxShadow: "0 1px 2px rgba(0,0,0,0.1)",
+                borderColor: isPressed ? "rgba(255,255,255,0.9)" : "rgba(0,0,0,0.15)",
+                boxShadow: isPressed ? "0 0 0 3px rgba(255,255,255,0.6), 0 1px 2px rgba(0,0,0,0.1)" : "0 1px 2px rgba(0,0,0,0.1)",
+                transform: isPressed ? "scale(1.08)" : undefined,
               }
             : {
                 background: "#e8e6e3",
@@ -45,15 +62,36 @@ export default function ChopPads({ chops, onPadKeyPress }: ChopPadsProps) {
     )
   }
 
+  const keySize = "2.5rem"
+  const totalWidthRem = ROW_2.length * KEY_W + (ROW_2.length - 1) * GAP
+
   return (
-    <div className="flex flex-col items-center gap-1.5">
-      {/* Top row */}
-      <div className="flex justify-center gap-1">
-        {ROW_1.map((key) => pad(key))}
+    <div className="flex flex-col items-center gap-3">
+      {/* Top row: each key positioned so it’s centered between the two bottom keys below it */}
+      <div
+        className="relative flex"
+        style={{ width: `${totalWidthRem}rem`, height: keySize }}
+      >
+        {ROW_1.map((key, i) => (
+          <div
+            key={key}
+            className="absolute top-0"
+            style={{ left: `${TOP_LEFT_REM[i]}rem`, width: `${KEY_W}rem`, height: keySize }}
+          >
+            {pad(key)}
+          </div>
+        ))}
       </div>
-      {/* Bottom row: staggered (offset to the right like QWERTY) */}
-      <div className="flex justify-center gap-1" style={{ marginLeft: "1.25rem" }}>
-        {ROW_2.map((key) => pad(key))}
+      {/* Bottom row: A S D F G H J K L — same key size and gap as top-row math */}
+      <div
+        className="flex justify-center"
+        style={{ gap: `${GAP}rem`, width: `${totalWidthRem}rem` }}
+      >
+        {ROW_2.map((key) => (
+          <div key={key} style={{ width: `${KEY_W}rem`, height: keySize }}>
+            {pad(key)}
+          </div>
+        ))}
       </div>
     </div>
   )

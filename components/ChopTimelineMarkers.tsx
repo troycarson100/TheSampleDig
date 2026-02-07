@@ -7,12 +7,14 @@ interface ChopTimelineMarkersProps {
   chops: Chop[]
   duration: number
   onUpdateChopTime: (key: string, time: number) => void
+  pressedKey: string | null
 }
 
 export default function ChopTimelineMarkers({
   chops,
   duration,
   onUpdateChopTime,
+  pressedKey,
 }: ChopTimelineMarkersProps) {
   const barRef = useRef<HTMLDivElement>(null)
   const draggingKeyRef = useRef<string | null>(null)
@@ -69,13 +71,15 @@ export default function ChopTimelineMarkers({
     >
       {chops.map((chop) => {
         const percent = Math.max(0, Math.min(100, (chop.time / duration) * 100))
+        const isPressed = pressedKey === chop.key
         return (
           <div
             key={chop.key}
-            className="absolute top-0 cursor-grab active:cursor-grabbing touch-none select-none"
+            className="absolute top-0 cursor-grab active:cursor-grabbing touch-none select-none transition-transform"
             style={{
               left: `${percent}%`,
-              transform: "translate(-50%, -50%)",
+              transform: `translate(-50%, -50%) ${isPressed ? "scale(1.35)" : ""}`,
+              filter: isPressed ? "brightness(1.25)" : undefined,
             }}
             onPointerDown={(e) => handlePointerDown(e, chop.key)}
             onPointerMove={(e) => handlePointerMove(e, chop.key)}
@@ -93,15 +97,14 @@ export default function ChopTimelineMarkers({
           >
             {/* Triangle (pointed top) */}
             <div
-              className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[6px] border-l-transparent border-r-transparent mx-auto"
+              className="w-0 h-0 border-l-[5px] border-r-[5px] border-b-[6px] border-l-transparent border-r-transparent mx-auto transition-all"
               style={{ borderBottomColor: chop.color }}
             />
-            {/* Small square */}
+            {/* Small square - no border/box */}
             <div
-              className="w-3 h-3 rounded-sm mt-0.5"
+              className="w-3 h-3 rounded-sm mt-0.5 transition-all"
               style={{
                 background: chop.color,
-                boxShadow: "0 0 0 1px rgba(0,0,0,0.2)",
               }}
             />
           </div>

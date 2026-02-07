@@ -139,7 +139,7 @@ function SamplePlayer({
   const adapterRef = useRef<YouTubePlayerAdapter | null>(null)
   const [chopModeEnabled, setChopModeEnabled] = useState(false)
   const [iframeLoaded, setIframeLoaded] = useState(false)
-  const { chops, clearChops, slotsFull, onPadKeyPress, updateChopTime } = useChopMode(
+  const { chops, clearChops, slotsFull, onPadKeyPress, updateChopTime, pressedKey } = useChopMode(
     adapterRef,
     chopModeEnabled,
     youtubeId
@@ -387,6 +387,7 @@ function SamplePlayer({
             chops={chops}
             duration={duration}
             onUpdateChopTime={updateChopTime}
+            pressedKey={pressedKey}
           />
         )}
       </div>
@@ -429,7 +430,7 @@ function SamplePlayer({
           )}
         </div>
         {chopModeEnabled && (
-          <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} />
+          <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} pressedKey={pressedKey} />
         )}
       </div>
 
