@@ -24,18 +24,21 @@ interface SamplePlayerProps {
 
 /**
  * Generate a random start time that's good for sampling
- * Avoids intro (first 10%) and outro (last 30 seconds or 20%, whichever is larger)
+ * Avoids intro (first 15 seconds) and outro (last 20 seconds minimum)
  * Biases toward common sampling areas (30-60s, 90-150s)
  */
 function generateSmartStartTime(duration?: number): number {
+  const END_BUFFER = 25 // NEVER start within 25 seconds of the end
+  
   // If we have duration, use it to calculate safe ranges
   if (duration && duration > 0) {
     const minStart = 15 // Skip first 15 seconds (intro)
-    const maxStart = Math.max(duration - 30, minStart + 1) // Stay at least 30 seconds from end
+    const maxStart = Math.max(duration - END_BUFFER, minStart + 1) // Stay at least 25 seconds from end
     
     if (maxStart <= minStart) {
-      // Video is too short, just use middle
-      return Math.floor(duration / 2)
+      // Video is too short, use middle but ensure we're at least 25 seconds from end
+      const middleTime = Math.floor(duration / 2)
+      return Math.min(middleTime, duration - END_BUFFER)
     }
     
     // Create ranges based on actual duration
@@ -68,7 +71,18 @@ function generateSmartStartTime(duration?: number): number {
     }
     
     // Generate random time within selected range
-    return Math.floor(Math.random() * (selectedRange.max - selectedRange.min + 1)) + selectedRange.min
+    const randomTime = Math.floor(Math.random() * (selectedRange.max - selectedRange.min + 1)) + selectedRange.min
+    
+    // Final safety check: Ensure we're NEVER within 25 seconds of the end
+    const safeTime = Math.min(randomTime, duration - END_BUFFER)
+    
+    // Double-check: If somehow we're still too close, use a safe fallback
+    if (safeTime > duration - END_BUFFER) {
+      console.warn(`[StartTime] Generated time ${safeTime} too close to end (${duration}), using ${duration - END_BUFFER}`)
+      return duration - END_BUFFER
+    }
+    
+    return safeTime
   }
   
   // Fallback: Assume average video is 3-5 minutes (180-300 seconds)
@@ -122,59 +136,131 @@ function SamplePlayer({
   // This prevents the iframe src from changing after initial load
   const startTimeRef = useRef<number | null>(null)
   
+  // NEVER start within 25 seconds of the end
+  const END_BUFFER = 25
+  
   // Reset and set start time when youtubeId changes
   if (youtubeIdRef.current !== youtubeId) {
     youtubeIdRef.current = youtubeId
-    startTimeRef.current = startTime ?? generateSmartStartTime(duration)
+    const generatedTime = startTime ?? generateSmartStartTime(duration)
+    // Final safety check: Ensure generated time is never within 25 seconds of end
+    if (duration && generatedTime > duration - END_BUFFER) {
+      console.warn(`[SamplePlayer] Generated start time ${generatedTime} too close to end (${duration}), using ${duration - END_BUFFER}`)
+      startTimeRef.current = duration - END_BUFFER
+    } else {
+      startTimeRef.current = generatedTime
+    }
     isInitializedRef.current = false // Reset initialization flag
   }
   
-  const actualStartTime = startTimeRef.current ?? (startTime ?? generateSmartStartTime(duration))
+  const baseStartTime = startTimeRef.current ?? (startTime ?? generateSmartStartTime(duration))
+  
+  // AGGRESSIVE safety check: NEVER start within 25 seconds of end
+  // If duration is available, enforce strict limits
+  let actualStartTime = baseStartTime
+  if (duration && duration > 0) {
+    const maxSafeStart = duration - END_BUFFER
+    if (actualStartTime > maxSafeStart) {
+      console.warn(`[SamplePlayer] Start time ${actualStartTime} too close to end (${duration}), clamping to ${maxSafeStart}`)
+      actualStartTime = Math.max(15, maxSafeStart) // At least 15s from start, 25s from end
+    }
+    // Double-check: if still invalid, use safe middle
+    if (actualStartTime >= duration - END_BUFFER) {
+      const safeMiddle = Math.max(15, Math.floor((duration - END_BUFFER) / 2))
+      console.warn(`[SamplePlayer] CRITICAL: Using safe middle ${safeMiddle} for duration ${duration}`)
+      actualStartTime = safeMiddle
+    }
+    // Final validation: ensure it's within bounds
+    actualStartTime = Math.max(15, Math.min(actualStartTime, duration - END_BUFFER))
+  }
 
   // Check if video is available via our API endpoint
-  // Only check once when youtubeId changes, and only if onVideoError is provided
-  // Increased delay to prevent interfering with video playback
+  // Only when we have a valid 11-char YouTube ID and onVideoError is provided
+  const validYoutubeIdForCheck = youtubeId && String(youtubeId).length === 11
   useEffect(() => {
-    if (!onVideoError) return
+    if (!onVideoError || !validYoutubeIdForCheck) return
     
     const checkVideoAvailability = async () => {
       try {
-        // Check via our API endpoint which uses YouTube oEmbed
         const apiResponse = await fetch(`/api/samples/check-availability?youtubeId=${youtubeId}`)
         const data = await apiResponse.json()
         
         if (!data.available) {
-          // Video is unavailable - only trigger callback, don't reload iframe
           console.log("Video unavailable, triggering error callback")
           onVideoError()
         }
       } catch (error) {
-        // If check fails, assume video might be available and don't auto-skip
         console.warn("Could not check video availability:", error)
       }
     }
     
-    // Check after a longer delay to avoid interfering with initial video load
-    // Only check when youtubeId actually changes
-    const timeout = setTimeout(checkVideoAvailability, 5000) // Increased from 3000 to 5000ms
-    
+    const timeout = setTimeout(checkVideoAvailability, 5000)
     return () => clearTimeout(timeout)
-  }, [youtubeId, onVideoError]) // Only re-run when youtubeId or onVideoError changes
+  }, [youtubeId, onVideoError, validYoutubeIdForCheck])
 
   // Memoize iframe src to prevent recreation
   // Only recalculate when youtubeId changes - once set, never change src
   // Use ref to store the src so it never changes after initial load
   const iframeSrcRef = useRef<string | null>(null)
   
+  // CRITICAL: Final check before creating iframe URL - ensure start time is safe
+  // If duration is available, enforce 25-second buffer
+  let safeStartTime = actualStartTime
+  if (duration && duration > 0) {
+    const maxSafeStart = duration - 25
+    if (safeStartTime > maxSafeStart) {
+      console.warn(`[SamplePlayer] CRITICAL: Start time ${safeStartTime} exceeds safe limit (${maxSafeStart}), clamping to ${maxSafeStart}`)
+      safeStartTime = Math.max(15, maxSafeStart) // Ensure at least 15 seconds from start
+    }
+    // Double-check: if somehow still too close, use middle of safe range
+    if (safeStartTime > duration - 25) {
+      safeStartTime = Math.max(15, Math.floor((duration - 25) / 2))
+      console.warn(`[SamplePlayer] CRITICAL FIX: Using fallback start time ${safeStartTime} for duration ${duration}`)
+    }
+    // Final validation: ensure it's within bounds
+    safeStartTime = Math.max(15, Math.min(safeStartTime, duration - 25))
+  }
+  
   // Only update src when youtubeId actually changes (not when BPM/key updates)
+  const validYoutubeId = youtubeId && String(youtubeId).length === 11
   if (!isInitializedRef.current || youtubeIdRef.current !== youtubeId) {
-    // youtubeId changed or first render - update src
-    iframeSrcRef.current = `https://www.youtube.com/embed/${youtubeId}?autoplay=${autoplay ? "1" : "0"}&start=${actualStartTime}&rel=0&enablejsapi=1`
+    // youtubeId changed or first render - update src with SAFE start time
+    // Use youtube.com embed (more reliable than nocookie for playback)
+    iframeSrcRef.current = validYoutubeId
+      ? `https://www.youtube.com/embed/${youtubeId}?autoplay=${autoplay ? "1" : "0"}&start=${safeStartTime}&rel=0&enablejsapi=1`
+      : ""
     isInitializedRef.current = true
+    console.log(`[SamplePlayer] Set iframe start time: ${safeStartTime} (duration: ${duration || 'unknown'}, safe max: ${duration ? duration - 25 : 'N/A'})`)
   }
   
   // Always use the locked src - never change it after initial load
-  const iframeSrc = iframeSrcRef.current!
+  const iframeSrc = iframeSrcRef.current ?? ""
+
+  // If we have an invalid YouTube ID (e.g. DB id passed by mistake), ask for next sample once
+  const invalidIdReportedRef = useRef<string | null>(null)
+  useEffect(() => {
+    if (!validYoutubeId && onVideoError && youtubeId && invalidIdReportedRef.current !== youtubeId) {
+      invalidIdReportedRef.current = youtubeId
+      onVideoError()
+    }
+  }, [validYoutubeId, onVideoError, youtubeId])
+
+  // CRITICAL: Validate iframe src start parameter matches safe start time
+  useEffect(() => {
+    if (iframeRef.current && duration && duration > 0 && iframeSrc) {
+      const urlParams = new URLSearchParams(iframeRef.current.src.split('?')[1])
+      const startParam = parseInt(urlParams.get('start') || '0', 10)
+      const maxSafeStart = duration - 25
+      if (startParam > maxSafeStart) {
+        console.error(`[SamplePlayer] CRITICAL: Iframe src has invalid start time ${startParam} (max safe: ${maxSafeStart})`)
+        // Force update with correct start time
+        const correctedSrc = iframeSrc.replace(/start=\d+/, `start=${maxSafeStart}`)
+        iframeRef.current.src = correctedSrc
+        iframeSrcRef.current = correctedSrc
+        console.log(`[SamplePlayer] Corrected iframe src start time to ${maxSafeStart}`)
+      }
+    }
+  }, [iframeSrc, duration])
   
   // CRITICAL: Use useEffect to ensure iframe src never changes after mount
   // This prevents React from updating the src attribute even if component re-renders
@@ -210,35 +296,43 @@ function SamplePlayer({
   return (
     <div className="w-full">
       <div className="aspect-video w-full rounded-lg overflow-hidden bg-black relative">
-        {/* Iframe - only re-renders when youtubeId changes due to key prop */}
-        {/* BPM/key updates will NOT cause this iframe to reload */}
-        <iframe
-          key={youtubeId} // Force React to recreate iframe when YouTube ID changes - prevents audio glitches
-          ref={(el) => {
-            iframeRef.current = el
-            // CRITICAL: Lock the src directly on the DOM element to prevent React from updating it
-            if (el && iframeSrcRef.current) {
-              // Only set src if it's different (prevents reloads)
-              if (el.src !== iframeSrcRef.current) {
-                el.src = iframeSrcRef.current
-              }
-            }
-          }}
-          width="100%"
-          height="100%"
-          src={iframeSrc}
-          title={title}
-          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-          allowFullScreen
-          className="w-full h-full"
-          style={{ pointerEvents: 'auto' }} // Ensure iframe is interactive
-          onError={() => {
-            // If iframe fails to load, trigger error callback
-            if (onVideoError) {
-              onVideoError()
-            }
-          }}
-        />
+        {validYoutubeId && iframeSrc ? (
+          <>
+            {/* Iframe - only re-renders when youtubeId changes due to key prop */}
+            {/* BPM/key updates will NOT cause this iframe to reload */}
+            <iframe
+              key={youtubeId} // Force React to recreate iframe when YouTube ID changes - prevents audio glitches
+              ref={(el) => {
+                iframeRef.current = el
+                // CRITICAL: Lock the src directly on the DOM element to prevent React from updating it
+                if (el && iframeSrcRef.current) {
+                  // Only set src if it's different (prevents reloads)
+                  if (el.src !== iframeSrcRef.current) {
+                    el.src = iframeSrcRef.current
+                  }
+                }
+              }}
+              width="100%"
+              height="100%"
+              src={iframeSrc}
+              title={title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              className="w-full h-full"
+              style={{ pointerEvents: 'auto' }} // Ensure iframe is interactive
+              onError={() => {
+                // If iframe fails to load, trigger error callback
+                if (onVideoError) {
+                  onVideoError()
+                }
+              }}
+            />
+          </>
+        ) : (
+          <div className="w-full h-full flex items-center justify-center bg-gray-900/80 text-gray-400">
+            <p>Invalid video ID — loading next sample...</p>
+          </div>
+        )}
         {/* Heart toggle - positioned absolutely, won't affect iframe */}
         {showHeart && onSaveToggle && (
           <div className="absolute top-4 right-4 z-10 pointer-events-auto">

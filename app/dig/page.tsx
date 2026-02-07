@@ -133,9 +133,30 @@ export default function DigPage() {
       
       const data = responseData
       // Generate a smart start time for this video
+      // NEVER start within 25 seconds of the end
+      const END_BUFFER = 25
       const smartStartTime = data.duration 
-        ? Math.max(15, Math.min(Math.floor(data.duration * 0.3), data.duration - 30))
+        ? Math.max(15, Math.min(Math.floor(data.duration * 0.3), data.duration - END_BUFFER))
         : Math.floor(Math.random() * 300) + 30
+      
+      // AGGRESSIVE safety check: Ensure we're NEVER within 25 seconds of the end
+      let finalStartTime = smartStartTime
+      if (data.duration && data.duration > 0) {
+        const maxSafeStart = data.duration - END_BUFFER
+        if (finalStartTime > maxSafeStart) {
+          console.warn(`[Dig] Start time ${finalStartTime} too close to end (${data.duration}), adjusting to ${maxSafeStart}`)
+          finalStartTime = Math.max(15, maxSafeStart) // At least 15s from start
+        }
+        // Double-check: if still invalid, use safe middle
+        if (finalStartTime >= data.duration - END_BUFFER) {
+          const safeMiddle = Math.max(15, Math.floor((data.duration - END_BUFFER) / 2))
+          console.warn(`[Dig] CRITICAL: Using safe middle ${safeMiddle} for duration ${data.duration}`)
+          finalStartTime = safeMiddle
+        }
+        // Final validation
+        finalStartTime = Math.max(15, Math.min(finalStartTime, data.duration - END_BUFFER))
+        console.log(`[Dig] Final start time: ${finalStartTime} (duration: ${data.duration}, safe max: ${data.duration - END_BUFFER})`)
+      }
       
       // Save current sample as previous before setting new one
       if (sample) {
@@ -152,10 +173,19 @@ export default function DigPage() {
         console.warn(`[Repeat Prevention] Invalid YouTube ID: ${data.youtubeId}`)
       }
       
-      // Set the new sample
+      // Ensure we always have youtubeId for the player (11-char ID; never use database cuid)
+      const youtubeId = data.youtubeId && String(data.youtubeId).length === 11
+        ? data.youtubeId
+        : (data.id && String(data.id).length === 11 ? data.id : null)
+      if (!youtubeId) {
+        console.warn("[Dig] Response missing valid youtubeId, skipping this sample")
+        handleDig()
+        return
+      }
       const newSample = {
         ...data,
-        startTime: smartStartTime,
+        youtubeId,
+        startTime: finalStartTime,
       }
       console.log('Sample loaded:', newSample)
       setSample(newSample)
@@ -309,6 +339,14 @@ export default function DigPage() {
         if (response.ok) {
           // Update state - memoized SamplePlayer will prevent iframe re-render
           setIsSaved(!currentlySaved)
+          
+          // CRITICAL: If saving (not unsaving), add to seen list immediately
+          // This ensures saved videos never show up again in dice rolls
+          if (!currentlySaved && currentSample.youtubeId) {
+            addSeenVideo(currentSample.youtubeId)
+            console.log(`[Save] Added ${currentSample.youtubeId} to seen list to prevent repeats`)
+          }
+          
           // Trigger sidebar refresh
           window.dispatchEvent(new CustomEvent('samplesUpdated'))
         } else {
@@ -434,6 +472,9 @@ export default function DigPage() {
                         handleDig()
                       }}
                 />
+                <p className="mt-3 text-sm text-gray-500">
+                  Video blocked or not loading? The uploader may have disabled embedding. Click <strong>Dig</strong> for another sample.
+                </p>
               </div>
             )}
 
