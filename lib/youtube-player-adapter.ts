@@ -1,0 +1,76 @@
+/**
+ * Thin adapter for the YouTube IFrame API.
+ * Load the API once, then create an adapter from an iframe element.
+ */
+
+export interface YouTubePlayerAdapter {
+  getCurrentTime(): number
+  seekTo(seconds: number): void
+  play(): void
+}
+
+declare global {
+  interface Window {
+    YT?: {
+      Player: new (
+        element: HTMLElement,
+        options: { events?: { onReady?: (e: { target: YTPlayerInstance }) => void } }
+      ) => void
+    }
+    onYouTubeIframeAPIReady?: () => void
+  }
+}
+
+interface YTPlayerInstance {
+  getCurrentTime: () => number
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void
+  playVideo: () => void
+}
+
+let apiReadyResolve: (() => void) | null = null
+const apiReadyPromise = new Promise<void>((resolve) => {
+  apiReadyResolve = resolve
+})
+
+export function loadYouTubeIframeAPI(): Promise<void> {
+  if (typeof window === "undefined") return Promise.resolve()
+  if (window.YT?.Player) {
+    apiReadyResolve?.()
+    return apiReadyPromise
+  }
+  const prev = window.onYouTubeIframeAPIReady
+  window.onYouTubeIframeAPIReady = () => {
+    prev?.()
+    apiReadyResolve?.()
+  }
+  if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+    const tag = document.createElement("script")
+    tag.src = "https://www.youtube.com/iframe_api"
+    document.head.appendChild(tag)
+  }
+  return apiReadyPromise
+}
+
+export function createAdapterFromIframe(
+  iframe: HTMLIFrameElement | null,
+  onReady: (adapter: YouTubePlayerAdapter) => void
+): () => void {
+  if (!iframe || !window.YT?.Player) return () => {}
+
+  const player = new window.YT.Player(iframe, {
+    events: {
+      onReady: (e: { target: YTPlayerInstance }) => {
+        const target = e.target
+        onReady({
+          getCurrentTime: () => target.getCurrentTime(),
+          seekTo: (seconds: number) => target.seekTo(seconds, true),
+          play: () => target.playVideo(),
+        })
+      },
+    },
+  })
+
+  return () => {
+    if (typeof (player as any).destroy === "function") (player as any).destroy()
+  }
+}

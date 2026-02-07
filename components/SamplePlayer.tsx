@@ -1,8 +1,13 @@
 "use client"
 
-import { useEffect, useRef, useMemo, memo } from "react"
+import { useEffect, useRef, useMemo, memo, useState } from "react"
 
 import HeartToggle from "./HeartToggle"
+import ChopPads from "./ChopPads"
+import ChopTimelineMarkers from "./ChopTimelineMarkers"
+import { useChopMode } from "@/hooks/useChopMode"
+import { loadYouTubeIframeAPI, createAdapterFromIframe } from "@/lib/youtube-player-adapter"
+import type { YouTubePlayerAdapter } from "@/hooks/useChopMode"
 
 interface SamplePlayerProps {
   youtubeId: string
@@ -131,6 +136,14 @@ function SamplePlayer({
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const youtubeIdRef = useRef<string | null>(null)
   const isInitializedRef = useRef(false)
+  const adapterRef = useRef<YouTubePlayerAdapter | null>(null)
+  const [chopModeEnabled, setChopModeEnabled] = useState(false)
+  const [iframeLoaded, setIframeLoaded] = useState(false)
+  const { chops, clearChops, slotsFull, onPadKeyPress, updateChopTime } = useChopMode(
+    adapterRef,
+    chopModeEnabled,
+    youtubeId
+  )
   
   // Use a ref to store the initial start time and never change it for this video
   // This prevents the iframe src from changing after initial load
@@ -173,6 +186,28 @@ function SamplePlayer({
     // Final validation: ensure it's within bounds
     actualStartTime = Math.max(15, Math.min(actualStartTime, duration - END_BUFFER))
   }
+
+  // Reset iframeLoaded when video changes so we wait for the new iframe to load
+  useEffect(() => {
+    setIframeLoaded(false)
+  }, [youtubeId])
+
+  // YouTube IFrame API: create player adapter only after iframe has loaded so getCurrentTime() returns real time
+  const validYoutubeIdForAdapter = youtubeId && String(youtubeId).length === 11
+  useEffect(() => {
+    if (!validYoutubeIdForAdapter || !iframeLoaded || !iframeRef.current) return
+    let teardown: (() => void) | undefined
+    loadYouTubeIframeAPI().then(() => {
+      if (!iframeRef.current) return
+      teardown = createAdapterFromIframe(iframeRef.current, (adapter) => {
+        adapterRef.current = adapter
+      })
+    })
+    return () => {
+      adapterRef.current = null
+      teardown?.()
+    }
+  }, [youtubeId, validYoutubeIdForAdapter, iframeLoaded])
 
   // Check if video is available via our API endpoint
   // Only when we have a valid 11-char YouTube ID and onVideoError is provided
@@ -320,6 +355,7 @@ function SamplePlayer({
               allowFullScreen
               className="w-full h-full"
               style={{ pointerEvents: 'auto' }} // Ensure iframe is interactive
+              onLoad={() => setIframeLoaded(true)}
               onError={() => {
                 // If iframe fails to load, trigger error callback
                 if (onVideoError) {
@@ -345,7 +381,58 @@ function SamplePlayer({
             />
           </div>
         )}
+        {/* Chop Mode: timeline markers at playhead positions (draggable) */}
+        {chopModeEnabled && chops.length > 0 && duration != null && duration > 0 && (
+          <ChopTimelineMarkers
+            chops={chops}
+            duration={duration}
+            onUpdateChopTime={updateChopTime}
+          />
+        )}
       </div>
+
+      {/* Chop Mode */}
+      <div className="mt-4 flex flex-col gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <span className="text-sm font-medium" style={{ color: "var(--foreground)" }}>Chop Mode</span>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={chopModeEnabled}
+              onClick={() => setChopModeEnabled((v) => !v)}
+              className="relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
+              style={{
+                background: chopModeEnabled ? "var(--primary)" : "var(--muted-light)",
+              }}
+            >
+              <span
+                className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
+                style={{ transform: chopModeEnabled ? "translateX(1.25rem)" : "translateX(0)" }}
+              />
+            </button>
+          </label>
+          {chopModeEnabled && (
+            <>
+              <button
+                type="button"
+                onClick={clearChops}
+                className="text-sm font-medium px-3 py-1.5 rounded-lg border transition hover:opacity-80"
+                style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+              >
+                Clear Chops
+              </button>
+              {slotsFull && (
+                <span className="text-sm" style={{ color: "var(--muted)" }}>Chop slots full</span>
+              )}
+            </>
+          )}
+        </div>
+        {chopModeEnabled && (
+          <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} />
+        )}
+      </div>
+
       <div className="mt-4">
         <h3 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>{title}</h3>
         <p className="mb-2 text-sm" style={{ color: "var(--muted)" }}>{channel}</p>
