@@ -1,39 +1,105 @@
 import { NextResponse } from "next/server"
-import { findRandomSample } from "@/lib/youtube"
+import { findRandomSample, getVideoEmbeddable } from "@/lib/youtube"
+import { getFirstYouTubeApiKey } from "@/lib/youtube-keys"
 
 export async function GET(request: Request) {
   try {
-    // Check if YouTube API key is configured
-    if (!process.env.YOUTUBE_API_KEY || process.env.YOUTUBE_API_KEY === "") {
+    if (!getFirstYouTubeApiKey()) {
       return NextResponse.json(
-        { 
-          error: "YouTube API key is not configured. Please add YOUTUBE_API_KEY to your .env file and restart the server." 
+        {
+          error: "YouTube API key is not configured. Add YOUTUBE_API_KEY or YOUTUBE_API_KEYS to your .env file and restart the server."
         },
         { status: 500 }
       )
     }
 
-    // Get excluded video IDs from query params (videos already shown)
+    // Get excluded video IDs and optional genre from query params
     const { searchParams } = new URL(request.url)
     const excludedParam = searchParams.get("excluded")
-    const excludedVideoIds: string[] = excludedParam ? excludedParam.split(",").filter(id => id.length === 11) : []
+    let excludedVideoIds: string[] = excludedParam ? excludedParam.split(",").filter(id => id.length === 11) : []
+    const genreParam = searchParams.get("genre")
+    const genre = (genreParam && genreParam.trim() !== "") ? genreParam.trim() : undefined
+    
+    // Also exclude videos the user has saved (if logged in)
+    // CRITICAL: Always fetch fresh saved videos on every request to ensure they're excluded
+    try {
+      const { auth } = await import("@/lib/auth")
+      const session = await auth()
+      if (session?.user?.id) {
+        const { prisma } = await import("@/lib/db")
+        const userSamples = await prisma.userSample.findMany({
+          where: { userId: session.user.id },
+          select: { sample: { select: { youtubeId: true } } }
+        })
+        const savedYoutubeIds = userSamples.map(us => us.sample.youtubeId).filter(Boolean) as string[]
+        excludedVideoIds = [...excludedVideoIds, ...savedYoutubeIds]
+        // Remove duplicates
+        excludedVideoIds = [...new Set(excludedVideoIds)]
+        if (savedYoutubeIds.length > 0) {
+          console.log(`[Dig] Excluding ${savedYoutubeIds.length} saved videos:`, savedYoutubeIds.slice(0, 5).join(", "), savedYoutubeIds.length > 5 ? "..." : "")
+        }
+      }
+    } catch (error) {
+      // If auth fails, continue without excluding saved videos
+      console.warn("[Dig] Could not fetch saved videos for exclusion:", error)
+    }
     
     if (excludedVideoIds.length > 0) {
-      console.log(`[Dig] Excluding ${excludedVideoIds.length} previously shown videos:`, excludedVideoIds.slice(0, 5).join(", "), excludedVideoIds.length > 5 ? "..." : "")
+      console.log(`[Dig] Excluding ${excludedVideoIds.length} total videos (shown + saved):`, excludedVideoIds.slice(0, 5).join(", "), excludedVideoIds.length > 5 ? "..." : "")
     }
 
+    // Get user ID if authenticated
+    let userId: string | undefined
+    try {
+      const { auth } = await import("@/lib/auth")
+      const session = await auth()
+      userId = session?.user?.id
+    } catch (error) {
+      // Ignore auth errors
+    }
+    
     let video
     try {
-      console.log(`[Dig] Calling findRandomSample...`)
-      video = await findRandomSample(excludedVideoIds)
+      console.log(`[Dig] Calling findRandomSample with ${excludedVideoIds.length} exclusions${genre ? `, genre=${genre}` : ""}...`)
+      video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre })
       console.log(`[Dig] ✓ Found video: ${video.id} - ${video.title}`)
+
+      // Skip videos that aren't embeddable (blocked on external sites) - try up to 6 times
+      const maxEmbeddableRetries = 6
+      for (let r = 0; r < maxEmbeddableRetries; r++) {
+        const embeddable = await getVideoEmbeddable(video.id)
+        if (embeddable) break
+        console.log(`[Dig] Video ${video.id} is not embeddable (blocked), skipping...`)
+        excludedVideoIds = [...excludedVideoIds, video.id]
+        excludedVideoIds = [...new Set(excludedVideoIds)]
+        video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre })
+        console.log(`[Dig] ✓ Replaced with: ${video.id} - ${video.title}`)
+      }
     } catch (youtubeError: any) {
-      console.error("[Dig] ✗ YouTube API error:", youtubeError)
-      console.error("[Dig] Error stack:", youtubeError?.stack)
+      console.error("[Dig] ✗ Error:", youtubeError?.message)
+      console.error("[Dig] Excluded videos count:", excludedVideoIds.length)
+
+      const errorMessage = youtubeError?.message || "Unknown error"
+      const isNoSamples =
+        errorMessage.includes("No samples available") ||
+        errorMessage.includes("No valid videos found") ||
+        errorMessage.includes("No results")
+      const isQuota = /quota|exceeded|403/i.test(errorMessage)
+
+      let userMessage: string
+      if (isNoSamples) {
+        userMessage = "No samples in the database right now. Add videos by running the collect script (node scripts/collect-10k-videos.js), or try again later."
+      } else if (isQuota) {
+        userMessage = "YouTube API quota used for today. Try again after midnight Pacific, or add more API keys to .env."
+      } else {
+        userMessage = "Failed to fetch video from YouTube. " + (errorMessage.length < 100 ? errorMessage : "")
+      }
+
       return NextResponse.json(
-        { 
-          error: "Failed to fetch video from YouTube",
-          details: youtubeError?.message || "Unknown error"
+        {
+          error: userMessage,
+          details: errorMessage,
+          excludedCount: excludedVideoIds.length,
         },
         { status: 500 }
       )
@@ -289,9 +355,31 @@ export async function GET(request: Request) {
       }
     }
 
+    // CRITICAL: Double-check this video is not in excluded list (saved videos)
+    if (excludedVideoIds.includes(video.id)) {
+      console.error(`[Dig] ERROR: Selected video ${video.id} is in excluded list! This should never happen.`)
+      console.error(`[Dig] Excluded list contains:`, excludedVideoIds.slice(0, 10).join(", "), excludedVideoIds.length > 10 ? "..." : "")
+      // This is a critical error - retry with same exclusions
+      const retryVideo = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre })
+      return NextResponse.json({
+        id: retryVideo.id,
+        youtubeId: retryVideo.id,
+        title: retryVideo.title,
+        channel: retryVideo.channelTitle,
+        thumbnailUrl: retryVideo.thumbnail,
+        genre: retryVideo.genre || null,
+        era: retryVideo.era || null,
+        duration: retryVideo.duration || null,
+        bpm: null,
+        key: null,
+        analysisStatus: "pending",
+      })
+    }
+    
     // Return the sample - use database ID if available, otherwise YouTube ID
     // Save endpoint will handle creation if needed
-    console.log(`[Dig] Returning sample - ID: ${sampleId}, isYouTubeId: ${sampleId === video.id || sampleId.length === 11}`)
+    console.log(`[Dig] Returning sample - ID: ${sampleId}, YouTube ID: ${video.id}, Excluded count: ${excludedVideoIds.length}`)
+    console.log(`[Dig] ✓ Video ${video.id} is NOT in excluded list (verified)`)
     return NextResponse.json({
       id: sampleId || video.id, // Use database ID if available, otherwise YouTube ID
       youtubeId: video.id,

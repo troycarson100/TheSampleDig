@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
+import { getFirstYouTubeApiKey } from "@/lib/youtube-keys"
 
 export async function GET() {
   try {
-    // Check environment variables
     const checks = {
-      youtubeApiKey: !!process.env.YOUTUBE_API_KEY,
+      youtubeApiKey: !!getFirstYouTubeApiKey(),
       databaseUrl: !!process.env.DATABASE_URL,
       nextAuthSecret: !!process.env.NEXTAUTH_SECRET,
     }

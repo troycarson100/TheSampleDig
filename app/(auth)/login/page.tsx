@@ -38,64 +38,50 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-black to-purple-900">
-      <div className="w-full max-w-md p-8 bg-black/50 backdrop-blur-sm rounded-lg border border-purple-500/20">
-        <h1 className="text-3xl font-bold text-center mb-8 text-white">
-          Sample Roll
-        </h1>
-        <h2 className="text-xl font-semibold text-center mb-6 text-purple-300">
-          Login
-        </h2>
-        
+    <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "var(--background)" }}>
+      <div className="w-full max-w-md p-8">
+        <h1 className="text-2xl font-semibold text-center mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>Sample Roll</h1>
+        <h2 className="text-lg font-medium text-center mb-6" style={{ color: "var(--muted)" }}>Login</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 bg-red-500/20 border border-red-500 rounded text-red-300 text-sm">
-              {error}
-            </div>
+            <div className="p-3 rounded-xl text-sm border" style={{ background: "rgba(185,28,28,0.08)", borderColor: "rgba(185,28,28,0.3)", color: "#b91c1c" }}>{error}</div>
           )}
-          
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-300 mb-2">
-              Email
-            </label>
+            <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: "var(--foreground)" }}>Email</label>
             <input
               id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded text-white focus:outline-none focus:border-purple-500"
+              className="w-full px-4 py-2 rounded-xl border outline-none focus:ring-2 focus:ring-offset-1"
+              style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--foreground)" }}
             />
           </div>
-          
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-2">
-              Password
-            </label>
+            <label htmlFor="password" className="block text-sm font-medium mb-2" style={{ color: "var(--foreground)" }}>Password</label>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              className="w-full px-4 py-2 bg-black/50 border border-purple-500/30 rounded text-white focus:outline-none focus:border-purple-500"
+              className="w-full px-4 py-2 rounded-xl border outline-none focus:ring-2 focus:ring-offset-1"
+              style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--foreground)" }}
             />
           </div>
-          
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full py-2.5 rounded-[var(--radius-button)] font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ background: "var(--primary)" }}
           >
             {loading ? "Logging in..." : "Login"}
           </button>
         </form>
-        
-        <p className="mt-6 text-center text-gray-400 text-sm">
+        <p className="mt-6 text-center text-sm" style={{ color: "var(--muted)" }}>
           Don't have an account?{" "}
-          <Link href="/register" className="text-purple-400 hover:text-purple-300">
-            Register
-          </Link>
+          <Link href="/register" className="font-medium hover:underline" style={{ color: "var(--foreground)" }}>Register</Link>
         </p>
       </div>
     </div>

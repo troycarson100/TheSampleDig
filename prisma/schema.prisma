@@ -37,22 +37,53 @@ model Channel {
 }
 
 model Sample {
-  id            String        @id @default(cuid())
-  youtubeId     String        @unique @map("youtube_id")
-  title         String
-  channel       String
-  channelId     String?       @map("channel_id")
-  thumbnailUrl String         @map("thumbnail_url")
-  genre         String?
-  era           String?
-  bpm           Int?          @map("bpm")
-  key           String?       @map("key")
-  analysisStatus String?      @default("pending") @map("analysis_status")
-  createdAt     DateTime      @default(now()) @map("created_at")
-  userSamples   UserSample[]
-  channelRel    Channel?      @relation(fields: [channelId], references: [id])
+  id             String        @id @default(cuid())
+  youtubeId      String        @unique @map("youtube_id")
+  title          String
+  channel        String
+  channelId      String?       @map("channel_id")
+  thumbnailUrl   String        @map("thumbnail_url")
+  genre          String?
+  era            String?
+  bpm            Int?          @map("bpm")
+  key            String?       @map("key")
+  analysisStatus String?       @default("pending") @map("analysis_status")
+  duration       Int?          @map("duration_seconds")
+  qualityScore   Float?        @map("quality_score")
+  source         String?       // "search" | "playlist" | "channel"
+  embeddable     Boolean?       @map("embeddable") // false = blocked on external sites
+  createdAt      DateTime      @default(now()) @map("created_at")
+  userSamples    UserSample[]
+  channelRel     Channel?      @relation(fields: [channelId], references: [id])
 
   @@map("samples")
+}
+
+model Candidate {
+  id             String    @id @default(cuid())
+  youtubeId      String    @unique @map("youtube_id")
+  source         String    // "playlist" | "channel" | "manual"
+  sourceId       String?   @map("source_id") // playlist ID or channel ID
+  addedAt        DateTime  @default(now()) @map("added_at")
+  title          String?
+  description    String?   @db.Text
+  channelId      String?   @map("channel_id")
+  channelTitle   String?   @map("channel_title")
+  thumbnailUrl   String?   @map("thumbnail_url")
+  duration       Int?      @map("duration_seconds")
+  tags           String?   @db.Text // JSON array as string
+  publishedAt    DateTime? @map("published_at")
+  enrichedAt     DateTime? @map("enriched_at")
+  qualityScore   Float?    @map("quality_score")
+  genre          String?
+  era            String?
+  embeddable     Boolean?  @map("embeddable") // false = uploader disabled embedding
+  processedAt    DateTime? @map("processed_at")
+  sampleId       String?   @map("sample_id") // set when promoted to Sample
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  @@map("candidates")
 }
 
 model UserSample {

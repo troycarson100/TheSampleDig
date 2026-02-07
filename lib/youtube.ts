@@ -6,62 +6,86 @@ import {
   SCORING_WEIGHTS,
   DURATION_PATTERNS
 } from "./youtube-config"
+import { getCachedSearchResult, cacheSearchResult, getCachedVideoDetailsBatch, cacheVideoDetailsBatch } from "./cache"
+import { getRandomSampleFromDatabase, getDatabaseSampleCount } from "./database-samples"
+import { fetchWithKeyRotation, getFirstYouTubeApiKey } from "./youtube-keys"
 
-const YOUTUBE_API_KEY = process.env.YOUTUBE_API_KEY
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/search"
 
 /**
  * Generate high-signal query templates
  * Rotates through templates that strongly correlate with record-rip uploads
  */
-function generateQueryTemplates(): string[] {
+export function generateQueryTemplates(): string[] {
   const templates: string[] = []
+  const negativeKw = NEGATIVE_KEYWORDS.join(" ")
   
-  // Template 1: Rare groove + vinyl rip + full album
-  templates.push(`"rare groove" "vinyl rip" "full album" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 1: Rare groove + vinyl rip + full album + 1970s
+  templates.push(`"rare groove" "vinyl rip" "full album" "1970s" ${negativeKw}`)
   
-  // Template 2: Library music + needle drop
-  templates.push(`"library music" "needle drop" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 2: Library music + needle drop + 1960s
+  templates.push(`"library music" "needle drop" "1960s" ${negativeKw}`)
   
-  // Template 3: 45 rpm + from vinyl
-  templates.push(`"45 rpm" "from vinyl" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 3: 45 rpm + from vinyl + 1970s
+  templates.push(`"45 rpm" "from vinyl" "1970s" ${negativeKw}`)
   
-  // Template 4: Full LP + vinyl rip
-  templates.push(`"full LP" "vinyl rip" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 4: Full LP + vinyl rip + pre-1980
+  templates.push(`"full LP" "vinyl rip" "pre-1980" ${negativeKw}`)
   
-  // Template 5: Private press + needle drop
-  templates.push(`"private press" "needle drop" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 5: Private press + needle drop + 1960s
+  templates.push(`"private press" "needle drop" "1960s" ${negativeKw}`)
   
-  // Template 6: Obscure + vinyl rip + instrumental
-  templates.push(`"obscure" "vinyl rip" "instrumental" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 6: Obscure + vinyl rip + instrumental + 1970s
+  templates.push(`"obscure" "vinyl rip" "instrumental" "1970s" ${negativeKw}`)
   
-  // Template 7: Rare soul + from vinyl
-  templates.push(`"rare soul" "from vinyl" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 7: Rare soul + from vinyl + 1960s
+  templates.push(`"rare soul" "from vinyl" "1960s" ${negativeKw}`)
   
-  // Template 8: B-side + 45 rpm
-  templates.push(`"b-side" "45 rpm" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 8: B-side + 45 rpm + 1970s
+  templates.push(`"b-side" "45 rpm" "1970s" ${negativeKw}`)
   
-  // Template 9: Library music + KPM/Bruton
-  templates.push(`"library music" "KPM" ${NEGATIVE_KEYWORDS.join(" ")}`)
-  templates.push(`"library music" "Bruton" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 9: Library music + KPM/Bruton + 1960s
+  templates.push(`"library music" "KPM" "1960s" ${negativeKw}`)
+  templates.push(`"library music" "Bruton" "1970s" ${negativeKw}`)
   
-  // Template 10: Full EP + vinyl rip
-  templates.push(`"full EP" "vinyl rip" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 10: Full EP + vinyl rip + pre-1980
+  templates.push(`"full EP" "vinyl rip" "pre-1980" ${negativeKw}`)
   
-  // Template 11: 7 inch + from vinyl
-  templates.push(`"7 inch" "from vinyl" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 11: 7 inch + from vinyl + 1970s
+  templates.push(`"7 inch" "from vinyl" "1970s" ${negativeKw}`)
   
-  // Template 12: Promo + vinyl rip
-  templates.push(`"promo" "vinyl rip" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 12: Promo + vinyl rip + 1960s
+  templates.push(`"promo" "vinyl rip" "1960s" ${negativeKw}`)
   
-  // Template 13: Crate digger + needle drop
-  templates.push(`"crate digger" "needle drop" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 13: Crate digger + needle drop + 1970s
+  templates.push(`"crate digger" "needle drop" "1970s" ${negativeKw}`)
   
-  // Template 14: Deep funk + vinyl rip
-  templates.push(`"deep funk" "vinyl rip" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 14: Deep funk + vinyl rip + 1960s
+  templates.push(`"deep funk" "vinyl rip" "1960s" ${negativeKw}`)
   
-  // Template 15: Psych + full album + vinyl
-  templates.push(`"psych" "full album" "vinyl" ${NEGATIVE_KEYWORDS.join(" ")}`)
+  // Template 15: Psych + full album + vinyl + 1970s
+  templates.push(`"psych" "full album" "vinyl" "1970s" ${negativeKw}`)
+  
+  // Template 16: Bossa nova + vinyl rip + 1960s
+  templates.push(`"bossa nova" "vinyl rip" "1960s" ${negativeKw}`)
+  
+  // Template 17: Jazz + vinyl rip + 1970s
+  templates.push(`"jazz" "vinyl rip" "1970s" ${negativeKw}`)
+  
+  // Template 18: Funk + vinyl rip + 1960s
+  templates.push(`"funk" "vinyl rip" "1960s" ${negativeKw}`)
+  
+  // Template 19-25: Static album cover specific queries (HIGH PRIORITY)
+  // NO spinning terms - only static images
+  templates.push(`"album cover" "vinyl rip" "full album" ${negativeKw}`)
+  templates.push(`"record cover" "vinyl" "1960s" ${negativeKw}`)
+  templates.push(`"LP cover" "vinyl rip" "1970s" ${negativeKw}`)
+  templates.push(`"static image" "vinyl rip" "album" ${negativeKw}`)
+  templates.push(`"album sleeve" "vinyl" "1960s" ${negativeKw}`)
+  templates.push(`"record image" "vinyl rip" "1970s" ${negativeKw}`)
+  templates.push(`"album artwork" "vinyl" "full album" ${negativeKw}`)
+  templates.push(`"cover art" "vinyl rip" "1960s" ${negativeKw}`)
+  templates.push(`"static cover" "vinyl" "1970s" ${negativeKw}`)
   
   return templates
 }
@@ -69,7 +93,7 @@ function generateQueryTemplates(): string[] {
 // Legacy queries (kept for backward compatibility, will be phased out)
 const SEARCH_QUERIES = [
   // Bossa Nova & Brazilian - Prioritize vinyl record videos
-  "bossa nova 1970s vinyl rip record spinning -review -reaction -talking -live -performance -cover -covers -playing",
+  "bossa nova 1970s vinyl rip album cover -review -reaction -talking -live -performance -cover -covers -playing",
   "rare bossa nova vinyl record image -review -talking -discussion -live -cover -covers -playing",
   "brazilian jazz 1960s full album vinyl -review -reaction -live -performance -cover -covers -playing",
   "obscure bossa nova LP record -review -reaction -unboxing -live -cover -covers -playing",
@@ -85,7 +109,7 @@ const SEARCH_QUERIES = [
   "psychedelic jazz loop vinyl record -review -explained -live -cover -covers -playing",
   
   // Jazz & Fusion - Prioritize vinyl record videos
-  "rare jazz vinyl 1970s record spinning -review -reaction -talking -live -cover -covers -playing",
+  "rare jazz vinyl 1970s album cover -review -reaction -talking -live -cover -covers -playing",
   "obscure jazz sample break vinyl rip -review -talking -discussion -live -cover -covers -playing",
   "jazz fusion 1970s full album vinyl -review -reaction -live -cover -covers -playing",
   "rare groove jazz instrumental vinyl record -review -reaction -interview -live -cover -covers -playing",
@@ -103,7 +127,7 @@ const SEARCH_QUERIES = [
   // Instrumental & Sample-Friendly Formats - Prioritize vinyl
   "instrumental jazz 1970s vinyl record -review -talking -type beat -remix -flip -live -cover -covers -playing",
   "drum break rare vinyl rip -review -reaction -type beat -remix -flip -live -cover -covers -playing",
-  "breakbeat vinyl record spinning -review -talking -type beat -remix -flip -live -cover -covers -playing",
+  "breakbeat vinyl album cover -review -talking -type beat -remix -flip -live -cover -covers -playing",
   "instrumental soul vinyl -review -talking -type beat -remix -flip -live -cover -covers -playing",
   
   // Full Album & LP Formats - Prioritize vinyl
@@ -113,7 +137,7 @@ const SEARCH_QUERIES = [
   "full record jazz vinyl -review -reaction -live -cover -covers -playing",
   
   // General Rare Vinyl - Prioritize static record videos
-  "rare vinyl rip instrumental record spinning -review -reaction -talking -live -cover -covers -playing",
+  "rare vinyl rip instrumental album cover -review -reaction -talking -live -cover -covers -playing",
   "obscure sample break vinyl record -review -talking -discussion -live -cover -covers -playing",
   "rare groove instrumental vinyl rip -review -reaction -interview -live -cover -covers -playing",
   "crate digger sample break vinyl -review -talking -live -cover -covers -playing",
@@ -121,14 +145,14 @@ const SEARCH_QUERIES = [
   "rare record full album vinyl -review -reaction -live -cover -covers -playing",
   "obscure record LP vinyl rip -review -unboxing -live -cover -covers -playing",
   
-  // Explicit vinyl record image queries
-  "vinyl record spinning audio -cover -covers -playing", 
-  "record spinning music -cover -covers -playing",
-  "vinyl rip with record image -cover -covers -playing",
-  "old vinyl record audio -cover -covers -playing",
-  "vintage record spinning -cover -covers -playing",
-  "LP record audio -cover -covers -playing",
-  "vinyl record playback -cover -covers -playing"
+  // Explicit static vinyl record image queries (NO spinning/manipulation)
+  "vinyl record image audio -cover -covers -playing -dj -scratch -spinning -rotating -mixing", 
+  "album cover music -cover -covers -playing -dj -scratch -spinning -rotating -mixing",
+  "vinyl rip with record image -cover -covers -playing -dj -scratch -spinning -rotating -mixing",
+  "old vinyl record audio -cover -covers -playing -dj -scratch -spinning -rotating -mixing",
+  "vintage album cover -cover -covers -playing -dj -scratch -spinning -rotating -mixing",
+  "LP record audio -cover -covers -playing -dj -scratch -spinning -rotating -mixing",
+  "static image vinyl record -cover -covers -playing -dj -scratch -spinning -rotating -mixing"
 ]
 
 // Keywords that indicate review/talking videos (to filter out)
@@ -211,7 +235,7 @@ function getRandomSearchQuery(): string {
 /**
  * Get a random high-signal query template
  */
-function getRandomQueryTemplate(): string {
+export function getRandomQueryTemplate(): string {
   const templates = generateQueryTemplates()
   return templates[Math.floor(Math.random() * templates.length)]
 }
@@ -220,7 +244,7 @@ function getRandomQueryTemplate(): string {
  * Extract genre and era from search query and video metadata
  * Checks title, description, tags, and query equally - first pattern match wins
  */
-function extractMetadata(query: string, title?: string, description?: string, tags?: string[]): { genre?: string; era?: string; label?: string } {
+export function extractMetadata(query: string, title?: string, description?: string, tags?: string[]): { genre?: string; era?: string; label?: string } {
   const allText = `${query} ${title || ""} ${description || ""} ${(tags || []).join(" ")}`.toLowerCase()
   
   // Genre detection - check query first, then description/tags
@@ -423,23 +447,153 @@ function parseDuration(duration: string): number {
 }
 
 /**
- * Get video details including duration, description, and tags
+ * Get video details for multiple videos in a single API call (batch request)
+ * This reduces API quota usage significantly
+ */
+async function getVideoDetailsBatch(videoIds: string[]): Promise<Map<string, { 
+  duration: number;
+  description?: string;
+  tags?: string[];
+}>> {
+  const result = new Map()
+  if (!getFirstYouTubeApiKey() || videoIds.length === 0) return result
+
+  try {
+    const batchSize = 50
+    for (let i = 0; i < videoIds.length; i += batchSize) {
+      const batch = videoIds.slice(i, i + batchSize)
+      const response = await fetchWithKeyRotation((key) => {
+        const params = new URLSearchParams({
+          part: "contentDetails,snippet",
+          id: batch.join(","),
+          key,
+        })
+        return fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`)
+      })
+      if (!response.ok) {
+        console.warn(`[Batch] Failed to fetch batch: ${response.status}`)
+        continue
+      }
+
+      const data = await response.json()
+      if (data.items) {
+        for (const item of data.items) {
+          const duration = parseDuration(item.contentDetails.duration)
+          result.set(item.id, {
+            duration,
+            description: item.snippet?.description,
+            tags: item.snippet?.tags || [],
+          })
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error fetching video details batch:", error)
+  }
+  
+  return result
+}
+
+/** Full metadata for candidate enrichment (snippet + contentDetails + status) */
+export interface VideoDetailsFull {
+  title: string
+  channelId: string
+  channelTitle: string
+  thumbnail: string
+  publishedAt: string
+  duration: number
+  description?: string
+  tags?: string[]
+  embeddable?: boolean // false when uploader disabled embedding
+}
+
+/**
+ * Get full video details for multiple videos (for candidate enrichment).
+ * Cost: 1 unit per 50 videos. Includes status.embeddable to filter blocked videos.
+ */
+export async function getVideoDetailsFullBatch(
+  videoIds: string[]
+): Promise<Map<string, VideoDetailsFull>> {
+  const result = new Map<string, VideoDetailsFull>()
+  if (!getFirstYouTubeApiKey() || videoIds.length === 0) return result
+  const batchSize = 50
+  for (let i = 0; i < videoIds.length; i += batchSize) {
+    const batch = videoIds.slice(i, i + batchSize)
+    const response = await fetchWithKeyRotation((key) => {
+      const params = new URLSearchParams({
+        part: "contentDetails,snippet,status",
+        id: batch.join(","),
+        key,
+      })
+      return fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`)
+    })
+    if (!response.ok) continue
+    const data = await response.json()
+    if (data.items) {
+      for (const item of data.items) {
+        const sn = item.snippet || {}
+        result.set(item.id, {
+          title: sn.title || "",
+          channelId: sn.channelId || "",
+          channelTitle: sn.channelTitle || "",
+          thumbnail: sn.thumbnails?.medium?.url || sn.thumbnails?.default?.url || "",
+          publishedAt: sn.publishedAt || "",
+          duration: parseDuration(item.contentDetails?.duration),
+          description: sn.description,
+          tags: sn.tags || [],
+          embeddable: item.status?.embeddable !== false,
+        })
+      }
+    }
+  }
+  return result
+}
+
+/**
+ * Check if a video is embeddable (not blocked on external sites). Cost: 1 unit.
+ * Returns true if embeddable or if check fails (allow playback); false only when explicitly not embeddable.
+ */
+export async function getVideoEmbeddable(youtubeId: string): Promise<boolean> {
+  if (!getFirstYouTubeApiKey()) return true
+  try {
+    const response = await fetchWithKeyRotation((key) => {
+      const params = new URLSearchParams({
+        part: "status",
+        id: youtubeId,
+        key,
+      })
+      return fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`)
+    })
+    if (!response.ok) return true
+    const data = await response.json()
+    const item = data?.items?.[0]
+    if (!item?.status) return true
+    return item.status.embeddable !== false
+  } catch {
+    return true // on error allow (don't block the user)
+  }
+}
+
+/**
+ * Get video details including duration, description, and tags (single video)
+ * @deprecated Use getVideoDetailsBatch for multiple videos to save quota
  */
 async function getVideoDetails(videoId: string): Promise<{ 
   duration: number;
   description?: string;
   tags?: string[];
 } | null> {
-  if (!YOUTUBE_API_KEY) return null
+  if (!getFirstYouTubeApiKey()) return null
 
   try {
-    const params = new URLSearchParams({
-      part: "contentDetails,snippet",
-      id: videoId,
-      key: YOUTUBE_API_KEY,
+    const response = await fetchWithKeyRotation((key) => {
+      const params = new URLSearchParams({
+        part: "contentDetails,snippet",
+        id: videoId,
+        key,
+      })
+      return fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`)
     })
-
-    const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`)
     if (!response.ok) return null
 
     const data = await response.json()
@@ -466,16 +620,17 @@ async function getVideoMetadata(videoId: string): Promise<{
   description?: string;
   tags?: string[];
 } | null> {
-  if (!YOUTUBE_API_KEY) return null
+  if (!getFirstYouTubeApiKey()) return null
 
   try {
-    const params = new URLSearchParams({
-      part: "snippet",
-      id: videoId,
-      key: YOUTUBE_API_KEY,
+    const response = await fetchWithKeyRotation((key) => {
+      const params = new URLSearchParams({
+        part: "snippet",
+        id: videoId,
+        key,
+      })
+      return fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`)
     })
-
-    const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`)
     if (!response.ok) return null
 
     const data = await response.json()
@@ -614,6 +769,71 @@ function calculateVinylRipScore(
     }
   }
   
+  // Visual indicators (STATIC album covers, vinyl images) - HIGH PRIORITY
+  // ONLY static images - NO spinning/manipulation
+  const staticVisualIndicators = [
+    "album cover", "record cover", "vinyl cover", "LP cover",
+    "record image", "vinyl image", "album image",
+    "album sleeve", "record sleeve", "vinyl sleeve", "LP sleeve",
+    "static image", "static cover", "full album cover",
+    "album artwork", "cover art", "sleeve art"
+  ]
+  
+  // DJ/manipulation indicators (NEGATIVE - reject these)
+  const djManipulationIndicators = [
+    "scratch", "scratching", "dj", "turntable", "turntablism", "beat juggling",
+    "crate digging", "digging", "mixing", "dj set", "dj mix",
+    "vinyl manipulation", "record manipulation", "spinning", "rotating",
+    "dj scratch", "turntable scratch", "scratch dj", "hands on", "hand on",
+    "manipulating", "manipulation"
+  ]
+  
+  // Check for DJ/manipulation indicators first (immediate rejection)
+  for (const indicator of djManipulationIndicators) {
+    if (titleLower.includes(indicator) || descLower.includes(indicator) || channelLower.includes(indicator)) {
+      score -= 100 // Massive penalty - reject DJ/manipulation videos
+      console.log(`  - DJ/Manipulation indicator: "${indicator}" (-100)`)
+      break
+    }
+  }
+  
+  // Count static visual indicators (ONLY static images)
+  let visualIndicatorCount = 0
+  for (const indicator of staticVisualIndicators) {
+    if (titleLower.includes(indicator) || descLower.includes(indicator)) {
+      visualIndicatorCount++
+      score += 25 // Higher weight for static visual indicators
+      console.log(`  + Static visual indicator: "${indicator}" (+25)`)
+    }
+  }
+  
+  // REQUIRE at least ONE static visual indicator (album cover, static image, etc.)
+  // This ensures we only get static images, not DJ/manipulation videos
+  const hasStaticVisualIndicator = visualIndicatorCount > 0
+  const hasStrongVinylSignals = (
+    titleLower.includes("vinyl rip") ||
+    titleLower.includes("needle drop") ||
+    titleLower.includes("from vinyl") ||
+    titleLower.includes("45 rpm") ||
+    titleLower.includes("full album") ||
+    titleLower.includes("library music") ||
+    titleLower.includes("LP") ||
+    titleLower.includes("7 inch")
+  )
+  
+  // CRITICAL: If no static visual indicator, heavily penalize
+  // We want ONLY static images of album covers/vinyl, not DJ videos
+  if (!hasStaticVisualIndicator) {
+    score -= 80 // Very heavy penalty - reject videos without static visual indicators
+    console.log(`  - No static visual indicator (-80)`)
+  }
+  
+  // If no visual indicator AND no strong vinyl signals, reject completely
+  if (!hasStaticVisualIndicator && !hasStrongVinylSignals) {
+    score -= 100 // Maximum penalty - reject videos without clear static vinyl/album indicators
+    console.log(`  - No static visual/vinyl indicators (-100)`)
+  }
+  
   // Duration: Single track (1:30-8:00)
   if (duration >= DURATION_PATTERNS.singleTrack.min && duration <= DURATION_PATTERNS.singleTrack.max) {
     score += SCORING_WEIGHTS.duration.singleTrack
@@ -635,6 +855,23 @@ function calculateVinylRipScore(
   
   // Channel reputation boost (0.0-1.0, convert to 0-20 points)
   score += Math.round(channelReputation * 20)
+  
+  // Year-based filtering: Extract year from title/description
+  const yearMatch = (titleLower + " " + descLower).match(/(19[6-9]\d|20[0-1]\d)/)
+  if (yearMatch) {
+    const year = parseInt(yearMatch[1])
+    // Penalize videos from 2000s+ (unless they have very strong vinyl signals)
+    if (year >= 2000) {
+      // Only penalize if score isn't already very high (strong vinyl signals override)
+      if (score < 40) {
+        score += SCORING_WEIGHTS.negative.mainstream // Penalize modern content
+      }
+    }
+    // Boost videos with 1960s-1970s era indicators
+    if (year >= 1960 && year < 1980) {
+      score += 5 // Small bonus for pre-1980s content
+    }
+  }
   
   // NEGATIVE SIGNALS
   
@@ -692,6 +929,22 @@ function calculateVinylRipScore(
     }
   }
   
+  // Modern hip-hop/rap penalty (aggressive - these should be filtered out)
+  const modernHipHopTerms = [
+    "50 cent", "fifty cent", "in da club", "get rich or die tryin",
+    "drake", "kendrick", "j cole", "nas", "eminem", "snoop",
+    "ice cube", "dr dre", "tupac", "biggie", "notorious",
+    "lil wayne", "future", "young thug", "gunna", "lil baby",
+    "post malone", "lil nas x", "travis scott", "playboi carti"
+  ]
+  for (const term of modernHipHopTerms) {
+    if (allText.includes(term)) {
+      score += SCORING_WEIGHTS.negative.mainstream * 2 // Double penalty for modern hip-hop
+      console.log(`  - Penalty: Modern hip-hop "${term}" (-${SCORING_WEIGHTS.negative.mainstream * 2})`)
+      break
+    }
+  }
+  
   // Timestamps pattern (common in lessons/covers)
   // Look for patterns like "00:00", "0:00", "1:23" followed by text
   const timestampPattern = /\d{1,2}:\d{2}\s+(intro|verse|chorus|bridge|solo|break|outro)/i
@@ -711,61 +964,257 @@ function calculateVinylRipScore(
 /**
  * Search YouTube with a specific query and return filtered + scored results
  */
-async function searchWithQuery(
+export async function searchWithQuery(
   query: string,
   strictFiltering: boolean = false,
-  excludedVideoIds: string[] = []
+  excludedVideoIds: string[] = [],
+  publishedBeforeDate?: Date
 ): Promise<Array<any>> {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error("YOUTUBE_API_KEY is not set")
+  if (!getFirstYouTubeApiKey()) {
+    throw new Error("No YouTube API key set. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
   }
 
-  // Search parameters focused on finding rare vinyl samples
-  const params = new URLSearchParams({
-    part: "snippet",
-    q: query,
-    type: "video",
-    maxResults: "50",
-    order: "relevance",
-    videoCategoryId: "10", // Music category
-    publishedBefore: new Date("2010-01-01").toISOString(), // Prefer older videos (rare vinyl)
-    key: YOUTUBE_API_KEY,
+  // Check cache first
+  const cacheKey = `${query}:${excludedVideoIds.sort().join(',')}:${publishedBeforeDate?.toISOString() || 'default'}`
+  const cached = getCachedSearchResult<Array<any>>(query, excludedVideoIds)
+  if (cached) {
+    console.log(`[Search] Using cached results for query: ${query.substring(0, 50)}...`)
+    return cached
+  }
+
+  const dateFilter = publishedBeforeDate || new Date("2010-01-01")
+  console.log(`[Search] Fetching from YouTube API with query: ${query.substring(0, 80)}...`)
+  const response = await fetchWithKeyRotation((key) => {
+    const params = new URLSearchParams({
+      part: "snippet",
+      q: query,
+      type: "video",
+      maxResults: "25",
+      order: "relevance",
+      videoCategoryId: "10",
+      publishedBefore: dateFilter.toISOString(),
+      key,
+    })
+    return fetch(`${YOUTUBE_API_URL}?${params}`)
   })
-
-  const response = await fetch(`${YOUTUBE_API_URL}?${params}`)
-  
-  if (!response.ok) {
-    throw new Error(`YouTube API error: ${response.statusText}`)
-  }
 
   const data = await response.json()
 
   if (!data.items || data.items.length === 0) {
+    console.log(`[Search] No results for query: ${query.substring(0, 50)}`)
     return []
   }
+  
+  console.log(`[Search] YouTube API returned ${data.items.length} videos for query: ${query.substring(0, 50)}...`)
 
   // Filter and score videos using new algorithm
-  // Limit to first 50 videos to get good candidates
-  const videosToCheck = data.items.slice(0, 50)
+  // Limit to first 15 videos for speed and quota management (reduced from 20)
+  const videosToCheck = data.items.slice(0, 15)
+  
+  // Filter out excluded videos first (before API calls)
+  const candidateVideos = videosToCheck.filter(v => !excludedVideoIds.includes(v.id.videoId))
+  
+  if (candidateVideos.length === 0) {
+    console.log(`[Search] All ${videosToCheck.length} videos were excluded`)
+    return []
+  }
+  
+  // Check cache first for batch video details
+  const videoIds = candidateVideos.map(v => v.id.videoId)
+  console.log(`[Search] Fetching details for ${videoIds.length} videos in batch...`)
+  
+  let detailsMap = getCachedVideoDetailsBatch<Map<string, { duration: number; description?: string; tags?: string[] }>>(videoIds)
+  
+  if (!detailsMap) {
+    // Cache miss - fetch from API
+    detailsMap = await getVideoDetailsBatch(videoIds)
+    // Cache the results
+    if (detailsMap && detailsMap.size > 0) {
+      cacheVideoDetailsBatch(videoIds, detailsMap)
+    }
+  } else {
+    console.log(`[Search] Using cached video details for ${videoIds.length} videos`)
+  }
+  
   const scoredVideos = []
   
-  for (const video of videosToCheck) {
-    // Skip if this video has already been shown (CRITICAL: Check first, before any processing)
-    if (excludedVideoIds.includes(video.id.videoId)) {
-      console.log(`[Filter] SKIPPED: ${video.snippet.title} (${video.id.videoId}) - Already shown (${excludedVideoIds.length} total excluded)`)
+  for (const video of candidateVideos) {
+    // Get video details from batch result
+    const details = detailsMap.get(video.id.videoId)
+    
+    if (!details || !details.duration) {
+      console.warn(`[Search] No details or duration for ${video.id.videoId}`)
       continue
     }
     
-    // Get video details including duration, description, and tags
-    const details = await getVideoDetails(video.id.videoId)
-    
-    if (!details) {
+    // Hard filter: Use full hard filter function to catch all bad matches
+    const shouldReject = shouldHardFilter(
+      video.snippet.title,
+      video.snippet.channelTitle,
+      details.description
+    )
+    if (shouldReject) {
+      console.log(`[Search] Hard filtered: ${video.snippet.title}`)
       continue
     }
     
-    // Hard filter: Remove obvious bad matches before scoring
-    if (shouldHardFilter(video.snippet.title, video.snippet.channelTitle, details.description)) {
+    // REQUIREMENT: Must have visual or strong vinyl indicators
+    const titleLower = video.snippet.title.toLowerCase()
+    const channelLower = video.snippet.channelTitle.toLowerCase()
+    const descLower = (details.description || "").toLowerCase()
+    const allText = `${titleLower} ${channelLower} ${descLower}`
+    
+    // REQUIRE static visual indicators (album covers, static images)
+    // NO spinning/manipulation terms
+    const requiredStaticIndicators = [
+      "album cover", "record cover", "vinyl cover", "LP cover",
+      "record image", "vinyl image", "album image",
+      "album sleeve", "record sleeve", "vinyl sleeve", "LP sleeve",
+      "static image", "static cover", "full album cover",
+      "album artwork", "cover art", "sleeve art"
+    ]
+    
+    // Also allow strong vinyl rip signals (but prefer static visual)
+    const strongVinylSignals = [
+      "vinyl rip", "needle drop", "from vinyl", "45 rpm", "7 inch",
+      "full album", "library music", "LP"
+    ]
+    
+    const hasStaticIndicator = requiredStaticIndicators.some(indicator => 
+      titleLower.includes(indicator) || 
+      channelLower.includes(indicator) || 
+      descLower.includes(indicator)
+    )
+    
+    const hasStrongSignal = strongVinylSignals.some(signal => 
+      titleLower.includes(signal) || 
+      channelLower.includes(signal) || 
+      descLower.includes(signal)
+    )
+    
+    // REJECT if it has DJ/manipulation terms
+    const djTerms = ["scratch", "scratching", "dj", "turntable", "spinning", "rotating", "mixing", "manipulation"]
+    const hasDjTerms = djTerms.some(term => 
+      titleLower.includes(term) || 
+      channelLower.includes(term) || 
+      descLower.includes(term)
+    )
+    
+    if (hasDjTerms) {
+      console.log(`[Search] REJECTED: DJ/manipulation terms in: ${video.snippet.title}`)
+      continue // Skip - reject DJ/manipulation videos
+    }
+    
+    // Must have static indicator OR strong vinyl signal
+    if (!hasStaticIndicator && !hasStrongSignal) {
+      console.log(`[Search] REJECTED: No static visual/vinyl indicators in: ${video.snippet.title}`)
+      continue // Skip - must have at least one static visual or strong vinyl indicator
+    }
+    
+    const hasRequiredIndicator = requiredIndicators.some(indicator => 
+      titleLower.includes(indicator) || 
+      channelLower.includes(indicator) || 
+      descLower.includes(indicator)
+    )
+    
+    if (!hasRequiredIndicator) {
+      console.log(`[Search] REJECTED: No vinyl/album indicators in: ${video.snippet.title}`)
+      continue // Skip - must have at least one vinyl/album indicator
+    }
+    
+    // Additional filter: Modern hip-hop/rap artists (mainstream, not rare vinyl)
+    
+    // List of modern/mainstream hip-hop artists (not rare vinyl material) - EXPANDED
+    const modernHipHopArtists = [
+      "talib kweli", "kweli", "mos def", "common", "kanye", "jay z", "jay-z",
+      "drake", "kendrick", "j cole", "nas", "eminem", "50 cent", "fifty cent", "snoop",
+      "ice cube", "dr dre", "tupac", "biggie", "notorious", "wu-tang",
+      "outkast", "a tribe called quest", "de la soul", "public enemy",
+      "run dmc", "ll cool j", "rakim", "big daddy kane", "krs-one",
+      "method man", "ghostface", "raekwon", "gza", "odb", "rza",
+      "the roots", "black thought", "questlove", "pharrell", "timbaland",
+      "swizz beatz", "just blaze", "dj premier", "pete rock", "9th wonder",
+      "j dilla", "madlib", "mf doom", "doom", "flying lotus", "knxwledge",
+      "tyler the creator", "earl sweatshirt", "odd future", "asap rocky",
+      "travis scott", "playboi carti", "lil uzi", "21 savage", "migos",
+      "cardi b", "nicky minaj", "megan thee stallion", "dababy", "lil baby",
+      "lil wayne", "nicki minaj", "future", "young thug", "gunna", "lil yachty",
+      "post malone", "lil nas x", "doja cat", "ariana grande", "the weeknd",
+      "juice wrld", "xxxtentacion", "polo g", "roddy ricch", "lil tecca",
+      "pop smoke", "king von", "nba youngboy", "lil durk", "g herbo"
+    ]
+    
+    // Popular modern hip-hop song titles (immediate rejection)
+    const modernHipHopSongs = [
+      "in da club", "get rich or die tryin", "many men", "candy shop",
+      "just a lil bit", "p.i.m.p", "21 questions", "wanksta", "heat",
+      "if i can't", "patiently waiting", "what up gangsta", "poor lil rich",
+      "stan", "lose yourself", "without me", "the real slim shady",
+      "hotline bling", "god's plan", "in my feelings", "one dance",
+      "humble", "dna", "alright", "i", "good kid", "maad city",
+      "no role modelz", "work out", "crooked smile", "power trip"
+    ]
+    
+    // Check for modern hip-hop song titles first (most specific)
+    let isModernSong = false
+    for (const song of modernHipHopSongs) {
+      if (titleLower.includes(song)) {
+        console.log(`[Search] Hard filtered: Modern hip-hop song "${song}" in: ${video.snippet.title}`)
+        isModernSong = true
+        break
+      }
+    }
+    if (isModernSong) {
+      continue // Skip this video
+    }
+    
+    // Reject if title/channel contains modern hip-hop artist name
+    let isModernHipHop = false
+    for (const artist of modernHipHopArtists) {
+      if (allText.includes(artist)) {
+        console.log(`[Search] Hard filtered: Modern hip-hop artist "${artist}" in: ${video.snippet.title}`)
+        isModernHipHop = true
+        break
+      }
+    }
+    if (isModernHipHop) {
+      continue // Skip this video
+    }
+    
+    // Also reject if it's clearly modern hip-hop/rap without vinyl indicators
+    // Make this check MORE aggressive - reject ANY hip-hop/rap unless it has STRONG vinyl signals
+    const hipHopIndicators = ["hip hop", "hip-hop", "rap", "rapper", "mc", "emcee", "gangsta", "thug"]
+    const hasHipHopIndicator = hipHopIndicators.some(indicator => allText.includes(indicator))
+    
+    // Require MULTIPLE vinyl indicators for hip-hop/rap content (very strict)
+    const vinylIndicators = [
+      "vinyl rip", "needle drop", "from vinyl", "45 rpm", "full album", "rare groove",
+      "vinyl", "album cover", "record cover", "static image", "lp", "7 inch", "b-side", "promo", "library music"
+    ]
+    const vinylIndicatorCount = vinylIndicators.filter(indicator => allText.includes(indicator)).length
+    
+    // If it's hip-hop/rap, require at least 2 strong vinyl indicators
+    if (hasHipHopIndicator && vinylIndicatorCount < 2) {
+      console.log(`[Search] Hard filtered: Hip-hop/rap without strong vinyl indicators (found ${vinylIndicatorCount}): ${video.snippet.title}`)
       continue
+    }
+    
+    // Additional check: If title contains artist name format (e.g., "50 Cent - Song Name")
+    // and it's a modern artist, reject it immediately
+    const artistTitlePattern = /^[\w\s]+[\s-]+[\w\s]+/i
+    if (artistTitlePattern.test(video.snippet.title)) {
+      // Check if it matches modern artist format
+      let isModernArtistTitle = false
+      for (const artist of modernHipHopArtists) {
+        if (titleLower.startsWith(artist) || (titleLower.includes(` - `) && titleLower.includes(artist))) {
+          console.log(`[Search] Hard filtered: Modern artist in title format: ${video.snippet.title}`)
+          isModernArtistTitle = true
+          break
+        }
+      }
+      if (isModernArtistTitle) {
+        continue // Skip this video
+      }
     }
     
     // Duration filter: Allow 30s-70min (vinyl rips can be short tracks or full albums)
@@ -773,11 +1222,10 @@ async function searchWithQuery(
       continue
     }
     
-    // Get channel reputation
-    const channelReputation = await getChannelReputation(
-      video.snippet.channelId || video.snippet.channelTitle,
-      video.snippet.channelTitle
-    )
+    // Get channel reputation (use default 0.5 if lookup fails or takes too long)
+    // Skip reputation lookup for speed - use default neutral reputation
+    // This saves database calls and speeds up search significantly
+    const channelReputation = 0.5 // Default neutral reputation (was: await getChannelReputation(...))
     
     // Calculate VinylRipScore
     const vinylRipScore = calculateVinylRipScore(
@@ -788,9 +1236,51 @@ async function searchWithQuery(
       channelReputation
     )
     
-    // Only include videos with score >= 10 (filter out low-quality matches)
-    // This ensures we only get high-signal vinyl rips, not borderline cases
-    if (vinylRipScore >= 10) {
+    // Accept videos with score >= 20 AND must have STATIC visual indicators
+    // Increased threshold to prioritize static album covers and vinyl images
+    const hasStaticVisualIndicator = (
+      titleLower.includes("album cover") ||
+      titleLower.includes("record cover") ||
+      titleLower.includes("vinyl cover") ||
+      titleLower.includes("static image") ||
+      titleLower.includes("static cover") ||
+      titleLower.includes("album sleeve") ||
+      titleLower.includes("record image") ||
+      titleLower.includes("vinyl image") ||
+      titleLower.includes("album artwork") ||
+      titleLower.includes("cover art")
+    )
+    
+    const hasStrongVinylSignal = (
+      titleLower.includes("vinyl rip") ||
+      titleLower.includes("needle drop") ||
+      titleLower.includes("from vinyl") ||
+      titleLower.includes("45 rpm") ||
+      titleLower.includes("full album") ||
+      titleLower.includes("library music") ||
+      titleLower.includes("LP")
+    )
+    
+    // REJECT if has DJ/manipulation terms (duplicate check in scoring path)
+    const hasDjManipulationTerms = (
+      titleLower.includes("scratch") ||
+      titleLower.includes("dj") ||
+      titleLower.includes("turntable") ||
+      titleLower.includes("spinning") ||
+      titleLower.includes("rotating") ||
+      titleLower.includes("mixing") ||
+      titleLower.includes("manipulation")
+    )
+    
+    if (hasDjManipulationTerms) {
+      console.log(`[Search] REJECTED: DJ/manipulation terms in: ${video.snippet.title}`)
+      continue // Skip - reject DJ/manipulation videos
+    }
+    
+    // Only accept videos with:
+    // 1. Score >= 20 (increased from 15)
+    // 2. AND has static visual indicator OR strong vinyl signal
+    if (vinylRipScore >= 20 && (hasStaticVisualIndicator || hasStrongVinylSignal)) {
       scoredVideos.push({
         ...video,
         details,
@@ -800,68 +1290,172 @@ async function searchWithQuery(
         tags: details.tags,
         channelReputation
       })
-    }
-    
-    // If we have enough high-scoring videos, break early
-    if (scoredVideos.length >= 20) {
-      break
+      
+      // Break early if we have enough high-scoring videos (optimize for speed)
+      // We only need 5-10 good candidates, not 20
+      if (scoredVideos.length >= 10) {
+        console.log(`[Search] Found ${scoredVideos.length} high-scoring videos, breaking early for speed`)
+        break
+      }
     }
   }
   
   // Sort by VinylRipScore (highest first)
   scoredVideos.sort((a, b) => b.vinylRipScore - a.vinylRipScore)
   
-  // Return top 10 highest-scoring videos
-  return scoredVideos.slice(0, 10)
+  console.log(`[Search] Found ${scoredVideos.length} videos with score >= 5 (top scores: ${scoredVideos.slice(0, 3).map(v => v.vinylRipScore).join(", ")})`)
+  
+  // Return top 10 highest-scoring videos (or all if less than 10)
+  const results = scoredVideos.slice(0, 10)
+  
+  // Cache the results
+  cacheSearchResult(query, excludedVideoIds, results)
+  
+  return results
 }
 
 /**
  * Search YouTube for a random sample with multi-pass strategy
+ * Uses database-first approach: checks database → (optional) cache/YouTube API
  * @param excludedVideoIds - Array of YouTube video IDs to exclude (already shown videos)
+ * @param userId - Optional user ID to exclude their saved samples
+ * @param options - databaseOnly: if true, never call YouTube API (quota-safe); genre: optional genre filter for DB
  */
-export async function findRandomSample(excludedVideoIds: string[] = []): Promise<YouTubeVideo & { genre?: string; era?: string; duration?: number }> {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error("YOUTUBE_API_KEY is not set")
+export async function findRandomSample(
+  excludedVideoIds: string[] = [],
+  userId?: string,
+  options?: { databaseOnly?: boolean; genre?: string }
+): Promise<YouTubeVideo & { genre?: string; era?: string; duration?: number }> {
+  const databaseOnly = options?.databaseOnly === true
+  const genre = options?.genre?.trim() || undefined
+
+  // STEP 1: Try database first (fastest, no API calls)
+  console.log(`[Dig] Step 1: Checking database for pre-populated samples...`)
+  const dbSample = await getRandomSampleFromDatabase(excludedVideoIds, userId, genre)
+  if (dbSample) {
+    console.log(`[Dig] ✓ Found sample in database: ${dbSample.id}`)
+    return dbSample
   }
 
-  // First pass: Try high-signal query templates
-  const queryTemplate = getRandomQueryTemplate()
-  let validVideos = await searchWithQuery(queryTemplate, false, excludedVideoIds)
-  let usedQuery = queryTemplate
+  const dbCount = await getDatabaseSampleCount(excludedVideoIds, userId)
+  console.log(`[Dig] Database has ${dbCount} available samples (${excludedVideoIds.length} excluded)`)
+
+  // When databaseOnly is set (e.g. for user-facing dig), never use API — avoids quota usage
+  if (databaseOnly) {
+    throw new Error(
+      "No samples available right now. We're adding more—try again in a few minutes, or run the populate job to fill the database."
+    )
+  }
+
+  // STEP 2: Check cache for search results (in searchWithQuery)
+  // STEP 3: Fall back to YouTube API (only for populate job / when databaseOnly is false)
+  console.log(`[Dig] Step 3: Falling back to YouTube API...`)
+
+  if (!getFirstYouTubeApiKey()) {
+    throw new Error("No YouTube API key set and database is empty. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
+  }
+
+  let validVideos: any[] = []
+  let usedQuery = ""
+  let lastError: Error | null = null
+
+  // First pass: Try high-signal query templates (pre-2000s default)
+  try {
+    const queryTemplate = getRandomQueryTemplate()
+    usedQuery = queryTemplate
+    validVideos = await searchWithQuery(queryTemplate, false, excludedVideoIds)
+    console.log(`[Dig] First pass: Found ${validVideos.length} videos`)
+  } catch (error: any) {
+    console.warn(`[Dig] First pass error:`, error?.message)
+    lastError = error
+  }
   
   // Second pass: If no results, try another template
   if (validVideos.length === 0) {
-    const queryTemplate2 = getRandomQueryTemplate()
-    usedQuery = queryTemplate2
-    validVideos = await searchWithQuery(queryTemplate2, false, excludedVideoIds)
+    try {
+      const queryTemplate2 = getRandomQueryTemplate()
+      usedQuery = queryTemplate2
+      validVideos = await searchWithQuery(queryTemplate2, false, excludedVideoIds)
+      console.log(`[Dig] Second pass: Found ${validVideos.length} videos`)
+    } catch (error: any) {
+      console.warn(`[Dig] Second pass error:`, error?.message)
+      lastError = error
+    }
   }
   
-  // Third pass: If still no results, try legacy queries as fallback
+  // Third pass: If still no results, try legacy queries
   if (validVideos.length === 0) {
-    const fallbackQuery = getRandomSearchQuery()
-    usedQuery = fallbackQuery
-    validVideos = await searchWithQuery(fallbackQuery, false, excludedVideoIds)
+    try {
+      console.log(`[Dig] No results with query templates, trying legacy queries...`)
+      const fallbackQuery = getRandomSearchQuery()
+      usedQuery = fallbackQuery
+      validVideos = await searchWithQuery(fallbackQuery, false, excludedVideoIds)
+      console.log(`[Dig] Third pass: Found ${validVideos.length} videos`)
+    } catch (error: any) {
+      console.warn(`[Dig] Third pass error:`, error?.message)
+      lastError = error
+    }
   }
-
+  
+  // Fourth pass: If still no results, try with pre-2010s as last resort
+  if (validVideos.length === 0) {
+    try {
+      console.log(`[Dig] No results, trying pre-2010s as last resort...`)
+      const fallbackQuery = getRandomSearchQuery()
+      usedQuery = fallbackQuery
+      validVideos = await searchWithQuery(fallbackQuery, false, excludedVideoIds, new Date("2010-01-01"))
+      console.log(`[Dig] Fourth pass: Found ${validVideos.length} videos`)
+    } catch (error: any) {
+      console.warn(`[Dig] Fourth pass error:`, error?.message)
+      lastError = error
+    }
+  }
+  
+  // If we still have no results, try one more time with minimal restrictions
+  if (validVideos.length === 0) {
+    console.log(`[Dig] No results after all passes, trying minimal restrictions...`)
+    try {
+      // Try with a very simple query, no date restrictions, and minimal exclusions
+      const simpleQuery = "rare vinyl"
+      usedQuery = simpleQuery
+      const minimalExclusions = excludedVideoIds.length > 5 ? excludedVideoIds.slice(-5) : excludedVideoIds
+      validVideos = await searchWithQuery(simpleQuery, false, minimalExclusions, new Date("2020-01-01"))
+      console.log(`[Dig] Minimal search: Found ${validVideos.length} videos`)
+    } catch (error: any) {
+      console.error(`[Dig] Minimal search also failed:`, error?.message)
+      lastError = error
+    }
+  }
+  
+  // If we still have no results, try with even fewer exclusions
   if (validVideos.length === 0) {
     console.log(`[Dig] No valid videos found with ${excludedVideoIds.length} exclusions`)
-    // If we've excluded too many videos, try again with fewer exclusions (last 50 only)
-    if (excludedVideoIds.length > 50) {
-      const recentExclusions = excludedVideoIds.slice(-50)
-      console.log(`[Dig] Retrying with only last 50 exclusions`)
-      return findRandomSample(recentExclusions)
+    // If we've excluded too many videos, try again with fewer exclusions
+    if (excludedVideoIds.length > 10) {
+      const minimalExclusions = excludedVideoIds.slice(-5)
+      console.log(`[Dig] Retrying with only last 5 exclusions`)
+      return findRandomSample(minimalExclusions)
     }
-    // Last resort: try again with a different query (but keep exclusions)
-    console.log(`[Dig] Retrying with same exclusions`)
-    return findRandomSample(excludedVideoIds)
+    // Last resort: throw error with helpful message
+    if (lastError) {
+      throw new Error(`Failed to fetch videos: ${lastError.message}. Excluded ${excludedVideoIds.length} videos.`)
+    } else {
+      throw new Error(`No valid videos found. This may be due to too many exclusions (${excludedVideoIds.length} videos excluded) or overly restrictive filters. Try clearing your browser session.`)
+    }
   }
   
   // Additional safety check: Filter out any excluded videos that might have slipped through
-  const filteredVideos = validVideos.filter(v => !excludedVideoIds.includes(v.id.videoId))
+  const filteredVideos = validVideos.filter(v => {
+    const isExcluded = excludedVideoIds.includes(v.id.videoId)
+    if (isExcluded) {
+      console.log(`[Dig] Filtered out excluded video: ${v.id.videoId} - ${v.snippet.title}`)
+    }
+    return !isExcluded
+  })
   if (filteredVideos.length === 0 && validVideos.length > 0) {
-    console.log(`[Dig] All ${validVideos.length} candidates were excluded, retrying...`)
-    // All candidates were excluded - retry
-    return findRandomSample(excludedVideoIds)
+    console.log(`[Dig] All ${validVideos.length} candidates were excluded (${excludedVideoIds.length} total exclusions), retrying...`)
+    // All candidates were excluded - retry with same exclusions (they should still be excluded)
+    return findRandomSample(excludedVideoIds, userId)
   }
   
   // Use filtered list if we filtered anything out
@@ -871,30 +1465,58 @@ export async function findRandomSample(excludedVideoIds: string[] = []): Promise
   }
 
   try {
+    // Ensure we have at least one valid video
+    if (!validVideos || validVideos.length === 0) {
+      throw new Error("No valid videos found after filtering")
+    }
+    
     // Select from top-scoring videos (prefer top 3, but allow random selection from top 10)
     // This gives some variety while still prioritizing high scores
     const topCandidates = validVideos.slice(0, Math.min(3, validVideos.length))
     const candidates = topCandidates.length > 0 ? topCandidates : validVideos
     
     // Final safety check: Ensure selected video is not in excluded list
-    const availableCandidates = candidates.filter(v => !excludedVideoIds.includes(v.id.videoId))
+    const availableCandidates = candidates.filter(v => {
+      const isExcluded = excludedVideoIds.includes(v.id.videoId)
+      if (isExcluded) {
+        console.log(`[Dig] Candidate excluded: ${v.id.videoId} - ${v.snippet.title}`)
+      }
+      return !isExcluded
+    })
     if (availableCandidates.length === 0) {
-      console.log(`[Dig] All candidates were excluded, retrying...`)
-      return findRandomSample(excludedVideoIds)
+      console.log(`[Dig] All ${candidates.length} candidates were excluded (${excludedVideoIds.length} total exclusions), retrying...`)
+      // Retry with same exclusions - don't reduce them, they should still be excluded
+      return findRandomSample(excludedVideoIds, userId)
     }
     
     // Randomly select from available candidates
     const randomIndex = Math.floor(Math.random() * availableCandidates.length)
     const video = availableCandidates[randomIndex]
     
+    if (!video || !video.id || !video.snippet) {
+      throw new Error("Invalid video object selected")
+    }
+    
     console.log(`[Dig] Selected video with VinylRipScore: ${video.vinylRipScore || 0}/100, YouTube ID: ${video.id.videoId}`)
     
-    // Double-check this video is not excluded
+    // Double-check this video is not excluded (CRITICAL SAFETY CHECK)
     if (excludedVideoIds.includes(video.id.videoId)) {
-      console.error(`[Dig] ERROR: Selected excluded video ${video.id.videoId}! Retrying...`)
-      return findRandomSample(excludedVideoIds)
+      console.error(`[Dig] ERROR: Selected excluded video ${video.id.videoId} - ${video.snippet.title}!`)
+      console.error(`[Dig] Excluded list:`, excludedVideoIds.slice(0, 10).join(", "), excludedVideoIds.length > 10 ? "..." : "")
+      console.error(`[Dig] This should never happen. Retrying with same exclusions...`)
+      // Don't reduce exclusions - they should still be excluded
+      // Just retry with the same exclusions
+      return findRandomSample(excludedVideoIds, userId)
     }
+    
+    console.log(`[Dig] ✓ Selected video ${video.id.videoId} is NOT in excluded list (${excludedVideoIds.length} exclusions checked)`)
+    console.log(`[Dig] Excluded videos:`, excludedVideoIds.slice(0, 5).join(", "), excludedVideoIds.length > 5 ? "..." : "")
 
+    // Ensure video object has required properties
+    if (!video || !video.id || !video.snippet) {
+      throw new Error("Invalid video object: missing required properties")
+    }
+    
     // Video details are already fetched in searchWithQuery, use them if available
     const videoDetails = video.details || await getVideoDetails(video.id.videoId)
     
@@ -918,8 +1540,15 @@ export async function findRandomSample(excludedVideoIds: string[] = []): Promise
       era: metadata.era,
       duration: video.duration || videoDetails?.duration,
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error fetching YouTube sample:", error)
-    throw error
+    // If we have too many exclusions, try with fewer
+    if (excludedVideoIds.length > 20) {
+      console.log(`[Dig] Retrying with fewer exclusions due to error`)
+      const lenientExclusions = excludedVideoIds.slice(-20)
+      return findRandomSample(lenientExclusions)
+    }
+    // Re-throw the error if we can't recover
+    throw new Error(`Failed to fetch video: ${error?.message || "Unknown error"}`)
   }
 }

@@ -26,7 +26,8 @@ export default function DiceButton({ onClick, loading }: DiceButtonProps) {
     <button
       onClick={handleClick}
       disabled={loading || isRolling}
-      className="relative w-20 h-20 bg-gradient-to-br from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-xl shadow-2xl transform transition-all duration-200 hover:scale-110 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 flex items-center justify-center group"
+      className="relative w-20 h-20 rounded-[var(--radius-card)] transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
+      style={{ background: "var(--primary)", color: "var(--primary-foreground)", boxShadow: "var(--card-shadow)" }}
       aria-label="Roll for sample"
     >
       {/* Dice icon - simple design that rotates from center */}

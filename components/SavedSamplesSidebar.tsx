@@ -98,8 +98,8 @@ export default function SavedSamplesSidebar({
   if (loading) {
     return (
       <div className="p-4">
-        <h2 className="text-xl font-bold text-white mb-4">My Samples</h2>
-        <div className="text-gray-400 text-sm">Loading...</div>
+        <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Samples</h2>
+        <div className="text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Loading...</div>
       </div>
     )
   }
@@ -107,8 +107,8 @@ export default function SavedSamplesSidebar({
   if (samples.length === 0) {
     return (
       <div className="p-4">
-        <h2 className="text-xl font-bold text-white mb-4">My Samples</h2>
-        <div className="text-gray-400 text-sm text-center py-8">
+        <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Samples</h2>
+        <div className="text-sm text-center py-8" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
           No saved samples yet
         </div>
       </div>
@@ -116,57 +116,57 @@ export default function SavedSamplesSidebar({
   }
 
   return (
-    <div className="h-full flex flex-col">
-      <h2 className="text-xl font-bold text-white mb-4 px-4 pt-4">My Samples</h2>
-      <div className="flex-1 overflow-y-auto px-4 pb-4">
+    <div className="h-full min-h-0 flex flex-col">
+      <h2 className="text-xl font-semibold shrink-0 mb-4 px-4 pt-4" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Samples</h2>
+      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
         <div className="space-y-4">
           {samples.map((sample, index) => (
             <div key={sample.id}>
               <div
                 className={`group relative cursor-pointer transition-all duration-200 ${
-                  currentSampleId === sample.id
-                    ? "opacity-100"
-                    : "opacity-90 hover:opacity-100"
+                  currentSampleId === sample.id ? "opacity-100" : "opacity-90 hover:opacity-100"
                 }`}
                 onClick={() => onSampleClick?.(sample)}
               >
-                {/* Title above thumbnail */}
-                <h3 className="text-white text-sm font-medium mb-2 line-clamp-2">
+                <h3 className="text-sm font-medium mb-2 line-clamp-2" style={{ color: "var(--foreground)" }}>
                   {sample.title}
                 </h3>
-                {/* Thumbnail with timestamp overlay */}
-                <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black">
-                  <img
-                    src={sample.thumbnailUrl}
-                    alt={sample.title}
-                    className="w-full h-full object-cover"
-                  />
-                  {/* Timestamp overlay at bottom */}
+                <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/10">
+                  <img src={sample.thumbnailUrl} alt={sample.title} className="w-full h-full object-cover" />
                   {sample.startTime && (
-                    <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm px-2 py-1 rounded text-white text-xs font-mono">
+                    <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-mono">
                       {formatTimestamp(sample.startTime)}
                     </div>
                   )}
-                  {/* Heart toggle overlay at top right - always visible for saved samples */}
                   <div
                     className="absolute top-2 right-2"
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      handleUnsave(sample.id)
-                    }}
+                    onClick={(e) => { e.stopPropagation(); handleUnsave(sample.id) }}
                   >
-                    <HeartToggle
-                      isSaved={true}
-                      onToggle={() => handleUnsave(sample.id)}
-                      size="sm"
-                      className="bg-black/50 backdrop-blur-sm rounded-full p-1"
-                    />
+                    <HeartToggle isSaved={true} onToggle={() => handleUnsave(sample.id)} size="sm" className="bg-white/90 rounded-full p-1 shadow-sm" />
                   </div>
+                  {(sample.genre || sample.bpm != null || sample.key) && (
+                    <div className="absolute bottom-2 left-2 right-12 flex flex-wrap gap-1">
+                      {sample.genre && (
+                        <span className="bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-medium">
+                          {sample.genre}
+                        </span>
+                      )}
+                      {sample.bpm != null && (
+                        <span className="bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-mono">
+                          {sample.bpm} BPM
+                        </span>
+                      )}
+                      {sample.key && (
+                        <span className="bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-mono">
+                          {sample.key}
+                        </span>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
-              {/* Divider line */}
               {index < samples.length - 1 && (
-                <div className="border-t border-purple-500/20 my-4"></div>
+                <div className="my-4 border-t" style={{ borderColor: "var(--border)" }} />
               )}
             </div>
           ))}

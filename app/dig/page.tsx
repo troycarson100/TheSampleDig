@@ -6,7 +6,31 @@ import SamplePlayer from "@/components/SamplePlayer"
 import DiceButton from "@/components/DiceButton"
 import AutoplayToggle from "@/components/AutoplayToggle"
 import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
-import Link from "next/link"
+import SiteNav from "@/components/SiteNav"
+
+/** Genre options for the dig filter (value matches DB genre; label for display) */
+const GENRE_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Any genre" },
+  { value: "jazz", label: "Jazz" },
+  { value: "soul", label: "Soul" },
+  { value: "funk", label: "Funk" },
+  { value: "r&b", label: "R&B" },
+  { value: "hip hop", label: "Hip Hop" },
+  { value: "bossa nova", label: "Bossa Nova" },
+  { value: "blues", label: "Blues" },
+  { value: "disco", label: "Disco" },
+  { value: "reggae", label: "Reggae" },
+  { value: "latin", label: "Latin" },
+  { value: "prog", label: "Prog" },
+  { value: "psychedelic", label: "Psychedelic" },
+  { value: "afrobeat", label: "Afrobeat" },
+  { value: "lounge", label: "Lounge" },
+  { value: "library", label: "Library" },
+  { value: "soundtrack", label: "Soundtrack" },
+  { value: "exotica", label: "Exotica" },
+  { value: "folk", label: "Folk" },
+  { value: "world", label: "World" },
+]
 
 interface Sample {
   id: string
@@ -31,6 +55,7 @@ export default function DigPage() {
   const [error, setError] = useState("")
   const [isSaved, setIsSaved] = useState(false)
   const [autoplay, setAutoplay] = useState(true)
+  const [genreFilter, setGenreFilter] = useState("")
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
   const isSavedRef = useRef(isSaved)
   const sampleRef = useRef(sample)
@@ -61,6 +86,19 @@ export default function DigPage() {
   useEffect(() => {
     localStorage.setItem("autoplay", autoplay.toString())
   }, [autoplay])
+
+  // Load genre filter from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("digGenre")
+    if (saved !== null && GENRE_OPTIONS.some((o) => o.value === saved)) {
+      setGenreFilter(saved)
+    }
+  }, [])
+
+  // Save genre filter to localStorage
+  useEffect(() => {
+    localStorage.setItem("digGenre", genreFilter)
+  }, [genreFilter])
 
   // Get seen video IDs from sessionStorage
   const getSeenVideoIds = (): string[] => {
@@ -120,10 +158,11 @@ export default function DigPage() {
       const excludedIds = getSeenVideoIds()
       console.log(`[Repeat Prevention] Excluding ${excludedIds.length} videos:`, excludedIds.slice(0, 5).join(", "), excludedIds.length > 5 ? "..." : "")
       
-      const url = excludedIds.length > 0 
-        ? `/api/samples/dig?excluded=${excludedIds.join(",")}`
-        : "/api/samples/dig"
-      
+      const params = new URLSearchParams()
+      if (excludedIds.length > 0) params.set("excluded", excludedIds.join(","))
+      if (genreFilter.trim() !== "") params.set("genre", genreFilter.trim())
+      const url = params.toString() ? `/api/samples/dig?${params.toString()}` : "/api/samples/dig"
+
       const response = await fetch(url)
       const responseData = await response.json()
       
@@ -365,90 +404,58 @@ export default function DigPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900">
-      <nav className="p-6 flex justify-between items-center">
-        <Link href="/dig" className="text-2xl font-bold text-white">
-          Sample Roll
-        </Link>
-        <div className="flex gap-4 items-center">
-          {session ? (
-            <>
-              <Link
-                href="/profile"
-                className="text-purple-300 hover:text-purple-200 transition"
-              >
-                My Samples
-              </Link>
-              <Link
-                href="/api/auth/signout"
-                className="text-gray-400 hover:text-gray-300 transition"
-              >
-                Sign Out
-              </Link>
-            </>
-          ) : (
-            <Link
-              href="/login"
-              className="text-purple-300 hover:text-purple-200 transition"
-            >
-              Login
-            </Link>
-          )}
+    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+      <header className="w-full py-1" style={{ background: "#F6F0E8" }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <SiteNav />
         </div>
-      </nav>
-
-      <main className="container mx-auto px-4 py-8">
+      </header>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Main content area */}
-          <div className="flex-1 max-w-4xl">
-            <div className="text-center mb-8">
-              <h1 className="text-4xl font-bold text-white mb-4">
-                Discover Rare Vinyl Samples
-              </h1>
-              <p className="text-gray-400 mb-8">
-                Click Dig to find a random rare sample from YouTube
-              </p>
-              
-              <div className="flex flex-col items-center gap-4">
-                <div className="flex items-center gap-4">
-                  {previousSample && (
-                    <button
-                      onClick={handleGoBack}
-                      className="bg-purple-600 hover:bg-purple-700 text-white rounded-full p-3 shadow-lg transition-all duration-200 hover:scale-110 active:scale-95 border-2 border-white/30"
-                      aria-label="Go back to previous video"
-                      title="Go back to previous video"
-                    >
-                      <svg
-                        className="w-6 h-6"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2.5}
-                          d="M15 19l-7-7 7-7"
-                        />
-                      </svg>
-                    </button>
-                  )}
-                  <DiceButton onClick={handleDig} loading={loading} />
-                </div>
+          <div className="flex-1 max-w-3xl min-w-0">
+            {/* Controls */}
+            <div className="rounded-2xl p-5 w-full max-w-2xl mx-auto mb-6" style={{ background: "#F6F0E9" }}>
+              <div className="flex flex-wrap items-center justify-center gap-4">
+                {previousSample && (
+                  <button
+                    onClick={handleGoBack}
+                    className="rounded-[var(--radius-button)] py-3 px-4 border transition hover:opacity-80"
+                    style={{ background: "var(--background)", borderColor: "var(--foreground)", color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                    aria-label="Go back to previous video"
+                    title="Go back to previous video"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+                  </button>
+                )}
+                <DiceButton onClick={handleDig} loading={loading} />
                 <AutoplayToggle enabled={autoplay} onChange={setAutoplay} />
+                <label className="flex items-center gap-2">
+                  <select
+                    value={genreFilter}
+                    onChange={(e) => setGenreFilter(e.target.value)}
+                    className="rounded-[var(--radius-button)] py-2.5 pl-3 pr-10 border text-sm min-w-[140px]"
+                    style={{ background: "var(--background)", borderColor: "var(--border)", color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                    aria-label="Filter samples by genre"
+                  >
+                    {GENRE_OPTIONS.map((opt) => (
+                      <option key={opt.value || "any"} value={opt.value}>{opt.label}</option>
+                    ))}
+                  </select>
+                </label>
               </div>
             </div>
 
             {error && (
-              <div className="mb-6 p-4 bg-red-500/20 border border-red-500 rounded text-red-300 text-center">
+              <div className="mb-6 p-4 rounded-xl text-center border" style={{ background: "rgba(185,28,28,0.06)", borderColor: "rgba(185,28,28,0.2)", color: "#b91c1c" }}>
                 {error}
               </div>
             )}
 
-            {sample && (
-              <div className="bg-black/50 backdrop-blur-sm rounded-lg p-6 border border-purple-500/20 relative">
+            {/* Video area - always visible, empty when no sample */}
+            <div className="rounded-2xl p-6 min-h-[280px]" style={{ background: "#F6F0E9" }}>
+              {sample ? (
                 <SamplePlayer
-                  key={sample.youtubeId} // Key based on YouTube ID to prevent remounts when only isSaved changes
+                  key={sample.youtubeId}
                   youtubeId={sample.youtubeId}
                   title={sample.title}
                   channel={sample.channel}
@@ -463,32 +470,22 @@ export default function DigPage() {
                   isSaved={isSaved}
                   onSaveToggle={handleSaveToggle}
                   showHeart={!!session}
-                      onVideoError={() => {
-                        // Video is unavailable, add to seen list and automatically get next one
-                        if (sample?.youtubeId) {
-                          addSeenVideo(sample.youtubeId)
-                        }
-                        console.log("Video unavailable, fetching next sample...")
-                        handleDig()
-                      }}
+                  onVideoError={() => {
+                    if (sample?.youtubeId) {
+                      addSeenVideo(sample.youtubeId)
+                    }
+                    console.log("Video unavailable, fetching next sample...")
+                    handleDig()
+                  }}
                 />
-                <p className="mt-3 text-sm text-gray-500">
-                  Video blocked or not loading? The uploader may have disabled embedding. Click <strong>Dig</strong> for another sample.
-                </p>
-              </div>
-            )}
+              ) : null}
+            </div>
 
-            {!sample && !loading && (
-              <div className="text-center text-gray-500 mt-12">
-                <p className="text-lg">Click Dig to start discovering samples!</p>
-              </div>
-            )}
           </div>
 
-          {/* Saved samples sidebar */}
           {session && (
-            <div className="lg:w-80 lg:sticky lg:top-8 lg:h-[calc(100vh-4rem)]">
-              <div className="bg-black/50 backdrop-blur-sm rounded-lg border border-purple-500/20 h-full flex flex-col">
+            <div className="lg:w-72 xl:w-80 lg:sticky lg:top-8 lg:self-start shrink-0 lg:max-h-[calc(100vh-6rem)] flex flex-col min-h-0">
+              <div className="rounded-2xl flex flex-col min-h-0 overflow-hidden" style={{ background: "#F6F0E9" }}>
                 <SavedSamplesSidebar
                   onSampleClick={(savedSample) => {
                     // Save current sample as previous before loading new one
@@ -519,8 +516,38 @@ export default function DigPage() {
               </div>
             </div>
           )}
+
+          </div>
+
+        {/* Claura-style gradient strip with dot grid */}
+        <div
+          className="w-full mt-12 rounded-[40px] h-28 overflow-hidden relative"
+          style={{ background: "linear-gradient(90deg, #e07c4a 0%, #d4a574 35%, #c9b8a8 65%, #9b9bb5 100%)" }}
+        >
+          <div
+            className="absolute inset-0 opacity-95"
+            style={{
+              backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.85) 2px, transparent 2px)",
+              backgroundSize: "20px 20px",
+            }}
+          />
         </div>
-      </main>
+
+        <footer className="mt-10 pt-8 border-t px-2 sm:px-4" style={{ borderColor: "var(--border)" }}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div>
+              <p className="text-lg font-semibold" style={{ fontFamily: "var(--font-halant), Georgia, serif", color: "var(--foreground)" }}>Sample Roll</p>
+              <p className="text-sm mt-0.5" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Helping you find samples that matter.</p>
+            </div>
+            <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
+              <a href="/dig" className="hover:text-[var(--foreground)] transition">Dig</a>
+              <a href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</a>
+              <a href="/login" className="hover:text-[var(--foreground)] transition">Login</a>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
   )
 }
+

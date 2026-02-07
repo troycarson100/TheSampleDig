@@ -329,7 +329,7 @@ function SamplePlayer({
             />
           </>
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gray-900/80 text-gray-400">
+          <div className="w-full h-full flex items-center justify-center rounded-lg" style={{ background: "var(--muted-light)", color: "var(--muted)" }}>
             <p>Invalid video ID — loading next sample...</p>
           </div>
         )}
@@ -340,40 +340,23 @@ function SamplePlayer({
               isSaved={isSaved}
               onToggle={onSaveToggle}
               size="lg"
-              className="bg-black/50 backdrop-blur-sm rounded-full p-2"
+              className="rounded-full p-2 shadow-sm"
+              style={{ background: "var(--card)" }}
             />
           </div>
         )}
       </div>
       <div className="mt-4">
-        <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
-        <p className="text-gray-400 mb-2">{channel}</p>
+        <h3 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>{title}</h3>
+        <p className="mb-2 text-sm" style={{ color: "var(--muted)" }}>{channel}</p>
         {(genre || era || bpm || musicalKey || analysisStatus === "processing" || analysisStatus === "pending") && (
           <div className="flex gap-2 flex-wrap">
-            {genre && (
-              <span className="px-3 py-1 bg-purple-600/30 text-purple-300 rounded-full text-sm">
-                {genre}
-              </span>
-            )}
-            {era && (
-              <span className="px-3 py-1 bg-purple-600/30 text-purple-300 rounded-full text-sm">
-                {era}
-              </span>
-            )}
-            {bpm && (
-              <span className="px-3 py-1 bg-blue-600/30 text-blue-300 rounded-full text-sm font-mono">
-                {bpm} BPM
-              </span>
-            )}
-            {musicalKey && (
-              <span className="px-3 py-1 bg-green-600/30 text-green-300 rounded-full text-sm font-mono">
-                {musicalKey}
-              </span>
-            )}
+            {genre && <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{genre}</span>}
+            {era && <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{era}</span>}
+            {bpm && <span className="px-3 py-1.5 rounded-lg text-sm font-mono border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{bpm} BPM</span>}
+            {musicalKey && <span className="px-3 py-1.5 rounded-lg text-sm font-mono border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{musicalKey}</span>}
             {(analysisStatus === "processing" || analysisStatus === "pending") && !bpm && !musicalKey && (
-              <span className="px-3 py-1 bg-yellow-600/30 text-yellow-300 rounded-full text-sm">
-                Analyzing...
-              </span>
+              <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>Analyzing...</span>
             )}
           </div>
         )}

@@ -1,8 +1,18 @@
 @import "tailwindcss";
 
+/* Claura (claura.framer.ai): warm cream page, dark brown text & CTAs */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #FCF7EF;
+  --foreground: #332B25;
+  --card: #FDFCFB;
+  --card-shadow: 0 4px 40px rgba(51, 43, 37, 0.06);
+  --primary: #332B25;
+  --primary-foreground: #ffffff;
+  --muted: #6B6560;
+  --muted-light: #EDE9E4;
+  --border: rgba(51, 43, 37, 0.12);
+  --radius-card: 24px;
+  --radius-button: 10px;
 }
 
 @theme inline {
@@ -10,19 +20,13 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-heading: var(--font-halant);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 /* Retro burst animation keyframes */

@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react"
 import Link from "next/link"
 import HeartToggle from "@/components/HeartToggle"
 import SamplePlayer from "@/components/SamplePlayer"
+import SiteNav from "@/components/SiteNav"
 
 interface SavedSample {
   id: string
@@ -118,88 +119,54 @@ export default function ProfilePage() {
 
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-900 via-black to-purple-900">
-        <div className="text-white text-xl">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
+        <div className="text-xl" style={{ color: "var(--muted)" }}>Loading...</div>
       </div>
     )
   }
 
   if (!session) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900">
-        <nav className="p-6 flex justify-between items-center">
-          <Link href="/dig" className="text-2xl font-bold text-white">
-            Sample Roll
-          </Link>
-          <Link
-            href="/login"
-            className="text-purple-300 hover:text-purple-200 transition"
-          >
-            Login
-          </Link>
-        </nav>
-        <main className="container mx-auto px-4 py-8 max-w-7xl">
-          <div className="text-center py-12">
-            <h1 className="text-4xl font-bold text-white mb-4">
-              My Saved Samples
-            </h1>
-            <p className="text-gray-400 text-lg mb-6">
-              Please log in to view your saved samples.
-            </p>
-            <Link
-              href="/login"
-              className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition"
-            >
-              Login
-            </Link>
+      <div className="min-h-screen" style={{ background: "var(--background)" }}>
+        <header className="w-full py-1" style={{ background: "#F6F0E8" }}>
+          <div className="max-w-5xl mx-auto px-4 sm:px-6">
+            <SiteNav />
           </div>
-        </main>
+        </header>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+          <div className="flex flex-col items-center justify-center text-center py-16">
+            <h1 className="text-3xl font-semibold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Saved Samples</h1>
+            <p className="text-lg mb-6" style={{ color: "var(--muted)" }}>Please log in to view your saved samples.</p>
+            <Link href="/login" className="inline-block px-5 py-2.5 rounded-[var(--radius-button)] font-medium text-white transition opacity-90 hover:opacity-100" style={{ background: "var(--primary)" }}>Login</Link>
+          </div>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-black to-purple-900">
-      <nav className="p-6 flex justify-between items-center">
-        <Link href="/dig" className="text-2xl font-bold text-white">
-          Sample Roll
-        </Link>
-        <div className="flex gap-4 items-center">
-          <Link
-            href="/dig"
-            className="text-purple-300 hover:text-purple-200 transition"
-          >
-            Dig
-          </Link>
-          <Link
-            href="/api/auth/signout"
-            className="text-gray-400 hover:text-gray-300 transition"
-          >
-            Sign Out
-          </Link>
+    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+      <header className="w-full py-1" style={{ background: "#F6F0E8" }}>
+        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+          <SiteNav />
         </div>
-      </nav>
+      </header>
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="px-2 sm:px-4 pt-2 pb-4">
+          <h1 className="text-3xl sm:text-4xl font-semibold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Saved Samples</h1>
+            <p className="text-[15px]" style={{ color: "var(--muted)" }}>{samples.length} {samples.length === 1 ? "sample" : "samples"} saved</p>
+          </div>
 
-      <main className="container mx-auto px-4 py-8 max-w-7xl">
-        <div className="mb-6">
-          <h1 className="text-4xl font-bold text-white mb-2">
-            My Saved Samples
-          </h1>
-          <p className="text-gray-400">
-            {samples.length} {samples.length === 1 ? "sample" : "samples"} saved
-          </p>
-        </div>
-
-        {/* Filters: dropdowns + active filter tags */}
-        {samples.length > 0 && (
-          <div className="mb-6 flex flex-col gap-3">
-            <div className="flex flex-wrap items-center gap-3">
-              <span className="text-gray-400 text-sm font-medium">Filter:</span>
-              <select
-                value={genreFilter ?? ""}
-                onChange={(e) => setGenreFilter(e.target.value ? e.target.value : null)}
-                className="bg-black/50 border border-purple-500/30 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
-              >
+          {samples.length > 0 && (
+            <div className="px-2 sm:px-4 mb-6 flex flex-col gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Filter:</span>
+                <select
+                  value={genreFilter ?? ""}
+                  onChange={(e) => setGenreFilter(e.target.value ? e.target.value : null)}
+                  className="rounded-full border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-offset-1"
+                  style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--foreground)" }}
+                >
                 <option value="">Genre</option>
                 {genreOptions.map((g) => (
                   <option key={g} value={g}>{g}</option>
@@ -208,7 +175,8 @@ export default function ProfilePage() {
               <select
                 value={keyFilter ?? ""}
                 onChange={(e) => setKeyFilter(e.target.value ? e.target.value : null)}
-                className="bg-black/50 border border-purple-500/30 rounded-lg px-3 py-2 text-white text-sm focus:ring-2 focus:ring-purple-500 focus:border-transparent outline-none"
+                className="rounded-full border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-offset-1"
+                style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--foreground)" }}
               >
                 <option value="">Key</option>
                 {keyOptions.map((k) => (
@@ -218,29 +186,19 @@ export default function ProfilePage() {
             </div>
             {hasActiveFilters && (
               <div className="flex flex-wrap items-center gap-2">
-                <span className="text-gray-500 text-sm">Active:</span>
+                <span className="text-sm" style={{ color: "var(--muted)" }}>Active:</span>
                 {genreFilter != null && genreFilter !== "" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-600/40 text-purple-200 rounded-full text-sm">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>
                     {genreFilter}
-                    <button
-                      type="button"
-                      onClick={() => clearFilter("genre")}
-                      className="hover:bg-purple-500/50 rounded-full p-0.5 transition"
-                      aria-label="Remove genre filter"
-                    >
+                    <button type="button" onClick={() => clearFilter("genre")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Remove genre filter">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </span>
                 )}
                 {keyFilter != null && keyFilter !== "" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600/40 text-green-200 rounded-full text-sm font-mono">
+                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-mono" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>
                     {keyFilter}
-                    <button
-                      type="button"
-                      onClick={() => clearFilter("key")}
-                      className="hover:bg-green-500/50 rounded-full p-0.5 transition"
-                      aria-label="Remove key filter"
-                    >
+                    <button type="button" onClick={() => clearFilter("key")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Remove key filter">
                       <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                   </span>
@@ -248,53 +206,30 @@ export default function ProfilePage() {
               </div>
             )}
             {hasActiveFilters && (
-              <p className="text-gray-500 text-sm">
-                Showing {filteredSamples.length} of {samples.length} samples
-              </p>
+              <p className="text-sm" style={{ color: "var(--muted)" }}>Showing {filteredSamples.length} of {samples.length} samples</p>
             )}
           </div>
-        )}
+          )}
 
-        {error && (
-          <div className="mb-6 p-4 bg-red-500/20 border border-red-500 rounded text-red-300">
-            {error}
-          </div>
-        )}
+          {error && (
+            <div className="mx-2 sm:mx-4 mb-6 p-4 rounded-xl border" style={{ background: "rgba(185,28,28,0.06)", borderColor: "rgba(185,28,28,0.2)", color: "#b91c1c" }}>{error}</div>
+          )}
 
-        {samples.length === 0 && !loading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg mb-4">
-              You haven't saved any samples yet.
-            </p>
-            <Link
-              href="/dig"
-              className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition"
-            >
-              Start Digging
-            </Link>
-          </div>
-        ) : filteredSamples.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-gray-400 text-lg mb-4">
-              No samples match your filters.
-            </p>
-            <button
-              type="button"
-              onClick={() => {
-                setGenreFilter(null)
-                setKeyFilter(null)
-              }}
-              className="inline-block px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-semibold rounded-lg transition"
-            >
-              Clear filters
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-            {/* Video Player Section - Takes up 2 columns on large screens */}
+          {samples.length === 0 && !loading ? (
+            <div className="px-2 sm:px-4 text-center py-12">
+              <p className="text-lg mb-4" style={{ color: "var(--muted)" }}>You haven't saved any samples yet.</p>
+              <Link href="/dig" className="inline-block px-5 py-2.5 rounded-[var(--radius-button)] font-medium text-white transition opacity-90 hover:opacity-100" style={{ background: "var(--primary)" }}>Start Digging</Link>
+            </div>
+          ) : filteredSamples.length === 0 ? (
+            <div className="px-2 sm:px-4 text-center py-12">
+              <p className="text-lg mb-4" style={{ color: "var(--muted)" }}>No samples match your filters.</p>
+              <button type="button" onClick={() => { setGenreFilter(null); setKeyFilter(null) }} className="inline-block px-5 py-2.5 rounded-[var(--radius-button)] font-medium text-white transition opacity-90 hover:opacity-100" style={{ background: "var(--primary)" }}>Clear filters</button>
+            </div>
+          ) : (
+          <div className="px-2 sm:px-4 grid grid-cols-1 lg:grid-cols-4 gap-8 pb-8">
             {selectedSample ? (
               <div className="lg:col-span-2">
-                <div className="sticky top-8">
+                <div className="sticky top-8 rounded-2xl border overflow-hidden" style={{ borderColor: "var(--border)", background: "rgba(0,0,0,0.02)" }}>
                   <SamplePlayer
                     youtubeId={selectedSample.youtubeId}
                     title={selectedSample.title}
@@ -313,94 +248,56 @@ export default function ProfilePage() {
                 </div>
               </div>
             ) : (
-              <div className="lg:col-span-2 flex items-center justify-center bg-black/30 rounded-lg border border-purple-500/20 min-h-[400px]">
+              <div className="lg:col-span-2 flex items-center justify-center rounded-2xl border min-h-[400px]" style={{ background: "var(--muted-light)", borderColor: "var(--border)" }}>
                 <div className="text-center">
-                  <p className="text-gray-400 text-lg mb-2">Select a sample to play</p>
-                  <p className="text-gray-500 text-sm">Click on any sample card to start listening</p>
+                  <p className="text-lg mb-2" style={{ color: "var(--muted)" }}>Select a sample to play</p>
+                  <p className="text-sm" style={{ color: "var(--muted)" }}>Click on any sample card to start listening</p>
                 </div>
               </div>
             )}
 
-            {/* Samples Grid - Takes up 2 columns on large screens */}
             <div className="lg:col-span-2">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {filteredSamples.map((sample) => (
                   <div
                     key={sample.id}
-                    className={`bg-black/50 backdrop-blur-sm rounded-lg overflow-hidden border transition-all cursor-pointer ${
-                      selectedSample?.id === sample.id
-                        ? "border-purple-500 ring-2 ring-purple-500/50"
-                        : "border-purple-500/20 hover:border-purple-500/40"
+                    className={`rounded-2xl overflow-hidden border transition-all cursor-pointer ${
+                      selectedSample?.id === sample.id ? "ring-2 ring-offset-2" : ""
                     }`}
+                    style={{
+                      background: "var(--card)",
+                      borderColor: selectedSample?.id === sample.id ? "var(--primary)" : "var(--border)",
+                      boxShadow: selectedSample?.id === sample.id ? "0 4px 14px var(--card-shadow)" : "none"
+                    }}
                     onClick={() => setSelectedSample(sample)}
                   >
-                    <div className="aspect-video w-full bg-black relative group">
-                      <img
-                        src={sample.thumbnailUrl}
-                        alt={sample.title}
-                        className="w-full h-full object-cover"
-                      />
-                      {/* Timestamp overlay */}
+                    <div className="aspect-video w-full bg-black/10 relative group">
+                      <img src={sample.thumbnailUrl} alt={sample.title} className="w-full h-full object-cover" />
                       {sample.startTime && (
-                        <div className="absolute bottom-2 right-2 bg-black/80 backdrop-blur-sm px-2 py-1 rounded text-white text-xs font-mono">
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-mono">
                           {formatTimestamp(sample.startTime)}
                         </div>
                       )}
-                      {/* Heart toggle */}
-                      <div
-                        className="absolute top-2 right-2"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleUnsave(sample.id)
-                        }}
-                      >
-                        <HeartToggle
-                          isSaved={true}
-                          onToggle={() => handleUnsave(sample.id)}
-                          size="sm"
-                          className="bg-black/50 backdrop-blur-sm rounded-full p-1"
-                        />
+                      <div className="absolute top-2 right-2" onClick={(e) => { e.stopPropagation(); handleUnsave(sample.id) }}>
+                        <HeartToggle isSaved={true} onToggle={() => handleUnsave(sample.id)} size="sm" className="bg-white/90 rounded-full p-1 shadow-sm" />
                       </div>
-                      {/* Play overlay on hover */}
                       <div className="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition flex items-center justify-center">
                         <div className="opacity-0 group-hover:opacity-100 transition">
-                          <svg
-                            className="w-12 h-12 text-white"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
+                          <svg className="w-12 h-12 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path d="M6.3 2.841A1.5 1.5 0 004 4.11V15.89a1.5 1.5 0 002.3 1.269l9.344-5.89a1.5 1.5 0 000-2.538L6.3 2.84z" />
                           </svg>
                         </div>
                       </div>
                     </div>
                     <div className="p-4">
-                      <h3 className="text-white font-semibold mb-1 line-clamp-2 text-sm">
-                        {sample.title}
-                      </h3>
-                      <p className="text-gray-400 text-xs mb-2">{sample.channel}</p>
+                      <h3 className="font-semibold mb-1 line-clamp-2 text-sm" style={{ color: "var(--foreground)" }}>{sample.title}</h3>
+                      <p className="text-xs mb-2" style={{ color: "var(--muted)" }}>{sample.channel}</p>
                       {(sample.genre || sample.era || sample.bpm || sample.key) && (
                         <div className="flex gap-2 flex-wrap">
-                          {sample.genre && (
-                            <span className="px-2 py-1 bg-purple-600/30 text-purple-300 rounded text-xs">
-                              {sample.genre}
-                            </span>
-                          )}
-                          {sample.era && (
-                            <span className="px-2 py-1 bg-purple-600/30 text-purple-300 rounded text-xs">
-                              {sample.era}
-                            </span>
-                          )}
-                          {sample.bpm && (
-                            <span className="px-2 py-1 bg-blue-600/30 text-blue-300 rounded text-xs font-mono">
-                              {sample.bpm} BPM
-                            </span>
-                          )}
-                          {sample.key && (
-                            <span className="px-2 py-1 bg-green-600/30 text-green-300 rounded text-xs font-mono">
-                              {sample.key}
-                            </span>
-                          )}
+                          {sample.genre && <span className="px-2 py-1 rounded-full text-xs" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>{sample.genre}</span>}
+                          {sample.era && <span className="px-2 py-1 rounded-full text-xs" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>{sample.era}</span>}
+                          {sample.bpm && <span className="px-2 py-1 rounded-full text-xs font-mono" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>{sample.bpm} BPM</span>}
+                          {sample.key && <span className="px-2 py-1 rounded-full text-xs font-mono" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>{sample.key}</span>}
                         </div>
                       )}
                     </div>
@@ -409,8 +306,22 @@ export default function ProfilePage() {
               </div>
             </div>
           </div>
-        )}
-      </main>
+          )}
+
+        <footer className="mt-12 pt-8 border-t px-2 sm:px-4" style={{ borderColor: "var(--border)" }}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div>
+              <p className="text-lg font-semibold" style={{ fontFamily: "var(--font-halant), Georgia, serif", color: "var(--foreground)" }}>Sample Roll</p>
+              <p className="text-sm mt-0.5" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Helping you find samples that matter.</p>
+            </div>
+            <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
+              <Link href="/dig" className="hover:text-[var(--foreground)] transition">Dig</Link>
+              <Link href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</Link>
+              <Link href="/login" className="hover:text-[var(--foreground)] transition">Login</Link>
+            </div>
+          </div>
+        </footer>
+      </div>
     </div>
   )
 }
