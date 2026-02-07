@@ -406,15 +406,15 @@ export default function DigPage() {
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
       <header className="w-full py-1" style={{ background: "#F6F0E8" }}>
-        <div className="max-w-5xl mx-auto px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto px-3 sm:px-4">
           <SiteNav />
         </div>
       </header>
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        <div className="flex flex-col lg:flex-row gap-8">
-          <div className="flex-1 max-w-3xl min-w-0">
+      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="flex-1 min-w-0">
             {/* Controls */}
-            <div className="rounded-2xl p-5 w-full max-w-2xl mx-auto mb-6" style={{ background: "#F6F0E9" }}>
+            <div className="rounded-2xl p-4 w-full mb-4" style={{ background: "#F6F0E9" }}>
               <div className="flex flex-wrap items-center justify-center gap-4">
                 {previousSample && (
                   <button
@@ -452,7 +452,7 @@ export default function DigPage() {
             )}
 
             {/* Video area - always visible, empty when no sample */}
-            <div className="rounded-2xl p-6 min-h-[280px]" style={{ background: "#F6F0E9" }}>
+            <div className="rounded-2xl p-4 min-h-[280px]" style={{ background: "#F6F0E9" }}>
               {sample ? (
                 <SamplePlayer
                   key={sample.youtubeId}
