@@ -13,6 +13,9 @@ export default function SiteNav() {
         <Link href="/dig" className="text-[15px] font-medium text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
           Dig
         </Link>
+        <Link href="/stem-splitter" className="text-[15px] font-medium text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
+          Stem Splitter
+        </Link>
         {session && (
           <Link href="/profile" className="text-[15px] font-medium text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
             My Samples

@@ -6,6 +6,10 @@ import type { Chop } from "@/hooks/useChopMode"
 interface ChopTimelineMarkersProps {
   chops: Chop[]
   duration: number
+  /** Current video playback time in seconds (for playhead) */
+  currentTime?: number
+  /** Called when user clicks on the bar to seek (e.g. adapter.seekTo(time)) */
+  onSeek?: (time: number) => void
   onUpdateChopTime: (key: string, time: number) => void
   onRemoveChop: (key: string) => void
   pressedKey: string | null
@@ -14,6 +18,8 @@ interface ChopTimelineMarkersProps {
 export default function ChopTimelineMarkers({
   chops,
   duration,
+  currentTime = 0,
+  onSeek,
   onUpdateChopTime,
   onRemoveChop,
   pressedKey,
@@ -67,21 +73,55 @@ export default function ChopTimelineMarkers({
     [getTimeFromClientX, onUpdateChopTime]
   )
 
-  if (chops.length === 0 || duration <= 0) return null
+  if (duration <= 0) return null
+
+  const playheadPercent = Math.max(0, Math.min(100, (currentTime / duration) * 100))
+
+  const formatTime = (seconds: number) => {
+    const m = Math.floor(seconds / 60)
+    const s = Math.floor(seconds % 60)
+    return `${m}:${s.toString().padStart(2, "0")}`
+  }
+
+  const handleBarClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      if (draggingKeyRef.current) return
+      if (e.target !== e.currentTarget) return
+      const time = getTimeFromClientX(e.clientX)
+      onSeek?.(time)
+    },
+    [getTimeFromClientX, onSeek]
+  )
 
   return (
     <div
       ref={barRef}
-      className="absolute bottom-0 left-0 right-0 h-6 bg-black/50 pointer-events-auto z-20"
-      style={{ borderRadius: "0 0 8px 8px" }}
+      role="slider"
+      aria-label="Video timeline: click to seek"
+      aria-valuemin={0}
+      aria-valuemax={duration}
+      aria-valuenow={currentTime}
+      tabIndex={0}
+      onClick={handleBarClick}
+      className="absolute bottom-0 left-0 right-0 flex flex-col pointer-events-auto z-20 cursor-pointer"
+      style={{ borderRadius: "0 0 8px 8px", minHeight: "1.75rem" }}
     >
-      {chops.map((chop) => {
+      {/* Red progress bar: track (lighter) + elapsed (darker red) + chop markers */}
+      <div
+        className="relative w-full h-1.5 rounded-t-sm overflow-visible"
+        style={{ background: "rgba(255,255,255,0.2)" }}
+      >
+        <div
+          className="absolute inset-y-0 left-0 transition-[width] duration-150 rounded-l-sm"
+          style={{ width: `${playheadPercent}%`, background: "#b91c1c" }}
+        />
+        {chops.map((chop) => {
         const percent = Math.max(0, Math.min(100, (chop.time / duration) * 100))
         const isPressed = pressedKey === chop.key
         return (
           <div
             key={chop.key}
-            className="absolute top-0 cursor-grab active:cursor-grabbing touch-none select-none transition-transform"
+            className="absolute top-1/2 cursor-grab active:cursor-grabbing touch-none select-none transition-transform"
             style={{
               left: `${percent}%`,
               transform: `translate(-50%, -50%) ${isPressed ? "scale(1.35)" : ""}`,
@@ -116,6 +156,11 @@ export default function ChopTimelineMarkers({
           </div>
         )
       })}
+      </div>
+      {/* Time display: current / total */}
+      <div className="flex items-center justify-between px-2 py-0.5 text-white text-xs font-medium bg-black/60 rounded-b-[6px]">
+        <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+      </div>
     </div>
   )
 }

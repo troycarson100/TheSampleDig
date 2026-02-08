@@ -3,6 +3,8 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import SiteNav from "@/components/SiteNav"
 
+type DownloadFormat = "wav" | "mp3"
+
 const STEM_IDS = ["vocals", "drums", "bass", "other"] as const
 const STEM_LABELS: Record<(typeof STEM_IDS)[number], string> = {
   vocals: "Vocal",
@@ -27,20 +29,27 @@ interface StemState {
   solo: boolean
 }
 
+function getCssColor(varName: string, fallback: string): string {
+  if (typeof document === "undefined") return fallback
+  const value = getComputedStyle(document.documentElement).getPropertyValue(varName).trim()
+  return value || fallback
+}
+
 function drawWaveform(
   canvas: HTMLCanvasElement,
   buffer: AudioBuffer,
   color: string,
   width: number,
-  height: number
+  height: number,
+  playheadProgress?: number
 ) {
   const ctx = canvas.getContext("2d")
-  if (!ctx) return
+  if (!ctx || width <= 0 || height <= 0) return
   const data = buffer.getChannelData(0)
   const step = Math.max(1, Math.floor(data.length / width))
   const amp = height / 2
   const midY = height / 2
-  ctx.fillStyle = "var(--muted-light)"
+  ctx.fillStyle = getCssColor("--muted-light", "#e5e5e5")
   ctx.fillRect(0, 0, width, height)
   ctx.fillStyle = color
   ctx.beginPath()
@@ -64,6 +73,15 @@ function drawWaveform(
   ctx.lineTo(width, midY)
   ctx.closePath()
   ctx.fill()
+  if (playheadProgress != null && playheadProgress >= 0 && playheadProgress <= 1) {
+    const x = playheadProgress * width
+    ctx.strokeStyle = getCssColor("--foreground", "#111")
+    ctx.lineWidth = 2
+    ctx.beginPath()
+    ctx.moveTo(x, 0)
+    ctx.lineTo(x, height)
+    ctx.stroke()
+  }
 }
 
 export default function StemSplitterPage() {
@@ -74,11 +92,20 @@ export default function StemSplitterPage() {
   const [jobId, setJobId] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [playing, setPlaying] = useState(false)
+  const [downloadOpen, setDownloadOpen] = useState(false)
+  const [downloadStems, setDownloadStems] = useState<Set<string>>(new Set(STEM_IDS))
+  const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("wav")
   const canvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
   const audioContextRef = useRef<AudioContext | null>(null)
   const sourceNodesRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode }>>({})
   const startTimeRef = useRef(0)
   const pauseTimeRef = useRef(0)
+  const durationRef = useRef(0)
+  const stemsRef = useRef<StemState[]>([])
+  const isPlayingRef = useRef(false)
+  const rafIdRef = useRef<number | null>(null)
+  const stoppedManuallyRef = useRef(false)
+  const canvasSizeRef = useRef<{ w: number; h: number }>({ w: 0, h: 0 })
 
   const loadStemBuffers = useCallback(async (stemsWithUrls: { id: (typeof STEM_IDS)[number]; label: string; url: string }[]) => {
     const ctx = new AudioContext()
@@ -140,15 +167,20 @@ export default function StemSplitterPage() {
   }, [file, loadStemBuffers])
 
   useEffect(() => {
+    stemsRef.current = stems
     if (stems.length === 0) return
-    stems.forEach((s, i) => {
+    const duration = stems[0].buffer?.duration ?? 0
+    durationRef.current = duration
+    const playheadProgress = duration > 0 ? pauseTimeRef.current / duration : 0
+    stems.forEach((s) => {
       const canvas = canvasRefs.current[s.id]
       if (canvas && s.buffer) {
-        const w = canvas.offsetWidth
-        const h = canvas.offsetHeight
+        const w = Math.max(1, canvas.offsetWidth || canvasSizeRef.current.w)
+        const h = Math.max(1, canvas.offsetHeight || canvasSizeRef.current.h)
+        canvasSizeRef.current = { w, h }
         canvas.width = w
         canvas.height = h
-        drawWaveform(canvas, s.buffer, STEM_COLORS[s.id], w, h)
+        drawWaveform(canvas, s.buffer, STEM_COLORS[s.id], w, h, playheadProgress)
       }
     })
   }, [stems])
@@ -171,15 +203,38 @@ export default function StemSplitterPage() {
     })
   }, [stems, getGain])
 
+  const drawAllWaveforms = useCallback((playheadProgress: number) => {
+    const stemsList = stemsRef.current
+    const fallback = canvasSizeRef.current
+    stemsList.forEach((s) => {
+      const canvas = canvasRefs.current[s.id]
+      if (!canvas || !s.buffer) return
+      const w = Math.max(1, canvas.offsetWidth || fallback.w)
+      const h = Math.max(1, canvas.offsetHeight || fallback.h)
+      canvas.width = w
+      canvas.height = h
+      drawWaveform(canvas, s.buffer, STEM_COLORS[s.id], w, h, playheadProgress)
+    })
+  }, [])
+
   const play = useCallback(() => {
     const ctx = audioContextRef.current
     if (!ctx || stems.length === 0) return
+    stoppedManuallyRef.current = false
     const start = pauseTimeRef.current
     let ended = 0
     const onOneEnded = () => {
       ended++
       if (ended >= stems.length) {
-        pauseTimeRef.current = 0
+        isPlayingRef.current = false
+        if (rafIdRef.current != null) {
+          cancelAnimationFrame(rafIdRef.current)
+          rafIdRef.current = null
+        }
+        if (!stoppedManuallyRef.current) {
+          pauseTimeRef.current = 0
+          drawAllWaveforms(0)
+        }
         setPlaying(false)
       }
     }
@@ -196,19 +251,44 @@ export default function StemSplitterPage() {
       sourceNodesRef.current[s.id] = { source, gain }
     })
     startTimeRef.current = ctx.currentTime - start
+    isPlayingRef.current = true
     setPlaying(true)
-  }, [stems, getGain])
+    const duration = durationRef.current
+    const tick = () => {
+      if (!isPlayingRef.current) {
+        rafIdRef.current = null
+        return
+      }
+      const elapsed = ctx.currentTime - startTimeRef.current
+      const progress = duration > 0 ? Math.min(1, Math.max(0, elapsed / duration)) : 0
+      drawAllWaveforms(progress)
+      if (progress < 1) {
+        rafIdRef.current = requestAnimationFrame(tick)
+      }
+    }
+    rafIdRef.current = requestAnimationFrame(tick)
+  }, [stems, getGain, drawAllWaveforms])
 
-  const stop = useCallback(() => {
+  const stop = useCallback((resetPosition = false) => {
     const ctx = audioContextRef.current
-    if (!ctx) return
-    Object.values(sourceNodesRef.current).forEach(({ source }) => {
-      try { source.stop() } catch (_) {}
-    })
-    sourceNodesRef.current = {}
-    pauseTimeRef.current = 0
+    stoppedManuallyRef.current = !resetPosition
+    isPlayingRef.current = false
+    if (rafIdRef.current != null) {
+      cancelAnimationFrame(rafIdRef.current)
+      rafIdRef.current = null
+    }
+    if (ctx) {
+      Object.values(sourceNodesRef.current).forEach(({ source }) => {
+        try { source.stop() } catch (_) {}
+      })
+      sourceNodesRef.current = {}
+    }
+    if (resetPosition) pauseTimeRef.current = 0
+    const duration = durationRef.current
+    const playheadProgress = duration > 0 ? pauseTimeRef.current / duration : 0
+    drawAllWaveforms(playheadProgress)
     setPlaying(false)
-  }, [])
+  }, [drawAllWaveforms])
 
   const togglePlayPause = useCallback(() => {
     if (playing) {
@@ -220,13 +300,70 @@ export default function StemSplitterPage() {
     }
   }, [playing, play, stop])
 
+  const seekTo = useCallback((progress: number) => {
+    const duration = durationRef.current
+    if (duration <= 0) return
+    const t = Math.max(0, Math.min(1, progress)) * duration
+    pauseTimeRef.current = t
+    const p = t / duration
+    drawAllWaveforms(p)
+    if (isPlayingRef.current) {
+      stop(false)
+      play()
+    }
+  }, [drawAllWaveforms, stop, play])
+
+  const handleWaveformClick = useCallback((e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = e.currentTarget
+    const rect = canvas.getBoundingClientRect()
+    const x = e.clientX - rect.left
+    const progress = rect.width > 0 ? x / rect.width : 0
+    seekTo(progress)
+  }, [seekTo])
+
   const resetForNewFile = useCallback(() => {
-    stop()
+    stop(true)
     setFile(null)
     setStems([])
     setJobId(null)
     setError("")
   }, [stop])
+
+  const allSelected = STEM_IDS.every((id) => downloadStems.has(id))
+  const toggleDownloadStem = useCallback((id: string) => {
+    if (id === "all") {
+      if (allSelected) setDownloadStems(new Set())
+      else setDownloadStems(new Set(STEM_IDS))
+    } else {
+      setDownloadStems((prev) => {
+        const next = new Set(prev)
+        if (next.has(id)) next.delete(id)
+        else next.add(id)
+        return next
+      })
+    }
+  }, [allSelected])
+
+  const handleDownloadStems = useCallback(() => {
+    if (!jobId || downloadStems.size === 0) return
+    // We only serve WAV from the API; format toggle kept for future MP3 support
+    const actualExt = "wav"
+    const stemsToDownload = STEM_IDS.filter((id) => downloadStems.has(id))
+    stemsToDownload.forEach((id, i) => {
+      setTimeout(() => {
+        const a = document.createElement("a")
+        a.href = `/api/stems/${jobId}/${id}.${actualExt}`
+        a.download = `${id}.${actualExt}`
+        a.rel = "noopener noreferrer"
+        a.click()
+      }, i * 200)
+    })
+    setDownloadOpen(false)
+  }, [jobId, downloadStems, downloadFormat])
+
+  useEffect(() => {
+    if (stems.length > 0) setDownloadStems(new Set(STEM_IDS))
+  }, [stems.length])
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
@@ -306,13 +443,19 @@ export default function StemSplitterPage() {
               <p className="text-lg font-medium mb-2" style={{ color: "var(--foreground)" }}>
                 Splitting stems…
               </p>
-              <p className="text-sm" style={{ color: "var(--muted)" }}>
+              <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
                 This may take a minute depending on track length.
               </p>
+              <div
+                className="h-2 rounded-full overflow-hidden max-w-md mx-auto"
+                style={{ background: "var(--muted-light)" }}
+              >
+                <div className="h-full w-full rounded-full animate-loading-bar" />
+              </div>
             </div>
           ) : (
             <>
-              <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-3 mb-4 flex-wrap">
                 <button
                   type="button"
                   onClick={togglePlayPause}
@@ -334,6 +477,91 @@ export default function StemSplitterPage() {
                 >
                   New file
                 </button>
+                <div className="relative ml-auto">
+                  <button
+                    type="button"
+                    onClick={() => setDownloadOpen((o) => !o)}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium"
+                    style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                    aria-expanded={downloadOpen}
+                    aria-haspopup="true"
+                  >
+                    Download
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`transition ${downloadOpen ? "rotate-180" : ""}`}>
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </button>
+                  {downloadOpen && (
+                    <>
+                      <div className="absolute right-0 top-full mt-1 z-10 min-w-[220px] rounded-xl border p-3 shadow-lg" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+                        <div className="space-y-2 mb-3">
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={allSelected}
+                              onChange={() => toggleDownloadStem("all")}
+                              className="rounded border-gray-400 w-4 h-4"
+                              style={{ accentColor: "var(--primary)" }}
+                            />
+                            <span className="text-sm" style={{ color: "var(--foreground)" }}>All</span>
+                          </label>
+                          {STEM_IDS.map((id) => (
+                            <label key={id} className="flex items-center gap-2 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={downloadStems.has(id)}
+                                onChange={() => toggleDownloadStem(id)}
+                                className="rounded border-gray-400 w-4 h-4"
+                                style={{ accentColor: "var(--primary)" }}
+                              />
+                              <span className="text-sm" style={{ color: "var(--foreground)" }}>{id === "vocals" ? "Vocals" : STEM_LABELS[id]}</span>
+                            </label>
+                          ))}
+                        </div>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="text-sm" style={{ color: "var(--muted)" }}>Format:</span>
+                          <div className="flex rounded-lg border overflow-hidden" style={{ borderColor: "var(--border)" }}>
+                            <button
+                              type="button"
+                              onClick={() => setDownloadFormat("mp3")}
+                              className={`px-3 py-1.5 text-sm font-medium transition ${downloadFormat === "mp3" ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : ""}`}
+                              style={downloadFormat !== "mp3" ? { color: "var(--muted)" } : undefined}
+                            >
+                              mp3
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setDownloadFormat("wav")}
+                              className={`px-3 py-1.5 text-sm font-medium transition ${downloadFormat === "wav" ? "bg-[var(--primary)] text-[var(--primary-foreground)]" : ""}`}
+                              style={downloadFormat !== "wav" ? { color: "var(--muted)" } : undefined}
+                            >
+                              wav
+                            </button>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleDownloadStems}
+                          disabled={downloadStems.size === 0}
+                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition"
+                          style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+                        >
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                            <polyline points="7 10 12 15 17 10" />
+                            <line x1="12" y1="15" x2="12" y2="3" />
+                          </svg>
+                          Download Stems
+                        </button>
+                      </div>
+                      <div
+                        className="fixed inset-0 z-[9]"
+                        aria-hidden
+                        onClick={() => setDownloadOpen(false)}
+                      />
+                    </>
+                  )}
+                </div>
               </div>
               <div className="space-y-4">
                 {stems.map((s) => (
@@ -372,19 +600,15 @@ export default function StemSplitterPage() {
                           style={{ background: "var(--muted-light)", accentColor: STEM_COLORS[s.id] }}
                         />
                       </div>
-                      <a
-                        href={s.url}
-                        download={`${s.id}.wav`}
-                        className="text-xs px-2 py-1 rounded border"
-                        style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-                      >
-                        WAV
-                      </a>
                     </div>
                     <canvas
                       ref={(el) => { canvasRefs.current[s.id] = el }}
-                      className="w-full h-16 rounded"
+                      className="w-full h-16 rounded cursor-pointer"
                       style={{ background: "var(--muted-light)" }}
+                      onClick={handleWaveformClick}
+                      role="slider"
+                      aria-label={`Seek ${s.label} waveform`}
+                      tabIndex={0}
                     />
                   </div>
                 ))}

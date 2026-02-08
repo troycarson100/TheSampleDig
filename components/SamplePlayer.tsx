@@ -166,6 +166,8 @@ function SamplePlayer({
   const recordingFullLengthRef = useRef(0)
   const [draggingLoopEdge, setDraggingLoopEdge] = useState<"start" | "end" | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
+  const [videoCurrentTime, setVideoCurrentTime] = useState(0)
+  const [videoDurationFromPlayer, setVideoDurationFromPlayer] = useState(0)
   const chopKeysFocusTrapRef = useRef<HTMLDivElement>(null)
   const loopBarRef = useRef<HTMLDivElement>(null)
   const loopBoundsRef = useRef({ start: 0, end: 0 })
@@ -613,9 +615,11 @@ function SamplePlayer({
     actualStartTime = Math.max(15, Math.min(actualStartTime, duration - END_BUFFER))
   }
 
-  // Reset iframeLoaded when video changes so we wait for the new iframe to load
+  // Reset iframeLoaded and video position when video changes so we wait for the new iframe to load
   useEffect(() => {
     setIframeLoaded(false)
+    setVideoCurrentTime(0)
+    setVideoDurationFromPlayer(0)
   }, [youtubeId])
 
   // Stop loop playback and clear recorded loop when video changes so old timeouts don't fire seeks on the new video (prevents glitchy noises on load)
@@ -649,6 +653,25 @@ function SamplePlayer({
       teardown?.()
     }
   }, [youtubeId, validYoutubeIdForAdapter, iframeLoaded])
+
+  // Poll video current time and duration for timeline (when adapter is ready)
+  useEffect(() => {
+    if (!validYoutubeIdForAdapter || !iframeLoaded) return
+    const tick = () => {
+      const adapter = adapterRef.current
+      if (adapter) {
+        try {
+          const t = adapter.getCurrentTime()
+          if (typeof t === "number" && t >= 0) setVideoCurrentTime(t)
+          const d = adapter.getDuration()
+          if (typeof d === "number" && d > 0) setVideoDurationFromPlayer(d)
+        } catch (_) {}
+      }
+    }
+    tick()
+    const id = setInterval(tick, 500)
+    return () => clearInterval(id)
+  }, [validYoutubeIdForAdapter, iframeLoaded])
 
   // Check if video is available via our API endpoint
   // Only when we have a valid 11-char YouTube ID and onVideoError is provided
@@ -767,6 +790,8 @@ function SamplePlayer({
     }
   }) // Run on every render to catch any src changes
 
+  const effectiveTimelineDuration = (duration != null && duration > 0) ? duration : videoDurationFromPlayer
+
   // Separate the iframe from the heart toggle to prevent re-renders
   // The iframe will only re-render when youtubeId changes, not when isSaved changes
   return (
@@ -840,11 +865,16 @@ function SamplePlayer({
             />
           </div>
         )}
-        {/* Chop Mode: timeline markers at playhead positions (draggable) */}
-        {chopModeEnabled && chops.length > 0 && duration != null && duration > 0 && (
+        {/* Chop Mode: video timeline with playhead (and chop markers when present). Use duration from props or from player. */}
+        {chopModeEnabled && effectiveTimelineDuration > 0 && (
           <ChopTimelineMarkers
             chops={chops}
-            duration={duration}
+            duration={effectiveTimelineDuration}
+            currentTime={videoCurrentTime}
+            onSeek={(time) => {
+              const adapter = adapterRef.current
+              if (adapter) adapter.seekTo(time)
+            }}
             onUpdateChopTime={updateChopTime}
             onRemoveChop={removeChop}
             pressedKey={pressedKey}
