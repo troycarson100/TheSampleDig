@@ -35,9 +35,15 @@ export interface YouTubePlayerAdapter {
   play(): void
   /** 1 = playing, 2 = paused */
   getPlayerState?(): number
+  getVolume?(): number
+  setVolume?(volume: number): void
 }
 
 const SPACE_DEBOUNCE_MS = 250
+/** Soft-start ramp disabled: was muting chops in embedded player. Kept constants for possible future use. */
+const CHOP_VOLUME_RAMP_MS = 45
+const CHOP_VOLUME_RAMP_STEPS = [0, 0.35, 0.65, 0.88, 1]
+const USE_CHOP_VOLUME_RAMP = false
 
 export function useChopMode(
   playerRef: React.RefObject<YouTubePlayerAdapter | null>,
@@ -59,6 +65,7 @@ export function useChopMode(
   const [pressedKey, setPressedKey] = useState<string | null>(null)
   const lastSpaceRef = useRef(0)
   const pressedKeyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const volumeRampTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([])
 
   useEffect(() => {
     if (videoId != null) {
@@ -102,22 +109,62 @@ export function useChopMode(
     }, 220)
   }, [])
 
+  const playChopAt = useCallback(
+    (time: number) => {
+      const adapter = playerRef.current
+      if (!adapter) return
+      const state = adapter.getPlayerState?.()
+      const isPaused = state === 2
+
+      if (USE_CHOP_VOLUME_RAMP && isPaused && adapter.setVolume && adapter.getVolume) {
+        try {
+          const prevVolume = adapter.getVolume()
+          const targetVolume = prevVolume > 0 ? prevVolume : 100
+          volumeRampTimeoutsRef.current.forEach((t) => clearTimeout(t))
+          volumeRampTimeoutsRef.current = []
+          adapter.setVolume(0)
+          adapter.seekTo(time)
+          adapter.play()
+          onAfterChopPlay?.()
+          const stepMs = CHOP_VOLUME_RAMP_MS / (CHOP_VOLUME_RAMP_STEPS.length - 1)
+          CHOP_VOLUME_RAMP_STEPS.forEach((frac, i) => {
+            if (i === 0) return
+            const t = setTimeout(() => {
+              try {
+                if (adapter.setVolume) adapter.setVolume(Math.round(targetVolume * frac))
+              } catch (_) {}
+            }, i * stepMs)
+            volumeRampTimeoutsRef.current.push(t)
+          })
+          const clearRef = setTimeout(() => {
+            volumeRampTimeoutsRef.current = volumeRampTimeoutsRef.current.filter((x) => x !== clearRef)
+          }, CHOP_VOLUME_RAMP_MS + 10)
+          volumeRampTimeoutsRef.current.push(clearRef)
+        } catch (_) {
+          volumeRampTimeoutsRef.current.forEach((t) => clearTimeout(t))
+          volumeRampTimeoutsRef.current = []
+          adapter.seekTo(time)
+          if (isPaused) adapter.play()
+          onAfterChopPlay?.()
+        }
+      } else {
+        adapter.seekTo(time)
+        if (isPaused) adapter.play()
+        onAfterChopPlay?.()
+      }
+    },
+    [playerRef, onAfterChopPlay]
+  )
+
   const onPadKeyPress = useCallback(
     (key: string) => {
       if (!enabled) return
       const chop = chops.find((c) => c.key === key)
       if (!chop) return
-      const adapter = playerRef.current
-      if (!adapter) return
-      adapter.seekTo(chop.time)
-      const state = adapter.getPlayerState?.()
-      if (state === 2) {
-        adapter.play()
-        onAfterChopPlay?.()
-      }
+      playChopAt(chop.time)
       setPressedKeyBriefly(key)
     },
-    [enabled, chops, playerRef, setPressedKeyBriefly, onAfterChopPlay]
+    [enabled, chops, playChopAt, setPressedKeyBriefly]
   )
 
   const updateChopTime = useCallback((key: string, time: number) => {
@@ -147,23 +194,15 @@ export function useChopMode(
         if (chop) {
           e.preventDefault()
           e.stopPropagation()
-          const adapter = playerRef.current
-          if (adapter) {
-            adapter.seekTo(chop.time)
-            const state = adapter.getPlayerState?.()
-            if (state === 2) {
-              adapter.play()
-              onAfterChopPlay?.()
-            }
-            setPressedKeyBriefly(key)
-          }
+          playChopAt(chop.time)
+          setPressedKeyBriefly(key)
         }
       }
     }
 
     window.addEventListener("keydown", handleKeyDown, { capture: true })
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
-  }, [enabled, chops, addChop, playerRef, setPressedKeyBriefly, onAfterChopPlay])
+  }, [enabled, chops, addChop, playChopAt, setPressedKeyBriefly])
 
   const slotsFull = chops.length >= CHOP_KEYS.length
 

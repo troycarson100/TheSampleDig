@@ -9,6 +9,9 @@ export interface YouTubePlayerAdapter {
   play(): void
   /** 1 = playing, 2 = paused, 0 = ended, 3 = buffering, 5 = cued, -1 = unstarted */
   getPlayerState(): number
+  /** 0–100. Used for soft-start when playing chops to reduce click. */
+  getVolume(): number
+  setVolume(volume: number): void
 }
 
 declare global {
@@ -28,6 +31,8 @@ interface YTPlayerInstance {
   seekTo: (seconds: number, allowSeekAhead: boolean) => void
   playVideo: () => void
   getPlayerState: () => number
+  getVolume: () => number
+  setVolume: (volume: number) => void
 }
 
 let apiReadyResolve: (() => void) | null = null
@@ -69,6 +74,8 @@ export function createAdapterFromIframe(
           seekTo: (seconds: number) => target.seekTo(seconds, true),
           play: () => target.playVideo(),
           getPlayerState: () => target.getPlayerState(),
+          getVolume: () => target.getVolume(),
+          setVolume: (volume: number) => target.setVolume(volume),
         })
       },
     },
