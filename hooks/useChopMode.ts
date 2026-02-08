@@ -29,10 +29,17 @@ export interface Chop {
   index: number
 }
 
+/** One pad hit during recording: key and time offset from record start (ms). */
+export interface RecordedChopEvent {
+  key: string
+  timeMs: number
+}
+
 export interface YouTubePlayerAdapter {
   getCurrentTime(): number
   seekTo(seconds: number): void
   play(): void
+  pause?(): void
   /** 1 = playing, 2 = paused */
   getPlayerState?(): number
   getVolume?(): number
@@ -45,12 +52,21 @@ const CHOP_VOLUME_RAMP_MS = 45
 const CHOP_VOLUME_RAMP_STEPS = [0, 0.35, 0.65, 0.88, 1]
 const USE_CHOP_VOLUME_RAMP = false
 
+export interface UseChopModeRecordOptions {
+  isRecording: boolean
+  recordStartTimeRef: React.MutableRefObject<number>
+  onRecordPad?: (key: string, timeMs: number) => void
+  onSpaceWhenRecording?: () => void
+  onRKey?: () => void
+}
+
 export function useChopMode(
   playerRef: React.RefObject<YouTubePlayerAdapter | null>,
   enabled: boolean,
   videoId?: string | null,
   initialChops?: Chop[] | null,
-  onAfterChopPlay?: () => void
+  onAfterChopPlay?: () => void,
+  recordOptions?: UseChopModeRecordOptions
 ): {
   chops: Chop[]
   clearChops: () => void
@@ -61,6 +77,13 @@ export function useChopMode(
   updateChopTime: (key: string, time: number) => void
   pressedKey: string | null
 } {
+  const {
+    isRecording = false,
+    recordStartTimeRef,
+    onRecordPad,
+    onSpaceWhenRecording,
+    onRKey,
+  } = recordOptions ?? {}
   const [chops, setChops] = useState<Chop[]>([])
   const [pressedKey, setPressedKey] = useState<string | null>(null)
   const lastSpaceRef = useRef(0)
@@ -161,10 +184,16 @@ export function useChopMode(
       if (!enabled) return
       const chop = chops.find((c) => c.key === key)
       if (!chop) return
+      if (isRecording && onRecordPad && recordStartTimeRef) {
+        const now = Date.now()
+        const isFirst = recordStartTimeRef.current === 0
+        if (isFirst) recordStartTimeRef.current = now
+        onRecordPad(key, isFirst ? 0 : now - recordStartTimeRef.current)
+      }
       playChopAt(chop.time)
       setPressedKeyBriefly(key)
     },
-    [enabled, chops, playChopAt, setPressedKeyBriefly]
+    [enabled, chops, playChopAt, setPressedKeyBriefly, isRecording, onRecordPad, recordStartTimeRef]
   )
 
   const updateChopTime = useCallback((key: string, time: number) => {
@@ -181,19 +210,37 @@ export function useChopMode(
       const target = e.target as HTMLElement
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return
 
+      const key = e.key.toUpperCase()
+      const noModifiers = !e.metaKey && !e.ctrlKey && !e.altKey
+      if (key === "R" && noModifiers && onRKey) {
+        e.preventDefault()
+        e.stopPropagation()
+        onRKey()
+        return
+      }
+
       if (e.code === "Space") {
         e.preventDefault()
         e.stopPropagation()
+        if (isRecording && onSpaceWhenRecording) {
+          onSpaceWhenRecording()
+          return
+        }
         addChop()
         return
       }
 
-      const key = e.key.toUpperCase()
       if (CHOP_KEYS.includes(key as (typeof CHOP_KEYS)[number])) {
         const chop = chops.find((c) => c.key === key)
         if (chop) {
           e.preventDefault()
           e.stopPropagation()
+          if (isRecording && onRecordPad && recordStartTimeRef) {
+            const now = Date.now()
+            const isFirst = recordStartTimeRef.current === 0
+            if (isFirst) recordStartTimeRef.current = now
+            onRecordPad(key, isFirst ? 0 : now - recordStartTimeRef.current)
+          }
           playChopAt(chop.time)
           setPressedKeyBriefly(key)
         }
@@ -202,7 +249,7 @@ export function useChopMode(
 
     window.addEventListener("keydown", handleKeyDown, { capture: true })
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
-  }, [enabled, chops, addChop, playChopAt, setPressedKeyBriefly])
+  }, [enabled, chops, addChop, playChopAt, setPressedKeyBriefly, isRecording, onRecordPad, onSpaceWhenRecording, onRKey, recordStartTimeRef])
 
   const slotsFull = chops.length >= CHOP_KEYS.length
 
