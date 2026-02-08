@@ -101,6 +101,6 @@ export async function deleteCustomBeat(id: string): Promise<void> {
 export async function loadCustomBeatAsBuffer(id: string): Promise<AudioBuffer> {
   const blob = await getCustomBeatBlob(id)
   const arrayBuffer = await blob.arrayBuffer()
-  const ctx = getAudioContext()
+  const ctx = await getAudioContext()
   return ctx.decodeAudioData(arrayBuffer)
 }

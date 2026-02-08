@@ -21,7 +21,7 @@ export function useBeatWarp(options: UseBeatWarpOptions) {
   const [selectedBeat, setSelectedBeat] = useState<BeatDef | null>(null)
   const [volume, setVolumeState] = useState(0.7)
   const [sync, setSync] = useState(true)
-  const [quantizeStart, setQuantizeStartState] = useState(true)
+  const [quantizeStart, setQuantizeStartState] = useState(false)
   const [manualBpm, setManualBpm] = useState<number | null>(null)
   const [loadError, setLoadError] = useState<string | null>(null)
   const [workletReady, setWorkletReady] = useState(false)
@@ -41,7 +41,7 @@ export function useBeatWarp(options: UseBeatWarpOptions) {
   const ensureReady = useCallback(async () => {
     if (typeof window === "undefined") return
     try {
-      const ctx = getAudioContext()
+      const ctx = await getAudioContext()
       await ensureWorkletLoaded(ctx)
       setWorkletReady(true)
     } catch (e) {
@@ -81,7 +81,9 @@ export function useBeatWarp(options: UseBeatWarpOptions) {
     if (!beat) return
     try {
       await ensureReady()
-    } catch {
+    } catch (e) {
+      console.error("Beat ensureReady failed:", e)
+      setLoadError(e instanceof Error ? e.message : "Audio not ready")
       return
     }
     let buffer = bufferRef.current
@@ -97,19 +99,24 @@ export function useBeatWarp(options: UseBeatWarpOptions) {
       }
     }
     if (loopRef.current) loopRef.current.stop()
-    const loop = createWarpedLoop(
-      buffer,
-      beat.originalBpm,
-      effectiveTargetBpm,
-      beat.bars,
-      { quantizeStart }
-    )
-    loop.setVolume(volume)
-    loop.setQuantizeStart(quantizeStart)
-    loopRef.current = loop
-    loop.play()
-    setPlaying(true)
-    setLoadError(null)
+    try {
+      const loop = await createWarpedLoop(
+        buffer,
+        beat.originalBpm,
+        effectiveTargetBpm,
+        beat.bars,
+        { quantizeStart }
+      )
+      loop.setVolume(volume)
+      loop.setQuantizeStart(quantizeStart)
+      loopRef.current = loop
+      loop.play()
+      setPlaying(true)
+      setLoadError(null)
+    } catch (e) {
+      console.error("Beat play failed:", e)
+      setLoadError(e instanceof Error ? e.message : "Playback failed")
+    }
   }, [
     selectedBeat,
     effectiveTargetBpm,

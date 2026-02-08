@@ -550,7 +550,7 @@ var Stretch = function (_AbstractFifoSamplePi2) {
     _this3.autoSeqSetting = true;
     _this3.autoSeekSetting = true;
     _this3._tempo = 1;
-    _this3.setParameters(44100, DEFAULT_SEQUENCE_MS, DEFAULT_SEEKWINDOW_MS, DEFAULT_OVERLAP_MS);
+    _this3.setParameters(44100, 100, 35, 15);
     return _this3;
   }
   _inherits(Stretch, _AbstractFifoSamplePi2);

@@ -416,6 +416,22 @@ function SamplePlayer({
         )}
       </div>
 
+      <div className="mt-4">
+        <h3 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>{title}</h3>
+        <p className="mb-2 text-sm" style={{ color: "var(--muted)" }}>{channel}</p>
+        {(genre || era || bpm || musicalKey || analysisStatus === "processing" || analysisStatus === "pending") && (
+          <div className="flex gap-2 flex-wrap">
+            {genre && <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{genre}</span>}
+            {era && <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{era}</span>}
+            {bpm && <span className="px-3 py-1.5 rounded-lg text-sm font-mono border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{bpm} BPM</span>}
+            {musicalKey && <span className="px-3 py-1.5 rounded-lg text-sm font-mono border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{musicalKey}</span>}
+            {(analysisStatus === "processing" || analysisStatus === "pending") && !bpm && !musicalKey && (
+              <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>Analyzing...</span>
+            )}
+          </div>
+        )}
+      </div>
+
       {/* Chop Mode: focus trap so chop keys (A–L) work after playing from iframe; clicking this area refocuses the page */}
       <div
         className="mt-4 flex flex-col gap-3"
@@ -474,22 +490,6 @@ function SamplePlayer({
         </div>
         {chopModeEnabled && (
           <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} onRemoveChop={removeChop} pressedKey={pressedKey} />
-        )}
-      </div>
-
-      <div className="mt-4">
-        <h3 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>{title}</h3>
-        <p className="mb-2 text-sm" style={{ color: "var(--muted)" }}>{channel}</p>
-        {(genre || era || bpm || musicalKey || analysisStatus === "processing" || analysisStatus === "pending") && (
-          <div className="flex gap-2 flex-wrap">
-            {genre && <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{genre}</span>}
-            {era && <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{era}</span>}
-            {bpm && <span className="px-3 py-1.5 rounded-lg text-sm font-mono border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{bpm} BPM</span>}
-            {musicalKey && <span className="px-3 py-1.5 rounded-lg text-sm font-mono border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{musicalKey}</span>}
-            {(analysisStatus === "processing" || analysisStatus === "pending") && !bpm && !musicalKey && (
-              <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>Analyzing...</span>
-            )}
-          </div>
         )}
       </div>
     </div>

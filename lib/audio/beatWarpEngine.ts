@@ -18,7 +18,7 @@ export async function ensureWorkletLoaded(ctx: AudioContext): Promise<void> {
 }
 
 export async function loadBeat(beat: BeatDef): Promise<AudioBuffer> {
-  const ctx = getAudioContext()
+  const ctx = await getAudioContext()
   const res = await fetch(beat.url)
   if (!res.ok) throw new Error(`Failed to load beat: ${res.status} ${beat.url}`)
   const arrayBuffer = await res.arrayBuffer()
@@ -33,14 +33,14 @@ export interface WarpedLoopControls {
   setQuantizeStart(enabled: boolean): void
 }
 
-export function createWarpedLoop(
+export async function createWarpedLoop(
   buffer: AudioBuffer,
   originalBpm: number,
   targetBpm: number,
   bars: number,
   options: { quantizeStart: boolean } = { quantizeStart: true }
-): WarpedLoopControls {
-  const ctx = getAudioContext()
+): Promise<WarpedLoopControls> {
+  const ctx = await getAudioContext()
 
   const gainNode = ctx.createGain()
   gainNode.connect(ctx.destination)
