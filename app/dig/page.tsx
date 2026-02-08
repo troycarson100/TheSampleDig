@@ -7,6 +7,7 @@ import DiceButton from "@/components/DiceButton"
 import AutoplayToggle from "@/components/AutoplayToggle"
 import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import SiteNav from "@/components/SiteNav"
+import BeatsPanel from "@/components/BeatsPanel"
 
 /** Genre options for the dig filter (value matches DB genre; label for display) */
 const GENRE_OPTIONS: { value: string; label: string }[] = [
@@ -530,6 +531,8 @@ export default function DigPage() {
                 />
               ) : null}
             </div>
+
+            <BeatsPanel videoBpm={sample?.bpm ?? null} />
 
           </div>
 
