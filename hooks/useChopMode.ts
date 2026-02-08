@@ -185,7 +185,7 @@ export function useChopMode(
       const chop = chops.find((c) => c.key === key)
       if (!chop) return
       if (isRecording && onRecordPad && recordStartTimeRef) {
-        const now = Date.now()
+        const now = performance.now()
         const isFirst = recordStartTimeRef.current === 0
         if (isFirst) recordStartTimeRef.current = now
         onRecordPad(key, isFirst ? 0 : now - recordStartTimeRef.current)
@@ -236,7 +236,7 @@ export function useChopMode(
           e.preventDefault()
           e.stopPropagation()
           if (isRecording && onRecordPad && recordStartTimeRef) {
-            const now = Date.now()
+            const now = performance.now()
             const isFirst = recordStartTimeRef.current === 0
             if (isFirst) recordStartTimeRef.current = now
             onRecordPad(key, isFirst ? 0 : now - recordStartTimeRef.current)

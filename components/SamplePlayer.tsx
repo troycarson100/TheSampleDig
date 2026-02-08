@@ -162,11 +162,14 @@ function SamplePlayer({
   const [metronomeDuringRecording, setMetronomeDuringRecording] = useState(false)
   const [loopStartMs, setLoopStartMs] = useState(0)
   const [loopEndMs, setLoopEndMs] = useState(0)
+  const [recordingFullLengthMs, setRecordingFullLengthMs] = useState(0)
+  const recordingFullLengthRef = useRef(0)
   const [draggingLoopEdge, setDraggingLoopEdge] = useState<"start" | "end" | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
   const chopKeysFocusTrapRef = useRef<HTMLDivElement>(null)
   const loopBarRef = useRef<HTMLDivElement>(null)
   const loopBoundsRef = useRef({ start: 0, end: 0 })
+  const playbackBoundsRef = useRef<{ start: number; end: number } | null>(null)
   const chopOverlayRef = useRef<HTMLDivElement>(null)
   const bpmArrowIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const bpmDragStartRef = useRef<{ startX: number; startBpm: number } | null>(null)
@@ -300,6 +303,7 @@ function SamplePlayer({
   const [recordPhase, setRecordPhase] = useState<RecordPhase>("idle")
   const [recordedSequence, setRecordedSequence] = useState<RecordedChopEvent[]>([])
   const recordStartTimeRef = useRef(0)
+  const recordStopTimeRef = useRef(0)
   const recordEventsRef = useRef<RecordedChopEvent[]>([])
   const playbackTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([])
   const playChopByKeyRef = useRef<(key: string) => void>(() => {})
@@ -315,6 +319,7 @@ function SamplePlayer({
   const stopLoopPlayback = useCallback(() => {
     playbackTimeoutsRef.current.forEach((t) => clearTimeout(t))
     playbackTimeoutsRef.current = []
+    playbackBoundsRef.current = null
     setIsPlayingLoop(false)
     setPlaybackPositionMs(0)
   }, [])
@@ -324,6 +329,8 @@ function SamplePlayer({
     setRecordedSequence([])
     setLoopStartMs(0)
     setLoopEndMs(0)
+    setRecordingFullLengthMs(0)
+    recordingFullLengthRef.current = 0
     setClearLoopFlash(true)
     setTimeout(() => setClearLoopFlash(false), 280)
   }, [stopLoopPlayback])
@@ -335,11 +342,14 @@ function SamplePlayer({
   ) => {
     if (events.length === 0) return
     const lastMs = Math.max(...events.map((e) => e.timeMs))
-    const totalMs = lastMs + 500
+    const defaultEnd = lastMs + 500
+    const totalMs = (endMs != null && endMs >= defaultEnd) ? endMs : defaultEnd
     const s = startMs ?? 0
     const e = endMs ?? totalMs
-    const clampedStart = Math.max(0, Math.min(s, e - 100))
-    const clampedEnd = Math.min(totalMs, Math.max(e, clampedStart + 100))
+    playbackBoundsRef.current = { start: s, end: e }
+    const minSpanMs = 20
+    const clampedStart = Math.max(0, Math.min(s, e - minSpanMs))
+    const clampedEnd = Math.min(totalMs, Math.max(e, clampedStart + minSpanMs))
     const filtered = events
       .filter((ev) => ev.timeMs >= clampedStart && ev.timeMs <= clampedEnd)
       .map((ev) => ({ ...ev, timeMs: ev.timeMs - clampedStart }))
@@ -348,21 +358,28 @@ function SamplePlayer({
     if (filtered.length === 0) return
     playbackTimeoutsRef.current.forEach((t) => clearTimeout(t))
     playbackTimeoutsRef.current = []
-    loopStartTimeRef.current = Date.now()
+    const baseTime = performance.now()
+    loopStartTimeRef.current = baseTime
     loopLengthMsRef.current = loopLengthMs
     setIsPlayingLoop(true)
     const play = playChopByKeyRef.current
-    const runLoop = () => {
+    const runLoop = (iteration: number) => {
       playbackTimeoutsRef.current.forEach((t) => clearTimeout(t))
       playbackTimeoutsRef.current = []
+      const now = performance.now()
+      const iterationStart = baseTime + iteration * loopLengthMs
+      const delayToNext = iterationStart + loopLengthMs - now
       filtered.forEach((ev) => {
-        const t = setTimeout(() => play(ev.key), ev.timeMs)
+        const delay = iterationStart + ev.timeMs - now
+        const t = setTimeout(() => play(ev.key), Math.max(0, delay))
         playbackTimeoutsRef.current.push(t)
       })
-      const loopT = setTimeout(runLoop, loopLengthMs)
-      playbackTimeoutsRef.current.push(loopT)
+      if (delayToNext > 0) {
+        const loopT = setTimeout(() => runLoop(iteration + 1), delayToNext)
+        playbackTimeoutsRef.current.push(loopT)
+      }
     }
-    runLoop()
+    runLoop(0)
   }, [])
 
   const stopRecordAndStartPlayback = useCallback(() => {
@@ -376,9 +393,16 @@ function SamplePlayer({
     const events = [...recordEventsRef.current]
     setRecordedSequence(events)
     recordEventsRef.current = []
-    const totalMs = events.length ? Math.max(...events.map((e) => e.timeMs)) + 500 : 0
+    const lastEventMs = events.length ? Math.max(...events.map((e) => e.timeMs)) : 0
+    const stopTime = recordStopTimeRef.current || performance.now()
+    const elapsedMs = recordStartTimeRef.current
+      ? Math.max(0, stopTime - recordStartTimeRef.current)
+      : 0
+    const totalMs = Math.max(lastEventMs + 50, elapsedMs)
+    recordingFullLengthRef.current = totalMs
     setLoopStartMs(0)
     setLoopEndMs(totalMs)
+    setRecordingFullLengthMs(totalMs)
     if (events.length > 0) startLoopPlayback(events, 0, totalMs)
   }, [startLoopPlayback])
 
@@ -390,6 +414,7 @@ function SamplePlayer({
 
   const onRKey = useCallback(() => {
     if (recordPhase === "recording") {
+      recordStopTimeRef.current = performance.now()
       stopRecordAndStartPlayback()
       return
     }
@@ -401,6 +426,7 @@ function SamplePlayer({
     }
     setRecordPhase("recording")
     recordStartTimeRef.current = 0
+    recordStopTimeRef.current = 0
     recordEventsRef.current = []
     setLiveRecordedEvents([])
     setRecordingElapsedMs(0)
@@ -414,7 +440,10 @@ function SamplePlayer({
   }, [recordPhase, stopRecordAndStartPlayback, effectiveBpm, metronomeDuringRecording])
 
   const onSpaceWhenRecording = useCallback(() => {
-    if (recordPhase === "recording") stopRecordAndStartPlayback()
+    if (recordPhase === "recording") {
+      recordStopTimeRef.current = performance.now()
+      stopRecordAndStartPlayback()
+    }
   }, [recordPhase, stopRecordAndStartPlayback])
 
   // When user turns off metronome during recording, stop the beeps immediately
@@ -432,7 +461,7 @@ function SamplePlayer({
     if (recordPhase !== "recording") return
     const tick = () => {
       setRecordingElapsedMs(
-        recordStartTimeRef.current === 0 ? 0 : Date.now() - recordStartTimeRef.current
+        recordStartTimeRef.current === 0 ? 0 : performance.now() - recordStartTimeRef.current
       )
     }
     const id = setInterval(tick, 50)
@@ -443,7 +472,7 @@ function SamplePlayer({
   useEffect(() => {
     if (!isPlayingLoop) return
     const tick = () => {
-      setPlaybackPositionMs((Date.now() - loopStartTimeRef.current) % loopLengthMsRef.current)
+      setPlaybackPositionMs((performance.now() - loopStartTimeRef.current) % loopLengthMsRef.current)
     }
     const id = setInterval(tick, 50)
     return () => clearInterval(id)
@@ -451,15 +480,15 @@ function SamplePlayer({
 
   loopBoundsRef.current = { start: loopStartMs, end: loopEndMs }
 
-  // Drag loop start/end edges on the timeline bar
+  // Drag loop start/end edges on the timeline bar (use fixed full length so scale doesn't change)
   useEffect(() => {
     if (!draggingLoopEdge) return
     const bar = loopBarRef.current
     if (!bar) return
-    const totalMs = recordedSequence.length > 0
+    const totalMs = recordingFullLengthMs || recordingFullLengthRef.current || (recordedSequence.length > 0
       ? Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
-      : 1
-    const minSpanMs = 100
+      : 1)
+    const minSpanMs = 20
     const onMove = (e: MouseEvent) => {
       const rect = bar.getBoundingClientRect()
       const x = e.clientX - rect.left
@@ -480,7 +509,20 @@ function SamplePlayer({
       window.removeEventListener("mousemove", onMove)
       window.removeEventListener("mouseup", onUp)
     }
-  }, [draggingLoopEdge, recordedSequence.length])
+  }, [draggingLoopEdge, recordedSequence.length, recordingFullLengthMs])
+
+  // When loop start/end change while playing, restart playback with new bounds (only when not dragging, so playback stays smooth during drag)
+  useEffect(() => {
+    if (!isPlayingLoop || recordedSequence.length === 0 || draggingLoopEdge !== null) return
+    const fullMs = recordingFullLengthMs || recordingFullLengthRef.current || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
+    const requestedStart = loopStartMs
+    const requestedEnd = loopEndMs || fullMs
+    const current = playbackBoundsRef.current
+    if (current && (current.start !== requestedStart || current.end !== requestedEnd)) {
+      stopLoopPlayback()
+      startLoopPlayback(recordedSequence, requestedStart, requestedEnd)
+    }
+  }, [isPlayingLoop, loopStartMs, loopEndMs, draggingLoopEdge, recordedSequence, recordingFullLengthMs, startLoopPlayback, stopLoopPlayback])
 
   useEffect(() => {
     return () => {
@@ -575,6 +617,21 @@ function SamplePlayer({
   useEffect(() => {
     setIframeLoaded(false)
   }, [youtubeId])
+
+  // Stop loop playback and clear recorded loop when video changes so old timeouts don't fire seeks on the new video (prevents glitchy noises on load)
+  useEffect(() => {
+    clearRecordedLoop()
+    setRecordPhase("idle")
+    setLiveRecordedEvents([])
+    setRecordingElapsedMs(0)
+    recordStartTimeRef.current = 0
+    recordStopTimeRef.current = 0
+    recordEventsRef.current = []
+    if (metronomeIntervalRef.current) {
+      clearInterval(metronomeIntervalRef.current)
+      metronomeIntervalRef.current = null
+    }
+  }, [youtubeId, clearRecordedLoop])
 
   // YouTube IFrame API: create player adapter only after iframe has loaded so getCurrentTime() returns real time
   const validYoutubeIdForAdapter = youtubeId && String(youtubeId).length === 11
@@ -1044,7 +1101,7 @@ function SamplePlayer({
                   if (isPlayingLoop) {
                     stopLoopPlayback()
                   } else if (recordedSequence.length > 0) {
-                    const totalMs = Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
+                    const totalMs = recordingFullLengthMs || recordingFullLengthRef.current || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
                     startLoopPlayback(recordedSequence, loopStartMs, loopEndMs || totalMs)
                   }
                 }}
@@ -1075,10 +1132,11 @@ function SamplePlayer({
                   const lastEventMs = events.length > 0
                     ? Math.max(...events.map((e) => e.timeMs))
                     : 0
+                  const fullLengthMs = recordingFullLengthMs || recordingFullLengthRef.current || lastEventMs + 500
                   const totalLengthMs =
                     isRecording
                       ? Math.max(recordingElapsedMs, lastEventMs + 400, 800)
-                      : lastEventMs + 500
+                      : Math.max(fullLengthMs, loopEndMs || 0)
                   const hasLoopRange = !isRecording && recordedSequence.length > 0 && totalLengthMs > 0
                   const endMs = loopEndMs || totalLengthMs
                   const startPct = hasLoopRange ? (loopStartMs / totalLengthMs) * 100 : 0
