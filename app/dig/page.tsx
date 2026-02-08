@@ -593,6 +593,7 @@ export default function DigPage() {
             <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
               <a href="/dig" className="hover:text-[var(--foreground)] transition">Dig</a>
               <a href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</a>
+              <a href="/blog" className="hover:text-[var(--foreground)] transition">Blog</a>
               <a href="/login" className="hover:text-[var(--foreground)] transition">Login</a>
             </div>
           </div>

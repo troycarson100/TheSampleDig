@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },
+    ],
+  },
   // Suppress CSP warnings for NextAuth v5 beta (it uses dynamic code evaluation)
   // This is a known issue with NextAuth v5 beta and will be fixed in stable release
   async headers() {

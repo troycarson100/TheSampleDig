@@ -332,6 +332,7 @@ export default function ProfilePage() {
             <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
               <Link href="/dig" className="hover:text-[var(--foreground)] transition">Dig</Link>
               <Link href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</Link>
+              <Link href="/blog" className="hover:text-[var(--foreground)] transition">Blog</Link>
               <Link href="/login" className="hover:text-[var(--foreground)] transition">Login</Link>
             </div>
           </div>
