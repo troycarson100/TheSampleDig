@@ -8,7 +8,7 @@ export default function SiteNav() {
   const { data: session } = useSession()
 
   return (
-    <nav className="grid grid-cols-3 items-center w-full gap-4 py-0">
+    <nav className="grid grid-cols-3 items-center w-full gap-4 py-4">
       <div className="flex gap-8">
         <Link href="/dig" className="text-[15px] font-medium text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition" style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
           Dig
@@ -21,11 +21,11 @@ export default function SiteNav() {
       </div>
       <Link href="/dig" className="flex items-center justify-center" aria-label="Sample Roll – Home">
         <Image
-          src="/sample-roll-logo.png"
+          src="/sample-roll-logo.svg"
           alt="Sample Roll"
-          width={800}
-          height={264}
-          className="h-[82px] sm:h-[94px] w-auto object-contain"
+          width={445}
+          height={146}
+          className="h-[52px] sm:h-[60px] w-auto object-contain"
           priority
         />
       </Link>

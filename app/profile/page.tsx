@@ -157,7 +157,7 @@ export default function ProfilePage() {
   if (!session) {
     return (
       <div className="min-h-screen" style={{ background: "var(--background)" }}>
-        <header className="w-full py-1" style={{ background: "#F6F0E8" }}>
+        <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
           <div className="max-w-6xl mx-auto px-3 sm:px-4">
             <SiteNav />
           </div>
@@ -175,7 +175,7 @@ export default function ProfilePage() {
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <header className="w-full py-1" style={{ background: "#F6F0E8" }}>
+      <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
         <div className="max-w-6xl mx-auto px-3 sm:px-4">
           <SiteNav />
         </div>
