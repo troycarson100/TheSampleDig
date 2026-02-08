@@ -9,6 +9,7 @@ A platform for beat makers to discover and save rare vinyl samples from YouTube.
 - 🎨 **Curated Search**: Algorithm focuses on rare vinyl samples (bossa nova, prog-psych jazz, funk, soul, etc.)
 - 👤 **User Accounts**: Register and login to save your collection
 - 📱 **Responsive Design**: Works on desktop and mobile devices
+- 🎚️ **Stem Splitter** (optional): Split audio into vocals, drums, bass, and other stems using Demucs. Requires Python and `pip install -r requirements-stem.txt`. See [STEM-SPLITTER-SETUP.md](STEM-SPLITTER-SETUP.md) for setup.
 
 ## Tech Stack
 

@@ -1,0 +1,6 @@
+# Python deps for Stem Splitter (scripts/stem-split.py).
+# Install: pip install -r requirements-stem.txt
+# Demucs will download the htdemucs model on first run.
+demucs>=4.0.0
+certifi
+torchcodec

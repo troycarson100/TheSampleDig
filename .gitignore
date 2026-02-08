@@ -44,3 +44,7 @@ next-env.d.ts
 
 # temporary audio files
 /tmp
+
+# stem splitter output (uploaded files + separated stems)
+.stem-output
+.venv-stem
