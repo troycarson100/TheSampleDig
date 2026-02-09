@@ -13,12 +13,13 @@ export async function GET(request: Request) {
       )
     }
 
-    // Get excluded video IDs and optional genre from query params
+    // Get excluded video IDs and optional genre / drumBreak from query params
     const { searchParams } = new URL(request.url)
     const excludedParam = searchParams.get("excluded")
     let excludedVideoIds: string[] = excludedParam ? excludedParam.split(",").filter(id => id.length === 11) : []
     const genreParam = searchParams.get("genre")
     const genre = (genreParam && genreParam.trim() !== "") ? genreParam.trim() : undefined
+    const drumBreak = searchParams.get("drumBreak") === "1" || searchParams.get("drumBreak") === "true"
     
     // Also exclude videos the user has saved (if logged in)
     // CRITICAL: Always fetch fresh saved videos on every request to ensure they're excluded
@@ -60,8 +61,18 @@ export async function GET(request: Request) {
     
     let video
     try {
-      console.log(`[Dig] Calling findRandomSample with ${excludedVideoIds.length} exclusions${genre ? `, genre=${genre}` : ""}...`)
-      video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre })
+      console.log(`[Dig] Calling findRandomSample with ${excludedVideoIds.length} exclusions${genre ? `, genre=${genre}` : ""}${drumBreak ? ", drumBreak=true" : ""}...`)
+      try {
+        video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, drumBreakOnly: drumBreak })
+      } catch (noDrumBreakErr: any) {
+        // When drum break mode is on but no matching samples, fall back to any sample
+        if (drumBreak && /no samples|no results/i.test(noDrumBreakErr?.message ?? "")) {
+          console.log(`[Dig] No drum-break samples found, falling back to any sample`)
+          video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre })
+        } else {
+          throw noDrumBreakErr
+        }
+      }
       console.log(`[Dig] ✓ Found video: ${video.id} - ${video.title}`)
 
       // Skip videos that aren't embeddable (blocked on external sites) - try up to 6 times

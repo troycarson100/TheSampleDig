@@ -6,15 +6,28 @@
 import { prisma } from "@/lib/db"
 import { YouTubeVideo } from "@/types/sample"
 
+/** Title phrases that suggest a drum-break or breakbeat video (case-insensitive match) */
+const DRUM_BREAK_TITLE_PHRASES = [
+  "drum break",
+  "breakbeat",
+  "break beat",
+  "break loop",
+  "drum solo",
+  "break sample",
+  "drum sample",
+]
+
 /**
  * Get a random sample from the database
  * Excludes videos that the user has already seen or saved
  * @param genre - Optional genre filter (case-insensitive); when set, only samples with this genre are returned
+ * @param drumBreakOnly - When true, only return samples whose title suggests drum-break content
  */
 export async function getRandomSampleFromDatabase(
   excludedVideoIds: string[] = [],
   userId?: string,
-  genre?: string
+  genre?: string,
+  drumBreakOnly?: boolean
 ): Promise<(YouTubeVideo & { genre?: string; era?: string; duration?: number }) | null> {
   try {
     // Build exclusion list
@@ -32,13 +45,23 @@ export async function getRandomSampleFromDatabase(
     }
     
     // Log exclusion details for debugging
-    console.log(`[DB] Excluding ${excludeIds.length} videos (${excludeIds.slice(0, 3).join(", ")}${excludeIds.length > 3 ? "..." : ""})${genre ? `, genre=${genre}` : ""}`)
+    console.log(`[DB] Excluding ${excludeIds.length} videos (${excludeIds.slice(0, 3).join(", ")}${excludeIds.length > 3 ? "..." : ""})${genre ? `, genre=${genre}` : ""}${drumBreakOnly ? ", drumBreakOnly=true" : ""}`)
     
-    // Build where: exclusions + optional genre (case-insensitive)
-    const whereClause: { youtubeId?: { notIn: string[] }; genre?: { equals: string; mode: "insensitive" } } =
+    // Build where: exclusions + optional genre + optional drum-break title filter
+    type WhereClause = {
+      youtubeId?: { notIn: string[] }
+      genre?: { equals: string; mode: "insensitive" }
+      OR?: { title: { contains: string; mode: "insensitive" } }[]
+    }
+    const whereClause: WhereClause =
       excludeIds.length > 0 ? { youtubeId: { notIn: excludeIds } } : {}
     if (genre && genre.trim() !== "") {
       whereClause.genre = { equals: genre.trim(), mode: "insensitive" }
+    }
+    if (drumBreakOnly) {
+      whereClause.OR = DRUM_BREAK_TITLE_PHRASES.map((phrase) => ({
+        title: { contains: phrase, mode: "insensitive" as const },
+      }))
     }
     
     const totalCount = await prisma.sample.count({
@@ -73,7 +96,7 @@ export async function getRandomSampleFromDatabase(
       console.error(`[DB] ERROR: Selected sample ${sample.youtubeId} is in excluded list! Retrying...`)
       console.error(`[DB] Excluded list:`, excludeIds.slice(0, 10).join(", "), excludeIds.length > 10 ? "..." : "")
       // Retry with same exclusions
-      return getRandomSampleFromDatabase(excludedVideoIds, userId, genre)
+      return getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly)
     }
     
     console.log(`[DB] Retrieved sample from database: ${sample.youtubeId} - ${sample.title}`)

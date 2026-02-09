@@ -21,7 +21,7 @@ export default function AutoplayToggle({ enabled, onChange }: AutoplayToggleProp
         />
       </div>
       <span className="text-sm font-medium">
-        Auto-Play {enabled ? "ON" : "OFF"}
+        Auto-Play
       </span>
     </button>
   )

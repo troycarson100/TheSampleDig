@@ -8,7 +8,7 @@ import {
 } from "./youtube-config"
 import { getCachedSearchResult, cacheSearchResult, getCachedVideoDetailsBatch, cacheVideoDetailsBatch } from "./cache"
 import { getRandomSampleFromDatabase, getDatabaseSampleCount } from "./database-samples"
-import { fetchWithKeyRotation, getFirstYouTubeApiKey } from "./youtube-keys"
+import { fetchWithKeyRotation, fetchWithKeyRoundRobin, getFirstYouTubeApiKey } from "./youtube-keys"
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/search"
 
@@ -519,7 +519,7 @@ export async function getVideoDetailsFullBatch(
   const batchSize = 50
   for (let i = 0; i < videoIds.length; i += batchSize) {
     const batch = videoIds.slice(i, i + batchSize)
-    const response = await fetchWithKeyRotation((key) => {
+    const response = await fetchWithKeyRoundRobin((key) => {
       const params = new URLSearchParams({
         part: "contentDetails,snippet,status",
         id: batch.join(","),
@@ -527,7 +527,10 @@ export async function getVideoDetailsFullBatch(
       })
       return fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`)
     })
-    if (!response.ok) continue
+    if (!response.ok) {
+      console.warn("[YouTube] videos.list batch failed:", response.status, "skipping batch")
+      continue
+    }
     const data = await response.json()
     if (data.items) {
       for (const item of data.items) {
@@ -1319,19 +1322,20 @@ export async function searchWithQuery(
  * Uses database-first approach: checks database → (optional) cache/YouTube API
  * @param excludedVideoIds - Array of YouTube video IDs to exclude (already shown videos)
  * @param userId - Optional user ID to exclude their saved samples
- * @param options - databaseOnly: if true, never call YouTube API (quota-safe); genre: optional genre filter for DB
+ * @param options - databaseOnly: if true, never call YouTube API (quota-safe); genre: optional genre filter; drumBreakOnly: if true, prefer samples with drum-break–style titles
  */
 export async function findRandomSample(
   excludedVideoIds: string[] = [],
   userId?: string,
-  options?: { databaseOnly?: boolean; genre?: string }
+  options?: { databaseOnly?: boolean; genre?: string; drumBreakOnly?: boolean }
 ): Promise<YouTubeVideo & { genre?: string; era?: string; duration?: number }> {
   const databaseOnly = options?.databaseOnly === true
   const genre = options?.genre?.trim() || undefined
+  const drumBreakOnly = options?.drumBreakOnly === true
 
   // STEP 1: Try database first (fastest, no API calls)
   console.log(`[Dig] Step 1: Checking database for pre-populated samples...`)
-  const dbSample = await getRandomSampleFromDatabase(excludedVideoIds, userId, genre)
+  const dbSample = await getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly)
   if (dbSample) {
     console.log(`[Dig] ✓ Found sample in database: ${dbSample.id}`)
     return dbSample

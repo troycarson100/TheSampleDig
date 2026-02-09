@@ -66,6 +66,7 @@ export default function DigPage() {
   const [error, setError] = useState("")
   const [isSaved, setIsSaved] = useState(false)
   const [autoplay, setAutoplay] = useState(true)
+  const [drumBreak, setDrumBreak] = useState(false)
   const [genreFilter, setGenreFilter] = useState("")
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
   const isSavedRef = useRef(isSaved)
@@ -114,6 +115,19 @@ export default function DigPage() {
   useEffect(() => {
     localStorage.setItem("autoplay", autoplay.toString())
   }, [autoplay])
+
+  // Load drum break preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("digDrumBreak")
+    if (saved !== null) {
+      setDrumBreak(saved === "true")
+    }
+  }, [])
+
+  // Save drum break preference to localStorage
+  useEffect(() => {
+    localStorage.setItem("digDrumBreak", drumBreak.toString())
+  }, [drumBreak])
 
   // Load genre filter from localStorage
   useEffect(() => {
@@ -189,6 +203,7 @@ export default function DigPage() {
       const params = new URLSearchParams()
       if (excludedIds.length > 0) params.set("excluded", excludedIds.join(","))
       if (genreFilter.trim() !== "") params.set("genre", genreFilter.trim())
+      if (drumBreak) params.set("drumBreak", "1")
       const url = params.toString() ? `/api/samples/dig?${params.toString()}` : "/api/samples/dig"
 
       const response = await fetch(url)
@@ -202,8 +217,11 @@ export default function DigPage() {
       // Generate a smart start time for this video
       // NEVER start within 25 seconds of the end
       const END_BUFFER = 25
-      const smartStartTime = data.duration 
-        ? Math.max(15, Math.min(Math.floor(data.duration * 0.3), data.duration - END_BUFFER))
+      // When Drum Break is on: start at the beginning of the video
+      const smartStartTime = data.duration
+        ? drumBreak
+          ? 0
+          : Math.max(15, Math.min(Math.floor(data.duration * 0.3), data.duration - END_BUFFER))
         : Math.floor(Math.random() * 300) + 30
       
       // AGGRESSIVE safety check: Ensure we're NEVER within 25 seconds of the end
@@ -220,8 +238,10 @@ export default function DigPage() {
           console.warn(`[Dig] CRITICAL: Using safe middle ${safeMiddle} for duration ${data.duration}`)
           finalStartTime = safeMiddle
         }
-        // Final validation
-        finalStartTime = Math.max(15, Math.min(finalStartTime, data.duration - END_BUFFER))
+        // Final validation (when not drum break mode, enforce at least 15s from start)
+        if (!drumBreak) {
+          finalStartTime = Math.max(15, Math.min(finalStartTime, data.duration - END_BUFFER))
+        }
         console.log(`[Dig] Final start time: ${finalStartTime} (duration: ${data.duration}, safe max: ${data.duration - END_BUFFER})`)
       }
       
@@ -478,6 +498,22 @@ export default function DigPage() {
                 )}
                 <DiceButton onClick={handleDig} loading={loading} />
                 <AutoplayToggle enabled={autoplay} onChange={setAutoplay} />
+                <button
+                  type="button"
+                  onClick={() => setDrumBreak((d) => !d)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full transition"
+                  style={{ background: "transparent", color: "var(--foreground)" }}
+                  aria-label="Toggle drum break mode"
+                >
+                  <div className={`relative w-12 h-6 rounded-full transition-colors ${drumBreak ? "opacity-100" : "opacity-50"}`} style={{ background: drumBreak ? "var(--primary)" : "var(--muted)" }}>
+                    <div
+                      className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${drumBreak ? "translate-x-6" : "translate-x-0"}`}
+                    />
+                  </div>
+                  <span className="text-sm font-medium">
+                    Drum Break
+                  </span>
+                </button>
                 <label className="flex items-center gap-2">
                   <select
                     value={genreFilter}
