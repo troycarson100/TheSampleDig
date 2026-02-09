@@ -73,24 +73,31 @@ export async function enrichCandidates(limit: number = 100): Promise<{ enriched:
   let enriched = 0
   for (const c of candidates) {
     const d = details.get(c.youtubeId)
-    if (!d) continue
-    const publishedAt = d.publishedAt ? new Date(d.publishedAt) : null
-    await prisma.candidate.update({
-      where: { id: c.id },
-      data: {
-        title: d.title,
-        description: d.description?.slice(0, 10000) ?? null,
-        channelId: d.channelId,
-        channelTitle: d.channelTitle,
-        thumbnailUrl: d.thumbnail,
-        duration: d.duration,
-        tags: JSON.stringify(d.tags || []),
-        publishedAt,
-        enrichedAt: new Date(),
-        embeddable: d.embeddable ?? null,
-      },
-    })
-    enriched++
+    if (d) {
+      const publishedAt = d.publishedAt ? new Date(d.publishedAt) : null
+      await prisma.candidate.update({
+        where: { id: c.id },
+        data: {
+          title: d.title,
+          description: d.description?.slice(0, 10000) ?? null,
+          channelId: d.channelId,
+          channelTitle: d.channelTitle,
+          thumbnailUrl: d.thumbnail,
+          duration: d.duration,
+          tags: JSON.stringify(d.tags || []),
+          publishedAt,
+          enrichedAt: new Date(),
+          embeddable: d.embeddable ?? null,
+        },
+      })
+      enriched++
+    } else {
+      // Video missing (deleted/private) – mark as enriched so we don't retry forever
+      await prisma.candidate.update({
+        where: { id: c.id },
+        data: { enrichedAt: new Date() },
+      })
+    }
   }
   return { enriched }
 }
