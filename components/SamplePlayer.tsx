@@ -663,7 +663,7 @@ function SamplePlayer({
         try {
           const t = adapter.getCurrentTime()
           if (typeof t === "number" && t >= 0) setVideoCurrentTime(t)
-          const d = adapter.getDuration()
+          const d = adapter.getDuration?.()
           if (typeof d === "number" && d > 0) setVideoDurationFromPlayer(d)
         } catch (_) {}
       }
@@ -855,13 +855,12 @@ function SamplePlayer({
         )}
         {/* Heart toggle - above overlay when Chop Mode is on */}
         {showHeart && onSaveToggle && (
-          <div className="absolute top-4 right-4 z-20 pointer-events-auto">
+          <div className="absolute top-4 right-4 z-20 pointer-events-auto rounded-full p-2 shadow-sm" style={{ background: "var(--card)" }}>
             <HeartToggle
               isSaved={isSaved}
               onToggle={() => onSaveToggle(isSaved ? undefined : { chops: chops.length > 0 ? chops : undefined })}
               size="lg"
-              className="rounded-full p-2 shadow-sm"
-              style={{ background: "var(--card)" }}
+              className=""
             />
           </div>
         )}

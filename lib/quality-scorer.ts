@@ -13,8 +13,8 @@ export interface ScoreResult {
   rejectReason?: string
 }
 
-function toLower(s: string | undefined): string {
-  return (s || "").toLowerCase()
+function toLower(s: string | undefined | null): string {
+  return (s ?? "").toLowerCase()
 }
 
 /**
@@ -78,7 +78,7 @@ export function scoreCandidate(
   score -= badCount * 15
 
   const finalScore = Math.max(0, Math.min(100, Math.round(score)))
-  const metadata = extractMetadata("", title, description, tagsArr)
+  const metadata = extractMetadata("", title, description ?? undefined, tagsArr)
   return {
     score: finalScore,
     genre: metadata.genre,

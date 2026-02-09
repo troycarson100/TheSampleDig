@@ -102,7 +102,7 @@ export async function POST(request: Request) {
         )
       }
       const scriptPath = path.join(process.cwd(), "scripts", "stem-split-drums.sh")
-      const env = process.env.DRUMSEP_DIR ? { DRUMSEP_DIR: process.env.DRUMSEP_DIR } : undefined
+      const env = process.env.DRUMSEP_DIR ? ({ DRUMSEP_DIR: process.env.DRUMSEP_DIR } as unknown as NodeJS.ProcessEnv) : undefined
       const result = await runScript("bash", [scriptPath, drumsPath, jobDir], env)
       if (result.code !== 0) {
         const details = [result.stderr, result.stdout].filter(Boolean).join("\n").trim()

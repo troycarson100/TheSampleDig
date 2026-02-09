@@ -727,7 +727,8 @@ function calculateVinylRipScore(
   const titleLower = title.toLowerCase()
   const channelLower = channelTitle.toLowerCase()
   const descLower = description.toLowerCase()
-  
+  const allText = `${titleLower} ${channelLower} ${descLower}`
+
   // POSITIVE SIGNALS
   
   // Title: Vinyl rip keywords (highest weight)
@@ -1015,7 +1016,7 @@ export async function searchWithQuery(
   const videosToCheck = data.items.slice(0, 15)
   
   // Filter out excluded videos first (before API calls)
-  const candidateVideos = videosToCheck.filter(v => !excludedVideoIds.includes(v.id.videoId))
+  const candidateVideos = videosToCheck.filter((v: { id: { videoId: string } }) => !excludedVideoIds.includes(v.id.videoId))
   
   if (candidateVideos.length === 0) {
     console.log(`[Search] All ${videosToCheck.length} videos were excluded`)
@@ -1023,7 +1024,7 @@ export async function searchWithQuery(
   }
   
   // Check cache first for batch video details
-  const videoIds = candidateVideos.map(v => v.id.videoId)
+  const videoIds = candidateVideos.map((v: { id: { videoId: string } }) => v.id.videoId)
   console.log(`[Search] Fetching details for ${videoIds.length} videos in batch...`)
   
   let detailsMap = getCachedVideoDetailsBatch<Map<string, { duration: number; description?: string; tags?: string[] }>>(videoIds)
@@ -1114,6 +1115,7 @@ export async function searchWithQuery(
       continue // Skip - must have at least one static visual or strong vinyl indicator
     }
     
+    const requiredIndicators = [...requiredStaticIndicators, ...strongVinylSignals]
     const hasRequiredIndicator = requiredIndicators.some(indicator => 
       titleLower.includes(indicator) || 
       channelLower.includes(indicator) || 

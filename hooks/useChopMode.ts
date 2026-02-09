@@ -37,6 +37,8 @@ export interface RecordedChopEvent {
 
 export interface YouTubePlayerAdapter {
   getCurrentTime(): number
+  /** Duration in seconds; 0 until video metadata is loaded. */
+  getDuration?(): number
   seekTo(seconds: number): void
   play(): void
   pause?(): void
