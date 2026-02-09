@@ -1,15 +1,16 @@
 import { NextResponse } from "next/server"
-import { writeFile, mkdir, unlink } from "fs/promises"
+import { writeFile, mkdir, unlink, copyFile } from "fs/promises"
 import { spawn } from "child_process"
 import path from "path"
 import { randomBytes } from "crypto"
+import { analyzeAudioFile } from "@/lib/audio-analysis"
 
 const STEM_OUTPUT_DIR = path.join(process.cwd(), ".stem-output")
 const STEM_ORDER = ["vocals", "drums", "bass", "other"] as const
 const STEM_LABELS: Record<(typeof STEM_ORDER)[number], string> = {
   vocals: "Vocal",
   drums: "Drums",
-  other: "Other",
+  other: "Melody",
   bass: "Bass",
 }
 
@@ -50,6 +51,21 @@ export async function POST(request: Request) {
     if (result.code !== 0 && commandNotFound && pythonCmd === "python3") {
       result = await runScript("python")
     }
+    let bpm: number | null = null
+    let key: string | null = null
+    if (result.code === 0) {
+      try {
+        const analysis = await analyzeAudioFile(inputPath)
+        bpm = analysis.bpm
+        key = analysis.key
+      } catch (_) {
+        // BPM/key optional; continue without
+      }
+    }
+    if (result.code === 0) {
+      const keptInput = path.join(outputDir, `input${ext}`)
+      await copyFile(inputPath, keptInput).catch(() => {})
+    }
     await unlink(inputPath).catch(() => {})
     if (result.code !== 0) {
       const rawOutput = [result.stderr, result.stdout].filter(Boolean).join("\n").trim()
@@ -68,7 +84,7 @@ export async function POST(request: Request) {
       label: STEM_LABELS[id],
       url: `/api/stems/${jobId}/${id}.wav`,
     }))
-    return NextResponse.json({ jobId, stems })
+    return NextResponse.json({ jobId, stems, bpm, key })
   } catch (e) {
     console.error("[stem-split]", e)
     return NextResponse.json(

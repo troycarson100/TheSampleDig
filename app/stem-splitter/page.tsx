@@ -10,7 +10,7 @@ const STEM_LABELS: Record<(typeof STEM_IDS)[number], string> = {
   vocals: "Vocal",
   drums: "Drums",
   bass: "Bass",
-  other: "Other",
+  other: "Melody",
 }
 const STEM_COLORS: Record<(typeof STEM_IDS)[number], string> = {
   vocals: "#E63946",
@@ -27,6 +27,30 @@ interface StemState {
   volume: number
   muted: boolean
   solo: boolean
+}
+
+type MoreStemsType = "vocals" | "drums" | "melodies"
+interface ExtraStemState {
+  id: string
+  label: string
+  url: string
+  buffer: AudioBuffer | null
+  volume: number
+  muted: boolean
+  solo: boolean
+}
+const EXTRA_STEM_COLORS: Record<string, string> = {
+  kick: "#8B4513",
+  snare: "#808080",
+  cymbals: "#FFD700",
+  toms: "#CD853F",
+  guitar: "#228B22",
+  piano: "#4169E1",
+  lead: "#E63946",
+  backing: "#F4A261",
+}
+function getExtraStemColor(id: string): string {
+  return EXTRA_STEM_COLORS[id] ?? "#6B7280"
 }
 
 function getCssColor(varName: string, fallback: string): string {
@@ -90,12 +114,28 @@ export default function StemSplitterPage() {
   const [error, setError] = useState("")
   const [stems, setStems] = useState<StemState[]>([])
   const [jobId, setJobId] = useState<string | null>(null)
+  const [bpm, setBpm] = useState<number | null>(null)
+  const [key, setKey] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [playing, setPlaying] = useState(false)
   const [downloadOpen, setDownloadOpen] = useState(false)
   const [downloadStems, setDownloadStems] = useState<Set<string>>(new Set(STEM_IDS))
   const [downloadFormat, setDownloadFormat] = useState<DownloadFormat>("wav")
+  const [moreStemsOpen, setMoreStemsOpen] = useState(false)
+  const [extraStemsByType, setExtraStemsByType] = useState<
+    Record<MoreStemsType, { stems: { id: string; label: string; url: string }[] } | null>
+  >({ drums: null, melodies: null, vocals: null })
+  const [extraStemsStateByType, setExtraStemsStateByType] = useState<
+    Record<MoreStemsType, ExtraStemState[]>
+  >({ drums: [], melodies: [], vocals: [] })
+  const [extraStemsLoading, setExtraStemsLoading] = useState(false)
+  const [extraStemsError, setExtraStemsError] = useState("")
+  const [extraStemsComingSoon, setExtraStemsComingSoon] = useState(false)
+  const [subStemsOpen, setSubStemsOpen] = useState<Record<MoreStemsType, boolean>>({ drums: false, melodies: false, vocals: false })
   const canvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
+  const extraCanvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
+  const extraStemsRef = useRef<Record<MoreStemsType, ExtraStemState[]>>({ drums: [], melodies: [], vocals: [] })
+  const extraSourceNodesRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode }>>({})
   const audioContextRef = useRef<AudioContext | null>(null)
   const sourceNodesRef = useRef<Record<string, { source: AudioBufferSourceNode; gain: GainNode }>>({})
   const startTimeRef = useRef(0)
@@ -148,6 +188,8 @@ export default function StemSplitterPage() {
     setProcessing(true)
     setStems([])
     setJobId(null)
+    setBpm(null)
+    setKey(null)
     try {
       const formData = new FormData()
       formData.append("file", file)
@@ -158,6 +200,8 @@ export default function StemSplitterPage() {
         throw new Error(msg)
       }
       setJobId(data.jobId)
+      setBpm(data.bpm ?? null)
+      setKey(data.key ?? null)
       await loadStemBuffers(data.stems)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Stem split failed")
@@ -197,11 +241,44 @@ export default function StemSplitterPage() {
   }, [stems])
 
   useEffect(() => {
+    extraStemsRef.current = { ...extraStemsStateByType }
+  }, [extraStemsStateByType])
+
+  const getExtraGain = useCallback((type: MoreStemsType, s: ExtraStemState) => {
+    if (s.muted) return 0
+    const list = extraStemsRef.current[type] ?? []
+    const anySolo = list.some((x) => x.solo)
+    if (anySolo) return s.solo ? s.volume : 0
+    return s.volume
+  }, [])
+
+  useEffect(() => {
+    const byType = extraStemsStateByType
+    const anyExtraSolo = (byType.drums.some((x) => x.solo) || byType.melodies.some((x) => x.solo) || byType.vocals.some((x) => x.solo))
+    const useDrumsSubStems = byType.drums.some((x) => !x.muted && x.buffer)
+    const useMelodySubStems = byType.melodies.some((x) => !x.muted && x.buffer)
+    const useVocalsSubStems = byType.vocals.some((x) => !x.muted && x.buffer)
     stems.forEach((s) => {
       const nodes = sourceNodesRef.current[s.id]
-      if (nodes) nodes.gain.gain.value = getGain(s)
+      if (!nodes) return
+      if (anyExtraSolo)
+        nodes.gain.gain.value = 0
+      else if (
+        (s.id === "drums" && useDrumsSubStems) ||
+        (s.id === "other" && useMelodySubStems) ||
+        (s.id === "vocals" && useVocalsSubStems)
+      )
+        nodes.gain.gain.value = 0
+      else nodes.gain.gain.value = getGain(s)
     })
-  }, [stems, getGain])
+    ;(["drums", "melodies", "vocals"] as const).forEach((type) => {
+      byType[type].forEach((s) => {
+        const key = `${type}-${s.id}`
+        const nodes = extraSourceNodesRef.current[key]
+        if (nodes) nodes.gain.gain.value = getExtraGain(type, s)
+      })
+    })
+  }, [stems, extraStemsStateByType, getGain, getExtraGain])
 
   const drawAllWaveforms = useCallback((playheadProgress: number) => {
     const stemsList = stemsRef.current
@@ -215,17 +292,59 @@ export default function StemSplitterPage() {
       canvas.height = h
       drawWaveform(canvas, s.buffer, STEM_COLORS[s.id], w, h, playheadProgress)
     })
+    const extraByType = extraStemsRef.current
+    ;(["drums", "melodies", "vocals"] as const).forEach((type) => {
+      const list = extraByType[type] ?? []
+      list.forEach((s) => {
+        const key = `${type}-${s.id}`
+        const canvas = extraCanvasRefs.current[key]
+        if (!canvas || !s.buffer) return
+        const w = Math.max(1, canvas.offsetWidth || 400)
+        const h = Math.max(1, canvas.offsetHeight || 64)
+        canvas.width = w
+        canvas.height = h
+        drawWaveform(canvas, s.buffer, getExtraStemColor(s.id), w, h, playheadProgress)
+      })
+    })
   }, [])
 
   const play = useCallback(() => {
     const ctx = audioContextRef.current
     if (!ctx || stems.length === 0) return
+    // Stop any existing playback so all sources start from the same time (no layered/desynced playback)
+    Object.values(sourceNodesRef.current).forEach(({ source }) => {
+      try { source.stop() } catch (_) {}
+    })
+    Object.values(extraSourceNodesRef.current).forEach(({ source }) => {
+      try { source.stop() } catch (_) {}
+    })
+    sourceNodesRef.current = {}
+    extraSourceNodesRef.current = {}
     stoppedManuallyRef.current = false
     const start = pauseTimeRef.current
+    const extraByType = extraStemsRef.current
+    const anyExtraSolo = (extraByType.drums ?? []).some((s) => s.solo) || (extraByType.melodies ?? []).some((s) => s.solo) || (extraByType.vocals ?? []).some((s) => s.solo)
+    const useDrumsSubStems = (extraByType.drums ?? []).some((s) => !s.muted && s.buffer)
+    const useMelodySubStems = (extraByType.melodies ?? []).some((s) => !s.muted && s.buffer)
+    const useVocalsSubStems = (extraByType.vocals ?? []).some((s) => !s.muted && s.buffer)
+    const extraToPlay: { type: MoreStemsType; s: ExtraStemState }[] = []
+    if (anyExtraSolo) {
+      ;(["drums", "melodies", "vocals"] as const).forEach((type) => {
+        const list = extraByType[type] ?? []
+        list.filter((s) => s.buffer && s.solo && !s.muted).forEach((s) => extraToPlay.push({ type, s }))
+      })
+    } else {
+      ;(["drums", "melodies", "vocals"] as const).forEach((type) => {
+        const list = extraByType[type] ?? []
+        const useSub = type === "drums" ? useDrumsSubStems : type === "melodies" ? useMelodySubStems : useVocalsSubStems
+        if (useSub) list.filter((s) => s.buffer && !s.muted).forEach((s) => extraToPlay.push({ type, s }))
+      })
+    }
+    const totalCount = stems.length + extraToPlay.length
     let ended = 0
     const onOneEnded = () => {
       ended++
-      if (ended >= stems.length) {
+      if (ended >= totalCount) {
         isPlayingRef.current = false
         if (rafIdRef.current != null) {
           cancelAnimationFrame(rafIdRef.current)
@@ -243,12 +362,30 @@ export default function StemSplitterPage() {
       const source = ctx.createBufferSource()
       source.buffer = s.buffer
       const gain = ctx.createGain()
-      gain.gain.value = getGain(s)
+      gain.gain.value =
+        anyExtraSolo ||
+        (s.id === "drums" && useDrumsSubStems) ||
+        (s.id === "other" && useMelodySubStems) ||
+        (s.id === "vocals" && useVocalsSubStems)
+          ? 0
+          : getGain(s)
       source.connect(gain)
       gain.connect(ctx.destination)
       source.start(0, start)
       source.onended = onOneEnded
       sourceNodesRef.current[s.id] = { source, gain }
+    })
+    extraToPlay.forEach(({ type, s }) => {
+      if (!s.buffer) return
+      const source = ctx.createBufferSource()
+      source.buffer = s.buffer
+      const gain = ctx.createGain()
+      gain.gain.value = getExtraGain(type, s)
+      source.connect(gain)
+      gain.connect(ctx.destination)
+      source.start(0, start)
+      source.onended = onOneEnded
+      extraSourceNodesRef.current[`${type}-${s.id}`] = { source, gain }
     })
     startTimeRef.current = ctx.currentTime - start
     isPlayingRef.current = true
@@ -267,22 +404,31 @@ export default function StemSplitterPage() {
       }
     }
     rafIdRef.current = requestAnimationFrame(tick)
-  }, [stems, getGain, drawAllWaveforms])
+  }, [stems, getGain, getExtraGain, drawAllWaveforms])
 
   const stop = useCallback((resetPosition = false) => {
-    const ctx = audioContextRef.current
     stoppedManuallyRef.current = !resetPosition
     isPlayingRef.current = false
     if (rafIdRef.current != null) {
       cancelAnimationFrame(rafIdRef.current)
       rafIdRef.current = null
     }
-    if (ctx) {
-      Object.values(sourceNodesRef.current).forEach(({ source }) => {
-        try { source.stop() } catch (_) {}
-      })
-      sourceNodesRef.current = {}
-    }
+    const mainNodes = { ...sourceNodesRef.current }
+    const extraNodes = { ...extraSourceNodesRef.current }
+    sourceNodesRef.current = {}
+    extraSourceNodesRef.current = {}
+    Object.values(mainNodes).forEach(({ source, gain }) => {
+      try {
+        source.stop()
+        gain.disconnect()
+      } catch (_) {}
+    })
+    Object.values(extraNodes).forEach(({ source, gain }) => {
+      try {
+        source.stop()
+        gain.disconnect()
+      } catch (_) {}
+    })
     if (resetPosition) pauseTimeRef.current = 0
     const duration = durationRef.current
     const playheadProgress = duration > 0 ? pauseTimeRef.current / duration : 0
@@ -291,14 +437,29 @@ export default function StemSplitterPage() {
   }, [drawAllWaveforms])
 
   const togglePlayPause = useCallback(() => {
+    if (stems.length === 0) return
     if (playing) {
       const ctx = audioContextRef.current
       if (ctx) pauseTimeRef.current = ctx.currentTime - startTimeRef.current
-      stop()
+      stop(false)
     } else {
       play()
     }
-  }, [playing, play, stop])
+  }, [playing, stems.length, play, stop])
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== "Space" || e.repeat) return
+      const target = e.target as Node
+      if (target && (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement || (target instanceof HTMLElement && target.isContentEditable)))
+        return
+      if (stems.length === 0) return
+      e.preventDefault()
+      togglePlayPause()
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [togglePlayPause, stems.length])
 
   const seekTo = useCallback((progress: number) => {
     const duration = durationRef.current
@@ -321,18 +482,40 @@ export default function StemSplitterPage() {
     seekTo(progress)
   }, [seekTo])
 
+  const handleExtraWaveformClick = useCallback(
+    (e: React.MouseEvent<HTMLCanvasElement>) => {
+      const canvas = e.currentTarget
+      const rect = canvas.getBoundingClientRect()
+      const x = e.clientX - rect.left
+      const progress = rect.width > 0 ? x / rect.width : 0
+      seekTo(progress)
+    },
+    [seekTo]
+  )
+
   const resetForNewFile = useCallback(() => {
     stop(true)
     setFile(null)
     setStems([])
     setJobId(null)
+    setBpm(null)
+    setKey(null)
     setError("")
+    setExtraStemsByType({ drums: null, melodies: null, vocals: null })
+    setExtraStemsStateByType({ drums: [], melodies: [], vocals: [] })
+    setSubStemsOpen({ drums: false, melodies: false, vocals: false })
+    setExtraStemsError("")
+    setExtraStemsComingSoon(false)
   }, [stop])
 
-  const allSelected = STEM_IDS.every((id) => downloadStems.has(id))
+  const extraDownloadOptions = (["drums", "melodies", "vocals"] as const).flatMap((type) => {
+    const list = extraStemsStateByType[type] ?? []
+    return list.map((s) => ({ key: `extra:${type}:${s.id}`, label: s.label }))
+  })
+  const allMainSelected = STEM_IDS.every((id) => downloadStems.has(id))
   const toggleDownloadStem = useCallback((id: string) => {
     if (id === "all") {
-      if (allSelected) setDownloadStems(new Set())
+      if (allMainSelected) setDownloadStems(new Set())
       else setDownloadStems(new Set(STEM_IDS))
     } else {
       setDownloadStems((prev) => {
@@ -342,28 +525,123 @@ export default function StemSplitterPage() {
         return next
       })
     }
-  }, [allSelected])
+  }, [allMainSelected])
 
   const handleDownloadStems = useCallback(() => {
     if (!jobId || downloadStems.size === 0) return
-    // We only serve WAV from the API; format toggle kept for future MP3 support
     const actualExt = "wav"
-    const stemsToDownload = STEM_IDS.filter((id) => downloadStems.has(id))
-    stemsToDownload.forEach((id, i) => {
+    const mainIds = STEM_IDS.filter((id) => downloadStems.has(id))
+    const extraKeys = Array.from(downloadStems).filter((k) => k.startsWith("extra:"))
+    let i = 0
+    mainIds.forEach((id) => {
       setTimeout(() => {
         const a = document.createElement("a")
         a.href = `/api/stems/${jobId}/${id}.${actualExt}`
         a.download = `${id}.${actualExt}`
         a.rel = "noopener noreferrer"
         a.click()
-      }, i * 200)
+      }, (i++) * 200)
+    })
+    extraKeys.forEach((key) => {
+      const [, type, id] = key.split(":")
+      if (!type || !id) return
+      const list = extraStemsStateByType[type as MoreStemsType] ?? []
+      const stem = list.find((s) => s.id === id)
+      if (stem?.url) {
+        setTimeout(() => {
+          const a = document.createElement("a")
+          a.href = stem.url
+          a.download = `${id}.${actualExt}`
+          a.rel = "noopener noreferrer"
+          a.click()
+        }, (i++) * 200)
+      }
     })
     setDownloadOpen(false)
-  }, [jobId, downloadStems, downloadFormat])
+  }, [jobId, downloadStems, downloadFormat, extraStemsStateByType])
 
   useEffect(() => {
     if (stems.length > 0) setDownloadStems(new Set(STEM_IDS))
   }, [stems.length])
+
+  const loadExtraStemBuffers = useCallback(async (type: MoreStemsType, list: { id: string; label: string; url: string }[]) => {
+    const ctx = audioContextRef.current ?? new AudioContext()
+    if (!audioContextRef.current) audioContextRef.current = ctx
+    const loaded: ExtraStemState[] = []
+    for (const s of list) {
+      try {
+        const res = await fetch(s.url)
+        const arrayBuffer = await res.arrayBuffer()
+        const buffer = await ctx.decodeAudioData(arrayBuffer)
+        loaded.push({ ...s, buffer, volume: 1, muted: false, solo: false })
+      } catch {
+        loaded.push({ ...s, buffer: null, volume: 1, muted: false, solo: false })
+      }
+    }
+    setExtraStemsByType((prev) => ({ ...prev, [type]: { stems: list } }))
+    setExtraStemsStateByType((prev) => ({ ...prev, [type]: loaded }))
+    setSubStemsOpen((prev) => ({ ...prev, [type]: true }))
+  }, [])
+
+  const handleMoreStemsOption = useCallback(
+    async (type: MoreStemsType) => {
+      if (!jobId) return
+      setMoreStemsOpen(false)
+      setExtraStemsError("")
+      setExtraStemsComingSoon(false)
+      setExtraStemsLoading(true)
+      try {
+        const res = await fetch("/api/stem-split/more", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId, type }),
+        })
+        const data = await res.json()
+        if (!res.ok) {
+          setExtraStemsError(data.details ? `${data.error}\n\n${data.details}` : data.error || "Failed")
+          return
+        }
+        if (data.available === false && data.message) {
+          setExtraStemsComingSoon(true)
+          return
+        }
+        if (data.available === true && Array.isArray(data.stems) && data.stems.length > 0) {
+          await loadExtraStemBuffers(type, data.stems)
+        }
+      } catch (e) {
+        setExtraStemsError(e instanceof Error ? e.message : "Request failed")
+      } finally {
+        setExtraStemsLoading(false)
+      }
+    },
+    [jobId, loadExtraStemBuffers]
+  )
+
+  const updateExtraStem = useCallback((type: MoreStemsType, id: string, patch: Partial<ExtraStemState>) => {
+    setExtraStemsStateByType((prev) => ({
+      ...prev,
+      [type]: prev[type].map((s) => (s.id === id ? { ...s, ...patch } : s)),
+    }))
+  }, [])
+
+  useEffect(() => {
+    const duration = durationRef.current
+    const playheadProgress = duration > 0 ? pauseTimeRef.current / duration : 0
+    ;(["drums", "melodies", "vocals"] as const).forEach((type) => {
+      const list = extraStemsStateByType[type] ?? []
+      list.forEach((s) => {
+        const key = `${type}-${s.id}`
+        const canvas = extraCanvasRefs.current[key]
+        if (canvas && s.buffer) {
+          const w = Math.max(1, canvas.offsetWidth || 400)
+          const h = Math.max(1, canvas.offsetHeight || 64)
+          canvas.width = w
+          canvas.height = h
+          drawWaveform(canvas, s.buffer, getExtraStemColor(s.id), w, h, playheadProgress)
+        }
+      })
+    })
+  }, [extraStemsStateByType])
 
   return (
     <div className="min-h-screen" style={{ background: "var(--background)" }}>
@@ -377,8 +655,7 @@ export default function StemSplitterPage() {
           Stem Splitter
         </h1>
         <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>
-          Upload a song to split into vocals, drums, bass, and other. Adjust volume, solo, or mute each stem and download as WAV.
-          Requires Python with Demucs installed on the server: <code className="text-xs bg-black/10 px-1 rounded">pip install demucs</code>
+          Upload a song to split into vocals, drums, bass, and melody. Adjust volume, solo, or mute each stem and download as WAV.
         </p>
 
         <div
@@ -469,6 +746,11 @@ export default function StemSplitterPage() {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                   )}
                 </button>
+                <span className="text-sm font-medium tabular-nums" style={{ color: "var(--muted)" }}>
+                  {bpm != null ? `${bpm} BPM` : "— BPM"}
+                  <span className="mx-1.5" aria-hidden>·</span>
+                  Key: {key ?? "—"}
+                </span>
                 <button
                   type="button"
                   onClick={resetForNewFile}
@@ -477,6 +759,75 @@ export default function StemSplitterPage() {
                 >
                   New file
                 </button>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setMoreStemsOpen((o) => !o)}
+                    disabled={extraStemsLoading}
+                    className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium disabled:opacity-50"
+                    style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                    aria-expanded={moreStemsOpen}
+                    aria-haspopup="true"
+                  >
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                    </svg>
+                    More Stems
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`transition ${moreStemsOpen ? "rotate-180" : ""}`}>
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </button>
+                  {moreStemsOpen && (
+                    <>
+                      <div className="absolute left-0 top-full mt-1 z-10 min-w-[280px] rounded-xl border p-2 shadow-lg" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+                        <button
+                          type="button"
+                          onClick={() => handleMoreStemsOption("vocals")}
+                          className="w-full flex items-start gap-3 p-3 rounded-lg text-left hover:bg-[var(--muted-light)] transition"
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5" aria-hidden>
+                            <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2M12 19v3" />
+                          </svg>
+                          <div>
+                            <div className="font-medium text-sm" style={{ color: "var(--foreground)" }}>Separate Vocals</div>
+                            <div className="text-xs" style={{ color: "var(--muted)" }}>Separate Lead and Background Vocals</div>
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoreStemsOption("drums")}
+                          className="w-full flex items-start gap-3 p-3 rounded-lg text-left hover:bg-[var(--muted-light)] transition"
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5" aria-hidden>
+                            <circle cx="12" cy="12" r="3" />
+                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                          </svg>
+                          <div>
+                            <div className="font-medium text-sm" style={{ color: "var(--foreground)" }}>Separate Drums</div>
+                            <div className="text-xs" style={{ color: "var(--muted)" }}>Separate Kick, Snare, Cymbals, and Perc</div>
+                          </div>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleMoreStemsOption("melodies")}
+                          className="w-full flex items-start gap-3 p-3 rounded-lg text-left hover:bg-[var(--muted-light)] transition"
+                        >
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5" aria-hidden>
+                            <rect x="2" y="4" width="4" height="16" rx="1" />
+                            <rect x="9" y="4" width="4" height="16" rx="1" />
+                            <rect x="16" y="4" width="4" height="16" rx="1" />
+                          </svg>
+                          <div>
+                            <div className="font-medium text-sm" style={{ color: "var(--foreground)" }}>Separate Melodies</div>
+                            <div className="text-xs" style={{ color: "var(--muted)" }}>Separate Guitar, Piano, Strings, and More</div>
+                          </div>
+                        </button>
+                      </div>
+                      <div className="fixed inset-0 z-[9]" aria-hidden onClick={() => setMoreStemsOpen(false)} />
+                    </>
+                  )}
+                </div>
                 <div className="relative ml-auto">
                   <button
                     type="button"
@@ -498,12 +849,12 @@ export default function StemSplitterPage() {
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={allSelected}
+                              checked={allMainSelected}
                               onChange={() => toggleDownloadStem("all")}
                               className="rounded border-gray-400 w-4 h-4"
                               style={{ accentColor: "var(--primary)" }}
                             />
-                            <span className="text-sm" style={{ color: "var(--foreground)" }}>All</span>
+                            <span className="text-sm" style={{ color: "var(--foreground)" }}>All (main)</span>
                           </label>
                           {STEM_IDS.map((id) => (
                             <label key={id} className="flex items-center gap-2 cursor-pointer">
@@ -517,6 +868,23 @@ export default function StemSplitterPage() {
                               <span className="text-sm" style={{ color: "var(--foreground)" }}>{id === "vocals" ? "Vocals" : STEM_LABELS[id]}</span>
                             </label>
                           ))}
+                          {extraDownloadOptions.length > 0 && (
+                            <>
+                              <div className="border-t pt-2 mt-2" style={{ borderColor: "var(--border)" }} />
+                              {extraDownloadOptions.map(({ key, label }) => (
+                                <label key={key} className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="checkbox"
+                                    checked={downloadStems.has(key)}
+                                    onChange={() => toggleDownloadStem(key)}
+                                    className="rounded border-gray-400 w-4 h-4"
+                                    style={{ accentColor: "var(--primary)" }}
+                                  />
+                                  <span className="text-sm" style={{ color: "var(--foreground)" }}>{label}</span>
+                                </label>
+                              ))}
+                            </>
+                          )}
                         </div>
                         <div className="flex items-center gap-2 mb-3">
                           <span className="text-sm" style={{ color: "var(--muted)" }}>Format:</span>
@@ -564,55 +932,157 @@ export default function StemSplitterPage() {
                 </div>
               </div>
               <div className="space-y-4">
-                {stems.map((s) => (
-                  <div
-                    key={s.id}
-                    className="rounded-xl p-4 border"
-                    style={{ borderColor: "var(--border)", background: "var(--background)" }}
-                  >
-                    <div className="flex items-center gap-3 mb-2">
-                      <span className="text-sm font-medium w-16" style={{ color: "var(--foreground)" }}>{s.label}</span>
-                      <button
-                        type="button"
-                        onClick={() => updateStem(s.id, { solo: !s.solo })}
-                        className={`text-xs px-2 py-1 rounded ${s.solo ? "opacity-100" : "opacity-60"}`}
-                        style={{ background: s.solo ? STEM_COLORS[s.id] : "var(--muted-light)", color: s.solo ? "#fff" : "var(--foreground)" }}
-                      >
-                        Solo
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => updateStem(s.id, { muted: !s.muted })}
-                        className={`text-xs px-2 py-1 rounded ${s.muted ? "opacity-100" : "opacity-60"}`}
-                        style={{ background: s.muted ? "var(--muted)" : "var(--muted-light)", color: s.muted ? "#fff" : "var(--foreground)" }}
-                      >
-                        Mute
-                      </button>
-                      <div className="flex-1 flex items-center gap-2">
-                        <span className="text-xs w-8" style={{ color: "var(--muted)" }}>Vol</span>
-                        <input
-                          type="range"
-                          min={0}
-                          max={100}
-                          value={s.volume * 100}
-                          onChange={(e) => updateStem(s.id, { volume: Number(e.target.value) / 100 })}
-                          className="flex-1 h-2 rounded-full appearance-none"
-                          style={{ background: "var(--muted-light)", accentColor: STEM_COLORS[s.id] }}
-                        />
+                {stems.map((s) => {
+                  const extraType: MoreStemsType | null = s.id === "drums" ? "drums" : s.id === "other" ? "melodies" : s.id === "vocals" ? "vocals" : null
+                  const hasSubStems = extraType != null && extraStemsByType[extraType] != null && (extraStemsStateByType[extraType]?.length ?? 0) > 0
+                  const list = extraType != null ? (extraStemsStateByType[extraType] ?? []) : []
+                  const isSubOpen = extraType != null && subStemsOpen[extraType]
+                  return (
+                    <div
+                      key={s.id}
+                      className="rounded-xl p-4 border"
+                      style={{ borderColor: "var(--border)", background: "var(--background)" }}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <span className="text-sm font-medium w-16" style={{ color: "var(--foreground)" }}>{s.label}</span>
+                        <button
+                          type="button"
+                          onClick={() => updateStem(s.id, { solo: !s.solo })}
+                          className={`text-xs px-2 py-1 rounded ${s.solo ? "opacity-100" : "opacity-60"}`}
+                          style={{ background: s.solo ? STEM_COLORS[s.id] : "var(--muted-light)", color: s.solo ? "#fff" : "var(--foreground)" }}
+                        >
+                          Solo
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => updateStem(s.id, { muted: !s.muted })}
+                          className={`text-xs px-2 py-1 rounded ${s.muted ? "opacity-100" : "opacity-60"}`}
+                          style={{ background: s.muted ? "var(--muted)" : "var(--muted-light)", color: s.muted ? "#fff" : "var(--foreground)" }}
+                        >
+                          Mute
+                        </button>
+                        <div className="flex-1 flex items-center gap-2">
+                          <span className="text-xs w-8" style={{ color: "var(--muted)" }}>Vol</span>
+                          <input
+                            type="range"
+                            min={0}
+                            max={100}
+                            value={s.volume * 100}
+                            onChange={(e) => updateStem(s.id, { volume: Number(e.target.value) / 100 })}
+                            className="flex-1 h-2 rounded-full appearance-none"
+                            style={{ background: "var(--muted-light)", accentColor: STEM_COLORS[s.id] }}
+                          />
+                        </div>
                       </div>
+                      <canvas
+                        ref={(el) => { canvasRefs.current[s.id] = el }}
+                        className="w-full h-16 rounded cursor-pointer"
+                        style={{ background: "var(--muted-light)" }}
+                        onClick={handleWaveformClick}
+                        role="slider"
+                        aria-label={`Seek ${s.label} waveform`}
+                        tabIndex={0}
+                      />
+                      {hasSubStems && extraType != null && (
+                        <div className="mt-3 border-t pt-3" style={{ borderColor: "var(--border)" }}>
+                          <button
+                            type="button"
+                            onClick={() => setSubStemsOpen((prev) => ({ ...prev, [extraType]: !prev[extraType] }))}
+                            className="flex items-center gap-2 w-full text-left text-sm font-medium py-1 rounded"
+                            style={{ color: "var(--foreground)" }}
+                            aria-expanded={isSubOpen}
+                          >
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`transition ${isSubOpen ? "rotate-90" : ""}`}>
+                              <polyline points="9 18 15 12 9 6" />
+                            </svg>
+                            {extraType === "drums" ? "Drum sub-stems" : extraType === "vocals" ? "Lead & backing" : "Melody sub-stems"}
+                            {list.some((x) => !x.muted) && (
+                              <span className="text-xs ml-1" style={{ color: "var(--muted)" }}>(overall stem muted)</span>
+                            )}
+                          </button>
+                          {isSubOpen && (
+                            <div className="space-y-3 mt-3 pl-4">
+                              {list.map((sub) => (
+                                <div
+                                  key={sub.id}
+                                  className="rounded-lg p-3 border"
+                                  style={{ borderColor: "var(--border)", background: "var(--muted-light)" }}
+                                >
+                                  <div className="flex items-center gap-3 mb-2">
+                                    <span className="text-sm font-medium w-20" style={{ color: "var(--foreground)" }}>{sub.label}</span>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateExtraStem(extraType, sub.id, { solo: !sub.solo })}
+                                      className={`text-xs px-2 py-1 rounded ${sub.solo ? "opacity-100" : "opacity-60"}`}
+                                      style={{ background: sub.solo ? getExtraStemColor(sub.id) : "var(--muted)", color: sub.solo ? "#fff" : "var(--foreground)" }}
+                                    >
+                                      Solo
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateExtraStem(extraType, sub.id, { muted: !sub.muted })}
+                                      className={`text-xs px-2 py-1 rounded ${sub.muted ? "opacity-100" : "opacity-60"}`}
+                                      style={{ background: sub.muted ? "var(--muted)" : "var(--background)", color: sub.muted ? "#fff" : "var(--foreground)" }}
+                                    >
+                                      Mute
+                                    </button>
+                                    <div className="flex-1 flex items-center gap-2">
+                                      <span className="text-xs w-8" style={{ color: "var(--muted)" }}>Vol</span>
+                                      <input
+                                        type="range"
+                                        min={0}
+                                        max={100}
+                                        value={sub.volume * 100}
+                                        onChange={(e) => updateExtraStem(extraType, sub.id, { volume: Number(e.target.value) / 100 })}
+                                        className="flex-1 h-2 rounded-full appearance-none"
+                                        style={{ background: "var(--background)", accentColor: getExtraStemColor(sub.id) }}
+                                      />
+                                    </div>
+                                    <a
+                                      href={sub.url}
+                                      download={`${sub.id}.wav`}
+                                      className="text-xs px-2 py-1 rounded border font-medium"
+                                      style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+                                    >
+                                      Download
+                                    </a>
+                                  </div>
+                                  {sub.buffer && (
+                                    <canvas
+                                      ref={(el) => { extraCanvasRefs.current[`${extraType}-${sub.id}`] = el }}
+                                      className="w-full h-14 rounded cursor-pointer"
+                                      style={{ background: "var(--background)" }}
+                                      onClick={handleExtraWaveformClick}
+                                      role="slider"
+                                      aria-label={`Seek ${sub.label} waveform`}
+                                      tabIndex={0}
+                                    />
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
-                    <canvas
-                      ref={(el) => { canvasRefs.current[s.id] = el }}
-                      className="w-full h-16 rounded cursor-pointer"
-                      style={{ background: "var(--muted-light)" }}
-                      onClick={handleWaveformClick}
-                      role="slider"
-                      aria-label={`Seek ${s.label} waveform`}
-                      tabIndex={0}
-                    />
-                  </div>
-                ))}
+                  )
+                })}
               </div>
+              {extraStemsLoading && (
+                <div className="mt-4 py-4 text-center text-sm" style={{ color: "var(--muted)" }}>
+                  Processing more stems…
+                </div>
+              )}
+              {extraStemsComingSoon && (
+                <div className="mt-4 rounded-xl p-4 border text-sm" style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--muted)" }}>
+                  Lead/backing vocal separation coming soon.
+                </div>
+              )}
+              {extraStemsError && (
+                <div className="mt-4 rounded-xl p-4 border text-sm text-red-600 whitespace-pre-wrap" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+                  {extraStemsError}
+                </div>
+              )}
             </>
           )}
         </div>
