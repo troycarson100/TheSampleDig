@@ -6,13 +6,17 @@
  *   node scripts/collect-10k-videos.js [secret] no-discover   # skip discover, only run pipeline
  *
  * Env: POPULATE_SECRET, NEXTAUTH_URL or BASE_URL
+ *      MAX_ENRICH_BATCHES_PER_RUN - optional; stop after this many pipeline runs (daily cap). Exit 0 so cron can run again tomorrow.
  */
 
 const SECRET = process.env.POPULATE_SECRET || "change-me-in-production"
+const MAX_ENRICH_BATCHES_PER_RUN = process.env.MAX_ENRICH_BATCHES_PER_RUN
+  ? parseInt(process.env.MAX_ENRICH_BATCHES_PER_RUN, 10)
+  : null
 const BASE_URL = process.env.NEXTAUTH_URL || process.env.BASE_URL || "http://localhost:3000"
 const TARGET_SAMPLES = 10000
-const MAX_PIPELINE_ITERATIONS = 80
-const PIPELINE_BATCH = { enrichLimit: 100, scoreLimit: 200, processLimit: 50 }
+const MAX_PIPELINE_ITERATIONS = 9999
+const PIPELINE_BATCH = { enrichLimit: 150, scoreLimit: 300, processLimit: 75 }
 const REQUEST_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes for long-running discover
 
 async function discoverPlaylists() {
@@ -65,10 +69,13 @@ async function getStats() {
   return res.json()
 }
 
+const MAX_ZERO_IN_A_ROW = 8
+
 async function main() {
   const skipDiscover = process.argv[2] === "no-discover"
   let iteration = 0
-  const maxDiscoverRounds = 15
+  let zeroInARow = 0
+  const maxDiscoverRounds = 99
 
   while (iteration < MAX_PIPELINE_ITERATIONS) {
     const before = await getStats()
@@ -96,14 +103,36 @@ async function main() {
       }
     }
 
-    const result = await runPipeline()
-    iteration++
-    const after = await getStats()
-    console.log(
-      `[10k] Iteration ${iteration}: enriched=${result.enriched} scored=${result.scored} promoted=${result.promoted} | samples=${after.samples}`
-    )
-    if (result.enriched === 0 && result.scored === 0 && result.promoted === 0) break
-    await new Promise((r) => setTimeout(r, 500))
+    try {
+      const result = await runPipeline()
+      if (result.quotaExceeded) {
+        console.log("[10k] Quota exceeded. Run again tomorrow or add more project keys.")
+        process.exit(0)
+      }
+      iteration++
+      const after = await getStats()
+      const progress = result.enriched + result.scored + result.promoted
+      if (progress === 0) zeroInARow++
+      else zeroInARow = 0
+      console.log(
+        `[10k] Iteration ${iteration}: enriched=${result.enriched} scored=${result.scored} promoted=${result.promoted} | samples=${after.samples}`
+      )
+      if (zeroInARow >= MAX_ZERO_IN_A_ROW) {
+        console.log("[10k] No progress for", MAX_ZERO_IN_A_ROW, "runs in a row. Stopping.")
+        break
+      }
+      if (MAX_ENRICH_BATCHES_PER_RUN != null && iteration >= MAX_ENRICH_BATCHES_PER_RUN) {
+        console.log("[10k] Daily cap reached:", iteration, "runs. Run again tomorrow.")
+        break
+      }
+      await new Promise((r) => setTimeout(r, 500))
+    } catch (e) {
+      if (e.message && /403|quota/i.test(e.message)) {
+        console.log("[10k] Quota or rate limit:", e.message.slice(0, 150))
+        process.exit(1)
+      }
+      throw e
+    }
   }
 
   const final = await getStats()

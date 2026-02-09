@@ -239,6 +239,24 @@ except Exception as e:
 }
 
 /**
+ * Analyze an existing audio file for BPM and key.
+ * Does not delete the file. Requires Python with librosa: pip install librosa numpy
+ */
+export async function analyzeAudioFile(
+  audioPath: string
+): Promise<AnalysisResult> {
+  const analysisPromise = Promise.all([
+    detectBPM(audioPath),
+    detectKey(audioPath)
+  ])
+  const timeout = new Promise<[null, null]>((resolve) => {
+    setTimeout(() => resolve([null, null]), 15000)
+  })
+  const [bpm, key] = await Promise.race([analysisPromise, timeout])
+  return { bpm, key }
+}
+
+/**
  * Main analysis function
  * Downloads audio from YouTube and analyzes BPM and key
  */

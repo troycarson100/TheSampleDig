@@ -4,7 +4,7 @@
  * Uses key rotation (YOUTUBE_API_KEYS or YOUTUBE_API_KEY) on quota exceeded.
  */
 
-import { fetchWithKeyRotation, getYouTubeApiKeys } from "./youtube-keys"
+import { fetchWithKeyRotation, fetchWithKeyRoundRobin, getYouTubeApiKeys } from "./youtube-keys"
 
 const SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
 const PLAYLIST_ITEMS_URL = "https://www.googleapis.com/youtube/v3/playlistItems"
@@ -17,7 +17,7 @@ export async function searchPlaylists(
 ): Promise<{ playlistId: string; title: string }[]> {
   const out: { playlistId: string; title: string }[] = []
   if (getYouTubeApiKeys().length === 0) return out
-  const res = await fetchWithKeyRotation((key) => {
+  const res = await fetchWithKeyRoundRobin((key) => {
     const params = new URLSearchParams({
       part: "snippet",
       type: "playlist",
@@ -77,7 +77,7 @@ export async function fetchVideoIdsFromPlaylist(
   if (getYouTubeApiKeys().length === 0) return videos
 
   do {
-    const res = await fetchWithKeyRotation((key) => {
+    const res = await fetchWithKeyRoundRobin((key) => {
       const params = new URLSearchParams({
         part: "snippet",
         playlistId,

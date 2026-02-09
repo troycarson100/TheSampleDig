@@ -20,7 +20,19 @@ export async function POST(request: Request) {
     const result = await runPipelineBatch(enrichLimit, scoreLimit, processLimit)
     return NextResponse.json({ success: true, ...result })
   } catch (e: any) {
+    const msg = e?.message ?? "Pipeline failed"
     console.error("[Candidates Pipeline]", e)
-    return NextResponse.json({ error: e?.message || "Pipeline failed" }, { status: 500 })
+    const isQuota = /403|quota|exceeded/i.test(String(msg))
+    if (isQuota) {
+      return NextResponse.json({
+        success: false,
+        quotaExceeded: true,
+        error: msg,
+        enriched: 0,
+        scored: 0,
+        promoted: 0,
+      })
+    }
+    return NextResponse.json({ error: msg }, { status: 500 })
   }
 }

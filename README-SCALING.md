@@ -115,6 +115,8 @@ YOUTUBE_API_KEYS=key1,key2,key3
 
 If you use `YOUTUBE_API_KEYS`, it takes precedence over `YOUTUBE_API_KEY`. Create extra keys in Google Cloud Console (same or different projects) and add them to get more quota per day.
 
+**For 10k+ samples:** Quota is per Google Cloud project (10,000 units/day default), not per key. Use **one API key per GCP project** in `YOUTUBE_API_KEYS` so each key has its own 10k quota (e.g. 8 keys from 8 projects = 80,000 units/day). That is the intended setup for running the collect script to 10k videos; if all keys are from the same project, rotation on 403 does not help because the project quota is shared.
+
 ---
 
 ## Setup Instructions
@@ -286,4 +288,4 @@ Default queries are in `lib/discover-playlists-queries.ts` (e.g. "rare samples v
 ```bash
 node scripts/collect-10k-videos.js
 ```
-This will: (1) discover playlists and ingest their video IDs into candidates, (2) run the pipeline (enrich → score → process) repeatedly until you have ~10k samples or no more candidates. Use `node scripts/collect-10k-videos.js no-discover` to skip discover and only run the pipeline (e.g. after adding more playlists manually).
+This will: (1) discover playlists and ingest their video IDs into candidates, (2) run the pipeline (enrich → score → process) repeatedly until you have ~10k samples or no more candidates. Use `node scripts/collect-10k-videos.js no-discover` to skip discover and only run the pipeline (e.g. after adding more playlists manually). If you hit quota, the script exits with a clear message; use one API key per GCP project in `YOUTUBE_API_KEYS` for more quota. To spread over days, set `MAX_ENRICH_BATCHES_PER_RUN=100` (or similar) and run daily via cron—the script exits 0 when the cap is reached so the next run continues the next day.

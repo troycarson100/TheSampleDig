@@ -4,3 +4,6 @@
 demucs>=4.0.0
 certifi
 torchcodec
+
+# Optional: for More Stems > Separate Vocals (lead/backing). Uncomment to install:
+# pip install "audio-separator[cpu]"  (or [gpu] for CUDA)

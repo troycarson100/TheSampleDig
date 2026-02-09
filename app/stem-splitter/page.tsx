@@ -30,6 +30,24 @@ interface StemState {
 }
 
 type MoreStemsType = "vocals" | "drums" | "melodies"
+/** Stem id/label per type — matches API so we can build URLs when loading saved projects without re-calling the API */
+const EXTRA_STEMS_META: Record<MoreStemsType, { id: string; label: string }[]> = {
+  drums: [
+    { id: "kick", label: "Kick" },
+    { id: "snare", label: "Snare" },
+    { id: "cymbals", label: "Cymbals" },
+    { id: "toms", label: "Toms" },
+  ],
+  melodies: [
+    { id: "guitar", label: "Guitar" },
+    { id: "piano", label: "Piano" },
+    { id: "other", label: "Other instruments" },
+  ],
+  vocals: [
+    { id: "lead", label: "Lead Vocals" },
+    { id: "backing", label: "Backing Vocals" },
+  ],
+}
 interface ExtraStemState {
   id: string
   label: string
@@ -61,6 +79,8 @@ interface SavedSong {
   bpm: number | null
   key: string | null
   savedAt: number
+  /** Which "more stems" types were loaded (drums, melodies, vocals) so we restore them when loading */
+  extraStemsTypes?: MoreStemsType[]
 }
 function loadMySongsFromStorage(): SavedSong[] {
   if (typeof window === "undefined") return []
@@ -138,6 +158,8 @@ function drawWaveform(
 export default function StemSplitterPage() {
   const [file, setFile] = useState<File | null>(null)
   const [processing, setProcessing] = useState(false)
+  const [loadingProgress, setLoadingProgress] = useState(0)
+  const [loadingSavedSong, setLoadingSavedSong] = useState(false)
   const [error, setError] = useState("")
   const [stems, setStems] = useState<StemState[]>([])
   const [jobId, setJobId] = useState<string | null>(null)
@@ -182,6 +204,8 @@ export default function StemSplitterPage() {
   const playbackGenerationRef = useRef(0)
   const pendingSoloMuteRestartRef = useRef(false)
   const canvasSizeRef = useRef<{ w: number; h: number }>({ w: 0, h: 0 })
+  const loadingProgressIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const jobIdRef = useRef<string | null>(null)
 
   const loadStemBuffers = useCallback(async (stemsWithUrls: { id: (typeof STEM_IDS)[number]; label: string; url: string }[]) => {
     const ctx = new AudioContext()
@@ -208,6 +232,15 @@ export default function StemSplitterPage() {
     setMySongs(loadMySongsFromStorage())
   }, [])
 
+  useEffect(() => {
+    return () => {
+      if (loadingProgressIntervalRef.current) {
+        clearInterval(loadingProgressIntervalRef.current)
+        loadingProgressIntervalRef.current = null
+      }
+    }
+  }, [])
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
@@ -225,11 +258,28 @@ export default function StemSplitterPage() {
   const handleSubmit = useCallback(async () => {
     if (!file) return
     setError("")
+    setLoadingProgress(0)
     setProcessing(true)
     setStems([])
     setJobId(null)
+    jobIdRef.current = null
     setBpm(null)
     setKey(null)
+    // Clear any previous interval
+    if (loadingProgressIntervalRef.current) {
+      clearInterval(loadingProgressIntervalRef.current)
+      loadingProgressIntervalRef.current = null
+    }
+    // Simulate progress from 0 toward 90% over ~55 seconds
+    const durationMs = 55000
+    const targetProgress = 90
+    const tickMs = 500
+    loadingProgressIntervalRef.current = setInterval(() => {
+      setLoadingProgress((p) => {
+        const next = Math.min(p + (targetProgress / (durationMs / tickMs)), targetProgress)
+        return next
+      })
+    }, tickMs)
     try {
       const formData = new FormData()
       formData.append("file", file)
@@ -240,6 +290,7 @@ export default function StemSplitterPage() {
         throw new Error(msg)
       }
       setJobId(data.jobId)
+      jobIdRef.current = data.jobId
       setBpm(data.bpm ?? null)
       setKey(data.key ?? null)
       setDisplayTitleOverride(null)
@@ -257,7 +308,12 @@ export default function StemSplitterPage() {
     } catch (e) {
       setError(e instanceof Error ? e.message : "Stem split failed")
     } finally {
-      setProcessing(false)
+      if (loadingProgressIntervalRef.current) {
+        clearInterval(loadingProgressIntervalRef.current)
+        loadingProgressIntervalRef.current = null
+      }
+      setLoadingProgress(100)
+      setTimeout(() => setProcessing(false), 400)
     }
   }, [file, loadStemBuffers])
 
@@ -267,17 +323,35 @@ export default function StemSplitterPage() {
     const duration = stems[0].buffer?.duration ?? 0
     durationRef.current = duration
     const playheadProgress = duration > 0 ? pauseTimeRef.current / duration : 0
-    stems.forEach((s) => {
-      const canvas = canvasRefs.current[s.id]
-      if (canvas && s.buffer) {
-        const w = Math.max(1, canvas.offsetWidth || canvasSizeRef.current.w)
-        const h = Math.max(1, canvas.offsetHeight || canvasSizeRef.current.h)
-        canvasSizeRef.current = { w, h }
-        canvas.width = w
-        canvas.height = h
-        drawWaveform(canvas, s.buffer, STEM_COLORS[s.id], w, h, playheadProgress)
-      }
+    const drawStemWaveforms = () => {
+      stems.forEach((s) => {
+        const canvas = canvasRefs.current[s.id]
+        if (canvas && s.buffer) {
+          const w = Math.max(1, canvas.offsetWidth || canvasSizeRef.current.w)
+          const h = Math.max(1, canvas.offsetHeight || canvasSizeRef.current.h)
+          if (w <= 1 && h <= 1) return
+          canvasSizeRef.current = { w, h }
+          canvas.width = w
+          canvas.height = h
+          drawWaveform(canvas, s.buffer, STEM_COLORS[s.id], w, h, playheadProgress)
+        }
+      })
+    }
+    let timeoutId: ReturnType<typeof setTimeout> | null = null
+    const raf1 = requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        drawStemWaveforms()
+        const anyZero = stems.some((s) => {
+          const canvas = canvasRefs.current[s.id]
+          return canvas && (canvas.offsetWidth <= 0 || canvas.offsetHeight <= 0)
+        })
+        if (anyZero) timeoutId = setTimeout(drawStemWaveforms, 100)
+      })
     })
+    return () => {
+      cancelAnimationFrame(raf1)
+      if (timeoutId != null) clearTimeout(timeoutId)
+    }
   }, [stems])
 
   const updateStem = useCallback((id: (typeof STEM_IDS)[number], patch: Partial<StemState>) => {
@@ -567,6 +641,7 @@ export default function StemSplitterPage() {
     setFile(null)
     setStems([])
     setJobId(null)
+    jobIdRef.current = null
     setBpm(null)
     setKey(null)
     setError("")
@@ -607,10 +682,29 @@ export default function StemSplitterPage() {
     })
   }, [])
 
+  const loadExtraStemBuffers = useCallback(async (type: MoreStemsType, list: { id: string; label: string; url: string }[]) => {
+    const ctx = audioContextRef.current ?? new AudioContext()
+    if (!audioContextRef.current) audioContextRef.current = ctx
+    const loaded: ExtraStemState[] = []
+    for (const s of list) {
+      try {
+        const res = await fetch(s.url)
+        const arrayBuffer = await res.arrayBuffer()
+        const buffer = await ctx.decodeAudioData(arrayBuffer)
+        loaded.push({ ...s, buffer, volume: 1, muted: false, solo: false })
+      } catch {
+        loaded.push({ ...s, buffer: null, volume: 1, muted: false, solo: false })
+      }
+    }
+    setExtraStemsByType((prev) => ({ ...prev, [type]: { stems: list } }))
+    setExtraStemsStateByType((prev) => ({ ...prev, [type]: loaded }))
+    setSubStemsOpen((prev) => ({ ...prev, [type]: true }))
+  }, [])
+
   const loadMySong = useCallback(
     async (song: SavedSong) => {
       setError("")
-      setProcessing(true)
+      setLoadingSavedSong(true)
       setExtraStemsByType({ drums: null, melodies: null, vocals: null })
       setExtraStemsStateByType({ drums: [], melodies: [], vocals: [] })
       try {
@@ -620,6 +714,7 @@ export default function StemSplitterPage() {
           url: `/api/stems/${song.id}/${id}.wav`,
         }))
         setJobId(song.id)
+        jobIdRef.current = song.id
         setBpm(song.bpm)
         setKey(song.key)
         setFile({ name: song.title } as File)
@@ -628,10 +723,32 @@ export default function StemSplitterPage() {
       } catch (e) {
         setError(e instanceof Error ? e.message : "Could not load stems. The job may have expired.")
       } finally {
-        setProcessing(false)
+        setLoadingSavedSong(false)
+      }
+      const types = song.extraStemsTypes ?? []
+      const openedJobId = song.id
+      if (types.length > 0) {
+        setExtraStemsLoading(true)
+        Promise.all(
+          types.map(async (type) => {
+            if (jobIdRef.current !== openedJobId) return
+            const meta = EXTRA_STEMS_META[type]
+            const stems = meta.map(({ id, label }) => ({
+              id,
+              label,
+              url: `/api/stems/${openedJobId}/${id}.wav`,
+            }))
+            try {
+              if (jobIdRef.current !== openedJobId) return
+              await loadExtraStemBuffers(type, stems)
+            } catch {
+              // ignore per-type failures (e.g. 404 if files were removed)
+            }
+          })
+        ).finally(() => setExtraStemsLoading(false))
       }
     },
-    [loadStemBuffers]
+    [loadStemBuffers, loadExtraStemBuffers]
   )
 
   const extraDownloadOptions = (["drums", "melodies", "vocals"] as const).flatMap((type) => {
@@ -690,25 +807,6 @@ export default function StemSplitterPage() {
     if (stems.length > 0) setDownloadStems(new Set(STEM_IDS))
   }, [stems.length])
 
-  const loadExtraStemBuffers = useCallback(async (type: MoreStemsType, list: { id: string; label: string; url: string }[]) => {
-    const ctx = audioContextRef.current ?? new AudioContext()
-    if (!audioContextRef.current) audioContextRef.current = ctx
-    const loaded: ExtraStemState[] = []
-    for (const s of list) {
-      try {
-        const res = await fetch(s.url)
-        const arrayBuffer = await res.arrayBuffer()
-        const buffer = await ctx.decodeAudioData(arrayBuffer)
-        loaded.push({ ...s, buffer, volume: 1, muted: false, solo: false })
-      } catch {
-        loaded.push({ ...s, buffer: null, volume: 1, muted: false, solo: false })
-      }
-    }
-    setExtraStemsByType((prev) => ({ ...prev, [type]: { stems: list } }))
-    setExtraStemsStateByType((prev) => ({ ...prev, [type]: loaded }))
-    setSubStemsOpen((prev) => ({ ...prev, [type]: true }))
-  }, [])
-
   const handleMoreStemsOption = useCallback(
     async (type: MoreStemsType) => {
       if (!jobId) return
@@ -733,6 +831,15 @@ export default function StemSplitterPage() {
         }
         if (data.available === true && Array.isArray(data.stems) && data.stems.length > 0) {
           await loadExtraStemBuffers(type, data.stems)
+          setMySongs((prev) => {
+            const next = prev.map((song) =>
+              song.id === jobId
+                ? { ...song, extraStemsTypes: [...(song.extraStemsTypes ?? []).filter((t) => t !== type), type] }
+                : song
+            )
+            saveMySongsToStorage(next)
+            return next
+          })
         }
       } catch (e) {
         setExtraStemsError(e instanceof Error ? e.message : "Request failed")
@@ -789,7 +896,13 @@ export default function StemSplitterPage() {
           className="rounded-2xl p-6 mb-6"
           style={{ background: "#F6F0E9" }}
         >
-          {!stems.length && !processing ? (
+          {loadingSavedSong ? (
+            <div className="py-12 text-center">
+              <p className="text-lg font-medium" style={{ color: "var(--foreground)" }}>
+                Opening…
+              </p>
+            </div>
+          ) : !stems.length && !processing ? (
             <>
               <div
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
@@ -854,8 +967,14 @@ export default function StemSplitterPage() {
                 className="h-2 rounded-full overflow-hidden max-w-md mx-auto"
                 style={{ background: "var(--muted-light)" }}
               >
-                <div className="h-full w-full rounded-full animate-loading-bar" />
+                <div
+                  className="h-full rounded-full transition-[width] duration-300 ease-out"
+                  style={{ width: `${loadingProgress}%`, background: "var(--primary)" }}
+                />
               </div>
+              <p className="text-sm mt-2 tabular-nums" style={{ color: "var(--muted)" }}>
+                {Math.round(loadingProgress)}%
+              </p>
             </div>
           ) : (
             <>
@@ -942,7 +1061,7 @@ export default function StemSplitterPage() {
                     aria-expanded={moreStemsOpen}
                     aria-haspopup="true"
                   >
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={extraStemsLoading ? "animate-spin" : ""}>
                       <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
                     </svg>
                     More Stems
@@ -973,8 +1092,9 @@ export default function StemSplitterPage() {
                           className="w-full flex items-start gap-3 p-3 rounded-lg text-left hover:bg-[var(--muted-light)] transition"
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 mt-0.5" aria-hidden>
-                            <circle cx="12" cy="12" r="3" />
-                            <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                            <ellipse cx="12" cy="8" rx="6" ry="2.5" />
+                            <path d="M6 8v8c0 1.1 2.69 2 6 2s6-.9 6-2V8" />
+                            <ellipse cx="12" cy="16" rx="6" ry="2.5" />
                           </svg>
                           <div>
                             <div className="font-medium text-sm" style={{ color: "var(--foreground)" }}>Separate Drums</div>

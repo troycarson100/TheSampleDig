@@ -5,7 +5,7 @@ import path from "path"
 const STEM_OUTPUT_DIR = path.join(process.cwd(), ".stem-output")
 const BASE_STEMS = ["vocals.wav", "drums.wav", "bass.wav", "other.wav"]
 const DRUMS_SEP = ["kick.wav", "snare.wav", "cymbals.wav", "toms.wav"]
-const MELODIES_SEP = ["guitar.wav", "piano.wav"]
+const MELODIES_SEP = ["guitar.wav", "piano.wav", "other.wav"]
 const VOCALS_SEP = ["lead.wav", "backing.wav"]
 const ALLOWED_NAMES = [...BASE_STEMS, ...DRUMS_SEP, ...MELODIES_SEP, ...VOCALS_SEP]
 

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { spawn } from "child_process"
 import path from "path"
-import { existsSync } from "fs"
+import { existsSync, readdirSync } from "fs"
 
 const STEM_OUTPUT_DIR = path.join(process.cwd(), ".stem-output")
 
@@ -15,6 +15,7 @@ const DRUMS_STEMS = [
 const MELODIES_STEMS = [
   { id: "guitar", label: "Guitar" },
   { id: "piano", label: "Piano" },
+  { id: "other", label: "Other instruments" },
 ] as const
 
 const VOCALS_STEMS = [
@@ -132,9 +133,12 @@ export async function POST(request: Request) {
           { status: 404 }
         )
       }
+      // Use original full mix when available so 6-stem gets full song (better guitar/piano separation)
+      const inputFile = readdirSync(jobDir).find((f) => f.startsWith("input."))
+      const melodyInputPath = inputFile ? path.join(jobDir, inputFile) : otherPath
       const scriptPath = path.join(process.cwd(), "scripts", "stem-split-melodies.py")
       const pythonCmd = process.env.PYTHON ?? "python3"
-      let result = await runScript(pythonCmd, [scriptPath, otherPath, jobDir])
+      let result = await runScript(pythonCmd, [scriptPath, melodyInputPath, jobDir])
       if (result.code !== 0 && /not found|ENOENT|command not found/i.test(result.stderr) && pythonCmd === "python3") {
         result = await runScript("python", [scriptPath, otherPath, jobDir])
       }

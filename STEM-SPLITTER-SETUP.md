@@ -50,9 +50,53 @@ No extra step. The first time you split a track, Demucs will download the model;
 
 **macOS / Python.org:** If you see `SSL: CERTIFICATE_VERIFY_FAILED` when the model downloads, the stem-split script uses the `certifi` package so HTTPS works without installing the "Install Certificates.command" from the Python installer. Ensure `certifi` is installed (`pip install -r requirements-stem.txt`).
 
+## BPM and key
+
+After splitting, the app can show detected **BPM** and **musical key** for the track. This uses the same analysis as the rest of the site (Python + librosa). If you don’t have `librosa` installed (`pip install librosa numpy`), or analysis times out, the UI will show "— BPM" and "Key: —". Stem splitting still works; BPM/key are optional.
+
+## Optional: More Stems (DrumSep, Melodies)
+
+After splitting into four stems, you can run **More Stems** to sub-separate:
+
+- **Separate Drums** — uses [DrumSep](https://github.com/inagoy/drumsep) to split the drums stem into kick, snare, cymbals, and toms.
+- **Separate Melodies** — uses Demucs 6-stem (`htdemucs_6s`) on the melody stem to get guitar, piano, and other. No extra install beyond Demucs.
+- **Separate Vocals** — uses [audio-separator](https://github.com/karaokenerds/python-audio-separator) (MelBand Roformer Karaoke model) to split the vocals stem into lead and backing vocals. Requires `audio-separator` (see below).
+
+### DrumSep install (for Separate Drums)
+
+1. Clone the repo next to your project (or set `DRUMSEP_DIR` to point to it):
+
+   ```bash
+   cd /path/to/your/project
+   git clone https://github.com/inagoy/drumsep.git
+   cd drumsep
+   bash drumsepInstall
+   ```
+
+2. The app looks for DrumSep at `drumsep/` in the project root by default. If you installed it elsewhere, set `DRUMSEP_DIR` environment variable when starting the app:
+
+   ```bash
+   DRUMSEP_DIR=/path/to/drumsep npm run dev
+   ```
+
+If DrumSep is not installed, choosing **Separate Drums** in the UI will return a clear error; stem splitting and **Separate Melodies** still work.
+
+### Lead/Backing Vocals install (for Separate Vocals)
+
+Install [audio-separator](https://github.com/karaokenerds/python-audio-separator) for the same Python used by the app (e.g. the one in `PYTHON` or `python3`):
+
+```bash
+python3 -m pip install "audio-separator[cpu]"
+```
+
+For Apple Silicon (M1/M2) with CoreML acceleration, the `[cpu]` extra is sufficient. For Nvidia GPU use `"audio-separator[gpu]"` and ensure CUDA is set up.
+
+The first time you run **Separate Vocals**, the MelBand Roformer Karaoke model (~1.7GB) will be downloaded. Audio under about 10 seconds is padded automatically; very short clips may still fail with some models.
+
 ## Deploy
 
 The Stem Splitter needs a server with Python and Demucs installed (not a serverless function). For example:
 
 - Run the app on a VPS or VM, install Python and `pip install -r requirements-stem.txt`, and set `PYTHON` if you use a venv.
 - Ensure the process that runs the Next.js app (e.g. `npm run start` or `node .next/standalone/server.js`) has access to the same Python and that Demucs is installed for that Python.
+- For **Separate Drums**, install DrumSep as above and set `DRUMSEP_DIR` if needed.
