@@ -145,6 +145,8 @@ export default function StemSplitterPage() {
   const isPlayingRef = useRef(false)
   const rafIdRef = useRef<number | null>(null)
   const stoppedManuallyRef = useRef(false)
+  const playbackGenerationRef = useRef(0)
+  const pendingSoloMuteRestartRef = useRef(false)
   const canvasSizeRef = useRef<{ w: number; h: number }>({ w: 0, h: 0 })
 
   const loadStemBuffers = useCallback(async (stemsWithUrls: { id: (typeof STEM_IDS)[number]; label: string; url: string }[]) => {
@@ -312,12 +314,12 @@ export default function StemSplitterPage() {
     const ctx = audioContextRef.current
     if (!ctx || stems.length === 0) return
     // Stop any existing playback so all sources start from the same time (no layered/desynced playback)
-    Object.values(sourceNodesRef.current).forEach(({ source }) => {
-      try { source.stop() } catch (_) {}
-    })
-    Object.values(extraSourceNodesRef.current).forEach(({ source }) => {
-      try { source.stop() } catch (_) {}
-    })
+    const stopNode = ({ source, gain }: { source: AudioBufferSourceNode; gain: GainNode }) => {
+      try { source.disconnect(); source.stop() } catch (_) {}
+      try { gain.disconnect() } catch (_) {}
+    }
+    Object.values(sourceNodesRef.current).forEach(stopNode)
+    Object.values(extraSourceNodesRef.current).forEach(stopNode)
     sourceNodesRef.current = {}
     extraSourceNodesRef.current = {}
     stoppedManuallyRef.current = false
@@ -340,9 +342,12 @@ export default function StemSplitterPage() {
         if (useSub) list.filter((s) => s.buffer && !s.muted).forEach((s) => extraToPlay.push({ type, s }))
       })
     }
+    playbackGenerationRef.current += 1
+    const thisGeneration = playbackGenerationRef.current
     const totalCount = stems.length + extraToPlay.length
     let ended = 0
     const onOneEnded = () => {
+      if (playbackGenerationRef.current !== thisGeneration) return
       ended++
       if (ended >= totalCount) {
         isPlayingRef.current = false
@@ -417,18 +422,17 @@ export default function StemSplitterPage() {
     const extraNodes = { ...extraSourceNodesRef.current }
     sourceNodesRef.current = {}
     extraSourceNodesRef.current = {}
-    Object.values(mainNodes).forEach(({ source, gain }) => {
+    const stopNode = ({ source, gain }: { source: AudioBufferSourceNode; gain: GainNode }) => {
       try {
+        source.disconnect()
         source.stop()
+      } catch (_) {}
+      try {
         gain.disconnect()
       } catch (_) {}
-    })
-    Object.values(extraNodes).forEach(({ source, gain }) => {
-      try {
-        source.stop()
-        gain.disconnect()
-      } catch (_) {}
-    })
+    }
+    Object.values(mainNodes).forEach(stopNode)
+    Object.values(extraNodes).forEach(stopNode)
     if (resetPosition) pauseTimeRef.current = 0
     const duration = durationRef.current
     const playheadProgress = duration > 0 ? pauseTimeRef.current / duration : 0
@@ -436,16 +440,25 @@ export default function StemSplitterPage() {
     setPlaying(false)
   }, [drawAllWaveforms])
 
+  useEffect(() => {
+    if (!pendingSoloMuteRestartRef.current || !isPlayingRef.current) return
+    pendingSoloMuteRestartRef.current = false
+    const ctx = audioContextRef.current
+    if (ctx) pauseTimeRef.current = ctx.currentTime - startTimeRef.current
+    stop(false)
+    play()
+  }, [extraStemsStateByType, stop, play])
+
   const togglePlayPause = useCallback(() => {
     if (stems.length === 0) return
-    if (playing) {
+    if (isPlayingRef.current) {
       const ctx = audioContextRef.current
       if (ctx) pauseTimeRef.current = ctx.currentTime - startTimeRef.current
       stop(false)
     } else {
       play()
     }
-  }, [playing, stems.length, play, stop])
+  }, [stems.length, play, stop])
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -618,6 +631,7 @@ export default function StemSplitterPage() {
   )
 
   const updateExtraStem = useCallback((type: MoreStemsType, id: string, patch: Partial<ExtraStemState>) => {
+    if ("solo" in patch || "muted" in patch) pendingSoloMuteRestartRef.current = true
     setExtraStemsStateByType((prev) => ({
       ...prev,
       [type]: prev[type].map((s) => (s.id === id ? { ...s, ...patch } : s)),

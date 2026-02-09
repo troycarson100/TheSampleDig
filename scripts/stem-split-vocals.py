@@ -93,20 +93,48 @@ def main():
         output_files = [f for f in output_files if os.path.isfile(f)]
         lead_path = os.path.join(vocals_sep_dir, "lead.wav")
         backing_path = os.path.join(vocals_sep_dir, "backing.wav")
+
+        # Map by filename: lead = main/solo vocal, backing = accompaniment/harmony/instrumental
+        lead_src = None
+        backing_src = None
         for f in output_files:
             base = os.path.basename(f).lower()
-            if "(vocals)" in base or "vocal" in base:
-                shutil.copy2(f, lead_path)
-            elif "(instrumental)" in base or "(other)" in base or "instrumental" in base:
-                shutil.copy2(f, backing_path)
-        # Guarantee both files exist so the API always returns two stems
+            if not lead_src and (
+                "lead" in base or "main" in base or "solo" in base
+                or "(vocals)" in base or "_vocal" in base or "vocal_" in base
+            ):
+                lead_src = f
+            elif not backing_src and (
+                "backing" in base or "accompaniment" in base or "harmony" in base
+                or "bg" in base or "(instrumental)" in base or "(other)" in base
+                or "instrumental" in base or "no_vocal" in base
+            ):
+                backing_src = f
+            if lead_src and backing_src:
+                break
+
+        # When we have two files, ensure we use different files for lead and backing
+        # (model may use non-standard names; first is usually lead, second backing)
+        if len(output_files) >= 2 and (lead_src is None or backing_src is None or lead_src == backing_src):
+            lead_src = output_files[0]
+            backing_src = output_files[1]
+
+        if lead_src:
+            shutil.copy2(lead_src, lead_path)
+        if backing_src and backing_src != lead_src:
+            shutil.copy2(backing_src, backing_path)
+        elif backing_src is None and len(output_files) >= 2:
+            shutil.copy2(output_files[1], backing_path)
+
+        # Fallback: guarantee both files exist (avoid same file for both when possible)
         if not os.path.isfile(lead_path) and output_files:
             shutil.copy2(output_files[0], lead_path)
-        if not os.path.isfile(backing_path) and len(output_files) >= 2:
-            shutil.copy2(output_files[1], backing_path)
-        elif not os.path.isfile(backing_path) and output_files:
-            shutil.copy2(output_files[0], backing_path)
-    # Ensure both outputs exist for API contract
+        if not os.path.isfile(backing_path):
+            if len(output_files) >= 2 and output_files[1] != output_files[0]:
+                shutil.copy2(output_files[1], backing_path)
+            elif output_files:
+                shutil.copy2(output_files[0], backing_path)
+    # Ensure both outputs exist for API contract (only copy if one is missing)
     if not os.path.isfile(lead_path) and os.path.isfile(backing_path):
         shutil.copy2(backing_path, lead_path)
     if not os.path.isfile(backing_path) and os.path.isfile(lead_path):

@@ -59,6 +59,17 @@ def main():
             dst = os.path.join(melodies_dir, f"{stem}.wav")
             if os.path.isfile(src):
                 shutil.copy2(src, dst)
+    # Ensure both API stems exist so playback never 404s (copy first available to missing)
+    fill_src = None
+    for stem in ("guitar", "piano"):
+        p = os.path.join(melodies_dir, f"{stem}.wav")
+        if os.path.isfile(p):
+            fill_src = p
+            break
+    for stem in ("guitar", "piano"):
+        p = os.path.join(melodies_dir, f"{stem}.wav")
+        if not os.path.isfile(p) and fill_src:
+            shutil.copy2(fill_src, p)
     print("ok")
 
 
