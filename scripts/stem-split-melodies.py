@@ -1,15 +1,22 @@
 #!/usr/bin/env python3
 """
-Run Demucs 6-stem (htdemucs_6s) on the melody stem (other.wav) to get guitar and piano.
-Usage: python stem-split-melodies.py <path_to_other.wav> <output_dir>
-Output: output_dir/guitar.wav, output_dir/piano.wav (and other.wav from the 6-stem run).
+Run Demucs 6-stem (htdemucs_6s) to get guitar, piano, and other stems.
+A second-pass refinement runs Demucs again on the initial "other" stem,
+extracts guitar that wrongly landed there, merges it into the main guitar stem,
+and subtracts it from other so more guitar appears in Guitar and less in Other.
+Usage: python stem-split-melodies.py <path_to_audio> <output_dir>
+Input: Prefer the original full mix (e.g. input.mp3) so the model gets the full song;
+  fallback to other.wav (melody stem) if no full mix is available.
+Output: output_dir/melodies-sep/guitar.wav, piano.wav, other.wav.
 Requires: pip install demucs (same as main stem splitter).
 """
 import os
 import sys
 import shutil
+import struct
 import subprocess
 import tempfile
+import wave
 
 if "SSL_CERT_FILE" not in os.environ:
     try:
@@ -17,6 +24,42 @@ if "SSL_CERT_FILE" not in os.environ:
         os.environ["SSL_CERT_FILE"] = certifi.where()
     except ImportError:
         pass
+
+
+def _load_wav_samples(path):
+    """Load 16-bit PCM WAV as (nchannels, sample_rate, samples list)."""
+    with wave.open(path, "rb") as w:
+        nch = w.getnchannels()
+        sr = w.getframerate()
+        sampw = w.getsampwidth()
+        nframes = w.getnframes()
+        if sampw != 2:
+            raise ValueError(f"Unsupported sample width {sampw}")
+        data = w.readframes(nframes)
+    n = len(data) // 2
+    samples = list(struct.unpack("<" + "h" * n, data))
+    return (nch, sr, samples)
+
+
+def _write_wav_samples(path, nch, sr, samples):
+    """Write 16-bit PCM WAV from samples list."""
+    data = struct.pack("<" + "h" * len(samples), *samples)
+    with wave.open(path, "wb") as w:
+        w.setnchannels(nch)
+        w.setsampwidth(2)
+        w.setframerate(sr)
+        w.writeframes(data)
+
+
+def _normalize_16bit(samples):
+    """Scale samples so max absolute value is 32767; clamp to int16 range."""
+    if not samples:
+        return samples
+    max_abs = max(abs(s) for s in samples)
+    if max_abs <= 0:
+        return samples
+    scale = 32767.0 / max_abs
+    return [max(-32768, min(32767, int(round(s * scale)))) for s in samples]
 
 
 def main():
@@ -34,6 +77,8 @@ def main():
         cmd = [
             sys.executable, "-m", "demucs",
             "-n", "htdemucs_6s",
+            "--overlap", "0.25",
+            "--shifts", "1",
             "-o", tmp,
             input_path,
         ]
@@ -59,14 +104,61 @@ def main():
             dst = os.path.join(melodies_dir, f"{stem}.wav")
             if os.path.isfile(src):
                 shutil.copy2(src, dst)
-    # Ensure both API stems exist so playback never 404s (copy first available to missing)
+        # Second-pass refinement: pull guitar out of "other" into "guitar"
+        try:
+            other_path = os.path.join(melodies_dir, "other.wav")
+            guitar_path = os.path.join(melodies_dir, "guitar.wav")
+            if not os.path.isfile(other_path) or not os.path.isfile(guitar_path):
+                pass
+            else:
+                with tempfile.TemporaryDirectory() as tmp2:
+                    cmd2 = [
+                        sys.executable, "-m", "demucs",
+                        "-n", "htdemucs_6s",
+                        "--overlap", "0.25",
+                        "--shifts", "1",
+                        "-o", tmp2,
+                        other_path,
+                    ]
+                    result2 = subprocess.run(cmd2, capture_output=True, text=True)
+                    if result2.returncode != 0:
+                        print("Warning: guitar refinement skipped (second demucs run failed)", file=sys.stderr)
+                    else:
+                        htdemucs_dir2 = os.path.join(tmp2, "htdemucs_6s")
+                        track_dir2 = None
+                        if os.path.isdir(htdemucs_dir2):
+                            for name in os.listdir(htdemucs_dir2):
+                                p = os.path.join(htdemucs_dir2, name)
+                                if os.path.isdir(p) and os.path.isfile(os.path.join(p, "guitar.wav")):
+                                    track_dir2 = p
+                                    break
+                        if track_dir2:
+                            guitar2_path = os.path.join(track_dir2, "guitar.wav")
+                            nch1, sr1, g1 = _load_wav_samples(guitar_path)
+                            nch2, sr2, o1 = _load_wav_samples(other_path)
+                            nch3, sr3, g2 = _load_wav_samples(guitar2_path)
+                            if (nch1, sr1) == (nch2, sr2) == (nch3, sr3):
+                                min_len = min(len(g1), len(o1), len(g2))
+                                g1 = g1[:min_len]
+                                o1 = o1[:min_len]
+                                g2 = g2[:min_len]
+                                guitar_new = _normalize_16bit([a + b for a, b in zip(g1, g2)])
+                                other_new = _normalize_16bit([a - b for a, b in zip(o1, g2)])
+                                _write_wav_samples(guitar_path, nch1, sr1, guitar_new)
+                                _write_wav_samples(other_path, nch1, sr1, other_new)
+                            else:
+                                print("Warning: guitar refinement skipped (format mismatch)", file=sys.stderr)
+        except Exception as e:
+            print(f"Warning: guitar refinement skipped: {e}", file=sys.stderr)
+    # Ensure all three melody stems exist so the API never 404s (copy first available to missing)
+    melody_stems = ("guitar", "piano", "other")
     fill_src = None
-    for stem in ("guitar", "piano"):
+    for stem in melody_stems:
         p = os.path.join(melodies_dir, f"{stem}.wav")
         if os.path.isfile(p):
             fill_src = p
             break
-    for stem in ("guitar", "piano"):
+    for stem in melody_stems:
         p = os.path.join(melodies_dir, f"{stem}.wav")
         if not os.path.isfile(p) and fill_src:
             shutil.copy2(fill_src, p)
