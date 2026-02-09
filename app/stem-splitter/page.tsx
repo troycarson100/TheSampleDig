@@ -46,11 +46,38 @@ const EXTRA_STEM_COLORS: Record<string, string> = {
   toms: "#CD853F",
   guitar: "#228B22",
   piano: "#4169E1",
+  other: "#9B59B6",
   lead: "#E63946",
   backing: "#F4A261",
 }
 function getExtraStemColor(id: string): string {
   return EXTRA_STEM_COLORS[id] ?? "#6B7280"
+}
+
+const MY_SONGS_STORAGE_KEY = "stem-splitter-my-songs"
+interface SavedSong {
+  id: string
+  title: string
+  bpm: number | null
+  key: string | null
+  savedAt: number
+}
+function loadMySongsFromStorage(): SavedSong[] {
+  if (typeof window === "undefined") return []
+  try {
+    const raw = localStorage.getItem(MY_SONGS_STORAGE_KEY)
+    if (!raw) return []
+    const parsed = JSON.parse(raw)
+    return Array.isArray(parsed) ? parsed : []
+  } catch {
+    return []
+  }
+}
+function saveMySongsToStorage(songs: SavedSong[]) {
+  if (typeof window === "undefined") return
+  try {
+    localStorage.setItem(MY_SONGS_STORAGE_KEY, JSON.stringify(songs))
+  } catch (_) {}
 }
 
 function getCssColor(varName: string, fallback: string): string {
@@ -132,6 +159,13 @@ export default function StemSplitterPage() {
   const [extraStemsError, setExtraStemsError] = useState("")
   const [extraStemsComingSoon, setExtraStemsComingSoon] = useState(false)
   const [subStemsOpen, setSubStemsOpen] = useState<Record<MoreStemsType, boolean>>({ drums: false, melodies: false, vocals: false })
+  const [mySongs, setMySongs] = useState<SavedSong[]>([])
+  const [mySongsSearch, setMySongsSearch] = useState("")
+  const [mySongsKeyFilter, setMySongsKeyFilter] = useState<string>("")
+  const [mySongsTempoRange, setMySongsTempoRange] = useState<[number, number]>([20, 300])
+  const [displayTitleOverride, setDisplayTitleOverride] = useState<string | null>(null)
+  const [editingTitle, setEditingTitle] = useState(false)
+  const [titleEditValue, setTitleEditValue] = useState("")
   const canvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
   const extraCanvasRefs = useRef<Record<string, HTMLCanvasElement | null>>({})
   const extraStemsRef = useRef<Record<MoreStemsType, ExtraStemState[]>>({ drums: [], melodies: [], vocals: [] })
@@ -170,6 +204,10 @@ export default function StemSplitterPage() {
     setStems(loaded)
   }, [])
 
+  useEffect(() => {
+    setMySongs(loadMySongsFromStorage())
+  }, [])
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
@@ -204,7 +242,18 @@ export default function StemSplitterPage() {
       setJobId(data.jobId)
       setBpm(data.bpm ?? null)
       setKey(data.key ?? null)
+      setDisplayTitleOverride(null)
       await loadStemBuffers(data.stems)
+      setMySongs((prev) => {
+        const exists = prev.some((s) => s.id === data.jobId)
+        if (exists) return prev
+        const next = [
+          ...prev,
+          { id: data.jobId, title: file.name, bpm: data.bpm ?? null, key: data.key ?? null, savedAt: Date.now() },
+        ]
+        saveMySongsToStorage(next)
+        return next
+      })
     } catch (e) {
       setError(e instanceof Error ? e.message : "Stem split failed")
     } finally {
@@ -256,10 +305,13 @@ export default function StemSplitterPage() {
 
   useEffect(() => {
     const byType = extraStemsStateByType
+    const mainDrumsSolo = stems.some((s) => s.id === "drums" && s.solo)
+    const mainMelodySolo = stems.some((s) => s.id === "other" && s.solo)
+    const mainVocalsSolo = stems.some((s) => s.id === "vocals" && s.solo)
     const anyExtraSolo = (byType.drums.some((x) => x.solo) || byType.melodies.some((x) => x.solo) || byType.vocals.some((x) => x.solo))
-    const useDrumsSubStems = byType.drums.some((x) => !x.muted && x.buffer)
-    const useMelodySubStems = byType.melodies.some((x) => !x.muted && x.buffer)
-    const useVocalsSubStems = byType.vocals.some((x) => !x.muted && x.buffer)
+    const useDrumsSubStems = !mainDrumsSolo && byType.drums.some((x) => !x.muted && x.buffer)
+    const useMelodySubStems = !mainMelodySolo && byType.melodies.some((x) => !x.muted && x.buffer)
+    const useVocalsSubStems = !mainVocalsSolo && byType.vocals.some((x) => !x.muted && x.buffer)
     stems.forEach((s) => {
       const nodes = sourceNodesRef.current[s.id]
       if (!nodes) return
@@ -325,10 +377,14 @@ export default function StemSplitterPage() {
     stoppedManuallyRef.current = false
     const start = pauseTimeRef.current
     const extraByType = extraStemsRef.current
+    const stemsList = stemsRef.current
+    const mainDrumsSolo = stemsList.some((s) => s.id === "drums" && s.solo)
+    const mainMelodySolo = stemsList.some((s) => s.id === "other" && s.solo)
+    const mainVocalsSolo = stemsList.some((s) => s.id === "vocals" && s.solo)
     const anyExtraSolo = (extraByType.drums ?? []).some((s) => s.solo) || (extraByType.melodies ?? []).some((s) => s.solo) || (extraByType.vocals ?? []).some((s) => s.solo)
-    const useDrumsSubStems = (extraByType.drums ?? []).some((s) => !s.muted && s.buffer)
-    const useMelodySubStems = (extraByType.melodies ?? []).some((s) => !s.muted && s.buffer)
-    const useVocalsSubStems = (extraByType.vocals ?? []).some((s) => !s.muted && s.buffer)
+    const useDrumsSubStems = !mainDrumsSolo && (extraByType.drums ?? []).some((s) => !s.muted && s.buffer)
+    const useMelodySubStems = !mainMelodySolo && (extraByType.melodies ?? []).some((s) => !s.muted && s.buffer)
+    const useVocalsSubStems = !mainVocalsSolo && (extraByType.vocals ?? []).some((s) => !s.muted && s.buffer)
     const extraToPlay: { type: MoreStemsType; s: ExtraStemState }[] = []
     if (anyExtraSolo) {
       ;(["drums", "melodies", "vocals"] as const).forEach((type) => {
@@ -514,12 +570,69 @@ export default function StemSplitterPage() {
     setBpm(null)
     setKey(null)
     setError("")
+    setDisplayTitleOverride(null)
+    setEditingTitle(false)
     setExtraStemsByType({ drums: null, melodies: null, vocals: null })
     setExtraStemsStateByType({ drums: [], melodies: [], vocals: [] })
     setSubStemsOpen({ drums: false, melodies: false, vocals: false })
     setExtraStemsError("")
     setExtraStemsComingSoon(false)
   }, [stop])
+
+  const startEditingTitle = useCallback(() => {
+    const current = displayTitleOverride ?? file?.name ?? ""
+    setTitleEditValue(current)
+    setEditingTitle(true)
+  }, [displayTitleOverride, file?.name])
+
+  const saveEditedTitle = useCallback(() => {
+    const trimmed = titleEditValue.trim() || (file?.name ?? "")
+    setDisplayTitleOverride(trimmed)
+    setFile((prev) => (prev ? ({ ...prev, name: trimmed } as File) : null))
+    if (jobId) {
+      setMySongs((prev) => {
+        const next = prev.map((s) => (s.id === jobId ? { ...s, title: trimmed } : s))
+        saveMySongsToStorage(next)
+        return next
+      })
+    }
+    setEditingTitle(false)
+  }, [jobId, titleEditValue, file?.name])
+
+  const deleteMySong = useCallback((id: string) => {
+    setMySongs((prev) => {
+      const next = prev.filter((s) => s.id !== id)
+      saveMySongsToStorage(next)
+      return next
+    })
+  }, [])
+
+  const loadMySong = useCallback(
+    async (song: SavedSong) => {
+      setError("")
+      setProcessing(true)
+      setExtraStemsByType({ drums: null, melodies: null, vocals: null })
+      setExtraStemsStateByType({ drums: [], melodies: [], vocals: [] })
+      try {
+        const stemsWithUrls = STEM_IDS.map((id) => ({
+          id,
+          label: id === "vocals" ? "Vocal" : STEM_LABELS[id],
+          url: `/api/stems/${song.id}/${id}.wav`,
+        }))
+        setJobId(song.id)
+        setBpm(song.bpm)
+        setKey(song.key)
+        setFile({ name: song.title } as File)
+        setDisplayTitleOverride(null)
+        await loadStemBuffers(stemsWithUrls)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Could not load stems. The job may have expired.")
+      } finally {
+        setProcessing(false)
+      }
+    },
+    [loadStemBuffers]
+  )
 
   const extraDownloadOptions = (["drums", "melodies", "vocals"] as const).flatMap((type) => {
     const list = extraStemsStateByType[type] ?? []
@@ -746,6 +859,52 @@ export default function StemSplitterPage() {
             </div>
           ) : (
             <>
+              {(file || displayTitleOverride) && (
+                <div className="flex items-center gap-2 mb-2 flex-wrap">
+                  {editingTitle ? (
+                    <>
+                      <input
+                        type="text"
+                        value={titleEditValue}
+                        onChange={(e) => setTitleEditValue(e.target.value)}
+                        onKeyDown={(e) => e.key === "Enter" && saveEditedTitle()}
+                        className="flex-1 min-w-[200px] px-3 py-2 rounded-lg border text-lg font-medium"
+                        style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                        placeholder="Song title"
+                        autoFocus
+                        aria-label="Edit song title"
+                      />
+                      <button
+                        type="button"
+                        onClick={saveEditedTitle}
+                        className="px-3 py-2 rounded-lg text-sm font-medium"
+                        style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+                      >
+                        Save
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-lg font-medium truncate min-w-0" style={{ color: "var(--foreground)" }} title={displayTitleOverride ?? file?.name ?? ""}>
+                        {displayTitleOverride ?? file?.name ?? ""}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={startEditingTitle}
+                        className="shrink-0 p-1 rounded hover:opacity-80 transition"
+                        style={{ color: "var(--muted)" }}
+                        aria-label="Edit song title"
+                      >
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2" />
+                          <path d="M14 7l3 3-6 6-3 1 1-3 6-6z" />
+                          <path d="M17 4l3 3" />
+                        </svg>
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
               <div className="flex items-center gap-3 mb-4 flex-wrap">
                 <button
                   type="button"
@@ -1100,6 +1259,131 @@ export default function StemSplitterPage() {
             </>
           )}
         </div>
+
+        {/* My Songs - below stem splits, always visible */}
+        <section className="pt-10 border-t" style={{ borderColor: "var(--border)" }}>
+          <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
+            My Songs
+          </h2>
+          <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
+            Pick one of your songs to view it.
+          </p>
+          {(() => {
+            const searchTrim = mySongsSearch.trim().toLowerCase()
+            const [tempoMin, tempoMax] = mySongsTempoRange
+            const filtered = mySongs.filter((s) => {
+              if (searchTrim && !s.title.toLowerCase().includes(searchTrim)) return false
+              if (mySongsKeyFilter && s.key !== mySongsKeyFilter) return false
+              if (s.bpm != null && (s.bpm < tempoMin || s.bpm > tempoMax)) return false
+              return true
+            })
+            const uniqueKeys = [...new Set(mySongs.map((s) => s.key).filter(Boolean))] as string[]
+            uniqueKeys.sort()
+            return (
+              <>
+                <div className="flex flex-wrap items-center gap-3 mb-4">
+                  <div className="relative flex-1 min-w-[200px] max-w-md">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--muted)]">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                      </svg>
+                    </span>
+                    <input
+                      type="search"
+                      placeholder={`Search [${mySongs.length}]`}
+                      value={mySongsSearch}
+                      onChange={(e) => setMySongsSearch(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm"
+                      style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                      aria-label="Search my songs"
+                    />
+                  </div>
+                  <select
+                    value={mySongsKeyFilter}
+                    onChange={(e) => setMySongsKeyFilter(e.target.value)}
+                    className="px-3 py-2.5 rounded-lg border text-sm"
+                    style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                    aria-label="Filter by key"
+                  >
+                    <option value="">Any key</option>
+                    {uniqueKeys.map((k) => (
+                      <option key={k} value={k}>
+                        {k}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="flex items-center gap-2">
+                    <label className="text-xs whitespace-nowrap" style={{ color: "var(--muted)" }}>
+                      Tempo:
+                    </label>
+                    <input
+                      type="number"
+                      min={20}
+                      max={300}
+                      value={tempoMin}
+                      onChange={(e) => setMySongsTempoRange(([_, max]) => [Number(e.target.value) || 20, max])}
+                      className="w-14 px-2 py-2 rounded-lg border text-sm tabular-nums"
+                      style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                      aria-label="Min BPM"
+                    />
+                    <span style={{ color: "var(--muted)" }}>–</span>
+                    <input
+                      type="number"
+                      min={20}
+                      max={300}
+                      value={tempoMax}
+                      onChange={(e) => setMySongsTempoRange(([min, _]) => [min, Number(e.target.value) || 300])}
+                      className="w-14 px-2 py-2 rounded-lg border text-sm tabular-nums"
+                      style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                      aria-label="Max BPM"
+                    />
+                    <span className="text-xs" style={{ color: "var(--muted)" }}>bpm</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {filtered.map((song) => (
+                    <div
+                      key={song.id}
+                      className="flex items-center gap-3 rounded-xl p-4 border"
+                      style={{ borderColor: "var(--border)", background: "var(--background)" }}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => loadMySong(song)}
+                        className="flex-1 min-w-0 text-left"
+                      >
+                        <p className="text-sm font-medium truncate" style={{ color: "var(--foreground)" }} title={song.title}>
+                          {song.title}
+                        </p>
+                        <p className="text-xs tabular-nums" style={{ color: "var(--muted)" }}>
+                          {song.bpm != null ? `${song.bpm} bpm` : "—"} {song.key ?? "—"}
+                        </p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteMySong(song.id)}
+                        className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full border transition hover:opacity-80"
+                        style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+                        aria-label={`Delete ${song.title}`}
+                        title="Remove from My Songs"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M18 6L6 18M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                {filtered.length === 0 && (
+                  <p className="text-sm py-6 text-center" style={{ color: "var(--muted)" }}>
+                    {mySongs.length === 0 ? "Songs you split will appear here." : "No songs match your filters."}
+                  </p>
+                )}
+              </>
+            )
+          })()}
+        </section>
       </div>
     </div>
   )
