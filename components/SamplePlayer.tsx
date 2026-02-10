@@ -580,12 +580,16 @@ function SamplePlayer({
   // NEVER start within 25 seconds of the end
   const END_BUFFER = 25
   
+  // Explicit start at 0 (e.g. drum break mode) must be respected and never overwritten
+  const isExplicitStartAtZero = startTime === 0
+
   // Reset and set start time when youtubeId changes
   if (youtubeIdRef.current !== youtubeId) {
     youtubeIdRef.current = youtubeId
     const generatedTime = startTime ?? generateSmartStartTime(duration)
-    // Final safety check: Ensure generated time is never within 25 seconds of end
-    if (duration && generatedTime > duration - END_BUFFER) {
+    if (isExplicitStartAtZero) {
+      startTimeRef.current = 0
+    } else if (duration && generatedTime > duration - END_BUFFER) {
       console.warn(`[SamplePlayer] Generated start time ${generatedTime} too close to end (${duration}), using ${duration - END_BUFFER}`)
       startTimeRef.current = duration - END_BUFFER
     } else {
@@ -593,25 +597,24 @@ function SamplePlayer({
     }
     isInitializedRef.current = false // Reset initialization flag
   }
-  
+
   const baseStartTime = startTimeRef.current ?? (startTime ?? generateSmartStartTime(duration))
-  
-  // AGGRESSIVE safety check: NEVER start within 25 seconds of end
-  // If duration is available, enforce strict limits
+
+  // When parent explicitly requests start at 0 (drum break), use 0 and skip safety clamping
   let actualStartTime = baseStartTime
-  if (duration && duration > 0) {
+  if (isExplicitStartAtZero) {
+    actualStartTime = 0
+  } else if (duration && duration > 0) {
     const maxSafeStart = duration - END_BUFFER
     if (actualStartTime > maxSafeStart) {
       console.warn(`[SamplePlayer] Start time ${actualStartTime} too close to end (${duration}), clamping to ${maxSafeStart}`)
-      actualStartTime = Math.max(15, maxSafeStart) // At least 15s from start, 25s from end
+      actualStartTime = Math.max(15, maxSafeStart)
     }
-    // Double-check: if still invalid, use safe middle
     if (actualStartTime >= duration - END_BUFFER) {
       const safeMiddle = Math.max(15, Math.floor((duration - END_BUFFER) / 2))
       console.warn(`[SamplePlayer] CRITICAL: Using safe middle ${safeMiddle} for duration ${duration}`)
       actualStartTime = safeMiddle
     }
-    // Final validation: ensure it's within bounds
     actualStartTime = Math.max(15, Math.min(actualStartTime, duration - END_BUFFER))
   }
 
@@ -702,21 +705,20 @@ function SamplePlayer({
   // Use ref to store the src so it never changes after initial load
   const iframeSrcRef = useRef<string | null>(null)
   
-  // CRITICAL: Final check before creating iframe URL - ensure start time is safe
-  // If duration is available, enforce 25-second buffer
+  // Respect explicit start at 0 (drum break); otherwise enforce 25s buffer from end
   let safeStartTime = actualStartTime
-  if (duration && duration > 0) {
+  if (isExplicitStartAtZero) {
+    safeStartTime = 0
+  } else if (duration && duration > 0) {
     const maxSafeStart = duration - 25
     if (safeStartTime > maxSafeStart) {
       console.warn(`[SamplePlayer] CRITICAL: Start time ${safeStartTime} exceeds safe limit (${maxSafeStart}), clamping to ${maxSafeStart}`)
-      safeStartTime = Math.max(15, maxSafeStart) // Ensure at least 15 seconds from start
+      safeStartTime = Math.max(15, maxSafeStart)
     }
-    // Double-check: if somehow still too close, use middle of safe range
     if (safeStartTime > duration - 25) {
       safeStartTime = Math.max(15, Math.floor((duration - 25) / 2))
       console.warn(`[SamplePlayer] CRITICAL FIX: Using fallback start time ${safeStartTime} for duration ${duration}`)
     }
-    // Final validation: ensure it's within bounds
     safeStartTime = Math.max(15, Math.min(safeStartTime, duration - 25))
   }
   
@@ -744,22 +746,22 @@ function SamplePlayer({
     }
   }, [validYoutubeId, onVideoError, youtubeId])
 
-  // CRITICAL: Validate iframe src start parameter matches safe start time
+  // Validate iframe src start parameter only when we're not explicitly starting at 0 (drum break)
   useEffect(() => {
+    if (isExplicitStartAtZero) return
     if (iframeRef.current && duration && duration > 0 && iframeSrc) {
       const urlParams = new URLSearchParams(iframeRef.current.src.split('?')[1])
       const startParam = parseInt(urlParams.get('start') || '0', 10)
       const maxSafeStart = duration - 25
       if (startParam > maxSafeStart) {
         console.error(`[SamplePlayer] CRITICAL: Iframe src has invalid start time ${startParam} (max safe: ${maxSafeStart})`)
-        // Force update with correct start time
         const correctedSrc = iframeSrc.replace(/start=\d+/, `start=${maxSafeStart}`)
         iframeRef.current.src = correctedSrc
         iframeSrcRef.current = correctedSrc
         console.log(`[SamplePlayer] Corrected iframe src start time to ${maxSafeStart}`)
       }
     }
-  }, [iframeSrc, duration])
+  }, [iframeSrc, duration, isExplicitStartAtZero])
   
   // CRITICAL: Use useEffect to ensure iframe src never changes after mount
   // This prevents React from updating the src attribute even if component re-renders
@@ -853,9 +855,9 @@ function SamplePlayer({
             <p>Invalid video ID — loading next sample...</p>
           </div>
         )}
-        {/* Heart toggle - exact original: semi-transparent black circle with blur */}
+        {/* Heart toggle - perfect circle: fixed equal width/height so it stays round */}
         {showHeart && onSaveToggle && (
-          <div className="absolute top-4 right-4 z-20 pointer-events-auto rounded-full p-2 bg-black/50 backdrop-blur-sm shadow-md">
+          <div className="absolute top-4 right-4 z-20 pointer-events-auto flex items-center justify-center w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm shadow-md">
             <HeartToggle
               isSaved={isSaved}
               onToggle={() => onSaveToggle(isSaved ? undefined : { chops: chops.length > 0 ? chops : undefined })}

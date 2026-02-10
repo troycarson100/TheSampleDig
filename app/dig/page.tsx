@@ -214,35 +214,21 @@ export default function DigPage() {
       }
       
       const data = responseData
-      // Generate a smart start time for this video
-      // NEVER start within 25 seconds of the end
+      // Drum Break mode: always start at 0:00. Otherwise smart start (avoid intro/outro).
       const END_BUFFER = 25
-      // When Drum Break is on: start at the beginning of the video
-      const smartStartTime = data.duration
-        ? drumBreak
-          ? 0
-          : Math.max(15, Math.min(Math.floor(data.duration * 0.3), data.duration - END_BUFFER))
-        : Math.floor(Math.random() * 300) + 30
-      
-      // AGGRESSIVE safety check: Ensure we're NEVER within 25 seconds of the end
-      let finalStartTime = smartStartTime
-      if (data.duration && data.duration > 0) {
-        const maxSafeStart = data.duration - END_BUFFER
-        if (finalStartTime > maxSafeStart) {
-          console.warn(`[Dig] Start time ${finalStartTime} too close to end (${data.duration}), adjusting to ${maxSafeStart}`)
-          finalStartTime = Math.max(15, maxSafeStart) // At least 15s from start
+      let finalStartTime: number
+      if (drumBreak) {
+        finalStartTime = 0
+        console.log(`[Dig] Drum Break mode: start at 0:00`)
+      } else if (data.duration && data.duration > 0) {
+        finalStartTime = Math.max(15, Math.min(Math.floor(data.duration * 0.3), data.duration - END_BUFFER))
+        if (finalStartTime > data.duration - END_BUFFER) {
+          finalStartTime = Math.max(15, data.duration - END_BUFFER)
         }
-        // Double-check: if still invalid, use safe middle
-        if (finalStartTime >= data.duration - END_BUFFER) {
-          const safeMiddle = Math.max(15, Math.floor((data.duration - END_BUFFER) / 2))
-          console.warn(`[Dig] CRITICAL: Using safe middle ${safeMiddle} for duration ${data.duration}`)
-          finalStartTime = safeMiddle
-        }
-        // Final validation (when not drum break mode, enforce at least 15s from start)
-        if (!drumBreak) {
-          finalStartTime = Math.max(15, Math.min(finalStartTime, data.duration - END_BUFFER))
-        }
-        console.log(`[Dig] Final start time: ${finalStartTime} (duration: ${data.duration}, safe max: ${data.duration - END_BUFFER})`)
+        finalStartTime = Math.max(15, Math.min(finalStartTime, data.duration - END_BUFFER))
+        console.log(`[Dig] Final start time: ${finalStartTime} (duration: ${data.duration})`)
+      } else {
+        finalStartTime = Math.floor(Math.random() * 300) + 30
       }
       
       // Save current sample as previous before setting new one
