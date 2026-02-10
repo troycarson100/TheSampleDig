@@ -396,63 +396,75 @@ export default function DigPage() {
   const handleSaveToggle = useCallback(async (opts?: { chops?: Chop[] }) => {
     const currentSample = sampleRef.current
     const currentSession = sessionRef.current
-    if (currentSession && currentSample) {
-      const currentlySaved = isSavedRef.current
-      const endpoint = currentlySaved ? "/api/samples/unsave" : "/api/samples/save"
-      console.log("[Frontend] Saving sample:", {
-        sampleId: currentSample.id,
-        youtubeId: currentSample.youtubeId,
-        title: currentSample.title,
-        channel: currentSample.channel,
-        isSaved: currentlySaved,
-        chopsCount: opts?.chops?.length ?? 0,
+    if (!currentSession) {
+      alert("Please log in to save samples.")
+      return
+    }
+    if (!currentSample) {
+      console.error("[Frontend] No current sample to save")
+      return
+    }
+    // Save API accepts either database sample id or youtubeId for lookup
+    const sampleId = currentSample.id
+    const youtubeId = currentSample.youtubeId
+    if (!sampleId && !youtubeId) {
+      console.error("[Frontend] Sample has no id or youtubeId")
+      alert("This sample can’t be saved yet. Roll the dice again to load a new one.")
+      return
+    }
+    const currentlySaved = isSavedRef.current
+    const endpoint = currentlySaved ? "/api/samples/unsave" : "/api/samples/save"
+    console.log("[Frontend] Saving sample:", {
+      sampleId,
+      youtubeId,
+      title: currentSample.title,
+      channel: currentSample.channel,
+      isSaved: currentlySaved,
+      chopsCount: opts?.chops?.length ?? 0,
+    })
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          currentlySaved
+            ? { sampleId: sampleId || youtubeId }
+            : {
+                sampleId: sampleId || youtubeId,
+                startTime: currentSample.startTime ?? Math.floor(Math.random() * 300) + 30,
+                youtubeId: youtubeId,
+                title: currentSample.title,
+                channel: currentSample.channel,
+                thumbnailUrl: currentSample.thumbnailUrl,
+                chops: opts?.chops,
+              }
+        ),
       })
-      try {
-        const response = await fetch(endpoint, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(
-            currentlySaved
-              ? { sampleId: currentSample.id }
-              : {
-                  sampleId: currentSample.id,
-                  startTime: currentSample.startTime || Math.floor(Math.random() * 300) + 30,
-                  youtubeId: currentSample.youtubeId,
-                  title: currentSample.title,
-                  channel: currentSample.channel,
-                  thumbnailUrl: currentSample.thumbnailUrl,
-                  chops: opts?.chops,
-                }
-          ),
-        })
-    
-        const data = await response.json()
-        console.log("[Frontend] Save response:", { status: response.status, data })
-    
-        if (response.ok) {
-          // Update state - memoized SamplePlayer will prevent iframe re-render
-          setIsSaved(!currentlySaved)
-          
-          // CRITICAL: If saving (not unsaving), add to seen list immediately
-          // This ensures saved videos never show up again in dice rolls
-          if (!currentlySaved && currentSample.youtubeId) {
-            addSeenVideo(currentSample.youtubeId)
-            console.log(`[Save] Added ${currentSample.youtubeId} to seen list to prevent repeats`)
-          }
-          
-          // Trigger sidebar refresh
-          window.dispatchEvent(new CustomEvent('samplesUpdated'))
-        } else {
-          console.error("[Frontend] Save error:", data.error, "Response status:", response.status, "Full data:", data)
-          const errorMsg = data.error || "Failed to save sample"
-          const detailsMsg = data.details ? `\n\nDetails: ${data.details}` : ""
-          const codeMsg = data.code ? `\n\nError Code: ${data.code}` : ""
-          alert(`${errorMsg}${detailsMsg}${codeMsg}\n\nPlease check the console for more details.`)
+
+      const data = await response.json()
+      console.log("[Frontend] Save response:", { status: response.status, data })
+
+      if (response.ok) {
+        setIsSaved(!currentlySaved)
+        if (!currentlySaved && currentSample.youtubeId) {
+          addSeenVideo(currentSample.youtubeId)
+          console.log(`[Save] Added ${currentSample.youtubeId} to seen list to prevent repeats`)
         }
-      } catch (error: any) {
-        console.error("[Frontend] Error saving/unsaving:", error)
-        alert(`Failed to save sample: ${error?.message || "Unknown error"}. Please try again.`)
+        // Use returned database sample id so unsave and update-chops work reliably
+        if (!currentlySaved && data.sampleId && currentSample.id !== data.sampleId) {
+          setSample((prev) => (prev ? { ...prev, id: data.sampleId } : null))
+        }
+        window.dispatchEvent(new CustomEvent("samplesUpdated"))
+      } else {
+        console.error("[Frontend] Save error:", data.error, "Response status:", response.status, "Full data:", data)
+        const errorMsg = data.error || "Failed to save sample"
+        const detailsMsg = data.details ? `\n\nDetails: ${data.details}` : ""
+        const codeMsg = data.code ? `\n\nError Code: ${data.code}` : ""
+        alert(`${errorMsg}${detailsMsg}${codeMsg}\n\nPlease check the console for more details.`)
       }
+    } catch (error: any) {
+      console.error("[Frontend] Error saving/unsaving:", error)
+      alert(`Failed to save sample: ${error?.message || "Unknown error"}. Please try again.`)
     }
   }, []) // No dependencies - callback is completely stable
 

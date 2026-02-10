@@ -853,9 +853,9 @@ function SamplePlayer({
             <p>Invalid video ID — loading next sample...</p>
           </div>
         )}
-        {/* Heart toggle - above overlay when Chop Mode is on */}
+        {/* Heart toggle - exact original: semi-transparent black circle with blur */}
         {showHeart && onSaveToggle && (
-          <div className="absolute top-4 right-4 z-20 pointer-events-auto rounded-full p-2 shadow-sm" style={{ background: "var(--card)" }}>
+          <div className="absolute top-4 right-4 z-20 pointer-events-auto rounded-full p-2 bg-black/50 backdrop-blur-sm shadow-md">
             <HeartToggle
               isSaved={isSaved}
               onToggle={() => onSaveToggle(isSaved ? undefined : { chops: chops.length > 0 ? chops : undefined })}

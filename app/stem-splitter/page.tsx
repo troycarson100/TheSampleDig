@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useRef, useCallback, useEffect } from "react"
+import { useSession } from "next-auth/react"
 import SiteNav from "@/components/SiteNav"
 
 type DownloadFormat = "wav" | "mp3"
@@ -72,7 +73,11 @@ function getExtraStemColor(id: string): string {
   return EXTRA_STEM_COLORS[id] ?? "#6B7280"
 }
 
-const MY_SONGS_STORAGE_KEY = "stem-splitter-my-songs"
+const MY_SONGS_STORAGE_KEY_PREFIX = "stem-splitter-my-songs"
+/** Per-user key so each account has its own My Songs list. Guest = same browser, no login. */
+function getMySongsStorageKey(userId: string | undefined): string {
+  return userId ? `${MY_SONGS_STORAGE_KEY_PREFIX}-${userId}` : `${MY_SONGS_STORAGE_KEY_PREFIX}-guest`
+}
 interface SavedSong {
   id: string
   title: string
@@ -82,10 +87,10 @@ interface SavedSong {
   /** Which "more stems" types were loaded (drums, melodies, vocals) so we restore them when loading */
   extraStemsTypes?: MoreStemsType[]
 }
-function loadMySongsFromStorage(): SavedSong[] {
+function loadMySongsFromStorage(storageKey: string): SavedSong[] {
   if (typeof window === "undefined") return []
   try {
-    const raw = localStorage.getItem(MY_SONGS_STORAGE_KEY)
+    const raw = localStorage.getItem(storageKey)
     if (!raw) return []
     const parsed = JSON.parse(raw)
     return Array.isArray(parsed) ? parsed : []
@@ -93,10 +98,10 @@ function loadMySongsFromStorage(): SavedSong[] {
     return []
   }
 }
-function saveMySongsToStorage(songs: SavedSong[]) {
+function saveMySongsToStorage(songs: SavedSong[], storageKey: string) {
   if (typeof window === "undefined") return
   try {
-    localStorage.setItem(MY_SONGS_STORAGE_KEY, JSON.stringify(songs))
+    localStorage.setItem(storageKey, JSON.stringify(songs))
   } catch (_) {}
 }
 
@@ -156,6 +161,8 @@ function drawWaveform(
 }
 
 export default function StemSplitterPage() {
+  const { data: session } = useSession()
+  const mySongsStorageKey = getMySongsStorageKey(session?.user?.id)
   const [file, setFile] = useState<File | null>(null)
   const [processing, setProcessing] = useState(false)
   const [loadingProgress, setLoadingProgress] = useState(0)
@@ -229,8 +236,8 @@ export default function StemSplitterPage() {
   }, [])
 
   useEffect(() => {
-    setMySongs(loadMySongsFromStorage())
-  }, [])
+    setMySongs(loadMySongsFromStorage(mySongsStorageKey))
+  }, [mySongsStorageKey])
 
   useEffect(() => {
     return () => {
@@ -302,7 +309,7 @@ export default function StemSplitterPage() {
           ...prev,
           { id: data.jobId, title: file.name, bpm: data.bpm ?? null, key: data.key ?? null, savedAt: Date.now() },
         ]
-        saveMySongsToStorage(next)
+        saveMySongsToStorage(next, mySongsStorageKey)
         return next
       })
     } catch (e) {
@@ -315,7 +322,7 @@ export default function StemSplitterPage() {
       setLoadingProgress(100)
       setTimeout(() => setProcessing(false), 400)
     }
-  }, [file, loadStemBuffers])
+  }, [file, loadStemBuffers, mySongsStorageKey])
 
   useEffect(() => {
     stemsRef.current = stems
@@ -667,20 +674,20 @@ export default function StemSplitterPage() {
     if (jobId) {
       setMySongs((prev) => {
         const next = prev.map((s) => (s.id === jobId ? { ...s, title: trimmed } : s))
-        saveMySongsToStorage(next)
+        saveMySongsToStorage(next, mySongsStorageKey)
         return next
       })
     }
     setEditingTitle(false)
-  }, [jobId, titleEditValue, file?.name])
+  }, [jobId, titleEditValue, file?.name, mySongsStorageKey])
 
   const deleteMySong = useCallback((id: string) => {
     setMySongs((prev) => {
       const next = prev.filter((s) => s.id !== id)
-      saveMySongsToStorage(next)
+      saveMySongsToStorage(next, mySongsStorageKey)
       return next
     })
-  }, [])
+  }, [mySongsStorageKey])
 
   const loadExtraStemBuffers = useCallback(async (type: MoreStemsType, list: { id: string; label: string; url: string }[]) => {
     const ctx = audioContextRef.current ?? new AudioContext()
@@ -837,7 +844,7 @@ export default function StemSplitterPage() {
                 ? { ...song, extraStemsTypes: [...(song.extraStemsTypes ?? []).filter((t) => t !== type), type] }
                 : song
             )
-            saveMySongsToStorage(next)
+            saveMySongsToStorage(next, mySongsStorageKey)
             return next
           })
         }
@@ -847,7 +854,7 @@ export default function StemSplitterPage() {
         setExtraStemsLoading(false)
       }
     },
-    [jobId, loadExtraStemBuffers]
+    [jobId, loadExtraStemBuffers, mySongsStorageKey]
   )
 
   const updateExtraStem = useCallback((type: MoreStemsType, id: string, patch: Partial<ExtraStemState>) => {

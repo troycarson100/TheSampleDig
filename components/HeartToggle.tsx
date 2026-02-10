@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, memo } from "react"
+import { memo } from "react"
 
 interface HeartToggleProps {
   isSaved: boolean
@@ -15,14 +15,13 @@ function HeartToggle({
   size = "md",
   className = "",
 }: HeartToggleProps) {
-  const [isHovered, setIsHovered] = useState(false)
-
   const sizeClasses = {
     sm: "w-6 h-6",
     md: "w-8 h-8",
     lg: "w-10 h-10",
   }
 
+  // Original: white outline when unsaved (on black circle), pink when saved
   return (
     <button
       onClick={(e) => {
@@ -30,8 +29,6 @@ function HeartToggle({
         e.preventDefault()
         onToggle()
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
       type="button"
       className={`${sizeClasses[size]} ${className} transition-all duration-200 hover:scale-110 active:scale-95`}
       aria-label={isSaved ? "Remove from saved" : "Save sample"}

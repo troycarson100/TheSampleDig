@@ -1,4 +1,6 @@
-@import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Claura (claura.framer.ai): warm cream page, dark brown text & CTAs */
 :root {
@@ -13,14 +15,6 @@
   --border: rgba(51, 43, 37, 0.12);
   --radius-card: 24px;
   --radius-button: 10px;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-halant);
 }
 
 body {

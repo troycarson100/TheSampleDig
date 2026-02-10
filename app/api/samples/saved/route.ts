@@ -29,11 +29,10 @@ export async function GET() {
     })
 
     const samples = userSamples.map(us => {
-      const usRow = us as typeof us & { chops?: unknown; notes?: string | null }
-      let chops: unknown = usRow.chops && Array.isArray(usRow.chops) ? usRow.chops : undefined
-      if (!chops && usRow.notes) {
+      let chops: unknown = undefined
+      if (us.notes) {
         try {
-          const parsed = JSON.parse(usRow.notes) as unknown
+          const parsed = JSON.parse(us.notes) as unknown
           if (Array.isArray(parsed) && parsed.length > 0) chops = parsed
         } catch {
           // notes was not chops JSON, ignore

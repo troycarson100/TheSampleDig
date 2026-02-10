@@ -1,0 +1,33 @@
+---
+description: Restart the Next.js dev server when changes require it
+alwaysApply: true
+---
+
+# Restart dev server when necessary
+
+When you make changes that require a server restart, **you must restart the dev server for the user**. Do not only tell them to restart.
+
+## When to restart
+
+Restart the dev server after any of these:
+
+- **Prisma**: Running `npx prisma generate`, or editing `prisma/schema.prisma`
+- **Next.js config**: Editing `next.config.ts`, `next.config.js`
+- **Environment**: Changing `.env` or env vars the server reads at startup
+- **Cache**: Deleting `.next` to clear build cache
+- **Post-install / dependencies**: After `npm install` if the user was having runtime errors that could be from stale code
+
+## How to restart
+
+1. **Kill** any process on port 3000 (and 3001 if used):
+   ```bash
+   lsof -ti :3000 | xargs kill -9 2>/dev/null; lsof -ti :3001 | xargs kill -9 2>/dev/null; true
+   ```
+2. **Start** the dev server in the background:
+   ```bash
+   cd "/Users/troycarson/Documents/Cursor Projects/thesampledig" && npm run dev
+   ```
+   Run this with `is_background: true` and a short timeout (e.g. 10s) so the server keeps running.
+3. After starting, tell the user the server was restarted and they can use http://localhost:3000 (or 3001 if 3000 was in use).
+
+If the project has a start script (e.g. `scripts/run-and-open.sh` or `scripts/start-dev.sh`), use that instead of `npm run dev` when it’s the standard way to run the app.
