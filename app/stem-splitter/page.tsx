@@ -248,6 +248,34 @@ export default function StemSplitterPage() {
     }
   }, [])
 
+  // Stop all playback when leaving the page (e.g. navigating to Dig) so audio doesn't keep playing
+  useEffect(() => {
+    return () => {
+      if (rafIdRef.current != null) {
+        cancelAnimationFrame(rafIdRef.current)
+        rafIdRef.current = null
+      }
+      const stopNode = ({ source, gain }: { source: AudioBufferSourceNode; gain: GainNode }) => {
+        try {
+          source.disconnect()
+          source.stop()
+        } catch (_) {}
+        try {
+          gain.disconnect()
+        } catch (_) {}
+      }
+      Object.values(sourceNodesRef.current).forEach(stopNode)
+      Object.values(extraSourceNodesRef.current).forEach(stopNode)
+      sourceNodesRef.current = {}
+      extraSourceNodesRef.current = {}
+      const ctx = audioContextRef.current
+      if (ctx && ctx.state !== "closed") {
+        ctx.close().catch(() => {})
+      }
+      audioContextRef.current = null
+    }
+  }, [])
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(false)
@@ -389,28 +417,33 @@ export default function StemSplitterPage() {
     const mainDrumsSolo = stems.some((s) => s.id === "drums" && s.solo)
     const mainMelodySolo = stems.some((s) => s.id === "other" && s.solo)
     const mainVocalsSolo = stems.some((s) => s.id === "vocals" && s.solo)
-    const anyExtraSolo = (byType.drums.some((x) => x.solo) || byType.melodies.some((x) => x.solo) || byType.vocals.some((x) => x.solo))
+    const drumsSubSolo = byType.drums.some((x) => x.solo)
+    const melodiesSubSolo = byType.melodies.some((x) => x.solo)
+    const vocalsSubSolo = byType.vocals.some((x) => x.solo)
+    const anySoloGlobal =
+      stems.some((x) => x.solo) || drumsSubSolo || melodiesSubSolo || vocalsSubSolo
     const useDrumsSubStems = !mainDrumsSolo && byType.drums.some((x) => !x.muted && x.buffer)
     const useMelodySubStems = !mainMelodySolo && byType.melodies.some((x) => !x.muted && x.buffer)
     const useVocalsSubStems = !mainVocalsSolo && byType.vocals.some((x) => !x.muted && x.buffer)
     stems.forEach((s) => {
       const nodes = sourceNodesRef.current[s.id]
       if (!nodes) return
-      if (anyExtraSolo)
-        nodes.gain.gain.value = 0
-      else if (
-        (s.id === "drums" && useDrumsSubStems) ||
-        (s.id === "other" && useMelodySubStems) ||
-        (s.id === "vocals" && useVocalsSubStems)
-      )
-        nodes.gain.gain.value = 0
+      const muteMainBecauseSubStems =
+        (s.id === "drums" && (useDrumsSubStems || drumsSubSolo)) ||
+        (s.id === "other" && (useMelodySubStems || melodiesSubSolo)) ||
+        (s.id === "vocals" && (useVocalsSubStems || vocalsSubSolo))
+      if (muteMainBecauseSubStems) nodes.gain.gain.value = 0
+      else if (anySoloGlobal) nodes.gain.gain.value = s.solo ? s.volume : 0
       else nodes.gain.gain.value = getGain(s)
     })
     ;(["drums", "melodies", "vocals"] as const).forEach((type) => {
       byType[type].forEach((s) => {
         const key = `${type}-${s.id}`
         const nodes = extraSourceNodesRef.current[key]
-        if (nodes) nodes.gain.gain.value = getExtraGain(type, s)
+        if (!nodes) return
+        if (s.muted) nodes.gain.gain.value = 0
+        else if (anySoloGlobal) nodes.gain.gain.value = s.solo ? s.volume : 0
+        else nodes.gain.gain.value = getExtraGain(type, s)
       })
     })
   }, [stems, extraStemsStateByType, getGain, getExtraGain])
@@ -462,12 +495,16 @@ export default function StemSplitterPage() {
     const mainDrumsSolo = stemsList.some((s) => s.id === "drums" && s.solo)
     const mainMelodySolo = stemsList.some((s) => s.id === "other" && s.solo)
     const mainVocalsSolo = stemsList.some((s) => s.id === "vocals" && s.solo)
-    const anyExtraSolo = (extraByType.drums ?? []).some((s) => s.solo) || (extraByType.melodies ?? []).some((s) => s.solo) || (extraByType.vocals ?? []).some((s) => s.solo)
+    const drumsSubSolo = (extraByType.drums ?? []).some((s) => s.solo)
+    const melodiesSubSolo = (extraByType.melodies ?? []).some((s) => s.solo)
+    const vocalsSubSolo = (extraByType.vocals ?? []).some((s) => s.solo)
+    const anySoloGlobal =
+      stemsList.some((s) => s.solo) || drumsSubSolo || melodiesSubSolo || vocalsSubSolo
     const useDrumsSubStems = !mainDrumsSolo && (extraByType.drums ?? []).some((s) => !s.muted && s.buffer)
     const useMelodySubStems = !mainMelodySolo && (extraByType.melodies ?? []).some((s) => !s.muted && s.buffer)
     const useVocalsSubStems = !mainVocalsSolo && (extraByType.vocals ?? []).some((s) => !s.muted && s.buffer)
     const extraToPlay: { type: MoreStemsType; s: ExtraStemState }[] = []
-    if (anyExtraSolo) {
+    if (anySoloGlobal) {
       ;(["drums", "melodies", "vocals"] as const).forEach((type) => {
         const list = extraByType[type] ?? []
         list.filter((s) => s.buffer && s.solo && !s.muted).forEach((s) => extraToPlay.push({ type, s }))
@@ -504,13 +541,13 @@ export default function StemSplitterPage() {
       const source = ctx.createBufferSource()
       source.buffer = s.buffer
       const gain = ctx.createGain()
-      gain.gain.value =
-        anyExtraSolo ||
-        (s.id === "drums" && useDrumsSubStems) ||
-        (s.id === "other" && useMelodySubStems) ||
-        (s.id === "vocals" && useVocalsSubStems)
-          ? 0
-          : getGain(s)
+      const muteMainBecauseSubStems =
+        (s.id === "drums" && (useDrumsSubStems || drumsSubSolo)) ||
+        (s.id === "other" && (useMelodySubStems || melodiesSubSolo)) ||
+        (s.id === "vocals" && (useVocalsSubStems || vocalsSubSolo))
+      const mainGain =
+        muteMainBecauseSubStems ? 0 : anySoloGlobal ? (s.solo ? s.volume : 0) : getGain(s)
+      gain.gain.value = mainGain
       source.connect(gain)
       gain.connect(ctx.destination)
       source.start(0, start)
@@ -522,7 +559,8 @@ export default function StemSplitterPage() {
       const source = ctx.createBufferSource()
       source.buffer = s.buffer
       const gain = ctx.createGain()
-      gain.gain.value = getExtraGain(type, s)
+      const extraGain = anySoloGlobal ? (s.solo ? s.volume : 0) : getExtraGain(type, s)
+      gain.gain.value = s.muted ? 0 : extraGain
       source.connect(gain)
       gain.connect(ctx.destination)
       source.start(0, start)
