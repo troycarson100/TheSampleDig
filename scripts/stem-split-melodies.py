@@ -71,14 +71,16 @@ def main():
     if not os.path.isfile(input_path):
         print(f"Input file not found: {input_path}", file=sys.stderr)
         sys.exit(1)
+    shifts = os.environ.get("DEMUCS_SHIFTS", "2").strip() or "2"
+    overlap = os.environ.get("DEMUCS_OVERLAP", "0.25").strip() or "0.25"
     melodies_dir = os.path.join(output_dir, "melodies-sep")
     os.makedirs(melodies_dir, exist_ok=True)
     with tempfile.TemporaryDirectory() as tmp:
         cmd = [
             sys.executable, "-m", "demucs",
             "-n", "htdemucs_6s",
-            "--overlap", "0.25",
-            "--shifts", "1",
+            "--overlap", overlap,
+            "--shifts", shifts,
             "-o", tmp,
             input_path,
         ]
@@ -115,8 +117,8 @@ def main():
                     cmd2 = [
                         sys.executable, "-m", "demucs",
                         "-n", "htdemucs_6s",
-                        "--overlap", "0.25",
-                        "--shifts", "1",
+                        "--overlap", overlap,
+                        "--shifts", shifts,
                         "-o", tmp2,
                         other_path,
                     ]
@@ -150,6 +152,54 @@ def main():
                                 print("Warning: guitar refinement skipped (format mismatch)", file=sys.stderr)
         except Exception as e:
             print(f"Warning: guitar refinement skipped: {e}", file=sys.stderr)
+    # Optional: guitar cleanup — subtract leaked piano/other from guitar to reduce synth/keyboard bleed
+    cleanup_enabled = os.environ.get("DEMUCS_GUITAR_CLEANUP", "").strip().lower() in ("1", "true", "yes")
+    try:
+        alpha = float(os.environ.get("DEMUCS_GUITAR_CLEANUP_ALPHA", "0.6"))
+    except (TypeError, ValueError):
+        alpha = 0.6
+    if cleanup_enabled:
+        guitar_path = os.path.join(melodies_dir, "guitar.wav")
+        if os.path.isfile(guitar_path):
+            try:
+                with tempfile.TemporaryDirectory() as tmp_clean:
+                    cmd_clean = [
+                        sys.executable, "-m", "demucs",
+                        "-n", "htdemucs_6s",
+                        "--overlap", overlap,
+                        "--shifts", shifts,
+                        "-o", tmp_clean,
+                        guitar_path,
+                    ]
+                    result_clean = subprocess.run(cmd_clean, capture_output=True, text=True)
+                    if result_clean.returncode != 0:
+                        print("Warning: guitar cleanup skipped (demucs run failed)", file=sys.stderr)
+                    else:
+                        htdemucs_clean = os.path.join(tmp_clean, "htdemucs_6s")
+                        track_clean = None
+                        if os.path.isdir(htdemucs_clean):
+                            for name in os.listdir(htdemucs_clean):
+                                p = os.path.join(htdemucs_clean, name)
+                                if os.path.isdir(p) and os.path.isfile(os.path.join(p, "guitar.wav")):
+                                    track_clean = p
+                                    break
+                        if track_clean:
+                            nch_g, sr_g, g_orig = _load_wav_samples(guitar_path)
+                            _, _, p_extra = _load_wav_samples(os.path.join(track_clean, "piano.wav"))
+                            _, _, o_extra = _load_wav_samples(os.path.join(track_clean, "other.wav"))
+                            min_len = min(len(g_orig), len(p_extra), len(o_extra))
+                            g_orig = g_orig[:min_len]
+                            p_extra = p_extra[:min_len]
+                            o_extra = o_extra[:min_len]
+                            # guitar_clean = guitar - alpha * (piano' + other'); clamp then normalize
+                            cleaned = [
+                                max(-32768, min(32767, int(round(a - alpha * (b + c)))))
+                                for a, b, c in zip(g_orig, p_extra, o_extra)
+                            ]
+                            guitar_final = _normalize_16bit(cleaned)
+                            _write_wav_samples(guitar_path, nch_g, sr_g, guitar_final)
+            except Exception as e:
+                print(f"Warning: guitar cleanup skipped: {e}", file=sys.stderr)
     # Ensure all three melody stems exist so the API never 404s (copy first available to missing)
     melody_stems = ("guitar", "piano", "other")
     fill_src = None

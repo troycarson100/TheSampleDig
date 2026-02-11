@@ -5,8 +5,17 @@ import Link from "next/link"
 import Image from "next/image"
 import { useSession } from "next-auth/react"
 
-const navLinkBase = "text-[15px] font-medium text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition"
+const navLinkBase = "text-[15px] text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition-colors"
 const navLinkStyle = { fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }
+// Bold on hover; invisible bold copy reserves width so text doesn't shift
+function NavLinkText({ children }: { children: string }) {
+  return (
+    <span className="relative inline-block">
+      <span className="font-bold invisible" aria-hidden="true">{children}</span>
+      <span className="absolute left-0 top-0 font-medium hover:font-bold transition-[font-weight]">{children}</span>
+    </span>
+  )
+}
 
 export default function SiteNav() {
   const { data: session } = useSession()
@@ -32,14 +41,14 @@ export default function SiteNav() {
           </button>
           <div className="hidden md:flex gap-8">
             <Link href="/dig" className={navLinkBase} style={navLinkStyle}>
-              Dig
+              <NavLinkText>Dig</NavLinkText>
             </Link>
             <Link href="/stem-splitter" className={navLinkBase} style={navLinkStyle}>
-              Stem Splitter
+              <NavLinkText>Stem Splitter</NavLinkText>
             </Link>
             {session && (
               <Link href="/profile" className={navLinkBase} style={navLinkStyle}>
-                My Samples
+                <NavLinkText>My Samples</NavLinkText>
               </Link>
             )}
           </div>
@@ -104,14 +113,14 @@ export default function SiteNav() {
             </div>
             <div className="flex flex-col">
               <Link href="/dig" className={`${navLinkBase} block py-3`} style={navLinkStyle} onClick={() => setMenuOpen(false)}>
-                Dig
+                <NavLinkText>Dig</NavLinkText>
               </Link>
               <Link href="/stem-splitter" className={`${navLinkBase} block py-3`} style={navLinkStyle} onClick={() => setMenuOpen(false)}>
-                Stem Splitter
+                <NavLinkText>Stem Splitter</NavLinkText>
               </Link>
               {session && (
                 <Link href="/profile" className={`${navLinkBase} block py-3`} style={navLinkStyle} onClick={() => setMenuOpen(false)}>
-                  My Samples
+                  <NavLinkText>My Samples</NavLinkText>
                 </Link>
               )}
             </div>

@@ -59,7 +59,7 @@ After splitting, the app can show detected **BPM** and **musical key** for the t
 After splitting into four stems, you can run **More Stems** to sub-separate:
 
 - **Separate Drums** — uses [DrumSep](https://github.com/inagoy/drumsep) to split the drums stem into kick, snare, cymbals, and toms.
-- **Separate Melodies** — uses Demucs 6-stem (`htdemucs_6s`) on the melody stem to get guitar, piano, and other. No extra install beyond Demucs.
+- **Separate Melodies** — uses Demucs 6-stem (`htdemucs_6s`) on the melody stem to get guitar, piano, and other. No extra install beyond Demucs. The 6-stem model can have some synth/keyboard bleed into the guitar stem; see [Melody separation quality](#melody-separation-quality) below for optional tuning.
 - **Separate Vocals** — uses [audio-separator](https://github.com/karaokenerds/python-audio-separator) (MelBand Roformer Karaoke model) to split the vocals stem into lead and backing vocals. Requires `audio-separator` (see below).
 
 ### DrumSep install (for Separate Drums)
@@ -92,6 +92,15 @@ python3 -m pip install "audio-separator[cpu]"
 For Apple Silicon (M1/M2) with CoreML acceleration, the `[cpu]` extra is sufficient. For Nvidia GPU use `"audio-separator[gpu]"` and ensure CUDA is set up.
 
 The first time you run **Separate Vocals**, the MelBand Roformer Karaoke model (~1.7GB) will be downloaded. Audio under about 10 seconds is padded automatically; very short clips may still fail with some models.
+
+### Melody separation quality
+
+Melody sub-stems (guitar, piano, other) use Demucs `htdemucs_6s`. The model has known limitations: some synth/keyboard can bleed into the guitar stem. You can improve separation at the cost of runtime with optional environment variables (set when starting the app, e.g. `DEMUCS_SHIFTS=2 npm run dev`):
+
+- **DEMUCS_SHIFTS** — Number of prediction shifts (default `2`). Higher values improve quality but multiply runtime; use `1` for faster runs.
+- **DEMUCS_OVERLAP** — Overlap between chunks (default `0.25`). Leave default unless tuning.
+- **DEMUCS_GUITAR_CLEANUP** — Set to `1`, `true`, or `yes` to run an extra pass that subtracts leaked piano/other from the guitar stem, which can reduce synth/keyboard in guitar. Disable if you hear artifacts or lost guitar.
+- **DEMUCS_GUITAR_CLEANUP_ALPHA** — Subtraction strength when cleanup is enabled (default `0.6`). Lower = less subtraction, higher = more aggressive cleanup.
 
 ## Deploy
 
