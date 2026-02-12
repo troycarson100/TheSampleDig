@@ -79,12 +79,24 @@ export async function POST(request: Request) {
 
     const { randomUUID } = await import("crypto")
     const newId = randomUUID()
-    await prisma.$executeRaw`
-      INSERT INTO user_samples (id, user_id, sample_id, start_time, notes, created_at)
-      VALUES (${newId}, ${session.user.id}, ${sampleId}, ${startTimeNum}, ${notesValue}, NOW())
-    `
+    try {
+      await prisma.$executeRaw`
+        INSERT INTO user_samples (id, user_id, sample_id, start_time, notes, created_at)
+        VALUES (${newId}, ${session.user.id}, ${sampleId}, ${startTimeNum}, ${notesValue}, NOW())
+      `
+    } catch (insertError: any) {
+      // Unique constraint (user_id, sample_id) - e.g. double-click or race; treat as already saved
+      const isUniqueViolation =
+        insertError?.code === "P2010" &&
+        (insertError?.meta?.code === "23505" || /23505|already exists/i.test(insertError?.message ?? ""))
+      if (isUniqueViolation) {
+        console.log("[Save] Row already exists (race/double-save), returning success")
+        return NextResponse.json({ success: true, sampleId })
+      }
+      throw insertError
+    }
 
-    console.log(`[Save] Success!`)
+    console.log("[Save] Success!")
     return NextResponse.json({ success: true, sampleId })
   } catch (error: any) {
     console.error("[Save] Error:", error)

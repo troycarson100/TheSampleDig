@@ -390,6 +390,7 @@ export default function StemSplitterPage() {
   }, [stems])
 
   const updateStem = useCallback((id: (typeof STEM_IDS)[number], patch: Partial<StemState>) => {
+    if ("solo" in patch || "muted" in patch) pendingSoloMuteRestartRef.current = true
     setStems((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)))
   }, [])
 
@@ -622,7 +623,7 @@ export default function StemSplitterPage() {
     if (ctx) pauseTimeRef.current = ctx.currentTime - startTimeRef.current
     stop(false)
     play()
-  }, [extraStemsStateByType, stop, play])
+  }, [stems, extraStemsStateByType, stop, play])
 
   const togglePlayPause = useCallback(() => {
     if (stems.length === 0) return

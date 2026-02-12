@@ -85,8 +85,9 @@ async function main() {
     }
 
     if (!skipDiscover && iteration < maxDiscoverRounds) {
-      const needMore = before.candidates.total < 5000 && before.samples < TARGET_SAMPLES
-      if (needMore) {
+      const needMoreCandidates = before.candidates.total < 5000 && before.samples < TARGET_SAMPLES
+      const needMoreProcessable = before.candidates.processable < 500 && before.samples < TARGET_SAMPLES
+      if (needMoreCandidates || needMoreProcessable) {
         await discoverPlaylists()
         const after = await getStats()
         console.log("[10k] After discover:", after)
