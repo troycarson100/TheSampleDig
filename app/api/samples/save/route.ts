@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { sampleId: inputSampleId, startTime, youtubeId, chops } = body
+    const { sampleId: inputSampleId, startTime, youtubeId, chops, loop } = body
 
     console.log(`[Save] Request: sampleId=${inputSampleId}, youtubeId=${youtubeId}, userId=${session.user.id}`)
 
@@ -73,9 +73,31 @@ export async function POST(request: Request) {
 
     // Insert using raw SQL so we only touch columns that exist in the DB
     const chopsData = Array.isArray(chops) && chops.length > 0 ? chops : null
-    const notesValue = chopsData ? JSON.stringify(chopsData) : null
+    const loopStartNum = loop?.loopStartMs != null ? Number(loop.loopStartMs) : NaN
+    const loopEndNum = loop?.loopEndMs != null ? Number(loop.loopEndMs) : NaN
+    const loopData =
+      loop &&
+      Array.isArray(loop?.sequence) &&
+      loop.sequence.length > 0 &&
+      !Number.isNaN(loopStartNum) &&
+      !Number.isNaN(loopEndNum) &&
+      loopEndNum > loopStartNum
+        ? {
+            sequence: loop.sequence,
+            loopStartMs: loopStartNum,
+            loopEndMs: loopEndNum,
+            fullLengthMs: loop.fullLengthMs != null && !Number.isNaN(Number(loop.fullLengthMs)) ? Number(loop.fullLengthMs) : undefined,
+          }
+        : null
+    const notesObj =
+      loopData || chopsData
+        ? loopData
+          ? { chops: chopsData ?? [], loop: loopData }
+          : chopsData
+        : null
+    const notesValue = notesObj ? JSON.stringify(notesObj) : null
     const startTimeNum = startTime != null ? parseInt(String(startTime), 10) : null
-    console.log(`[Save] Creating UserSample: userId=${session.user.id}, sampleId=${sampleId}, chops=${chopsData?.length ?? 0}`)
+    console.log(`[Save] Creating UserSample: userId=${session.user.id}, sampleId=${sampleId}, chops=${chopsData?.length ?? 0}, loop=${!!loopData}`)
 
     const { randomUUID } = await import("crypto")
     const newId = randomUUID()

@@ -7,8 +7,9 @@ import ChopPads from "./ChopPads"
 import ChopTimelineMarkers from "./ChopTimelineMarkers"
 import { useChopMode } from "@/hooks/useChopMode"
 import { loadYouTubeIframeAPI, createAdapterFromIframe } from "@/lib/youtube-player-adapter"
-import { KEY_COLORS, type YouTubePlayerAdapter, type Chop, type RecordedChopEvent } from "@/hooks/useChopMode"
+import { KEY_COLORS, type YouTubePlayerAdapter, type Chop, type RecordedChopEvent, type SavedLoopData } from "@/hooks/useChopMode"
 import { playMetronomeBeep } from "@/lib/audio/metronome"
+import { getSavedLoops, saveLoop, deleteSavedLoop, type SavedLoopEntry } from "@/lib/saved-loops-storage"
 
 interface SamplePlayerProps {
   youtubeId: string
@@ -23,13 +24,15 @@ interface SamplePlayerProps {
   startTime?: number
   duration?: number // Video duration in seconds
   isSaved?: boolean
-  /** Called when user toggles save. When saving (not unsaving), opts.chops are the active Chop Mode points to store. */
-  onSaveToggle?: (opts?: { chops?: Chop[] }) => void
+  /** Called when user toggles save. When saving (not unsaving), opts.chops and opts.loop are stored. */
+  onSaveToggle?: (opts?: { chops?: Chop[]; loop?: SavedLoopData }) => void
   showHeart?: boolean
   /** Restore saved chops when loading a saved sample. */
   initialChops?: Chop[] | null
-  /** When sample is saved, called (debounced) when chops change so parent can persist them. */
-  onSavedChopsChange?: (chops: Chop[]) => void
+  /** Restore saved recorded loop when loading a saved sample (play loop button). */
+  initialLoop?: SavedLoopData | null
+  /** When sample is saved, called (debounced) when chops or loop change so parent can persist them. */
+  onSavedChopsChange?: (chops: Chop[], loop?: SavedLoopData | null) => void
   onVideoError?: () => void // Callback when video is unavailable
 }
 
@@ -144,6 +147,7 @@ function SamplePlayer({
   showHeart = false,
   onVideoError,
   initialChops,
+  initialLoop,
   onSavedChopsChange,
 }: SamplePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
@@ -311,6 +315,7 @@ function SamplePlayer({
   const playChopByKeyRef = useRef<(key: string) => void>(() => {})
   const [isPlayingLoop, setIsPlayingLoop] = useState(false)
   const [clearLoopFlash, setClearLoopFlash] = useState(false)
+  const [savedLoopsList, setSavedLoopsList] = useState<SavedLoopEntry[]>([])
   const [liveRecordedEvents, setLiveRecordedEvents] = useState<RecordedChopEvent[]>([])
   const [recordingElapsedMs, setRecordingElapsedMs] = useState(0)
   const [playbackPositionMs, setPlaybackPositionMs] = useState(0)
@@ -563,15 +568,61 @@ function SamplePlayer({
 
   playChopByKeyRef.current = onPadKeyPress
 
-  // Auto-save chops when sample is already saved and chops change (debounced)
+  // Restore saved loop when loading a saved sample (initialLoop / youtubeId change).
+  // Use a serialized signature so that when we switch back to a saved sample (e.g. same
+  // object reference), the effect still runs and repopulates the loop bar.
+  const initialLoopSignature =
+    initialLoop?.sequence?.length != null
+      ? `${youtubeId}-${initialLoop.sequence.length}-${initialLoop.loopStartMs}-${initialLoop.loopEndMs}`
+      : ""
+  useEffect(() => {
+    if (!youtubeId) return
+    if (initialLoop?.sequence?.length) {
+      setRecordedSequence(initialLoop.sequence)
+      setLoopStartMs(initialLoop.loopStartMs)
+      setLoopEndMs(initialLoop.loopEndMs)
+      const fullMs =
+        initialLoop.fullLengthMs != null && initialLoop.fullLengthMs > 0
+          ? initialLoop.fullLengthMs
+          : Math.max(...initialLoop.sequence.map((e) => e.timeMs)) + 500
+      setRecordingFullLengthMs(fullMs)
+      recordingFullLengthRef.current = fullMs
+    } else {
+      setRecordedSequence([])
+      setLoopStartMs(0)
+      setLoopEndMs(0)
+      setRecordingFullLengthMs(0)
+      recordingFullLengthRef.current = 0
+    }
+  }, [youtubeId, initialLoopSignature, initialLoop])
+
+  // Load saved loops from localStorage when video changes
+  useEffect(() => {
+    if (!youtubeId) {
+      setSavedLoopsList([])
+      return
+    }
+    setSavedLoopsList(getSavedLoops(youtubeId))
+  }, [youtubeId])
+
+  // Auto-save chops and loop when sample is already saved and either change (debounced)
   const SAVED_CHOPS_DEBOUNCE_MS = 600
   useEffect(() => {
     if (!isSaved || !onSavedChopsChange) return
     const t = setTimeout(() => {
-      onSavedChopsChange(chops)
+      const loopPayload: SavedLoopData | null =
+        recordedSequence.length > 0
+          ? {
+              sequence: recordedSequence,
+              loopStartMs,
+              loopEndMs: loopEndMs || recordingFullLengthMs || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500,
+              fullLengthMs: recordingFullLengthMs || undefined,
+            }
+          : null
+      onSavedChopsChange(chops, loopPayload)
     }, SAVED_CHOPS_DEBOUNCE_MS)
     return () => clearTimeout(t)
-  }, [isSaved, chops, onSavedChopsChange])
+  }, [isSaved, chops, recordedSequence, loopStartMs, loopEndMs, recordingFullLengthMs, onSavedChopsChange])
   
   // Use a ref to store the initial start time and never change it for this video
   // This prevents the iframe src from changing after initial load
@@ -860,7 +911,24 @@ function SamplePlayer({
           <div className="absolute top-4 right-4 z-20 pointer-events-auto flex items-center justify-center w-14 h-14 rounded-full bg-black/50 backdrop-blur-sm shadow-md">
             <HeartToggle
               isSaved={isSaved}
-              onToggle={() => onSaveToggle(isSaved ? undefined : { chops: chops.length > 0 ? chops : undefined })}
+              onToggle={() => {
+                if (isSaved) {
+                  onSaveToggle(undefined)
+                  return
+                }
+                const hasLoop = recordedSequence.length > 0
+                onSaveToggle({
+                  chops: chops.length > 0 ? chops : undefined,
+                  loop: hasLoop
+                    ? {
+                        sequence: recordedSequence,
+                        loopStartMs,
+                        loopEndMs: loopEndMs || (recordingFullLengthMs || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500),
+                        fullLengthMs: recordingFullLengthMs || undefined,
+                      }
+                    : undefined,
+                })
+              }}
               size="lg"
               className=""
             />
@@ -1244,6 +1312,35 @@ function SamplePlayer({
               </div>
               <button
                 type="button"
+                onClick={() => {
+                  if (recordedSequence.length === 0) return
+                  const totalMs = recordingFullLengthMs || recordingFullLengthRef.current || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
+                  saveLoop(youtubeId ?? "", {
+                    sequence: recordedSequence,
+                    loopStartMs,
+                    loopEndMs: loopEndMs || totalMs,
+                    fullLengthMs: recordingFullLengthMs || totalMs,
+                  })
+                  setSavedLoopsList(getSavedLoops(youtubeId ?? ""))
+                }}
+                disabled={recordedSequence.length === 0}
+                className="flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{
+                  borderColor: "var(--border)",
+                  background: "var(--muted-light)",
+                  color: "var(--muted)",
+                }}
+                aria-label="Save loop copy"
+                title="Save a copy of this loop (load from list below)"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                  <polyline points="17 21 17 13 7 13 7 21" />
+                  <polyline points="7 3 7 8 15 8" />
+                </svg>
+              </button>
+              <button
+                type="button"
                 onClick={clearRecordedLoop}
                 className="flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90"
                 style={{
@@ -1276,6 +1373,83 @@ function SamplePlayer({
         </div>
         {chopModeEnabled && (
           <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} onRemoveChop={removeChop} pressedKey={pressedKey} />
+        )}
+        {chopModeEnabled && savedLoopsList.length > 0 && (
+          <div className="mt-3 w-full max-w-2xl mx-auto">
+            <p className="text-xs font-medium mb-1.5" style={{ color: "var(--muted)" }}>
+              Saved loops — click to load
+            </p>
+            <ul className="flex flex-col gap-2">
+              {savedLoopsList.map((entry) => {
+                const totalMs = entry.fullLengthMs ?? Math.max(...entry.sequence.map((e) => e.timeMs)) + 500
+                return (
+                  <li
+                    key={entry.id}
+                    className="flex items-center gap-2 p-2 rounded-lg border transition hover:opacity-90"
+                    style={{ borderColor: "var(--border)", background: "var(--muted-light)" }}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => {
+                        stopLoopPlayback()
+                        setRecordedSequence(entry.sequence)
+                        setLoopStartMs(entry.loopStartMs)
+                        setLoopEndMs(entry.loopEndMs)
+                        const full = entry.fullLengthMs ?? Math.max(...entry.sequence.map((e) => e.timeMs)) + 500
+                        setRecordingFullLengthMs(full)
+                        recordingFullLengthRef.current = full
+                      }}
+                      className="flex items-center flex-1 min-w-0 gap-2 text-left"
+                      title="Load this loop"
+                    >
+                      <div
+                        className="flex-shrink-0 w-16 h-2 rounded-sm overflow-hidden"
+                        style={{ background: "var(--background)" }}
+                        aria-hidden
+                      >
+                        <div className="relative w-full h-full">
+                          {entry.sequence
+                            .slice()
+                            .sort((a, b) => a.timeMs - b.timeMs)
+                            .map((ev, i) => (
+                              <div
+                                key={`${ev.key}-${ev.timeMs}-${i}`}
+                                className="absolute top-0 bottom-0 w-0.5 min-w-[2px] rounded-px"
+                                style={{
+                                  left: `${(ev.timeMs / totalMs) * 100}%`,
+                                  backgroundColor: KEY_COLORS[ev.key] ?? "#888",
+                                }}
+                              />
+                            ))}
+                        </div>
+                      </div>
+                      <span className="text-sm truncate" style={{ color: "var(--foreground)" }}>
+                        {entry.label ?? "Loop"}
+                      </span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        if (youtubeId) {
+                          deleteSavedLoop(youtubeId, entry.id)
+                          setSavedLoopsList(getSavedLoops(youtubeId))
+                        }
+                      }}
+                      className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full border transition hover:opacity-90"
+                      style={{ borderColor: "var(--border)", background: "var(--muted-light)", color: "var(--muted)" }}
+                      aria-label="Delete saved loop"
+                      title="Remove from saved loops"
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </div>
         )}
       </div>
     </div>

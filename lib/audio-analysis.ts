@@ -75,14 +75,15 @@ async function downloadYouTubeAudio(
   })
 }
 
+/** Preferred BPM range for sample material (avoids 2x / 0.5x octave errors). */
+const BPM_MIN = 55
+const BPM_MAX = 175
+
 /**
- * Analyze audio file for BPM using a simple autocorrelation approach
- * This is a basic implementation - for production, consider using librosa or essentia
+ * Analyze audio file for BPM using librosa with tempo folding to fix 2x/half-time errors.
  */
 async function detectBPM(audioPath: string): Promise<number | null> {
   try {
-    // For now, we'll use a Python script with librosa for accurate BPM detection
-    // This requires librosa to be installed: pip install librosa numpy
     return new Promise((resolve, reject) => {
       const python = spawn('python3', [
         '-c',
@@ -91,10 +92,37 @@ import librosa
 import sys
 import json
 
+def fold_tempo_to_range(tempo):
+    """Correct 2x (double-time) and 0.5x (half-time) octave errors. Prefer 55-175 BPM."""
+    if tempo is None or tempo <= 0:
+        return None
+    candidates = [tempo]
+    if tempo > BPM_MAX:
+        candidates.append(tempo / 2)
+        if tempo > BPM_MAX * 2:
+            candidates.append(tempo / 4)
+    if tempo < BPM_MIN:
+        candidates.append(tempo * 2)
+        if tempo < BPM_MIN / 2:
+            candidates.append(tempo * 4)
+    # Prefer value in [BPM_MIN, BPM_MAX]; else pick closest to middle of range
+    in_range = [c for c in candidates if BPM_MIN <= c <= BPM_MAX]
+    if in_range:
+        return round(in_range[0])
+    mid = (BPM_MIN + BPM_MAX) / 2
+    best = min(candidates, key=lambda c: abs(c - mid))
+    return round(best)
+
+BPM_MIN = ${BPM_MIN}
+BPM_MAX = ${BPM_MAX}
+
 try:
     y, sr = librosa.load('${audioPath}', duration=30)
-    tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
-    print(json.dumps({"bpm": round(float(tempo))}))
+    # prior=120 biases toward common tempo range, reduces octave errors
+    tempo, _ = librosa.beat.beat_track(y=y, sr=sr, prior=120)
+    raw_bpm = float(tempo)
+    bpm = fold_tempo_to_range(raw_bpm)
+    print(json.dumps({"bpm": bpm}))
 except Exception as e:
     print(json.dumps({"error": str(e)}))
     sys.exit(1)

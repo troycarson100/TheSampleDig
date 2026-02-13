@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react"
 import { useSession } from "next-auth/react"
 import SamplePlayer from "@/components/SamplePlayer"
+import type { SavedLoopData } from "@/hooks/useChopMode"
 import DiceButton from "@/components/DiceButton"
 import AutoplayToggle from "@/components/AutoplayToggle"
 import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
@@ -54,6 +55,7 @@ interface Sample {
   startTime?: number
   duration?: number
   chops?: Chop[]
+  loop?: SavedLoopData | null
 }
 
 const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
@@ -423,6 +425,7 @@ export default function DigPage() {
                 channel: currentSample.channel,
                 thumbnailUrl: currentSample.thumbnailUrl,
                 chops: opts?.chops,
+                loop: opts?.loop,
               }
         ),
       })
@@ -454,19 +457,19 @@ export default function DigPage() {
     }
   }, []) // No dependencies - callback is completely stable
 
-  // Auto-save chops when sample is already saved and user edits chops (debounced in SamplePlayer)
-  const handleSavedChopsChange = useCallback(async (chops: Chop[]) => {
+  // Auto-save chops and loop when sample is already saved and user edits (debounced in SamplePlayer)
+  const handleSavedChopsChange = useCallback(async (chops: Chop[], loop?: SavedLoopData | null) => {
     const currentSample = sampleRef.current
     if (!currentSample?.id) return
     try {
       const res = await fetch("/api/samples/update-chops", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sampleId: currentSample.id, chops }),
+        body: JSON.stringify({ sampleId: currentSample.id, chops, loop: loop ?? undefined }),
       })
       if (res.ok) window.dispatchEvent(new CustomEvent("samplesUpdated"))
     } catch (e) {
-      console.warn("[Dig] Failed to auto-save chops:", e)
+      console.warn("[Dig] Failed to auto-save chops/loop:", e)
     }
   }, [])
 
@@ -554,6 +557,7 @@ export default function DigPage() {
                   onSaveToggle={handleSaveToggle}
                   showHeart={!!session}
                   initialChops={sample.chops}
+                  initialLoop={sample.loop}
                   onSavedChopsChange={session ? handleSavedChopsChange : undefined}
                   onVideoError={() => {
                     if (sample?.youtubeId) {
@@ -596,6 +600,7 @@ export default function DigPage() {
                       startTime: savedSample.startTime,
                       duration: savedSample.duration,
                       chops: savedSample.chops,
+                      loop: savedSample.loop,
                     })
                     setIsSaved(true)
                     // Add to seen list to prevent it from showing again when rolling dice
