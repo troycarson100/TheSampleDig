@@ -35,6 +35,14 @@ export interface RecordedChopEvent {
   timeMs: number
 }
 
+/** Persisted loop for save/restore: recorded sequence + loop range (ms). */
+export interface SavedLoopData {
+  sequence: RecordedChopEvent[]
+  loopStartMs: number
+  loopEndMs: number
+  fullLengthMs?: number
+}
+
 export interface YouTubePlayerAdapter {
   getCurrentTime(): number
   /** Duration in seconds; 0 until video metadata is loaded. */

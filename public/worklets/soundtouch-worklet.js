@@ -1,5 +1,5 @@
 /*
-* SoundTouch Audio Worklet v0.3.0 AudioWorklet using the
+* SoundTouch Audio Worklet v0.2.1 AudioWorklet using the
 * SoundTouch audio processing library
 * 
 * Copyright (c) Olli Parviainen
@@ -21,6 +21,8 @@
 * License along with this library; if not, write to the Free Software
 * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 */
+
+'use strict';
 
 function _assertThisInitialized(e) {
   if (void 0 === e) throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
@@ -183,9 +185,8 @@ var FifoSampleBuffer = function () {
   }, {
     key: "clear",
     value: function clear() {
-      this._vector.fill(0);
-      this._position = 0;
-      this._frameCount = 0;
+      this.receive(this._frameCount);
+      this.rewind();
     }
   }, {
     key: "put",
@@ -329,12 +330,6 @@ var RateTransposer = function (_AbstractFifoSamplePi) {
       this.slopeCount = 0;
       this.prevSampleL = 0;
       this.prevSampleR = 0;
-    }
-  }, {
-    key: "clear",
-    value: function clear() {
-      _superPropGet(RateTransposer, "clear", this)([]);
-      this.reset();
     }
   }, {
     key: "clone",
@@ -563,12 +558,10 @@ var Stretch = function (_AbstractFifoSamplePi2) {
   }, {
     key: "clearMidBuffer",
     value: function clearMidBuffer() {
-      this.midBufferDirty = false;
-      this.midBuffer = null;
-      if (this.refMidBuffer) {
-        this.refMidBuffer.fill(0);
+      if (this.midBufferDirty) {
+        this.midBufferDirty = false;
+        this.midBuffer = null;
       }
-      this.skipFract = 0;
     }
   }, {
     key: "setParameters",

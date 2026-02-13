@@ -24,6 +24,7 @@ interface SavedSample {
   startTime?: number
   duration?: number
   chops?: { key: string; time: number; color: string; index: number }[]
+  loop?: { sequence: { key: string; timeMs: number }[]; loopStartMs: number; loopEndMs: number; fullLengthMs?: number }
 }
 
 type FilterType = "genre" | "key"
@@ -138,6 +139,7 @@ export default function ProfilePage() {
           startTime: s.startTime,
           duration: s.duration,
           chops: s.chops,
+          loop: s.loop,
         })
       )
       router.push("/dig")
