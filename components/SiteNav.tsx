@@ -36,9 +36,9 @@ export default function SiteNav() {
           </button>
           <Link href="/dig" className="flex items-center gap-2 no-underline shrink-0" aria-label="Sample Roll – Home">
             <Image
-              src="/SampleRoll-logo-white-long.svg"
+              src="/SampleRoll-text.svg"
               alt="Sample Roll"
-              width={1677}
+              width={1384}
               height={279}
               className="h-6 w-auto object-contain"
               priority

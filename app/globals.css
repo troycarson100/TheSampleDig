@@ -129,6 +129,10 @@ body.theme-vinyl::before {
 }
 
 /* ─── Vinyl theme: Nav (redesign: compact dark bar) ────────────────── */
+.theme-vinyl {
+  --nav-bg: rgba(14, 12, 10, 0.92);
+  --nav-blur: 20px;
+}
 .theme-vinyl .site-header {
   position: fixed;
   inset: 0 0 auto;
@@ -138,8 +142,8 @@ body.theme-vinyl::before {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(14, 12, 10, 0.92);
-  backdrop-filter: blur(20px);
+  background: var(--nav-bg);
+  backdrop-filter: blur(var(--nav-blur));
   border-bottom: 1px solid rgba(201, 147, 58, 0.08);
 }
 
@@ -754,9 +758,10 @@ body.theme-vinyl::before {
   background: var(--rust);
 }
 
-/* ─── Sidebar / My Samples (dark groove per prompt + HTML) ──────────── */
+/* ─── Sidebar / My Samples (match nav background) ───────────────────── */
 .theme-vinyl .sidebar-dark {
-  background: var(--groove);
+  background: var(--nav-bg);
+  backdrop-filter: blur(var(--nav-blur));
   border: 1px solid rgba(240, 235, 225, 0.06);
   border-radius: 8px;
   overflow: hidden;
@@ -768,7 +773,8 @@ body.theme-vinyl::before {
   max-width: 100%;
   min-width: 0;
   box-sizing: border-box;
-  background: var(--groove);
+  background: var(--nav-bg);
+  backdrop-filter: blur(var(--nav-blur));
   border-radius: 8px 8px 0 0;
   border: 1px solid rgba(240, 235, 225, 0.06);
   border-bottom: none;
@@ -809,7 +815,8 @@ body.theme-vinyl::before {
   color: rgba(240, 235, 225, 0.6);
 }
 .theme-vinyl .sidebar-dark .samples-list-inner {
-  background: var(--groove);
+  background: var(--nav-bg);
+  backdrop-filter: blur(var(--nav-blur));
   border-left: 1px solid rgba(240, 235, 225, 0.06);
   border-right: 1px solid rgba(240, 235, 225, 0.06);
   border-bottom: 1px solid rgba(240, 235, 225, 0.06);

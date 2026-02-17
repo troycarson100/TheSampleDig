@@ -1046,10 +1046,19 @@ function SamplePlayer({
                   <div
                     className="flex items-center justify-center gap-0.5 py-2 px-1.5 min-w-[3.5rem] cursor-ew-resize font-mono"
                     style={{ color: META_BOX_STYLE.color }}
+                    title={isBpmOverridden ? "Double-click to reset to original BPM" : undefined}
                     onDoubleClick={(e) => {
                       e.preventDefault()
-                      setBpmEditing(true)
-                      setBpmEditInput(String(effectiveBpm))
+                      if (isBpmOverridden) {
+                        setBpmOverride(null)
+                        if (bpmEditing) {
+                          setBpmEditing(false)
+                          setBpmEditInput(String(analyzedBpm ?? effectiveBpm))
+                        }
+                      } else {
+                        setBpmEditing(true)
+                        setBpmEditInput(String(effectiveBpm))
+                      }
                     }}
                     onMouseDown={handleBpmDragStart}
                   >
