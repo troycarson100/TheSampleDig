@@ -186,6 +186,7 @@ function SamplePlayer({
     chopKeysFocusTrapRef.current?.focus()
   }, [])
 
+  // BPM/key come from DB only (metadata backfill). We do not use yt-dlp/analyzer on dig.
   const analyzedBpm = typeof bpm === "number" && bpm > 0 ? bpm : null
   const effectiveBpm = bpmOverride ?? analyzedBpm
   const isBpmOverridden = bpmOverride != null
@@ -955,7 +956,7 @@ function SamplePlayer({
         <div>
           <h3 className="text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>{title}</h3>
           <p className="mb-2 text-sm" style={{ color: "var(--muted)" }}>{channel}</p>
-          {(genre || era || effectiveBpm != null || musicalKey || analysisStatus === "processing" || analysisStatus === "pending") && (
+          {(genre || era || effectiveBpm != null || musicalKey) && (
             <div className="flex gap-2 flex-wrap">
               {genre && <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{genre}</span>}
               {era && <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{era}</span>}
@@ -1066,9 +1067,6 @@ function SamplePlayer({
                 </div>
               )}
               {musicalKey && <span className="px-3 py-1.5 rounded-lg text-sm font-mono border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>{musicalKey}</span>}
-              {(analysisStatus === "processing" || analysisStatus === "pending") && effectiveBpm == null && !musicalKey && (
-                <span className="px-3 py-1.5 rounded-lg text-sm border" style={{ background: "#FFF", color: "var(--foreground)", borderColor: "var(--border)" }}>Analyzing...</span>
-              )}
             </div>
           )}
         </div>

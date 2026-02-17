@@ -91,6 +91,7 @@ async function detectBPM(audioPath: string): Promise<number | null> {
 import librosa
 import sys
 import json
+import numpy as np
 
 def fold_tempo_to_range(tempo):
     """Correct 2x (double-time) and 0.5x (half-time) octave errors. Prefer 55-175 BPM."""
@@ -118,9 +119,10 @@ BPM_MAX = ${BPM_MAX}
 
 try:
     y, sr = librosa.load('${audioPath}', duration=30)
-    # prior=120 biases toward common tempo range, reduces octave errors
-    tempo, _ = librosa.beat.beat_track(y=y, sr=sr, prior=120)
-    raw_bpm = float(tempo)
+    # start_bpm=120 biases toward common tempo range, reduces octave errors (prior=scipy dist in newer librosa)
+    tempo, _ = librosa.beat.beat_track(y=y, sr=sr, start_bpm=120.0)
+    # tempo is a numpy array (1-element), not a float in recent librosa
+    raw_bpm = float(np.atleast_1d(tempo).flat[0])
     bpm = fold_tempo_to_range(raw_bpm)
     print(json.dumps({"bpm": bpm}))
 except Exception as e:
@@ -155,8 +157,13 @@ except Exception as e:
             resolve(null)
           }
         } else {
-          console.error('Python BPM detection failed:', errorOutput)
-          // Fallback: return null if Python/librosa not available
+          // Script may print {"error": "..."} to stdout before exit(1)
+          try {
+            const result = JSON.parse(output.trim())
+            if (result.error) console.error('BPM detection error:', result.error)
+          } catch {
+            if (errorOutput) console.error('Python BPM stderr:', errorOutput)
+          }
           resolve(null)
         }
       })

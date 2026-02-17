@@ -3,6 +3,7 @@ import {
   VINYL_RIP_KEYWORDS,
   NEGATIVE_KEYWORDS,
   HARD_FILTER_PATTERNS,
+  HARD_FILTER_WORD_BOUNDARY_TITLE_CHANNEL,
   SCORING_WEIGHTS,
   DURATION_PATTERNS
 } from "./youtube-config"
@@ -86,7 +87,37 @@ export function generateQueryTemplates(): string[] {
   templates.push(`"album artwork" "vinyl" "full album" ${negativeKw}`)
   templates.push(`"cover art" "vinyl rip" "1960s" ${negativeKw}`)
   templates.push(`"static cover" "vinyl" "1970s" ${negativeKw}`)
-  
+
+  // New templates (fresh result sets; no needledrop, album art, album image)
+  templates.push(`"production music" "vinyl rip" "full album" "1970s" ${negativeKw}`)
+  templates.push(`"record rip" "from vinyl" "1960s" ${negativeKw}`)
+  templates.push(`"vinyl transfer" "full album" "1970s" ${negativeKw}`)
+  templates.push(`"complete album" "vinyl rip" "pre-1980" ${negativeKw}`)
+  templates.push(`"70s" "vinyl rip" "album" ${negativeKw}`)
+  templates.push(`"60s" "from vinyl" "full album" ${negativeKw}`)
+  templates.push(`"private pressing" "vinyl rip" "1960s" ${negativeKw}`)
+  templates.push(`"obscure record" "needle drop" "1970s" ${negativeKw}`)
+  templates.push(`"obscure soul" "vinyl rip" "1960s" ${negativeKw}`)
+  templates.push(`"flip side" "45 rpm" "1970s" ${negativeKw}`)
+  templates.push(`"De Wolfe" "library music" "vinyl" ${negativeKw}`)
+  templates.push(`"Chappell" "library music" "1960s" ${negativeKw}`)
+  templates.push(`"crate digging" "vinyl rip" "full album" ${negativeKw}`)
+  templates.push(`"heavy funk" "from vinyl" "1970s" ${negativeKw}`)
+  templates.push(`"psychedelic" "vinyl rip" "full album" "1960s" ${negativeKw}`)
+  templates.push(`"bossa" "vinyl rip" "LP" ${negativeKw}`)
+  templates.push(`"record sleeve" "vinyl rip" "album" ${negativeKw}`)
+  templates.push(`"album artwork" "vinyl" "full album" ${negativeKw}`)
+  templates.push(`"cover art" "vinyl rip" "1970s" ${negativeKw}`)
+  templates.push(`"album cover" "record rip" "1960s" ${negativeKw}`)
+  templates.push(`"static image" "from vinyl" "full album" ${negativeKw}`)
+  templates.push(`"record cover" "vinyl transfer" "1970s" ${negativeKw}`)
+  templates.push(`"library music" "needle drop" "60s" ${negativeKw}`)
+  templates.push(`"rare groove" "record sleeve" "vinyl" ${negativeKw}`)
+  templates.push(`"full LP" "album artwork" "1970s" ${negativeKw}`)
+  templates.push(`"7 inch" "cover art" "vinyl rip" ${negativeKw}`)
+  templates.push(`"promo" "static image" "from vinyl" ${negativeKw}`)
+  templates.push(`"b-side" "record sleeve" "vinyl" ${negativeKw}`)
+
   return templates
 }
 
@@ -694,9 +725,13 @@ function shouldHardFilter(
   const channelLower = channelTitle.toLowerCase()
   const descLower = (description || "").toLowerCase()
   
-  // Check title/channel patterns
+  // Check title/channel patterns (word-boundary for short/ambiguous ones e.g. "nas")
+  const escapeRegex = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
   for (const pattern of HARD_FILTER_PATTERNS.titleChannel) {
-    if (titleLower.includes(pattern) || channelLower.includes(pattern)) {
+    const matches = HARD_FILTER_WORD_BOUNDARY_TITLE_CHANNEL.has(pattern)
+      ? new RegExp(`\\b${escapeRegex(pattern)}\\b`, "i").test(titleLower) || new RegExp(`\\b${escapeRegex(pattern)}\\b`, "i").test(channelLower)
+      : titleLower.includes(pattern) || channelLower.includes(pattern)
+    if (matches) {
       console.log(`[Hard Filter] REJECTED: ${title} - Matches pattern: ${pattern}`)
       return true
     }
@@ -784,9 +819,10 @@ function calculateVinylRipScore(
   ]
   
   // DJ/manipulation indicators (NEGATIVE - reject these)
+  // Note: "crate digging" and "digging" omitted so vinyl-rip uploads that mention them can pass
   const djManipulationIndicators = [
     "scratch", "scratching", "dj", "turntable", "turntablism", "beat juggling",
-    "crate digging", "digging", "mixing", "dj set", "dj mix",
+    "mixing", "dj set", "dj mix",
     "vinyl manipulation", "record manipulation", "spinning", "rotating",
     "dj scratch", "turntable scratch", "scratch dj", "hands on", "hand on",
     "manipulating", "manipulation"
@@ -814,28 +850,29 @@ function calculateVinylRipScore(
   // REQUIRE at least ONE static visual indicator (album cover, static image, etc.)
   // This ensures we only get static images, not DJ/manipulation videos
   const hasStaticVisualIndicator = visualIndicatorCount > 0
+  // Use title AND description so we match the pass gate (which uses title+description+tags)
+  const textForVinylSignals = `${titleLower} ${descLower}`
   const hasStrongVinylSignals = (
-    titleLower.includes("vinyl rip") ||
-    titleLower.includes("needle drop") ||
-    titleLower.includes("from vinyl") ||
-    titleLower.includes("45 rpm") ||
-    titleLower.includes("full album") ||
-    titleLower.includes("library music") ||
+    textForVinylSignals.includes("vinyl rip") ||
+    textForVinylSignals.includes("needle drop") ||
+    textForVinylSignals.includes("from vinyl") ||
+    textForVinylSignals.includes("45 rpm") ||
+    textForVinylSignals.includes("45rpm") ||
+    textForVinylSignals.includes("full album") ||
+    textForVinylSignals.includes("library music") ||
+    textForVinylSignals.includes(" LP ") ||
+    textForVinylSignals.includes(" lp ") ||
     titleLower.includes("LP") ||
-    titleLower.includes("7 inch")
+    titleLower.includes("vinyl") ||
+    titleLower.startsWith("lp ") ||
+    titleLower.startsWith("lp/") ||
+    textForVinylSignals.includes("7 inch")
   )
   
-  // CRITICAL: If no static visual indicator, heavily penalize
-  // We want ONLY static images of album covers/vinyl, not DJ videos
-  if (!hasStaticVisualIndicator) {
-    score -= 80 // Very heavy penalty - reject videos without static visual indicators
-    console.log(`  - No static visual indicator (-80)`)
-  }
-  
-  // If no visual indicator AND no strong vinyl signals, reject completely
+  // Only penalize when BOTH static and strong vinyl are missing (so "vinyl rip" in description can pass)
   if (!hasStaticVisualIndicator && !hasStrongVinylSignals) {
-    score -= 100 // Maximum penalty - reject videos without clear static vinyl/album indicators
-    console.log(`  - No static visual/vinyl indicators (-100)`)
+    score -= 80
+    console.log(`  - No static visual/vinyl indicators (-80)`)
   }
   
   // Duration: Single track (1:30-8:00)
@@ -966,6 +1003,36 @@ function calculateVinylRipScore(
 }
 
 /**
+ * Fetch one page of YouTube search results (for pagination or single page).
+ * Returns raw items and nextPageToken; does not filter or score.
+ */
+async function fetchSearchPage(
+  query: string,
+  publishedBeforeDate: Date | undefined,
+  pageToken?: string
+): Promise<{ items: any[]; nextPageToken?: string }> {
+  const response = await fetchWithKeyRotation((key) => {
+    const params = new URLSearchParams({
+      part: "snippet",
+      q: query,
+      type: "video",
+      maxResults: "50",
+      order: "relevance",
+      videoCategoryId: "10",
+      key,
+    })
+    if (publishedBeforeDate) params.set("publishedBefore", publishedBeforeDate.toISOString())
+    if (pageToken) params.set("pageToken", pageToken)
+    return fetch(`${YOUTUBE_API_URL}?${params}`)
+  })
+  const data = await response.json()
+  return {
+    items: data.items || [],
+    nextPageToken: data.nextPageToken || undefined,
+  }
+}
+
+/**
  * Search YouTube with a specific query and return filtered + scored results
  */
 export async function searchWithQuery(
@@ -978,8 +1045,7 @@ export async function searchWithQuery(
     throw new Error("No YouTube API key set. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
   }
 
-  // Check cache first
-  const cacheKey = `${query}:${excludedVideoIds.sort().join(',')}:${publishedBeforeDate?.toISOString() || 'default'}`
+  // Check cache first (only for non-paginated call)
   const cached = getCachedSearchResult<Array<any>>(query, excludedVideoIds)
   if (cached) {
     console.log(`[Search] Using cached results for query: ${query.substring(0, 50)}...`)
@@ -988,39 +1054,37 @@ export async function searchWithQuery(
 
   const dateFilter = publishedBeforeDate || new Date("2010-01-01")
   console.log(`[Search] Fetching from YouTube API with query: ${query.substring(0, 80)}...`)
-  const response = await fetchWithKeyRotation((key) => {
-    const params = new URLSearchParams({
-      part: "snippet",
-      q: query,
-      type: "video",
-      maxResults: "25",
-      order: "relevance",
-      videoCategoryId: "10",
-      publishedBefore: dateFilter.toISOString(),
-      key,
-    })
-    return fetch(`${YOUTUBE_API_URL}?${params}`)
-  })
+  const { items } = await fetchSearchPage(query, dateFilter)
 
-  const data = await response.json()
-
-  if (!data.items || data.items.length === 0) {
+  if (!items.length) {
     console.log(`[Search] No results for query: ${query.substring(0, 50)}`)
     return []
   }
   
-  console.log(`[Search] YouTube API returned ${data.items.length} videos for query: ${query.substring(0, 50)}...`)
+  const out = await processSearchPageItems(items, query, excludedVideoIds)
+  cacheSearchResult(query, excludedVideoIds, out.results)
+  return out.results
+}
 
-  // Filter and score videos using new algorithm
-  // Limit to first 15 videos for speed and quota management (reduced from 20)
-  const videosToCheck = data.items.slice(0, 15)
-  
+/**
+ * Process raw search items into filtered + scored results (shared by searchWithQuery and searchWithQueryPaginated).
+ */
+async function processSearchPageItems(
+  rawItems: any[],
+  query: string,
+  excludedVideoIds: string[]
+): Promise<{ results: any[]; hadCandidates: boolean }> {
+  const videosToCheck = rawItems
+  const excludedSet = excludedVideoIds.length > 0 ? new Set(excludedVideoIds) : null
+
   // Filter out excluded videos first (before API calls)
-  const candidateVideos = videosToCheck.filter((v: { id: { videoId: string } }) => !excludedVideoIds.includes(v.id.videoId))
-  
+  const candidateVideos = excludedSet
+    ? videosToCheck.filter((v: { id: { videoId: string } }) => !excludedSet.has(v.id.videoId))
+    : videosToCheck
+
   if (candidateVideos.length === 0) {
     console.log(`[Search] All ${videosToCheck.length} videos were excluded`)
-    return []
+    return { results: [], hadCandidates: false }
   }
   
   // Check cache first for batch video details
@@ -1080,8 +1144,8 @@ export async function searchWithQuery(
     
     // Also allow strong vinyl rip signals (but prefer static visual)
     const strongVinylSignals = [
-      "vinyl rip", "needle drop", "from vinyl", "45 rpm", "7 inch",
-      "full album", "library music", "LP"
+      "vinyl rip", "needle drop", "from vinyl", "45 rpm", "45rpm", "7 inch",
+      "full album", "library music", "lp", "vinyl"
     ]
     
     const hasStaticIndicator = requiredStaticIndicators.some(indicator => 
@@ -1161,9 +1225,13 @@ export async function searchWithQuery(
     ]
     
     // Check for modern hip-hop song titles first (most specific)
+    // Use word boundary for "i" so we don't reject every title containing the letter i (e.g. Incriveis, vinyl)
     let isModernSong = false
     for (const song of modernHipHopSongs) {
-      if (titleLower.includes(song)) {
+      const matches = song.length <= 2
+        ? new RegExp(`\\b${song.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(titleLower)
+        : titleLower.includes(song)
+      if (matches) {
         console.log(`[Search] Hard filtered: Modern hip-hop song "${song}" in: ${video.snippet.title}`)
         isModernSong = true
         break
@@ -1173,10 +1241,14 @@ export async function searchWithQuery(
       continue // Skip this video
     }
     
-    // Reject if title/channel contains modern hip-hop artist name
+    // Reject if title/channel contains modern hip-hop artist name (word-boundary for short names e.g. "nas" vs "Meninas")
+    const artistWordBoundary = new Set(["nas", "gza", "odb", "rza", "j cole"])
     let isModernHipHop = false
     for (const artist of modernHipHopArtists) {
-      if (allText.includes(artist)) {
+      const matches = artistWordBoundary.has(artist)
+        ? new RegExp(`\\b${artist.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(allText)
+        : allText.includes(artist)
+      if (matches) {
         console.log(`[Search] Hard filtered: Modern hip-hop artist "${artist}" in: ${video.snippet.title}`)
         isModernHipHop = true
         break
@@ -1205,13 +1277,15 @@ export async function searchWithQuery(
     }
     
     // Additional check: If title contains artist name format (e.g., "50 Cent - Song Name")
-    // and it's a modern artist, reject it immediately
+    // and it's a modern artist, reject it immediately (word-boundary for short names e.g. nas)
     const artistTitlePattern = /^[\w\s]+[\s-]+[\w\s]+/i
     if (artistTitlePattern.test(video.snippet.title)) {
-      // Check if it matches modern artist format
       let isModernArtistTitle = false
       for (const artist of modernHipHopArtists) {
-        if (titleLower.startsWith(artist) || (titleLower.includes(` - `) && titleLower.includes(artist))) {
+        const matchesArtist = artistWordBoundary.has(artist)
+          ? new RegExp(`\\b${artist.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(titleLower)
+          : titleLower.startsWith(artist) || (titleLower.includes(` - `) && titleLower.includes(artist))
+        if (matchesArtist) {
           console.log(`[Search] Hard filtered: Modern artist in title format: ${video.snippet.title}`)
           isModernArtistTitle = true
           break
@@ -1242,28 +1316,35 @@ export async function searchWithQuery(
     )
     
     // Accept videos with score >= 20 AND must have STATIC visual indicators
-    // Increased threshold to prioritize static album covers and vinyl images
+    // Check title + description + tags (titleLower/descLower already set above) so "vinyl rip" in description counts
+    const tagsLower = (details.tags || []).join(" ").toLowerCase()
+    const textForIndicator = `${titleLower} ${descLower} ${tagsLower}`
     const hasStaticVisualIndicator = (
-      titleLower.includes("album cover") ||
-      titleLower.includes("record cover") ||
-      titleLower.includes("vinyl cover") ||
-      titleLower.includes("static image") ||
-      titleLower.includes("static cover") ||
-      titleLower.includes("album sleeve") ||
-      titleLower.includes("record image") ||
-      titleLower.includes("vinyl image") ||
-      titleLower.includes("album artwork") ||
-      titleLower.includes("cover art")
+      textForIndicator.includes("album cover") ||
+      textForIndicator.includes("record cover") ||
+      textForIndicator.includes("vinyl cover") ||
+      textForIndicator.includes("static image") ||
+      textForIndicator.includes("static cover") ||
+      textForIndicator.includes("album sleeve") ||
+      textForIndicator.includes("record image") ||
+      textForIndicator.includes("vinyl image") ||
+      textForIndicator.includes("album artwork") ||
+      textForIndicator.includes("cover art")
     )
-    
     const hasStrongVinylSignal = (
-      titleLower.includes("vinyl rip") ||
-      titleLower.includes("needle drop") ||
-      titleLower.includes("from vinyl") ||
-      titleLower.includes("45 rpm") ||
-      titleLower.includes("full album") ||
-      titleLower.includes("library music") ||
-      titleLower.includes("LP")
+      textForIndicator.includes("vinyl rip") ||
+      textForIndicator.includes("needle drop") ||
+      textForIndicator.includes("from vinyl") ||
+      textForIndicator.includes("45 rpm") ||
+      textForIndicator.includes("45rpm") ||
+      textForIndicator.includes("full album") ||
+      textForIndicator.includes("library music") ||
+      textForIndicator.includes(" LP ") ||
+      textForIndicator.includes(" lp ") ||
+      titleLower.includes("LP") ||
+      titleLower.includes("vinyl") ||
+      titleLower.startsWith("lp ") ||
+      titleLower.startsWith("lp/")
     )
     
     // REJECT if has DJ/manipulation terms (duplicate check in scoring path)
@@ -1309,14 +1390,30 @@ export async function searchWithQuery(
   scoredVideos.sort((a, b) => b.vinylRipScore - a.vinylRipScore)
   
   console.log(`[Search] Found ${scoredVideos.length} videos with score >= 5 (top scores: ${scoredVideos.slice(0, 3).map(v => v.vinylRipScore).join(", ")})`)
-  
-  // Return top 10 highest-scoring videos (or all if less than 10)
-  const results = scoredVideos.slice(0, 10)
-  
-  // Cache the results
-  cacheSearchResult(query, excludedVideoIds, results)
-  
-  return results
+
+  // Return top 10 highest-scoring videos (or all if less than 10); we had candidates so hadCandidates: true
+  return { results: scoredVideos.slice(0, 10), hadCandidates: true }
+}
+
+/**
+ * Paginated search: fetch one page of results and return nextPageToken for more.
+ * Does not use cache. Used by populate to get more than the first page per query.
+ */
+export async function searchWithQueryPaginated(
+  query: string,
+  excludedVideoIds: string[],
+  publishedBeforeDate: Date | undefined,
+  pageToken?: string
+): Promise<{ results: any[]; nextPageToken?: string; hadCandidates: boolean }> {
+  if (!getFirstYouTubeApiKey()) {
+    throw new Error("No YouTube API key set. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
+  }
+  const { items, nextPageToken } = await fetchSearchPage(query, publishedBeforeDate, pageToken)
+  if (!items.length) {
+    return { results: [], nextPageToken, hadCandidates: false }
+  }
+  const out = await processSearchPageItems(items, query, excludedVideoIds)
+  return { results: out.results, nextPageToken, hadCandidates: out.hadCandidates }
 }
 
 /**

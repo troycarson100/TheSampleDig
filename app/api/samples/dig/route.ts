@@ -272,69 +272,36 @@ export async function GET(request: Request) {
       
       console.log(`[Dig] Sample ready: ${sampleId} (YouTube: ${video.id})`)
 
-      // Trigger async analysis if not already completed
-      // Only trigger if analysis hasn't failed multiple times
-      if (sample.analysisStatus !== "completed" && sample.analysisStatus !== "processing") {
-        // Update status to processing immediately
-        try {
-          await prisma.sample.update({
-            where: { id: sample.id },
-            data: { analysisStatus: "processing" }
-          })
-          analysisStatus = "processing"
-        } catch (updateError) {
-          console.error("Failed to update analysis status:", updateError)
-        }
-        
-        // Fire-and-forget: don't await, let it run in background
-        // Construct URL for internal API call - use localhost for server-side calls
-        const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
-        
-        // Trigger analysis in background (don't block response)
-        // Use setTimeout to ensure this runs after response is sent
-        setTimeout(() => {
-          const analysisStartTime = Date.now()
-          
-          // Create abort controller for timeout
-          const controller = new AbortController()
-          const timeoutId = setTimeout(() => controller.abort(), 35000) // 35 second timeout
-          
-          fetch(`${baseUrl}/api/audio/analyze`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ youtubeId: video.id, sampleId: sample.id }),
-            signal: controller.signal
-          })
-          .then(res => {
-            clearTimeout(timeoutId)
-            const elapsed = Date.now() - analysisStartTime
-            console.log(`[Analysis] API response after ${elapsed}ms for ${sample.id}`)
-            if (!res.ok) {
-              console.error('Analysis API returned error:', res.status, res.statusText)
-              return res.text().then(text => {
-                console.error('Analysis error response:', text)
-                throw new Error(`Analysis failed: ${res.status} ${text}`)
-              })
-            }
-            return res.json()
-          })
-          .then(data => {
-            const elapsed = Date.now() - analysisStartTime
-            console.log(`[Analysis] Completed for sample ${sample.id} after ${elapsed}ms:`, data)
-          })
-          .catch(err => {
-            clearTimeout(timeoutId)
-            const elapsed = Date.now() - analysisStartTime
-            const isTimeout = err?.name === 'AbortError' || err?.message?.includes('aborted')
-            console.error(`[Analysis] Failed for sample ${sample.id} after ${elapsed}ms:`, isTimeout ? 'TIMEOUT' : err?.message || err)
-            // Update status to failed
-            prisma.sample.update({
-              where: { id: sample.id },
-              data: { analysisStatus: "failed" }
-            }).catch(e => console.error("Failed to update failed status:", e))
-          })
-        }, 100)
-      }
+      // BPM/key analysis disabled for dig page to avoid YouTube ToS and yt-dlp usage.
+      // Dig page uses tap tempo for BPM only. Stem separation page still uses analyzeAudioFile (user uploads).
+      // if (sample.analysisStatus !== "completed" && sample.analysisStatus !== "processing") {
+      //   try {
+      //     await prisma.sample.update({
+      //       where: { id: sample.id },
+      //       data: { analysisStatus: "processing" }
+      //     })
+      //     analysisStatus = "processing"
+      //   } catch (updateError) {
+      //     console.error("Failed to update analysis status:", updateError)
+      //   }
+      //   const baseUrl = process.env.NEXTAUTH_URL || 'http://localhost:3000'
+      //   setTimeout(() => {
+      //     const controller = new AbortController()
+      //     const timeoutId = setTimeout(() => controller.abort(), 35000)
+      //     fetch(`${baseUrl}/api/audio/analyze`, {
+      //       method: 'POST',
+      //       headers: { 'Content-Type': 'application/json' },
+      //       body: JSON.stringify({ youtubeId: video.id, sampleId: sample.id }),
+      //       signal: controller.signal
+      //     })
+      //     .then(res => { clearTimeout(timeoutId); return res.ok ? res.json() : res.text().then(t => { throw new Error(t) }) })
+      //     .then(data => console.log('[Analysis] Completed for sample', sample.id, data))
+      //     .catch(err => {
+      //       clearTimeout(timeoutId)
+      //       prisma.sample.update({ where: { id: sample.id }, data: { analysisStatus: "failed" } }).catch(() => {})
+      //     })
+      //   }, 100)
+      // }
     } catch (dbError: any) {
       // Database error - log but try to continue
       console.error("[Dig] Database error:", dbError?.message || dbError)
@@ -388,7 +355,8 @@ export async function GET(request: Request) {
     }
     
     // Return the sample - use database ID if available, otherwise YouTube ID
-    // Save endpoint will handle creation if needed
+    // Save endpoint will handle creation if needed.
+    // bpm/key/analysisStatus are from DB only (metadata backfill); we do not use the yt-dlp analyzer on dig.
     console.log(`[Dig] Returning sample - ID: ${sampleId}, YouTube ID: ${video.id}, Excluded count: ${excludedVideoIds.length}`)
     console.log(`[Dig] ✓ Video ${video.id} is NOT in excluded list (verified)`)
     return NextResponse.json({

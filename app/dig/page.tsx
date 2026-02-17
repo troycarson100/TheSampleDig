@@ -295,72 +295,34 @@ export default function DigPage() {
     }
   }, [sample?.id, status])
 
-  // Poll for analysis updates if status is processing or pending (with shorter timeout)
-  useEffect(() => {
-    if (sample?.id && (sample.analysisStatus === "processing" || sample.analysisStatus === "pending")) {
-      let pollCount = 0
-      const maxPolls = 8 // Stop after 8 polls (40 seconds) - analysis should complete in 30s
-      
-      const pollInterval = setInterval(async () => {
-        pollCount++
-        
-        // Stop polling after max attempts
-        if (pollCount > maxPolls) {
-          console.warn(`[Poll] Timeout after ${pollCount} polls - marking as failed`)
-          setSample(prev => prev ? {
-            ...prev,
-            analysisStatus: "failed"
-          } : null)
-          clearInterval(pollInterval)
-          return
-        }
-        
-        try {
-          const response = await fetch(`/api/samples/get?sampleId=${sample.id}`)
-          if (response.ok) {
-            const data = await response.json()
-            console.log(`[Poll ${pollCount}] Status:`, data.analysisStatus, "BPM:", data.bpm, "Key:", data.key)
-            
-            // Update if analysis completed or we have BPM/key data
-            // Use functional update to preserve object reference when possible
-            if (data.analysisStatus === "completed" || data.analysisStatus === "failed" || data.bpm || data.key) {
-              setSample(prev => {
-                if (!prev) return null
-                // Only update if values actually changed to prevent unnecessary re-renders
-                const hasChanges = (
-                  prev.bpm !== data.bpm ||
-                  prev.key !== data.key ||
-                  prev.analysisStatus !== data.analysisStatus
-                )
-                if (!hasChanges) return prev // Return same reference if no changes
-                return {
-                  ...prev,
-                  bpm: data.bpm ?? prev.bpm,
-                  key: data.key ?? prev.key,
-                  analysisStatus: data.analysisStatus ?? prev.analysisStatus
-                }
-              })
-              if (data.analysisStatus === "completed" || data.analysisStatus === "failed") {
-                console.log(`[Poll] Stopping - analysis ${data.analysisStatus}`)
-                clearInterval(pollInterval)
-              }
-            }
-          } else {
-            console.warn(`[Poll ${pollCount}] Response not OK:`, response.status)
-          }
-        } catch (error) {
-          console.error(`[Poll ${pollCount}] Error:`, error)
-          // Stop polling on repeated errors
-          if (pollCount > 3) {
-            console.warn(`[Poll] Stopping after ${pollCount} errors`)
-            clearInterval(pollInterval)
-          }
-        }
-      }, 5000) // Poll every 5 seconds
-
-      return () => clearInterval(pollInterval)
-    }
-  }, [sample?.id, sample?.analysisStatus])
+  // BPM/key analysis disabled for dig — we use tap tempo only; no polling for server analysis.
+  // useEffect(() => {
+  //   if (sample?.id && (sample.analysisStatus === "processing" || sample.analysisStatus === "pending")) {
+  //     let pollCount = 0
+  //     const maxPolls = 8
+  //     const pollInterval = setInterval(async () => {
+  //       pollCount++
+  //       if (pollCount > maxPolls) {
+  //         setSample(prev => prev ? { ...prev, analysisStatus: "failed" } : null)
+  //         clearInterval(pollInterval)
+  //         return
+  //       }
+  //       try {
+  //         const response = await fetch(`/api/samples/get?sampleId=${sample.id}`)
+  //         if (response.ok) {
+  //           const data = await response.json()
+  //           if (data.analysisStatus === "completed" || data.analysisStatus === "failed" || data.bpm || data.key) {
+  //             setSample(prev => prev ? { ...prev, bpm: data.bpm ?? prev.bpm, key: data.key ?? prev.key, analysisStatus: data.analysisStatus ?? prev.analysisStatus } : null)
+  //             if (data.analysisStatus === "completed" || data.analysisStatus === "failed") clearInterval(pollInterval)
+  //           }
+  //         }
+  //       } catch (error) {
+  //         if (pollCount > 3) clearInterval(pollInterval)
+  //       }
+  //     }, 5000)
+  //     return () => clearInterval(pollInterval)
+  //   }
+  // }, [sample?.id, sample?.analysisStatus])
 
   const handleGoBack = () => {
     if (previousSample) {
@@ -547,9 +509,9 @@ export default function DigPage() {
                   channel={sample.channel}
                   genre={sample.genre}
                   era={sample.era}
-                  bpm={sample.bpm}
-                  musicalKey={sample.key}
-                  analysisStatus={sample.analysisStatus}
+                  bpm={sample.bpm ?? null}
+                  musicalKey={sample.key ?? null}
+                  analysisStatus={sample.analysisStatus ?? null}
                   autoplay={autoplay}
                   startTime={sample.startTime}
                   duration={sample.duration}

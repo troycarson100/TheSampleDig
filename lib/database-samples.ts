@@ -150,6 +150,22 @@ export async function getDatabaseSampleCount(excludedVideoIds: string[] = [], us
 }
 
 /**
+ * Get all YouTube video IDs already in the database (for populate exclusion).
+ * Used so we only fetch details for candidates we don't already have.
+ */
+export async function getExistingYoutubeIds(): Promise<string[]> {
+  try {
+    const rows = await prisma.sample.findMany({
+      select: { youtubeId: true },
+    })
+    return rows.map((r) => r.youtubeId)
+  } catch (error) {
+    console.error("[DB] Error loading existing youtubeIds:", error)
+    return []
+  }
+}
+
+/**
  * Store a sample in the database (used by pre-population and candidate pipeline)
  */
 export async function storeSampleInDatabase(video: YouTubeVideo & {

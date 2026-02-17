@@ -46,6 +46,9 @@ export const NEGATIVE_KEYWORDS = [
   "-vinyl manipulation", "-record manipulation", "-spinning", "-rotating"
 ]
 
+// Patterns that must match as whole words only (avoid "nas" matching "Meninas", etc.)
+export const HARD_FILTER_WORD_BOUNDARY_TITLE_CHANNEL = new Set(["nas"])
+
 // Hard filter patterns (immediate rejection)
 export const HARD_FILTER_PATTERNS = {
   // Title/channel patterns
@@ -61,9 +64,9 @@ export const HARD_FILTER_PATTERNS = {
     "review", "reviews", "breakdown", "analysis", "explained",
     "street", "people in", "random", "vlog", "walking", "driving",
     "billboard", "top 40", "chart", "hit", "single", "popular",
-    // DJ/turntable manipulation - NOT static images
+    // DJ/turntable manipulation - NOT static images (crate digging/digging omitted so rip uploads can pass)
     "dj", "scratch", "scratching", "turntable", "turntablism", "beat juggling",
-    "crate digging", "digging", "mixing", "mix", "dj set", "dj mix",
+    "mixing", "mix", "dj set", "dj mix",
     "vinyl manipulation", "record manipulation", "spinning", "rotating",
     "dj scratch", "turntable scratch", "scratch dj", "dj turntable",
     "hands on", "hand on", "manipulating", "manipulation",
@@ -99,7 +102,7 @@ export const HARD_FILTER_PATTERNS = {
     "review", "breakdown", "analysis", "explained",
     "what i think", "my thoughts", "opinion on",
     "official", "official video", "official audio", "music video", "mv",
-    "street", "people in", "random", "vlog", "walking", "driving", "city", "urban",
+    "street", "people in", "random", "vlog", "walking", "driving", "in the city", "city streets", "urban",
     "billboard", "top 40", "chart", "hit", "single", "popular"
   ]
 }

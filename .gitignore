@@ -48,3 +48,9 @@ next-env.d.ts
 # stem splitter output (uploaded files + separated stems)
 .stem-output
 .venv-stem
+
+# populate resume state (local only)
+.populate-resume-state.json
+
+# daily backfill logs
+/logs
