@@ -436,23 +436,37 @@ export default function DigPage() {
   }, [])
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
-        <div className="max-w-6xl mx-auto px-3 sm:px-4">
-          <SiteNav />
-        </div>
+    <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
+      <header className="site-header w-full">
+        <SiteNav />
       </header>
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="flex-1 min-w-0">
+      <div className="genre-ticker">
+        <div className="ticker-track" aria-hidden>
+          {/* Duplicate many times so each 50% half fills the viewport for seamless loop */}
+          {(["Jazz", "Soul", "Funk", "Disco", "Bossa Nova", "Rare Groove"] as const).flatMap((label) =>
+            [...Array(8)].map((_, i) => (
+              <span key={`${label}-${i}`}>{label} <span className="ticker-dot">✦</span></span>
+            ))
+          )}
+          {(["Jazz", "Soul", "Funk", "Disco", "Bossa Nova", "Rare Groove"] as const).flatMap((label) =>
+            [...Array(8)].map((_, i) => (
+              <span key={`2-${label}-${i}`}>{label} <span className="ticker-dot">✦</span></span>
+            ))
+          )}
+        </div>
+      </div>
+      <div className="dig-page-wrap">
+        <div className="dig-app-grid flex flex-col md:grid md:grid-cols-[1fr_280px] dig-lg:grid-cols-[1fr_340px] gap-6 items-start">
+          <div className="flex-1 min-w-0 dig-col lg:min-w-0 w-full max-w-4xl">
+            <div className="player-area-card w-full">
             {/* Controls */}
-            <div className="rounded-2xl p-4 w-full mb-4" style={{ background: "#F6F0E9" }}>
+            <div className="controls-bar w-full">
               <div className="flex flex-wrap items-center justify-center gap-4">
                 {previousSample && (
                   <button
                     onClick={handleGoBack}
-                    className="rounded-[var(--radius-button)] py-3 px-4 border transition hover:opacity-80"
-                    style={{ background: "var(--background)", borderColor: "var(--foreground)", color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                    className="w-[52px] h-[52px] min-w-[52px] min-h-[52px] rounded-lg flex items-center justify-center transition hover:opacity-80"
+                    style={{ background: "var(--muted-light)", color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
                     aria-label="Go back to previous video"
                     title="Go back to previous video"
                   >
@@ -468,27 +482,31 @@ export default function DigPage() {
                   style={{ background: "transparent", color: "var(--foreground)" }}
                   aria-label="Toggle drum break mode"
                 >
-                  <div className={`relative w-12 h-6 rounded-full transition-colors ${drumBreak ? "opacity-100" : "opacity-50"}`} style={{ background: drumBreak ? "var(--primary)" : "var(--muted)" }}>
+                  <div className={`toggle-track relative w-12 h-6 rounded-full transition-colors ${drumBreak ? "opacity-100 checked" : "opacity-50"}`} style={{ background: drumBreak ? "var(--primary)" : "var(--muted)" }}>
                     <div
                       className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${drumBreak ? "translate-x-6" : "translate-x-0"}`}
                     />
                   </div>
-                  <span className="text-sm font-medium">
+                  <span className="toggle-label text-sm font-medium">
                     Drum Break
                   </span>
                 </button>
-                <label className="flex items-center gap-2">
+                <label className="flex items-center gap-2 relative">
                   <select
                     value={genreFilter}
                     onChange={(e) => setGenreFilter(e.target.value)}
-                    className="rounded-[var(--radius-button)] py-2.5 pl-3 pr-10 border text-sm min-w-[140px]"
-                    style={{ background: "var(--background)", borderColor: "var(--border)", color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                    className="genre-select rounded border min-w-[140px] appearance-none"
                     aria-label="Filter samples by genre"
                   >
                     {GENRE_OPTIONS.map((opt) => (
                       <option key={opt.value || "any"} value={opt.value}>{opt.label}</option>
                     ))}
                   </select>
+                  <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 flex items-center" style={{ color: "var(--brown)" }} aria-hidden>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </span>
                 </label>
               </div>
             </div>
@@ -499,8 +517,8 @@ export default function DigPage() {
               </div>
             )}
 
-            {/* Video area - always visible, empty when no sample */}
-            <div className="rounded-2xl p-4 min-h-[280px]" style={{ background: "#F6F0E9" }}>
+            {/* Video area - connects to controls bar (same card), track meta + chop below */}
+            <div className="video-and-chop-card py-4 min-h-[280px]">
               {sample ? (
                 <SamplePlayer
                   key={sample.youtubeId}
@@ -531,6 +549,7 @@ export default function DigPage() {
                 />
               ) : null}
             </div>
+            </div>
 
             {/* Beat loop section commented out for now
             <BeatsPanel videoBpm={sample?.bpm ?? null} />
@@ -539,8 +558,8 @@ export default function DigPage() {
           </div>
 
           {session && (
-            <div className="lg:w-72 xl:w-80 lg:sticky lg:top-8 lg:self-start shrink-0 lg:max-h-[calc(100vh-6rem)] flex flex-col min-h-0">
-              <div className="rounded-2xl flex flex-col min-h-0 overflow-hidden" style={{ background: "#F6F0E9" }}>
+            <div className="samples-panel md:sticky md:top-[102px] md:self-start shrink-0 md:h-[calc(100vh-114px)] flex flex-col min-h-0 w-full md:w-auto">
+              <div className="sidebar-dark flex flex-col min-h-0 overflow-hidden rounded-lg">
                 <SavedSamplesSidebar
                   onSampleClick={(savedSample) => {
                     // Save current sample as previous before loading new one
@@ -576,27 +595,13 @@ export default function DigPage() {
 
           </div>
 
-        {/* Claura-style gradient strip with dot grid */}
-        <div
-          className="w-full mt-12 rounded-[40px] h-28 overflow-hidden relative"
-          style={{ background: "linear-gradient(90deg, #e07c4a 0%, #d4a574 35%, #c9b8a8 65%, #9b9bb5 100%)" }}
-        >
-          <div
-            className="absolute inset-0 opacity-95"
-            style={{
-              backgroundImage: "radial-gradient(circle, rgba(255,255,255,0.85) 2px, transparent 2px)",
-              backgroundSize: "20px 20px",
-            }}
-          />
-        </div>
-
-        <footer className="mt-10 pt-8 border-t px-2 sm:px-4" style={{ borderColor: "var(--border)" }}>
+        <footer className="dig-footer mt-10 pt-8 border-t px-2 sm:px-4" style={{ borderColor: "var(--border)" }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
-              <p className="text-lg font-semibold" style={{ fontFamily: "var(--font-halant), Georgia, serif", color: "var(--foreground)" }}>Sample Roll</p>
-              <p className="text-sm mt-0.5" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Helping you find samples that matter.</p>
+              <p className="footer-title text-lg font-semibold" style={{ fontFamily: "var(--font-bebas), 'Bebas Neue', sans-serif", color: "var(--foreground)" }}>Sample Roll</p>
+              <p className="text-sm mt-0.5" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>Helping you find samples that matter.</p>
             </div>
-            <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
+            <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>
               <a href="/dig" className="hover:text-[var(--foreground)] transition">Dig</a>
               <a href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</a>
               <a href="/blog" className="hover:text-[var(--foreground)] transition">Blog</a>

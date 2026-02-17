@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Halant } from "next/font/google";
+import { Geist, Geist_Mono, Halant, DM_Serif_Display, Bebas_Neue, IBM_Plex_Mono } from "next/font/google";
 import "./globals.css";
 import SessionProvider from "@/components/SessionProvider";
 import Footer from "@/components/Footer";
@@ -21,6 +21,24 @@ const halant = Halant({
   display: "swap",
 });
 
+const dmSerif = DM_Serif_Display({
+  variable: "--font-dm-serif",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const bebasNeue = Bebas_Neue({
+  variable: "--font-bebas",
+  subsets: ["latin"],
+  weight: ["400"],
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  variable: "--font-ibm-mono",
+  subsets: ["latin"],
+  weight: ["300", "400", "500"],
+});
+
 export const metadata: Metadata = {
   title: "Sample Roll - Discover Rare Vinyl Samples",
   description: "Find and save rare vinyl samples for beat making",
@@ -34,7 +52,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${halant.variable} font-sans antialiased flex flex-col min-h-screen`}
+        className={`${geistSans.variable} ${geistMono.variable} ${halant.variable} ${dmSerif.variable} ${bebasNeue.variable} ${ibmPlexMono.variable} font-sans antialiased flex flex-col min-h-screen theme-vinyl`}
       >
         <SessionProvider>
           <div className="flex flex-col min-h-screen">

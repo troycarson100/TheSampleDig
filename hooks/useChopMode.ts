@@ -68,6 +68,8 @@ export interface UseChopModeRecordOptions {
   onRecordPad?: (key: string, timeMs: number) => void
   onSpaceWhenRecording?: () => void
   onRKey?: () => void
+  /** Called when addChop runs (Space or button), for UI feedback e.g. space-bar flash */
+  onAddChop?: () => void
 }
 
 export function useChopMode(
@@ -93,6 +95,7 @@ export function useChopMode(
     onRecordPad,
     onSpaceWhenRecording,
     onRKey,
+    onAddChop,
   } = recordOptions ?? {}
   const [chops, setChops] = useState<Chop[]>([])
   const [pressedKey, setPressedKey] = useState<string | null>(null)
@@ -131,7 +134,8 @@ export function useChopMode(
     const key = CHOP_KEYS[chops.length]
     const color = KEY_COLORS[key] ?? "#666"
     setChops((prev) => [...prev, { key, time, color, index: prev.length }])
-  }, [chops.length, playerRef])
+    onAddChop?.()
+  }, [chops.length, playerRef, onAddChop])
 
   const setPressedKeyBriefly = useCallback((key: string) => {
     if (pressedKeyTimeoutRef.current) clearTimeout(pressedKeyTimeoutRef.current)

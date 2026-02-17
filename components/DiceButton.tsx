@@ -1,67 +1,131 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 
 interface DiceButtonProps {
   onClick: () => void
   loading?: boolean
 }
 
-export default function DiceButton({ onClick, loading }: DiceButtonProps) {
-  const [isRolling, setIsRolling] = useState(false)
+/** Dice face dot positions (0–5 = faces 1–6) within 40×40 viewBox, 32×32 rect offset by 4 */
+const DICE_DOTS: [number, number][][] = [
+  [[20, 20]],
+  [[14, 14], [26, 26]],
+  [[14, 14], [20, 20], [26, 26]],
+  [[14, 14], [26, 14], [14, 26], [26, 26]],
+  [[14, 14], [26, 14], [20, 20], [14, 26], [26, 26]],
+  [[14, 14], [26, 14], [14, 20], [26, 20], [14, 26], [26, 26]],
+]
 
-  const handleClick = () => {
-    if (loading || isRolling) return
-    
+const PARTICLE_COLORS = ["#B85C38", "#D4784E", "#C9933A", "#E8B85A", "#F0EBE1", "#7A7A50"]
+const ROLL_DURATION_MS = 650
+const LANDED_CLEANUP_MS = 500
+
+export default function DiceButton({ onClick, loading }: DiceButtonProps) {
+  const [faceIndex, setFaceIndex] = useState(3) // 4 dots by default
+  const [isRolling, setIsRolling] = useState(false)
+  const [isLanded, setIsLanded] = useState(false)
+  const particlesRef = useRef<HTMLDivElement>(null)
+  const ringRef = useRef<HTMLDivElement>(null)
+  const rollTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const cleanupTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const spawnParticles = useCallback(() => {
+    const container = particlesRef.current
+    if (!container) return
+    container.innerHTML = ""
+    const count = 14
+    for (let i = 0; i < count; i++) {
+      const p = document.createElement("div")
+      p.className = "dice-particle"
+      const angle = (360 / count) * i + (Math.random() * 20 - 10)
+      const dist = 28 + Math.random() * 22
+      const rad = (angle * Math.PI) / 180
+      p.style.setProperty("--px", `${Math.cos(rad) * dist}px`)
+      p.style.setProperty("--py", `${Math.sin(rad) * dist}px`)
+      const size = 3 + Math.random() * 3
+      p.style.width = `${size}px`
+      p.style.height = `${size}px`
+      const bg = PARTICLE_COLORS[Math.floor(Math.random() * PARTICLE_COLORS.length)]
+      p.style.background = bg
+      p.style.animationDelay = `${Math.random() * 0.08}s`
+      p.style.boxShadow = `0 0 4px ${bg}`
+      container.appendChild(p)
+      requestAnimationFrame(() => p.classList.add("fire"))
+    }
+  }, [])
+
+  const fireRing = useCallback(() => {
+    const ring = ringRef.current
+    if (!ring) return
+    ring.classList.remove("fire")
+    void ring.offsetWidth
+    ring.classList.add("fire")
+  }, [])
+
+  const startRoll = useCallback(() => {
+    if (isRolling || loading) return
     setIsRolling(true)
     onClick()
-    
-    // Reset rolling state after animation
-    setTimeout(() => {
-      setIsRolling(false)
-    }, 1000)
-  }
+
+    let startTime: number | null = null
+
+    function cycle(timestamp: number) {
+      if (startTime === null) startTime = timestamp
+      const elapsed = timestamp - startTime
+      const progress = Math.min(elapsed / ROLL_DURATION_MS, 1)
+      const interval = 40 + progress * progress * 120
+
+      setFaceIndex(Math.floor(Math.random() * 6))
+
+      if (progress < 1) {
+        rollTimeoutRef.current = setTimeout(() => requestAnimationFrame(cycle), interval)
+      } else {
+        setFaceIndex(Math.floor(Math.random() * 6))
+        setIsRolling(false)
+        setIsLanded(true)
+        spawnParticles()
+        fireRing()
+        cleanupTimeoutRef.current = setTimeout(() => {
+          setIsLanded(false)
+        }, LANDED_CLEANUP_MS)
+      }
+    }
+    requestAnimationFrame(cycle)
+  }, [loading, isRolling, onClick, spawnParticles, fireRing])
+
+  useEffect(() => {
+    return () => {
+      if (rollTimeoutRef.current) clearTimeout(rollTimeoutRef.current)
+      if (cleanupTimeoutRef.current) clearTimeout(cleanupTimeoutRef.current)
+    }
+  }, [])
+
+  const dots = DICE_DOTS[faceIndex]
+  const disabled = loading || isRolling
 
   return (
     <button
-      onClick={handleClick}
-      disabled={loading || isRolling}
-      className="relative w-20 h-20 rounded-[var(--radius-card)] transform transition-all duration-200 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center"
-      style={{ background: "var(--primary)", color: "var(--primary-foreground)", boxShadow: "var(--card-shadow)" }}
+      type="button"
+      onClick={startRoll}
+      disabled={disabled}
+      className={`dice-btn ${isRolling ? "rolling" : ""} ${isLanded ? "landed" : ""} disabled:opacity-50 disabled:cursor-not-allowed`}
       aria-label="Roll for sample"
     >
-      {/* Dice icon - simple design that rotates from center */}
-      <div className="relative w-12 h-12 flex items-center justify-center">
-        <div 
-          className={`w-full h-full flex items-center justify-center ${isRolling || loading ? "animate-spin" : ""}`}
-          style={{ transformOrigin: "center center" }}
-        >
-          <svg
-            className="w-full h-full text-white"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            viewBox="0 0 24 24"
-            preserveAspectRatio="xMidYMid meet"
-          >
-            {/* Dice square */}
-            <rect x="5" y="5" width="14" height="14" rx="2" stroke="currentColor" fill="none" strokeWidth="2"/>
-            {/* Dots - very small circles, positioned precisely */}
-            <circle cx="9" cy="9" r="0.7" fill="currentColor"/>
-            <circle cx="15" cy="9" r="0.7" fill="currentColor"/>
-            <circle cx="9" cy="15" r="0.7" fill="currentColor"/>
-            <circle cx="15" cy="15" r="0.7" fill="currentColor"/>
-            <circle cx="12" cy="12" r="0.7" fill="currentColor"/>
-          </svg>
-        </div>
-      </div>
-      
-      {/* Loading overlay */}
-      {(loading || isRolling) && (
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-8 h-8 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-        </div>
-      )}
+      <svg
+        className="dice-icon"
+        viewBox="0 0 40 40"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden
+      >
+        <rect x="4" y="4" width="32" height="32" rx="4" stroke="currentColor" strokeWidth="2.2" fill="none" />
+        {dots.map(([cx, cy], i) => (
+          <circle key={i} cx={cx} cy={cy} r="2.8" fill="currentColor" />
+        ))}
+      </svg>
+      <div ref={particlesRef} className="dice-particles" aria-hidden />
+      <div ref={ringRef} className="dice-ring" aria-hidden />
     </button>
   )
 }

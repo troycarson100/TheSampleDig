@@ -10,6 +10,8 @@ const ROW_2 = ["A", "S", "D", "F", "G", "H", "J", "K", "L"]
 /** Key size and gap (rem) so top-row positions match bottom-row midpoints. */
 const KEY_W = 2.5
 const GAP = 0.5
+/** Total width of the keybed (bottom row); use for space bar width. */
+export const CHOP_KEYBOARD_WIDTH_REM = ROW_2.length * KEY_W + (ROW_2.length - 1) * GAP
 /** Left position (rem) for each top key so it’s centered between the given bottom keys. */
 const TOP_LEFT_REM = [
   1.5,   /* W between A and S */
@@ -46,7 +48,7 @@ export default function ChopPads({ chops, onPadKeyPress, onRemoveChop, pressedKe
             onPadKeyPress(key)
           }
         }}
-        className="flex h-full w-full min-h-9 min-w-9 items-center justify-center rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 border-2"
+        className={`kb-key flex h-full w-full min-h-9 min-w-9 items-center justify-center rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 border-2 ${isActive ? "has-chop" : ""}`}
         style={
           isActive
             ? {
@@ -70,14 +72,12 @@ export default function ChopPads({ chops, onPadKeyPress, onRemoveChop, pressedKe
   }
 
   const keySize = "2.5rem"
-  const totalWidthRem = ROW_2.length * KEY_W + (ROW_2.length - 1) * GAP
-
   return (
     <div className="flex flex-col items-center gap-3">
       {/* Top row: each key positioned so it’s centered between the two bottom keys below it */}
       <div
         className="relative flex"
-        style={{ width: `${totalWidthRem}rem`, height: keySize }}
+        style={{ width: `${CHOP_KEYBOARD_WIDTH_REM}rem`, height: keySize }}
       >
         {ROW_1.map((key, i) => (
           <div
@@ -92,7 +92,7 @@ export default function ChopPads({ chops, onPadKeyPress, onRemoveChop, pressedKe
       {/* Bottom row: A S D F G H J K L — same key size and gap as top-row math */}
       <div
         className="flex justify-center"
-        style={{ gap: `${GAP}rem`, width: `${totalWidthRem}rem` }}
+        style={{ gap: `${GAP}rem`, width: `${CHOP_KEYBOARD_WIDTH_REM}rem` }}
       >
         {ROW_2.map((key) => (
           <div key={key} style={{ width: `${KEY_W}rem`, height: keySize }}>

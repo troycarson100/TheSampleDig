@@ -3,34 +3,29 @@
 import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
+import { usePathname } from "next/navigation"
 import { useSession } from "next-auth/react"
 
-const navLinkBase = "text-[15px] text-[var(--foreground)]/90 hover:text-[var(--foreground)] transition-colors"
-const navLinkStyle = { fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }
-// Bold on hover; invisible bold copy reserves width so text doesn't shift
-function NavLinkText({ children }: { children: string }) {
-  return (
-    <span className="relative inline-block">
-      <span className="font-bold invisible" aria-hidden="true">{children}</span>
-      <span className="absolute left-0 top-0 font-medium hover:font-bold transition-[font-weight]">{children}</span>
-    </span>
-  )
-}
+const navLinkBase = "nav-tab-link relative flex items-center h-full px-5 py-0 border-none bg-transparent cursor-pointer transition-colors"
+const navLinkActive = "nav-link-active"
+const navLinkStyle = { fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }
 
 export default function SiteNav() {
   const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
+  const pathname = usePathname()
+  const isActive = (path: string) => pathname === path || (path !== "/dig" && pathname?.startsWith(path))
 
   return (
     <>
-      <nav className="grid grid-cols-3 items-center w-full gap-4 py-4">
-        {/* Left: hamburger on mobile, links on desktop */}
-        <div className="flex items-center min-w-0">
+      <nav className="flex items-center justify-between w-full h-full gap-4">
+        {/* Left: hamburger on mobile; logo (dice + brand + BETA) always */}
+        <div className="flex items-center gap-2 min-w-0">
           <button
             type="button"
             onClick={() => setMenuOpen(true)}
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded-lg -ml-2"
-            style={{ color: "var(--foreground)" }}
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded -ml-2 flex-shrink-0"
+            style={{ color: "var(--cream)" }}
             aria-label="Open menu"
           >
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -39,45 +34,40 @@ export default function SiteNav() {
               <line x1="3" y1="18" x2="21" y2="18" />
             </svg>
           </button>
-          <div className="hidden md:flex gap-8">
-            <Link href="/dig" className={navLinkBase} style={navLinkStyle}>
-              <NavLinkText>Dig</NavLinkText>
-            </Link>
-            <Link href="/stem-splitter" className={navLinkBase} style={navLinkStyle}>
-              <NavLinkText>Stem Splitter</NavLinkText>
-            </Link>
-            {session && (
-              <Link href="/profile" className={navLinkBase} style={navLinkStyle}>
-                <NavLinkText>My Samples</NavLinkText>
-              </Link>
-            )}
-          </div>
+          <Link href="/dig" className="flex items-center gap-2 no-underline shrink-0" aria-label="Sample Roll – Home">
+            <Image
+              src="/SampleRoll-logo-white-long.svg"
+              alt="Sample Roll"
+              width={1677}
+              height={279}
+              className="h-6 w-auto object-contain"
+              priority
+            />
+            <span className="nav-beta shrink-0">BETA</span>
+          </Link>
         </div>
-        <Link href="/dig" className="flex items-center justify-center" aria-label="Sample Roll – Home">
-          <Image
-            src="/sample-roll-logo.svg"
-            alt="Sample Roll"
-            width={445}
-            height={146}
-            className="h-[52px] sm:h-[60px] w-auto object-contain"
-            priority
-          />
-        </Link>
-        <div className="flex justify-end">
+        {/* Center: tabs */}
+        <div className="hidden md:flex items-center h-full flex-1 justify-center">
+          <Link href="/dig" className={`${navLinkBase} ${isActive("/dig") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/dig" ? "page" : undefined}>
+            Dig
+          </Link>
+          <Link href="/stem-splitter" className={`${navLinkBase} ${isActive("/stem-splitter") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/stem-splitter" ? "page" : undefined}>
+            Stem Splitter
+          </Link>
+          {session && (
+            <Link href="/profile" className={`${navLinkBase} ${isActive("/profile") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/profile" ? "page" : undefined}>
+              My Samples
+            </Link>
+          )}
+        </div>
+        {/* Right: sign out / login */}
+        <div className="flex justify-end shrink-0">
           {session ? (
-            <Link
-              href="/api/auth/signout"
-              className="px-5 py-2 rounded-[var(--radius-button)] bg-[var(--primary)] text-[var(--primary-foreground)] text-[15px] font-medium hover:opacity-90 transition"
-              style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
-            >
+            <Link href="/api/auth/signout" className="sign-out-btn">
               Sign out
             </Link>
           ) : (
-            <Link
-              href="/login"
-              className="px-5 py-2 rounded-[var(--radius-button)] bg-[var(--primary)] text-[var(--primary-foreground)] text-[15px] font-medium hover:opacity-90 transition"
-              style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
-            >
+            <Link href="/login" className="sign-out-btn">
               Login
             </Link>
           )}
@@ -112,15 +102,15 @@ export default function SiteNav() {
               </button>
             </div>
             <div className="flex flex-col">
-              <Link href="/dig" className={`${navLinkBase} block py-3`} style={navLinkStyle} onClick={() => setMenuOpen(false)}>
-                <NavLinkText>Dig</NavLinkText>
+              <Link href="/dig" className={`${navLinkBase} block py-3 !h-auto !px-0 ${pathname === "/dig" ? navLinkActive : ""}`} style={navLinkStyle} onClick={() => setMenuOpen(false)} aria-current={pathname === "/dig" ? "page" : undefined}>
+                Dig
               </Link>
-              <Link href="/stem-splitter" className={`${navLinkBase} block py-3`} style={navLinkStyle} onClick={() => setMenuOpen(false)}>
-                <NavLinkText>Stem Splitter</NavLinkText>
+              <Link href="/stem-splitter" className={`${navLinkBase} block py-3 !h-auto !px-0 ${pathname === "/stem-splitter" ? navLinkActive : ""}`} style={navLinkStyle} onClick={() => setMenuOpen(false)} aria-current={pathname === "/stem-splitter" ? "page" : undefined}>
+                Stem Splitter
               </Link>
               {session && (
-                <Link href="/profile" className={`${navLinkBase} block py-3`} style={navLinkStyle} onClick={() => setMenuOpen(false)}>
-                  <NavLinkText>My Samples</NavLinkText>
+                <Link href="/profile" className={`${navLinkBase} block py-3 !h-auto !px-0 ${pathname === "/profile" ? navLinkActive : ""}`} style={navLinkStyle} onClick={() => setMenuOpen(false)} aria-current={pathname === "/profile" ? "page" : undefined}>
+                  My Samples
                 </Link>
               )}
             </div>

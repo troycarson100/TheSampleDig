@@ -98,21 +98,36 @@ export default function SavedSamplesSidebar({
     return null
   }
 
+  const SidebarHeader = ({ count }: { count: number }) => (
+    <header className="samples-panel-header flex items-center justify-between w-full max-w-full box-border px-5 py-5">
+      <h2 className="sidebar-title uppercase text-white text-lg tracking-widest font-normal shrink-0">
+        My Samples
+      </h2>
+      <span className="sidebar-count text-[10px] tracking-wide text-white/60 shrink-0 tabular-nums">
+        {count} saved
+      </span>
+    </header>
+  )
+
   if (loading) {
     return (
-      <div className="p-4">
-        <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Samples</h2>
-        <div className="text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Loading...</div>
+      <div className="h-full min-h-0 flex flex-col">
+        <SidebarHeader count={0} />
+        <div className="samples-list-inner flex-1 px-4 pb-4">
+          <div className="text-sm pt-4 text-white" style={{ fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>Loading...</div>
+        </div>
       </div>
     )
   }
 
   if (samples.length === 0) {
     return (
-      <div className="p-4">
-        <h2 className="text-xl font-semibold mb-4" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Samples</h2>
-        <div className="text-sm text-center py-8" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
-          No saved samples yet
+      <div className="h-full min-h-0 flex flex-col">
+        <SidebarHeader count={0} />
+        <div className="samples-list-inner flex-1 px-4 pb-4">
+          <div className="text-sm text-center py-8 text-white" style={{ fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>
+            No saved samples yet
+          </div>
         </div>
       </div>
     )
@@ -120,21 +135,21 @@ export default function SavedSamplesSidebar({
 
   return (
     <div className="h-full min-h-0 flex flex-col">
-      <h2 className="text-xl font-semibold shrink-0 mb-4 px-4 pt-4" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Samples</h2>
-      <div className="flex-1 min-h-0 overflow-y-auto px-4 pb-4">
-        <div className="space-y-4">
+      <SidebarHeader count={samples.length} />
+      <div className="samples-list-inner flex-1 min-h-0 pl-5 pr-4 pb-4">
+        <div>
           {samples.map((sample, index) => (
             <div key={sample.id}>
               <div
-                className={`group relative cursor-pointer transition-all duration-200 ${
+                className={`sample-card group relative cursor-pointer transition-all duration-200 ${
                   currentSampleId === sample.id ? "opacity-100" : "opacity-90 hover:opacity-100"
                 }`}
                 onClick={() => onSampleClick?.(sample)}
               >
-                <h3 className="text-sm font-medium mb-2 line-clamp-2" style={{ color: "var(--foreground)" }}>
+                <h3 className="sample-title text-sm font-medium mb-2 line-clamp-2 text-white">
                   {sample.title}
                 </h3>
-                <div className="relative aspect-video w-full rounded-xl overflow-hidden bg-black/10">
+                <div className="sample-thumb relative aspect-video w-full rounded-xl overflow-hidden bg-black/10">
                   <img src={sample.thumbnailUrl} alt={sample.title} className="w-full h-full object-cover" />
                   {sample.startTime && (
                     <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-mono">
@@ -148,14 +163,14 @@ export default function SavedSamplesSidebar({
                     <HeartToggle isSaved={true} onToggle={() => handleUnsave(sample.id)} size="sm" className="bg-white/90 rounded-full p-1 shadow-sm" />
                   </div>
                   {(sample.genre || sample.bpm != null || sample.key) && (
-                    <div className="absolute bottom-2 left-2 right-12 flex flex-wrap gap-1">
+                    <div className="sample-meta absolute bottom-2 left-2 right-12 flex flex-wrap gap-1">
                       {sample.genre && (
-                        <span className="bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-medium">
+                        <span className="genre-badge bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-medium">
                           {sample.genre}
                         </span>
                       )}
                       {sample.bpm != null && (
-                        <span className="bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-mono">
+                        <span className="sample-bpm bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-mono">
                           {sample.bpm} BPM
                         </span>
                       )}
@@ -169,7 +184,9 @@ export default function SavedSamplesSidebar({
                 </div>
               </div>
               {index < samples.length - 1 && (
-                <div className="my-4 border-t" style={{ borderColor: "var(--border)" }} />
+                <div className="py-3 flex flex-col">
+                  <div className="border-t w-full" style={{ borderColor: "rgba(240, 235, 225, 0.06)" }} />
+                </div>
               )}
             </div>
           ))}
