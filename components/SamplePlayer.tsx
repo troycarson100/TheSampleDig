@@ -201,6 +201,7 @@ function SamplePlayer({
   const playbackBoundsRef = useRef<{ start: number; end: number } | null>(null)
   const chopOverlayRef = useRef<HTMLDivElement>(null)
   const bpmArrowIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const bpmArrowDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const bpmDragStartRef = useRef<{ startX: number; startBpm: number } | null>(null)
   const bpmDragMouseXRef = useRef(0)
   const bpmDragRafRef = useRef<number | null>(null)
@@ -226,20 +227,27 @@ function SamplePlayer({
 
   const startBpmArrowRepeat = useCallback(
     (delta: number) => {
-      if (bpmArrowIntervalRef.current) return
+      if (bpmArrowIntervalRef.current || bpmArrowDelayRef.current) return
       const current = effectiveBpm ?? 60
-      applyBpmOverride(current + delta)
-      bpmArrowIntervalRef.current = setInterval(() => {
-        setBpmOverride((prev) => {
-          const next = clampBpm((prev ?? current) + delta)
-          return analyzedBpm != null && next === analyzedBpm ? null : next
-        })
-      }, 100)
+      // Don't apply here — button onMouseDown already applied one step. Delay before repeat so one click = one step.
+      bpmArrowDelayRef.current = setTimeout(() => {
+        bpmArrowDelayRef.current = null
+        bpmArrowIntervalRef.current = setInterval(() => {
+          setBpmOverride((prev) => {
+            const next = clampBpm((prev ?? current) + delta)
+            return analyzedBpm != null && next === analyzedBpm ? null : next
+          })
+        }, 100)
+      }, 400)
     },
-    [effectiveBpm, applyBpmOverride, clampBpm, analyzedBpm]
+    [effectiveBpm, clampBpm, analyzedBpm]
   )
 
   const stopBpmArrowRepeat = useCallback(() => {
+    if (bpmArrowDelayRef.current) {
+      clearTimeout(bpmArrowDelayRef.current)
+      bpmArrowDelayRef.current = null
+    }
     if (bpmArrowIntervalRef.current) {
       clearInterval(bpmArrowIntervalRef.current)
       bpmArrowIntervalRef.current = null
@@ -452,6 +460,8 @@ function SamplePlayer({
       return
     }
     if (recordPhase !== "idle") return
+    // If a loop is playing or exists, clear it so we record a fresh loop
+    clearRecordedLoop()
     // Pause video; recording starts on first chop key press
     const adapter = adapterRef.current
     if (adapter?.pause && adapter.getPlayerState?.() !== 2) {
@@ -470,7 +480,7 @@ function SamplePlayer({
         playMetronomeBeep()
       }, intervalMs)
     }
-  }, [recordPhase, stopRecordAndStartPlayback, effectiveBpm, metronomeDuringRecording])
+  }, [recordPhase, stopRecordAndStartPlayback, effectiveBpm, metronomeDuringRecording, clearRecordedLoop])
 
   const onSpaceWhenRecording = useCallback(() => {
     if (recordPhase === "recording") {
@@ -563,6 +573,10 @@ function SamplePlayer({
       if (metronomeIntervalRef.current) {
         clearInterval(metronomeIntervalRef.current)
         metronomeIntervalRef.current = null
+      }
+      if (bpmArrowDelayRef.current) {
+        clearTimeout(bpmArrowDelayRef.current)
+        bpmArrowDelayRef.current = null
       }
       if (bpmArrowIntervalRef.current) {
         clearInterval(bpmArrowIntervalRef.current)
@@ -1199,7 +1213,7 @@ function SamplePlayer({
           className="sr-only"
           aria-label="Focus for chop keys"
         />
-        <div className="chop-row flex items-center gap-8">
+        <div className="chop-row flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-8">
           <label className="flex items-center gap-2 cursor-pointer shrink-0">
             <span className="text-sm font-medium toggle-label" style={{ color: "var(--foreground)" }}>Chop Mode</span>
             <button
@@ -1267,7 +1281,7 @@ function SamplePlayer({
               {/* Mini timeline: grey bar with colored ticks; draggable start/end edges; playhead */}
               <div
                 ref={loopBarRef}
-                className="chop-scrubber flex items-center flex-1 min-w-[80px] max-w-[180px] h-3 rounded-sm select-none overflow-visible"
+                className="chop-scrubber flex items-center flex-1 min-w-[200px] max-w-[420px] h-3 rounded-sm select-none overflow-visible"
                 style={{ background: "var(--muted-light)" }}
                 aria-label="Recorded sequence"
               >
@@ -1298,7 +1312,29 @@ function SamplePlayer({
                     (isRecording && totalLengthMs > 0) || (isPlayingLoop && loopLengthMsRef.current > 0)
                   return (
                     <div className="relative w-full h-full rounded-sm overflow-visible">
-                      <div className="absolute inset-0 rounded-sm overflow-visible">
+                      {/* Darker overlay for region left of loop start (not playing) */}
+                      {hasLoopRange && startPct > 0 && (
+                        <div
+                          className="absolute left-0 top-0 bottom-0 rounded-l-sm pointer-events-none z-[0]"
+                          style={{
+                            width: `${startPct}%`,
+                            background: "rgba(0,0,0,0.2)",
+                          }}
+                          aria-hidden
+                        />
+                      )}
+                      {/* Darker overlay for region right of loop end (not playing) */}
+                      {hasLoopRange && endPct < 100 && (
+                        <div
+                          className="absolute right-0 top-0 bottom-0 rounded-r-sm pointer-events-none z-[0]"
+                          style={{
+                            width: `${100 - endPct}%`,
+                            background: "rgba(0,0,0,0.2)",
+                          }}
+                          aria-hidden
+                        />
+                      )}
+                      <div className="absolute inset-0 rounded-sm overflow-visible z-[1]">
                         {events.length > 0 &&
                           [...events]
                             .sort((a, b) => a.timeMs - b.timeMs)
@@ -1327,7 +1363,7 @@ function SamplePlayer({
                           <div
                             role="slider"
                             aria-label="Loop start"
-                            className="absolute top-0 bottom-0 w-1.5 -ml-0.5 rounded-px cursor-ew-resize z-[2]"
+                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-5 rounded-px cursor-ew-resize z-[2]"
                             style={{
                               left: `${startPct}%`,
                               backgroundColor: "#374151",
@@ -1340,7 +1376,7 @@ function SamplePlayer({
                           <div
                             role="slider"
                             aria-label="Loop end"
-                            className="absolute top-0 bottom-0 w-1.5 -ml-1.5 rounded-px cursor-ew-resize z-[2]"
+                            className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 h-5 rounded-px cursor-ew-resize z-[2]"
                             style={{
                               left: `${endPct}%`,
                               backgroundColor: "#374151",
