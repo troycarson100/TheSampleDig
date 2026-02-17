@@ -130,11 +130,17 @@ export async function scoreCandidates(limit: number = 200): Promise<{ scored: nu
   return { scored }
 }
 
+const POST_THRESHOLD_TAG = "post-5.5k"
+const TAG_THRESHOLD = 5500
+
 /** Process: promote high-scoring candidates to Sample. */
 export async function processCandidates(
   limit: number = 50,
   minScore: number = MIN_SCORE_TO_PROMOTE
 ): Promise<{ promoted: number }> {
+  const sampleCount = await prisma.sample.count()
+  const tagNewSamples = sampleCount >= TAG_THRESHOLD
+
   const candidates = await prisma.candidate.findMany({
     where: {
       qualityScore: { gte: minScore },
@@ -175,6 +181,7 @@ export async function processCandidates(
       source: (c.source === "playlist" || c.source === "channel" ? c.source : "search") as "search" | "playlist" | "channel",
       qualityScore: c.qualityScore ?? undefined,
       embeddable: c.embeddable ?? undefined,
+      tags: tagNewSamples ? POST_THRESHOLD_TAG : undefined,
     })
     if (created) {
       const sample = await prisma.sample.findUnique({

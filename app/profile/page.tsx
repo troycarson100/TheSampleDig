@@ -6,6 +6,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import HeartToggle from "@/components/HeartToggle"
 import SiteNav from "@/components/SiteNav"
+import GenreSelect from "@/components/GenreSelect"
 
 const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
 
@@ -148,27 +149,30 @@ export default function ProfilePage() {
     }
   }
 
+  const genreOptionsForSelect = useMemo(
+    () => [{ value: "", label: "Any genre" }, ...genreOptions.map((g) => ({ value: g, label: g }))],
+    [genreOptions]
+  )
+
   if (status === "loading" || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--background)" }}>
-        <div className="text-xl" style={{ color: "var(--muted)" }}>Loading...</div>
+      <div className="min-h-screen theme-vinyl flex items-center justify-center" style={{ background: "var(--background)" }}>
+        <div className="text-xl" style={{ color: "var(--brown)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>Loading...</div>
       </div>
     )
   }
 
   if (!session) {
     return (
-      <div className="min-h-screen" style={{ background: "var(--background)" }}>
-        <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
-          <div className="max-w-6xl mx-auto px-3 sm:px-4">
-            <SiteNav />
-          </div>
+      <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
+        <header className="site-header w-full">
+          <SiteNav />
         </header>
-        <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+        <div className="profile-page-wrap">
           <div className="flex flex-col items-center justify-center text-center py-16">
-            <h1 className="text-3xl font-semibold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Saved Samples</h1>
-            <p className="text-lg mb-6" style={{ color: "var(--muted)" }}>Please log in to view your saved samples.</p>
-            <Link href="/login" className="inline-block px-5 py-2.5 rounded-[var(--radius-button)] font-medium text-white transition opacity-90 hover:opacity-100" style={{ background: "var(--primary)" }}>Login</Link>
+            <h1 className="profile-title uppercase mb-2">My Saved Samples</h1>
+            <p className="profile-count mb-6">Please log in to view your saved samples.</p>
+            <Link href="/login" className="btn-primary inline-block no-underline">Login</Link>
           </div>
         </div>
       </div>
@@ -176,87 +180,78 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
-        <div className="max-w-6xl mx-auto px-3 sm:px-4">
-          <SiteNav />
-        </div>
+    <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
+      <header className="site-header w-full">
+        <SiteNav />
       </header>
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+      <div className="profile-page-wrap">
         <div className="pt-2 pb-4">
-          <h1 className="text-3xl sm:text-4xl font-semibold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>My Saved Samples</h1>
-            <p className="text-[15px]" style={{ color: "var(--muted)" }}>{samples.length} {samples.length === 1 ? "sample" : "samples"} saved</p>
-          </div>
+          <h1 className="profile-title uppercase">My Saved Samples</h1>
+          <p className="profile-count">{samples.length} {samples.length === 1 ? "sample" : "samples"} saved</p>
+        </div>
 
           {samples.length > 0 && (
-            <div className="mb-6 flex flex-col gap-3">
-              <div className="flex flex-wrap items-center gap-3">
+            <>
+              <div className="profile-filter-bar">
                 <input
                   type="search"
                   placeholder="Search by title, BPM, key or genre..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="flex-1 min-w-[200px] rounded-full border px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-offset-1"
-                  style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--foreground)" }}
                   aria-label="Search samples by title, BPM, key or genre"
                 />
-                <span className="text-sm font-medium" style={{ color: "var(--muted)" }}>Filter:</span>
-                <select
+                <span className="filter-label">Genre</span>
+                <GenreSelect
                   value={genreFilter ?? ""}
-                  onChange={(e) => setGenreFilter(e.target.value ? e.target.value : null)}
-                  className="rounded-full border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-offset-1"
-                  style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--foreground)" }}
+                  onChange={(v) => setGenreFilter(v === "" ? null : v)}
+                  options={genreOptionsForSelect}
+                  ariaLabel="Filter by genre"
+                  className="min-w-[120px]"
+                />
+                <span className="filter-label">Key</span>
+                <select
+                  value={keyFilter ?? ""}
+                  onChange={(e) => setKeyFilter(e.target.value ? e.target.value : null)}
+                  className="profile-key-select"
+                  aria-label="Filter by key"
                 >
-                <option value="">Genre</option>
-                {genreOptions.map((g) => (
-                  <option key={g} value={g}>{g}</option>
-                ))}
-              </select>
-              <select
-                value={keyFilter ?? ""}
-                onChange={(e) => setKeyFilter(e.target.value ? e.target.value : null)}
-                className="rounded-full border px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-offset-1"
-                style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--foreground)" }}
-              >
-                <option value="">Key</option>
-                {keyOptions.map((k) => (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
-            </div>
-            {hasActiveFilters && (
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="text-sm" style={{ color: "var(--muted)" }}>Active:</span>
-                {searchQuery.trim() !== "" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>
-                    Search: {searchQuery.trim()}
-                    <button type="button" onClick={() => setSearchQuery("")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Clear search">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  </span>
-                )}
-                {genreFilter != null && genreFilter !== "" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>
-                    {genreFilter}
-                    <button type="button" onClick={() => clearFilter("genre")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Remove genre filter">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  </span>
-                )}
-                {keyFilter != null && keyFilter !== "" && (
-                  <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-mono" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>
-                    {keyFilter}
-                    <button type="button" onClick={() => clearFilter("key")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Remove key filter">
-                      <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                  </span>
-                )}
+                  <option value="">Any key</option>
+                  {keyOptions.map((k) => (
+                    <option key={k} value={k}>{k}</option>
+                  ))}
+                </select>
               </div>
-            )}
-            {hasActiveFilters && (
-              <p className="text-sm" style={{ color: "var(--muted)" }}>Showing {filteredSamples.length} of {samples.length} samples</p>
-            )}
-          </div>
+              {hasActiveFilters && (
+                <div className="flex flex-wrap items-center gap-2 profile-active-filters">
+                  <span>Active:</span>
+                  {searchQuery.trim() !== "" && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm" style={{ background: "var(--muted-light)", color: "var(--brown)" }}>
+                      Search: {searchQuery.trim()}
+                      <button type="button" onClick={() => setSearchQuery("")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Clear search">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </span>
+                  )}
+                  {genreFilter != null && genreFilter !== "" && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm" style={{ background: "var(--muted-light)", color: "var(--brown)" }}>
+                      {genreFilter}
+                      <button type="button" onClick={() => clearFilter("genre")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Remove genre filter">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </span>
+                  )}
+                  {keyFilter != null && keyFilter !== "" && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-mono" style={{ background: "var(--muted-light)", color: "var(--brown)" }}>
+                      {keyFilter}
+                      <button type="button" onClick={() => clearFilter("key")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Remove key filter">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </span>
+                  )}
+                  <span>Showing {filteredSamples.length} of {samples.length} samples</span>
+                </div>
+              )}
+            </>
           )}
 
           {error && (
@@ -265,13 +260,13 @@ export default function ProfilePage() {
 
           {samples.length === 0 && !loading ? (
             <div className="text-center py-12">
-              <p className="text-lg mb-4" style={{ color: "var(--muted)" }}>You haven't saved any samples yet.</p>
-              <Link href="/dig" className="inline-block px-5 py-2.5 rounded-[var(--radius-button)] font-medium text-white transition opacity-90 hover:opacity-100" style={{ background: "var(--primary)" }}>Start Digging</Link>
+              <p className="profile-count mb-4">You haven't saved any samples yet.</p>
+              <Link href="/dig" className="btn-primary inline-block no-underline">Start Digging</Link>
             </div>
           ) : filteredSamples.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-lg mb-4" style={{ color: "var(--muted)" }}>No samples match your filters.</p>
-              <button type="button" onClick={() => { setSearchQuery(""); setGenreFilter(null); setKeyFilter(null) }} className="inline-block px-5 py-2.5 rounded-[var(--radius-button)] font-medium text-white transition opacity-90 hover:opacity-100" style={{ background: "var(--primary)" }}>Clear filters</button>
+              <p className="profile-count mb-4">No samples match your filters.</p>
+              <button type="button" onClick={() => { setSearchQuery(""); setGenreFilter(null); setKeyFilter(null) }} className="btn-primary">Clear filters</button>
             </div>
           ) : (
           <div className="pb-8">
@@ -283,16 +278,12 @@ export default function ProfilePage() {
                     tabIndex={0}
                     onClick={() => openInDig(sample)}
                     onKeyDown={(e) => e.key === "Enter" && openInDig(sample)}
-                    className="rounded-2xl overflow-hidden border transition-all cursor-pointer hover:border-[var(--primary)]/40"
-                    style={{
-                      background: "var(--card)",
-                      borderColor: "var(--border)",
-                    }}
+                    className="profile-card cursor-pointer"
                   >
-                    <div className="aspect-video w-full bg-black/10 relative group">
+                    <div className="aspect-video w-full bg-black/10 relative group overflow-hidden">
                       <img src={sample.thumbnailUrl} alt={sample.title} className="w-full h-full object-cover" />
                       {sample.startTime && (
-                        <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-mono">
+                        <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-mono" style={{ fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>
                           {formatTimestamp(sample.startTime)}
                         </div>
                       )}
@@ -308,14 +299,14 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <div className="p-4">
-                      <h3 className="font-semibold mb-1 line-clamp-2 text-sm" style={{ color: "var(--foreground)" }}>{sample.title}</h3>
-                      <p className="text-xs mb-2" style={{ color: "var(--muted)" }}>{sample.channel}</p>
+                      <h3 className="profile-card-title line-clamp-2">{sample.title}</h3>
+                      <p className="profile-card-channel">{sample.channel}</p>
                       {(sample.genre || sample.era || sample.bpm || sample.key) && (
                         <div className="flex gap-2 flex-wrap">
-                          {sample.genre && <span className="px-2 py-1 rounded-full text-xs" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>{sample.genre}</span>}
-                          {sample.era && <span className="px-2 py-1 rounded-full text-xs" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>{sample.era}</span>}
-                          {sample.bpm && <span className="px-2 py-1 rounded-full text-xs font-mono" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>{sample.bpm} BPM</span>}
-                          {sample.key && <span className="px-2 py-1 rounded-full text-xs font-mono" style={{ background: "var(--muted-light)", color: "var(--foreground)" }}>{sample.key}</span>}
+                          {sample.genre && <span className="profile-tag genre">{sample.genre}</span>}
+                          {sample.era && <span className="profile-tag" style={{ background: "rgba(122,122,80,0.1)", color: "var(--olive)", borderColor: "rgba(122,122,80,0.25)" }}>{sample.era}</span>}
+                          {sample.bpm && <span className="profile-tag bpm">{sample.bpm} BPM</span>}
+                          {sample.key && <span className="profile-tag key">{sample.key}</span>}
                         </div>
                       )}
                     </div>
@@ -325,13 +316,13 @@ export default function ProfilePage() {
           </div>
           )}
 
-        <footer className="mt-10 pt-8 border-t" style={{ borderColor: "var(--border)" }}>
+        <footer className="dig-footer mt-10 pt-8 border-t px-2 sm:px-4" style={{ borderColor: "var(--border)" }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
             <div>
-              <p className="text-lg font-semibold" style={{ fontFamily: "var(--font-halant), Georgia, serif", color: "var(--foreground)" }}>Sample Roll</p>
-              <p className="text-sm mt-0.5" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Helping you find samples that matter.</p>
+              <p className="footer-title text-lg font-semibold" style={{ color: "var(--foreground)" }}>Sample Roll</p>
+              <p className="text-sm mt-0.5" style={{ color: "var(--muted)" }}>Helping you find samples that matter.</p>
             </div>
-            <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
+            <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)" }}>
               <Link href="/dig" className="hover:text-[var(--foreground)] transition">Dig</Link>
               <Link href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</Link>
               <Link href="/blog" className="hover:text-[var(--foreground)] transition">Blog</Link>

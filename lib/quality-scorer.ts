@@ -68,8 +68,8 @@ export function scoreCandidate(
   ).length
   score += Math.min(libraryCount * 4, 15)
 
-  // Negative: DJ/manipulation (even if not in hard filter)
-  const djTerms = ["scratch", "dj ", "turntable", "spinning", "rotating", "mixing", "manipulation"]
+  // Negative: DJ/manipulation (compound terms only - allow "DJ Archives", "Full Album Mix")
+  const djTerms = ["scratch", "scratching", "turntablism", "spinning", "rotating", "mixing", "manipulation", "dj mix", "dj set", "dj scratch", "mix set"]
   if (djTerms.some((t) => allText.includes(t))) score -= 40
 
   // Negative: live/cover/beatmaking

@@ -118,6 +118,20 @@ export function generateQueryTemplates(): string[] {
   templates.push(`"promo" "static image" "from vinyl" ${negativeKw}`)
   templates.push(`"b-side" "record sleeve" "vinyl" ${negativeKw}`)
 
+  // Broader 2-3 phrase templates (less-mined territory, more results)
+  templates.push(`"vinyl rip" "1970s" ${negativeKw}`)
+  templates.push(`"vinyl rip" "1960s" ${negativeKw}`)
+  templates.push(`"from vinyl" "jazz" ${negativeKw}`)
+  templates.push(`"from vinyl" "funk" ${negativeKw}`)
+  templates.push(`"from vinyl" "soul" ${negativeKw}`)
+  templates.push(`"needle drop" "funk" ${negativeKw}`)
+  templates.push(`"needle drop" "jazz" ${negativeKw}`)
+  templates.push(`"full album" "vinyl" ${negativeKw}`)
+  templates.push(`"vinyl rip" "album" ${negativeKw}`)
+  templates.push(`"rare groove" "vinyl" ${negativeKw}`)
+  templates.push(`"library music" "vinyl" ${negativeKw}`)
+  templates.push(`"bossa nova" "vinyl" ${negativeKw}`)
+
   return templates
 }
 
@@ -819,13 +833,12 @@ function calculateVinylRipScore(
   ]
   
   // DJ/manipulation indicators (NEGATIVE - reject these)
-  // Note: "crate digging" and "digging" omitted so vinyl-rip uploads that mention them can pass
+  // Relaxed: removed "turntable" (vinyl rips say "from my turntable"), "mixing"
   const djManipulationIndicators = [
-    "scratch", "scratching", "dj", "turntable", "turntablism", "beat juggling",
-    "mixing", "dj set", "dj mix",
+    "scratch", "scratching", "turntablism", "beat juggling",
+    "dj set", "dj mix", "mix set", "dj scratch", "scratch dj", "dj turntable", "turntable scratch",
     "vinyl manipulation", "record manipulation", "spinning", "rotating",
-    "dj scratch", "turntable scratch", "scratch dj", "hands on", "hand on",
-    "manipulating", "manipulation"
+    "hands on", "hand on", "manipulating", "manipulation"
   ]
   
   // Check for DJ/manipulation indicators first (immediate rejection)
@@ -1018,7 +1031,6 @@ async function fetchSearchPage(
       type: "video",
       maxResults: "50",
       order: "relevance",
-      videoCategoryId: "10",
       key,
     })
     if (publishedBeforeDate) params.set("publishedBefore", publishedBeforeDate.toISOString())
@@ -1066,25 +1078,59 @@ export async function searchWithQuery(
   return out.results
 }
 
+/** Per-page stats for verbose populate debugging */
+export interface PageStats {
+  rawCount: number
+  excludedCount: number
+  candidateCount: number
+  noDetailsCount: number
+  hardFilterRejectCount: number
+  indicatorRejectCount: number
+  djTermsRejectCount: number
+  modernHipHopRejectCount: number
+  durationRejectCount: number
+  scoreRejectCount: number
+  passedCount: number
+}
+
 /**
  * Process raw search items into filtered + scored results (shared by searchWithQuery and searchWithQueryPaginated).
  */
 async function processSearchPageItems(
   rawItems: any[],
   query: string,
-  excludedVideoIds: string[]
-): Promise<{ results: any[]; hadCandidates: boolean }> {
+  excludedVideoIds: string[],
+  options?: { verbose?: boolean }
+): Promise<{ results: any[]; hadCandidates: boolean; pageStats?: PageStats }> {
   const videosToCheck = rawItems
   const excludedSet = excludedVideoIds.length > 0 ? new Set(excludedVideoIds) : null
+  const verbose = options?.verbose ?? false
+
+  const stats: PageStats = {
+    rawCount: rawItems.length,
+    excludedCount: 0,
+    candidateCount: 0,
+    noDetailsCount: 0,
+    hardFilterRejectCount: 0,
+    indicatorRejectCount: 0,
+    djTermsRejectCount: 0,
+    modernHipHopRejectCount: 0,
+    durationRejectCount: 0,
+    scoreRejectCount: 0,
+    passedCount: 0,
+  }
 
   // Filter out excluded videos first (before API calls)
   const candidateVideos = excludedSet
     ? videosToCheck.filter((v: { id: { videoId: string } }) => !excludedSet.has(v.id.videoId))
     : videosToCheck
 
+  stats.excludedCount = rawItems.length - candidateVideos.length
+  stats.candidateCount = candidateVideos.length
+
   if (candidateVideos.length === 0) {
     console.log(`[Search] All ${videosToCheck.length} videos were excluded`)
-    return { results: [], hadCandidates: false }
+    return { results: [], hadCandidates: false, ...(verbose && { pageStats: stats }) }
   }
   
   // Check cache first for batch video details
@@ -1112,9 +1158,10 @@ async function processSearchPageItems(
     
     if (!details || !details.duration) {
       console.warn(`[Search] No details or duration for ${video.id.videoId}`)
+      stats.noDetailsCount++
       continue
     }
-    
+
     // Hard filter: Use full hard filter function to catch all bad matches
     const shouldReject = shouldHardFilter(
       video.snippet.title,
@@ -1123,6 +1170,7 @@ async function processSearchPageItems(
     )
     if (shouldReject) {
       console.log(`[Search] Hard filtered: ${video.snippet.title}`)
+      stats.hardFilterRejectCount++
       continue
     }
     
@@ -1160,8 +1208,8 @@ async function processSearchPageItems(
       descLower.includes(signal)
     )
     
-    // REJECT if it has DJ/manipulation terms
-    const djTerms = ["scratch", "scratching", "dj", "turntable", "spinning", "rotating", "mixing", "manipulation"]
+    // REJECT if it has DJ/manipulation terms (compound only - allow "DJ Archives", "Full Album Mix")
+    const djTerms = ["scratch", "scratching", "turntablism", "spinning", "rotating", "manipulation", "dj mix", "dj set", "dj scratch", "scratch dj", "dj turntable", "mix set"]
     const hasDjTerms = djTerms.some(term => 
       titleLower.includes(term) || 
       channelLower.includes(term) || 
@@ -1170,24 +1218,27 @@ async function processSearchPageItems(
     
     if (hasDjTerms) {
       console.log(`[Search] REJECTED: DJ/manipulation terms in: ${video.snippet.title}`)
+      stats.djTermsRejectCount++
       continue // Skip - reject DJ/manipulation videos
     }
-    
+
     // Must have static indicator OR strong vinyl signal
     if (!hasStaticIndicator && !hasStrongSignal) {
       console.log(`[Search] REJECTED: No static visual/vinyl indicators in: ${video.snippet.title}`)
+      stats.indicatorRejectCount++
       continue // Skip - must have at least one static visual or strong vinyl indicator
     }
-    
+
     const requiredIndicators = [...requiredStaticIndicators, ...strongVinylSignals]
-    const hasRequiredIndicator = requiredIndicators.some(indicator => 
-      titleLower.includes(indicator) || 
-      channelLower.includes(indicator) || 
+    const hasRequiredIndicator = requiredIndicators.some(indicator =>
+      titleLower.includes(indicator) ||
+      channelLower.includes(indicator) ||
       descLower.includes(indicator)
     )
-    
+
     if (!hasRequiredIndicator) {
       console.log(`[Search] REJECTED: No vinyl/album indicators in: ${video.snippet.title}`)
+      stats.indicatorRejectCount++
       continue // Skip - must have at least one vinyl/album indicator
     }
     
@@ -1203,7 +1254,7 @@ async function processSearchPageItems(
       "method man", "ghostface", "raekwon", "gza", "odb", "rza",
       "the roots", "black thought", "questlove", "pharrell", "timbaland",
       "swizz beatz", "just blaze", "dj premier", "pete rock", "9th wonder",
-      "j dilla", "madlib", "mf doom", "doom", "flying lotus", "knxwledge",
+      "j dilla", "madlib", "mf doom", "flying lotus", "knxwledge",
       "tyler the creator", "earl sweatshirt", "odd future", "asap rocky",
       "travis scott", "playboi carti", "lil uzi", "21 savage", "migos",
       "cardi b", "nicky minaj", "megan thee stallion", "dababy", "lil baby",
@@ -1220,7 +1271,7 @@ async function processSearchPageItems(
       "if i can't", "patiently waiting", "what up gangsta", "poor lil rich",
       "stan", "lose yourself", "without me", "the real slim shady",
       "hotline bling", "god's plan", "in my feelings", "one dance",
-      "humble", "dna", "alright", "i", "good kid", "maad city",
+      "humble", "dna", "alright", "good kid", "maad city",
       "no role modelz", "work out", "crooked smile", "power trip"
     ]
     
@@ -1238,6 +1289,7 @@ async function processSearchPageItems(
       }
     }
     if (isModernSong) {
+      stats.modernHipHopRejectCount++
       continue // Skip this video
     }
     
@@ -1255,6 +1307,7 @@ async function processSearchPageItems(
       }
     }
     if (isModernHipHop) {
+      stats.modernHipHopRejectCount++
       continue // Skip this video
     }
     
@@ -1273,6 +1326,7 @@ async function processSearchPageItems(
     // If it's hip-hop/rap, require at least 2 strong vinyl indicators
     if (hasHipHopIndicator && vinylIndicatorCount < 2) {
       console.log(`[Search] Hard filtered: Hip-hop/rap without strong vinyl indicators (found ${vinylIndicatorCount}): ${video.snippet.title}`)
+      stats.modernHipHopRejectCount++
       continue
     }
     
@@ -1292,12 +1346,14 @@ async function processSearchPageItems(
         }
       }
       if (isModernArtistTitle) {
+        stats.modernHipHopRejectCount++
         continue // Skip this video
       }
     }
-    
+
     // Duration filter: Allow 30s-70min (vinyl rips can be short tracks or full albums)
     if (details.duration < 30 || details.duration > 4200) {
+      stats.durationRejectCount++
       continue
     }
     
@@ -1347,26 +1403,28 @@ async function processSearchPageItems(
       titleLower.startsWith("lp/")
     )
     
-    // REJECT if has DJ/manipulation terms (duplicate check in scoring path)
+    // REJECT if has DJ/manipulation terms (compound only - allow "from my turntable", "Full Album Mix")
     const hasDjManipulationTerms = (
       titleLower.includes("scratch") ||
-      titleLower.includes("dj") ||
-      titleLower.includes("turntable") ||
       titleLower.includes("spinning") ||
       titleLower.includes("rotating") ||
-      titleLower.includes("mixing") ||
-      titleLower.includes("manipulation")
+      titleLower.includes("manipulation") ||
+      titleLower.includes("dj mix") ||
+      titleLower.includes("dj set") ||
+      titleLower.includes("mix set")
     )
     
     if (hasDjManipulationTerms) {
       console.log(`[Search] REJECTED: DJ/manipulation terms in: ${video.snippet.title}`)
+      stats.djTermsRejectCount++
       continue // Skip - reject DJ/manipulation videos
     }
-    
+
     // Only accept videos with:
     // 1. Score >= 20 (increased from 15)
     // 2. AND has static visual indicator OR strong vinyl signal
-    if (vinylRipScore >= 20 && (hasStaticVisualIndicator || hasStrongVinylSignal)) {
+    if (vinylRipScore >= 15 && (hasStaticVisualIndicator || hasStrongVinylSignal)) {
+      stats.passedCount++
       scoredVideos.push({
         ...video,
         details,
@@ -1383,28 +1441,36 @@ async function processSearchPageItems(
         console.log(`[Search] Found ${scoredVideos.length} high-scoring videos, breaking early for speed`)
         break
       }
+    } else {
+      stats.scoreRejectCount++
     }
   }
-  
+
   // Sort by VinylRipScore (highest first)
   scoredVideos.sort((a, b) => b.vinylRipScore - a.vinylRipScore)
   
   console.log(`[Search] Found ${scoredVideos.length} videos with score >= 5 (top scores: ${scoredVideos.slice(0, 3).map(v => v.vinylRipScore).join(", ")})`)
 
   // Return top 10 highest-scoring videos (or all if less than 10); we had candidates so hadCandidates: true
-  return { results: scoredVideos.slice(0, 10), hadCandidates: true }
+  return {
+    results: scoredVideos.slice(0, 10),
+    hadCandidates: true,
+    ...(verbose && { pageStats: stats }),
+  }
 }
 
 /**
  * Paginated search: fetch one page of results and return nextPageToken for more.
  * Does not use cache. Used by populate to get more than the first page per query.
+ * When options.verbose is true, includes pageStats for debugging filter bottlenecks.
  */
 export async function searchWithQueryPaginated(
   query: string,
   excludedVideoIds: string[],
   publishedBeforeDate: Date | undefined,
-  pageToken?: string
-): Promise<{ results: any[]; nextPageToken?: string; hadCandidates: boolean }> {
+  pageToken?: string,
+  options?: { verbose?: boolean }
+): Promise<{ results: any[]; nextPageToken?: string; hadCandidates: boolean; pageStats?: PageStats }> {
   if (!getFirstYouTubeApiKey()) {
     throw new Error("No YouTube API key set. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
   }
@@ -1412,8 +1478,13 @@ export async function searchWithQueryPaginated(
   if (!items.length) {
     return { results: [], nextPageToken, hadCandidates: false }
   }
-  const out = await processSearchPageItems(items, query, excludedVideoIds)
-  return { results: out.results, nextPageToken, hadCandidates: out.hadCandidates }
+  const out = await processSearchPageItems(items, query, excludedVideoIds, options)
+  return {
+    results: out.results,
+    nextPageToken,
+    hadCandidates: out.hadCandidates,
+    ...(out.pageStats && { pageStats: out.pageStats }),
+  }
 }
 
 /**

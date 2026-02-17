@@ -6,6 +6,9 @@ module.exports = {
   ],
   theme: {
     extend: {
+      screens: {
+        "dig-lg": "1100px",
+      },
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",

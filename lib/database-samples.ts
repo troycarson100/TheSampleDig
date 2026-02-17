@@ -176,6 +176,7 @@ export async function storeSampleInDatabase(video: YouTubeVideo & {
   source?: "search" | "playlist" | "channel"
   qualityScore?: number
   embeddable?: boolean
+  tags?: string
 }): Promise<boolean> {
   try {
     const existing = await prisma.sample.findUnique({
@@ -193,11 +194,16 @@ export async function storeSampleInDatabase(video: YouTubeVideo & {
       source: video.source ?? null,
       embeddable: video.embeddable ?? null,
     }
+    const createData = {
+      ...baseData,
+      tags: video.tags ?? null,
+    }
 
     if (existing) {
+      const updateData = video.tags !== undefined ? { ...baseData, tags: video.tags } : baseData
       await prisma.sample.update({
         where: { id: existing.id },
-        data: baseData,
+        data: updateData,
       })
       return false // Already existed
     }
@@ -224,7 +230,7 @@ export async function storeSampleInDatabase(video: YouTubeVideo & {
         youtubeId: video.id,
         channelId: channelId,
         analysisStatus: "pending",
-        ...baseData,
+        ...createData,
       }
     })
     

@@ -943,3 +943,145 @@ body.theme-vinyl::before {
 .theme-vinyl .dig-footer .footer-title {
   font-family: var(--font-bebas), 'Bebas Neue', sans-serif;
 }
+
+/* ─── Profile / My Saved Samples — match dig page style ───────────────── */
+.theme-vinyl .profile-page-wrap {
+  margin-top: 56px;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 24px 28px;
+}
+.theme-vinyl .profile-page-wrap .profile-title {
+  font-family: var(--font-bebas), 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.2em;
+  color: var(--brown);
+  margin-bottom: 4px;
+}
+.theme-vinyl .profile-page-wrap .profile-count {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--brown);
+  opacity: 0.8;
+}
+.theme-vinyl .profile-filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 22px;
+  background: var(--warm);
+  border: 1px solid rgba(74, 55, 40, 0.1);
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+.theme-vinyl .profile-filter-bar input[type="search"] {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--brown);
+  background: white;
+  border: 1px solid rgba(74, 55, 40, 0.12);
+  border-radius: 4px;
+  padding: 10px 14px;
+  min-width: 200px;
+}
+.theme-vinyl .profile-filter-bar input[type="search"]::placeholder {
+  color: var(--brown);
+  opacity: 0.5;
+}
+.theme-vinyl .profile-filter-bar input[type="search"]:focus {
+  outline: none;
+  border-color: var(--rust);
+}
+.theme-vinyl .profile-filter-bar .filter-label {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--brown);
+  opacity: 0.8;
+}
+.theme-vinyl .profile-card {
+  background: var(--warm);
+  border: 1px solid rgba(74, 55, 40, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.theme-vinyl .profile-card:hover {
+  border-color: rgba(184, 92, 56, 0.25);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+}
+.theme-vinyl .profile-card .profile-card-title {
+  font-family: var(--font-dm-serif), 'DM Serif Display', serif;
+  font-size: 14px;
+  line-height: 1.35;
+  color: var(--brown);
+  margin-bottom: 6px;
+}
+.theme-vinyl .profile-card .profile-card-channel {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  color: var(--brown);
+  opacity: 0.75;
+  margin-bottom: 8px;
+}
+.theme-vinyl .profile-card .profile-tag {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  padding: 4px 8px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+.theme-vinyl .profile-card .profile-tag.genre {
+  background: rgba(184, 92, 56, 0.08);
+  color: var(--rust);
+  border-color: rgba(184, 92, 56, 0.2);
+}
+.theme-vinyl .profile-card .profile-tag.bpm,
+.theme-vinyl .profile-card .profile-tag.key {
+  background: rgba(74, 55, 40, 0.06);
+  color: var(--brown);
+}
+.theme-vinyl .profile-page-wrap .btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  transition: opacity 0.2s;
+}
+.theme-vinyl .profile-page-wrap .btn-primary:hover {
+  opacity: 0.9;
+}
+.theme-vinyl .profile-active-filters {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--brown);
+  opacity: 0.8;
+}
+.theme-vinyl .profile-key-select {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--brown);
+  background: white;
+  border: 1px solid rgba(74, 55, 40, 0.12);
+  border-radius: 4px;
+  padding: 10px 14px;
+  min-width: 100px;
+  cursor: pointer;
+}
+.theme-vinyl .profile-key-select:focus {
+  outline: none;
+  border-color: var(--rust);
+}

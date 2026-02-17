@@ -7,6 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
+    "check-quota": "node -r dotenv/config scripts/check-youtube-quota.js",
     "postinstall": "node scripts/fix-node-releases-json.js && node scripts/fix-prisma-default.js && node scripts/copy-worklet.js",
     "backfill-bpm-key": "tsx scripts/backfill-bpm-key.ts",
     "backfill-bpm-key-ytdlp": "tsx scripts/backfill-bpm-key-ytdlp.ts",
@@ -21,7 +22,8 @@
     "next-auth": "^5.0.0-beta.30",
     "prisma": "^5.19.0",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "stripe": "^20.3.1"
   },
   "devDependencies": {
     "@types/node": "^20",
