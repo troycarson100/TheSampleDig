@@ -1023,12 +1023,9 @@ function SamplePlayer({
                     padding: 0,
                   }}
                 >
-                  <span className="pl-3 pr-1.5 flex items-center" style={{ color: META_BOX_STYLE.color }}>
-                    <EighthNoteIcon />
-                  </span>
                   <button
                     type="button"
-                    className="p-1.5 hover:opacity-70 transition-opacity"
+                    className="pl-2 p-1.5 hover:opacity-70 transition-opacity"
                     style={{ color: META_BOX_STYLE.color }}
                     aria-label="Decrease BPM"
                     onMouseDown={(e) => {
@@ -1490,7 +1487,10 @@ function SamplePlayer({
         )}
         {chopModeEnabled && savedLoopsList.length > 0 && (
           <div className="mt-3 w-full max-w-2xl mx-auto">
-            <p className="text-xs font-medium mb-1.5" style={{ color: "var(--muted)" }}>
+            <p
+              className="mb-1.5 text-[9px] font-medium uppercase tracking-[0.14em]"
+              style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}
+            >
               Saved loops — click to load
             </p>
             <ul className="flex flex-col gap-2">
@@ -1499,8 +1499,11 @@ function SamplePlayer({
                 return (
                   <li
                     key={entry.id}
-                    className="flex items-center gap-2 p-2 rounded-lg border transition hover:opacity-90"
-                    style={{ borderColor: "var(--border)", background: "var(--muted-light)" }}
+                    className="flex items-center gap-2 p-2 rounded-lg transition hover:opacity-90"
+                    style={{
+                      background: "#EAE4D6",
+                      color: "var(--foreground)",
+                    }}
                   >
                     <button
                       type="button"
@@ -1537,7 +1540,10 @@ function SamplePlayer({
                             ))}
                         </div>
                       </div>
-                      <span className="text-sm truncate" style={{ color: "var(--foreground)" }}>
+                      <span
+                        className="text-sm truncate"
+                        style={{ color: "var(--foreground)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}
+                      >
                         {entry.label ?? "Loop"}
                       </span>
                     </button>
@@ -1550,8 +1556,11 @@ function SamplePlayer({
                           setSavedLoopsList(getSavedLoops(youtubeId))
                         }
                       }}
-                      className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full border transition hover:opacity-90"
-                      style={{ borderColor: "var(--border)", background: "var(--muted-light)", color: "var(--muted)" }}
+                      className="flex-shrink-0 flex items-center justify-center w-7 h-7 rounded-full transition hover:opacity-90"
+                      style={{
+                        background: "#EAE4D6",
+                        color: "var(--foreground)",
+                      }}
                       aria-label="Delete saved loop"
                       title="Remove from saved loops"
                     >

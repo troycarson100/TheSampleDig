@@ -443,17 +443,21 @@ export default function DigPage() {
       </header>
       <div className="genre-ticker">
         <div className="ticker-track" aria-hidden>
-          {/* Duplicate many times so each 50% half fills the viewport for seamless loop */}
-          {(["Jazz", "Soul", "Funk", "Disco", "Bossa Nova", "Rare Groove"] as const).flatMap((label) =>
-            [...Array(8)].map((_, i) => (
-              <span key={`${label}-${i}`}>{label} <span className="ticker-dot">✦</span></span>
-            ))
-          )}
-          {(["Jazz", "Soul", "Funk", "Disco", "Bossa Nova", "Rare Groove"] as const).flatMap((label) =>
-            [...Array(8)].map((_, i) => (
-              <span key={`2-${label}-${i}`}>{label} <span className="ticker-dot">✦</span></span>
-            ))
-          )}
+          {/* All dropdown genres, one per item; sequence repeated for seamless loop (track duplicated so -50% loops) */}
+          {(() => {
+            const genres = GENRE_OPTIONS.filter((o) => o.value).map((o) => o.label)
+            const repeated = [...Array(8)].flatMap(() => genres)
+            return (
+              <>
+                {repeated.flatMap((label, i) =>
+                  i === 0 ? [<span key={i} className="ticker-label">{label}</span>] : [<span key={`d-${i}`} className="ticker-dot">✦</span>, <span key={i} className="ticker-label">{label}</span>]
+                )}
+                {repeated.flatMap((label, i) =>
+                  i === 0 ? [<span key={`2-${i}`} className="ticker-label">{label}</span>] : [<span key={`2-d-${i}`} className="ticker-dot">✦</span>, <span key={`2-${i}`} className="ticker-label">{label}</span>]
+                )}
+              </>
+            )
+          })()}
         </div>
       </div>
       <div className="dig-page-wrap">
@@ -502,6 +506,7 @@ export default function DigPage() {
               </div>
             </div>
 
+            <div className="player-card-scroll">
             {error && (
               <div className="mb-6 p-4 rounded-xl text-center border" style={{ background: "rgba(185,28,28,0.06)", borderColor: "rgba(185,28,28,0.2)", color: "#b91c1c" }}>
                 {error}
@@ -546,6 +551,7 @@ export default function DigPage() {
             <BeatsPanel videoBpm={sample?.bpm ?? null} />
             */}
 
+            </div>
           </div>
 
           {session && (

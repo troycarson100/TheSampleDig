@@ -219,6 +219,10 @@ body.theme-vinyl::before {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), 0 0 24px rgba(184, 92, 56, 0.18);
   transform: scale(1.06);
 }
+.theme-vinyl .dice-btn.rolling,
+.theme-vinyl .dice-btn.landed {
+  z-index: 501; /* above genre ticker (499) and header (500) so animation isn't clipped above */
+}
 .theme-vinyl .dice-btn.rolling {
   border-color: var(--rust) !important;
   box-shadow: 0 0 40px rgba(184, 92, 56, 0.5), 0 0 80px rgba(184, 92, 56, 0.2) !important;
@@ -378,22 +382,28 @@ body.theme-vinyl::before {
 .genre-ticker .ticker-track {
   display: flex;
   gap: 0;
-  animation: tickroll 120s linear infinite;
+  animation: tickroll 480s linear infinite;
   white-space: nowrap;
 }
 .genre-ticker .ticker-track span {
+  display: inline-flex;
+  align-items: center;
+}
+.genre-ticker .ticker-label {
   font-family: var(--font-bebas), 'Bebas Neue', sans-serif;
   font-size: 13px;
   letter-spacing: 0.18em;
   color: rgba(255, 255, 255, 0.72);
   padding: 0 26px;
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
+  white-space: nowrap;
 }
 .genre-ticker .ticker-dot {
   color: rgba(255, 255, 255, 0.28);
-  font-size: 7px;
+  font-size: 10px;
+  padding: 0 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 @keyframes tickroll {
   from { transform: translateX(0); }
@@ -410,13 +420,14 @@ body.theme-vinyl::before {
   gap: 24px;
 }
 .theme-vinyl .dig-app-grid {
-  align-items: start;
+  align-items: stretch;
   min-height: calc(100vh - 90px);
 }
 .theme-vinyl .dig-col,
 .theme-vinyl [class*="main-col"] {
   padding: 0;
-  overflow-y: auto;
+  overflow: visible;
+  min-height: 0;
 }
 
 /* ─── Controls bar (redesign: top of player card, 8px top radius) ──── */
@@ -428,13 +439,23 @@ body.theme-vinyl::before {
   padding: 16px 22px;
   background: var(--warm);
   border-radius: 8px 8px 0 0;
+  overflow: visible;
+  flex-shrink: 0;
 }
 
 .theme-vinyl .player-area-card {
   border: 1px solid rgba(74, 55, 40, 0.1);
   border-radius: 8px;
-  overflow: hidden;
+  overflow: visible;
   background: var(--warm);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+.theme-vinyl .player-card-scroll {
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
 }
 
 .theme-vinyl .video-and-chop-card {
