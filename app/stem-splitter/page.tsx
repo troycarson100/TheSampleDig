@@ -924,27 +924,22 @@ export default function StemSplitterPage() {
   }, [extraStemsStateByType])
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
-        <div className="max-w-6xl mx-auto px-3 sm:px-4">
-          <SiteNav />
-        </div>
+    <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
+      <header className="site-header w-full">
+        <SiteNav />
       </header>
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
-        <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
+      <div className="stem-splitter-page-wrap">
+        <h1 className="stem-page-title">
           Stem Splitter
         </h1>
-        <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>
+        <p className="stem-page-desc">
           Upload a song to split into vocals, drums, bass, and melody. Adjust volume, solo, or mute each stem and download as WAV.
         </p>
 
-        <div
-          className="rounded-2xl p-6 mb-6"
-          style={{ background: "#F6F0E9" }}
-        >
+        <div className="stem-splitter-card">
           {loadingSavedSong ? (
             <div className="py-12 text-center">
-              <p className="text-lg font-medium" style={{ color: "var(--foreground)" }}>
+              <p className="stem-name" style={{ fontSize: 18 }}>
                 Opening…
               </p>
             </div>
@@ -954,8 +949,7 @@ export default function StemSplitterPage() {
                 onDragOver={(e) => { e.preventDefault(); setIsDragging(true) }}
                 onDragLeave={() => setIsDragging(false)}
                 onDrop={handleDrop}
-                className={`border-2 border-dashed rounded-xl p-10 text-center transition-colors ${isDragging ? "border-[var(--primary)] bg-[var(--primary)]/5" : "border-[var(--border)]"}`}
-                style={{ background: isDragging ? "var(--primary)/0.05" : undefined }}
+                className={`stem-splitter-dropzone ${isDragging ? "dragging" : ""}`}
               >
                 <input
                   type="file"
@@ -968,24 +962,23 @@ export default function StemSplitterPage() {
                   htmlFor="stem-file-input"
                   className="cursor-pointer block"
                 >
-                  <p className="text-lg font-medium mb-1" style={{ color: "var(--foreground)" }}>
+                  <p className="dropzone-title">
                     {file ? file.name : "Drag and drop an audio file here, or click to browse"}
                   </p>
-                  <p className="text-sm" style={{ color: "var(--muted)" }}>
+                  <p className="dropzone-hint">
                     MP3, WAV, OGG, FLAC supported
                   </p>
                 </label>
               </div>
               {error && (
-                <div className="mt-3 text-sm text-red-600 whitespace-pre-wrap max-h-40 overflow-y-auto">{error}</div>
+                <div className="mt-3 text-sm whitespace-pre-wrap max-h-40 overflow-y-auto" style={{ color: "var(--rust)" }}>{error}</div>
               )}
               <div className="mt-4 flex gap-3">
                 <button
                   type="button"
                   onClick={handleSubmit}
                   disabled={!file}
-                  className="px-5 py-2.5 rounded-[var(--radius-button)] font-medium disabled:opacity-50 disabled:cursor-not-allowed transition"
-                  style={{ background: "var(--primary)", color: "var(--primary-foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                  className="stem-btn-primary disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Split stems
                 </button>
@@ -993,8 +986,7 @@ export default function StemSplitterPage() {
                   <button
                     type="button"
                     onClick={() => { setFile(null); setError("") }}
-                    className="px-5 py-2.5 rounded-[var(--radius-button)] border font-medium transition"
-                    style={{ borderColor: "var(--border)", color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                    className="stem-btn-secondary"
                   >
                     Clear
                   </button>
@@ -1003,22 +995,22 @@ export default function StemSplitterPage() {
             </>
           ) : processing ? (
             <div className="py-12 text-center">
-              <p className="text-lg font-medium mb-2" style={{ color: "var(--foreground)" }}>
+              <p className="stem-name mb-2" style={{ fontSize: 18 }}>
                 Splitting stems…
               </p>
-              <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
+              <p className="stem-page-desc mb-4">
                 This may take a minute depending on track length.
               </p>
               <div
                 className="h-2 rounded-full overflow-hidden max-w-md mx-auto"
-                style={{ background: "var(--muted-light)" }}
+                style={{ background: "rgba(74, 55, 40, 0.12)" }}
               >
                 <div
                   className="h-full rounded-full transition-[width] duration-300 ease-out"
-                  style={{ width: `${loadingProgress}%`, background: "var(--primary)" }}
+                  style={{ width: `${loadingProgress}%`, background: "var(--rust)" }}
                 />
               </div>
-              <p className="text-sm mt-2 tabular-nums" style={{ color: "var(--muted)" }}>
+              <p className="stem-page-desc mt-2 tabular-nums">
                 {Math.round(loadingProgress)}%
               </p>
             </div>
@@ -1033,8 +1025,7 @@ export default function StemSplitterPage() {
                         value={titleEditValue}
                         onChange={(e) => setTitleEditValue(e.target.value)}
                         onKeyDown={(e) => e.key === "Enter" && saveEditedTitle()}
-                        className="flex-1 min-w-[200px] px-3 py-2 rounded-lg border text-lg font-medium"
-                        style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                        className="stem-input flex-1 min-w-[200px] text-lg"
                         placeholder="Song title"
                         autoFocus
                         aria-label="Edit song title"
@@ -1042,15 +1033,14 @@ export default function StemSplitterPage() {
                       <button
                         type="button"
                         onClick={saveEditedTitle}
-                        className="px-3 py-2 rounded-lg text-sm font-medium"
-                        style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+                        className="stem-btn-primary"
                       >
                         Save
                       </button>
                     </>
                   ) : (
                     <>
-                      <p className="text-lg font-medium truncate min-w-0" style={{ color: "var(--foreground)" }} title={displayTitleOverride ?? file?.name ?? ""}>
+                      <p className="stem-name truncate min-w-0" style={{ fontSize: 16 }} title={displayTitleOverride ?? file?.name ?? ""}>
                         {displayTitleOverride ?? file?.name ?? ""}
                       </p>
                       <button
@@ -1070,12 +1060,12 @@ export default function StemSplitterPage() {
                   )}
                 </div>
               )}
-              <div className="flex items-center gap-3 mb-4 flex-wrap">
+              <div className="stem-splitter-controls-bar">
                 <button
                   type="button"
                   onClick={togglePlayPause}
                   className="flex items-center justify-center w-10 h-10 rounded-full border transition"
-                  style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                  style={{ borderColor: "rgba(74, 55, 40, 0.2)", background: "var(--warm)", color: "var(--brown)" }}
                   aria-label={playing ? "Pause" : "Play"}
                 >
                   {playing ? (
@@ -1084,7 +1074,7 @@ export default function StemSplitterPage() {
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
                   )}
                 </button>
-                <span className="text-sm font-medium tabular-nums" style={{ color: "var(--muted)" }}>
+                <span className="stem-control-label text-sm font-medium tabular-nums">
                   {bpm != null ? `${bpm} BPM` : "— BPM"}
                   <span className="mx-1.5" aria-hidden>·</span>
                   Key: {key ?? "—"}
@@ -1092,8 +1082,7 @@ export default function StemSplitterPage() {
                 <button
                   type="button"
                   onClick={resetForNewFile}
-                  className="text-sm font-medium underline"
-                  style={{ color: "var(--muted)" }}
+                  className="stem-btn-secondary !py-1.5 !px-2 text-sm"
                 >
                   New file
                 </button>
@@ -1102,8 +1091,7 @@ export default function StemSplitterPage() {
                     type="button"
                     onClick={() => setMoreStemsOpen((o) => !o)}
                     disabled={extraStemsLoading}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium disabled:opacity-50"
-                    style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                    className="stem-btn-secondary flex items-center gap-2 disabled:opacity-50"
                     aria-expanded={moreStemsOpen}
                     aria-haspopup="true"
                   >
@@ -1117,7 +1105,7 @@ export default function StemSplitterPage() {
                   </button>
                   {moreStemsOpen && (
                     <>
-                      <div className="absolute left-0 top-full mt-1 z-10 min-w-[280px] rounded-xl border p-2 shadow-lg" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+                      <div className="stem-splitter-dropdown-panel absolute left-0 top-full mt-1 z-10 min-w-[280px] p-2">
                         <button
                           type="button"
                           onClick={() => handleMoreStemsOption("vocals")}
@@ -1171,8 +1159,7 @@ export default function StemSplitterPage() {
                   <button
                     type="button"
                     onClick={() => setDownloadOpen((o) => !o)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg border text-sm font-medium"
-                    style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                    className="stem-btn-secondary flex items-center gap-2"
                     aria-expanded={downloadOpen}
                     aria-haspopup="true"
                   >
@@ -1183,7 +1170,7 @@ export default function StemSplitterPage() {
                   </button>
                   {downloadOpen && (
                     <>
-                      <div className="absolute right-0 top-full mt-1 z-10 min-w-[220px] rounded-xl border p-3 shadow-lg" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+                      <div className="stem-splitter-dropdown-panel absolute right-0 top-full mt-1 z-10 min-w-[220px] p-3">
                         <div className="space-y-2 mb-3">
                           <label className="flex items-center gap-2 cursor-pointer">
                             <input
@@ -1250,8 +1237,7 @@ export default function StemSplitterPage() {
                           type="button"
                           onClick={handleDownloadStems}
                           disabled={downloadStems.size === 0}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed transition"
-                          style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+                          className="stem-btn-primary w-full flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -1279,11 +1265,10 @@ export default function StemSplitterPage() {
                   return (
                     <div
                       key={s.id}
-                      className="rounded-xl p-4 border"
-                      style={{ borderColor: "var(--border)", background: "var(--background)" }}
+                      className="stem-splitter-stem-card"
                     >
                       <div className="flex items-center gap-3 mb-2">
-                        <span className="text-sm font-medium w-16" style={{ color: "var(--foreground)" }}>{s.label}</span>
+                        <span className="stem-name w-16" style={{ fontSize: 12 }}>{s.label}</span>
                         <button
                           type="button"
                           onClick={() => updateStem(s.id, { solo: !s.solo })}
@@ -1300,18 +1285,28 @@ export default function StemSplitterPage() {
                         >
                           Mute
                         </button>
-                        <div className="flex-1 flex items-center gap-2">
-                          <span className="text-xs w-8" style={{ color: "var(--muted)" }}>Vol</span>
+                        <div className="flex items-center gap-1.5 w-20 shrink-0">
+                          <span className="text-[10px] w-5 shrink-0 stem-control-label">Vol</span>
                           <input
                             type="range"
                             min={0}
                             max={100}
                             value={s.volume * 100}
                             onChange={(e) => updateStem(s.id, { volume: Number(e.target.value) / 100 })}
-                            className="flex-1 h-2 rounded-full appearance-none"
+                            className="stem-vol-slider w-full min-w-0 h-1.5 rounded-full appearance-none"
                             style={{ background: "var(--muted-light)", accentColor: STEM_COLORS[s.id] }}
                           />
                         </div>
+                        {jobId && (
+                          <a
+                            href={`/api/stems/${jobId}/${s.id}.wav`}
+                            download={`${s.id}.wav`}
+                            className="stem-download-btn ml-auto text-xs px-2 py-1 rounded border font-medium shrink-0"
+                            style={{ borderColor: "rgba(74, 55, 40, 0.2)", color: "var(--brown)" }}
+                          >
+                            Download
+                          </a>
+                        )}
                       </div>
                       <canvas
                         ref={(el) => { canvasRefs.current[s.id] = el }}
@@ -1365,23 +1360,23 @@ export default function StemSplitterPage() {
                                     >
                                       Mute
                                     </button>
-                                    <div className="flex-1 flex items-center gap-2">
-                                      <span className="text-xs w-8" style={{ color: "var(--muted)" }}>Vol</span>
+                                    <div className="flex items-center gap-1.5 w-20 shrink-0">
+                                      <span className="text-[10px] w-5 shrink-0 stem-control-label">Vol</span>
                                       <input
                                         type="range"
                                         min={0}
                                         max={100}
                                         value={sub.volume * 100}
                                         onChange={(e) => updateExtraStem(extraType, sub.id, { volume: Number(e.target.value) / 100 })}
-                                        className="flex-1 h-2 rounded-full appearance-none"
+                                        className="stem-vol-slider w-full min-w-0 h-1.5 rounded-full appearance-none"
                                         style={{ background: "var(--background)", accentColor: getExtraStemColor(sub.id) }}
                                       />
                                     </div>
                                     <a
                                       href={sub.url}
                                       download={`${sub.id}.wav`}
-                                      className="text-xs px-2 py-1 rounded border font-medium"
-                                      style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+                                      className="stem-download-btn ml-auto text-xs px-2 py-1 rounded border font-medium shrink-0"
+                                      style={{ borderColor: "rgba(74, 55, 40, 0.2)", color: "var(--brown)" }}
                                     >
                                       Download
                                     </a>
@@ -1413,12 +1408,12 @@ export default function StemSplitterPage() {
                 </div>
               )}
               {extraStemsComingSoon && (
-                <div className="mt-4 rounded-xl p-4 border text-sm" style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--muted)" }}>
+                <div className="mt-4 stem-splitter-card text-sm stem-page-desc">
                   Lead/backing vocal separation coming soon.
                 </div>
               )}
               {extraStemsError && (
-                <div className="mt-4 rounded-xl p-4 border text-sm text-red-600 whitespace-pre-wrap" style={{ borderColor: "var(--border)", background: "var(--background)" }}>
+                <div className="mt-4 stem-splitter-card text-sm whitespace-pre-wrap" style={{ color: "var(--rust)" }}>
                   {extraStemsError}
                 </div>
               )}
@@ -1427,11 +1422,9 @@ export default function StemSplitterPage() {
         </div>
 
         {/* My Songs - below stem splits, always visible */}
-        <section className="pt-10 border-t" style={{ borderColor: "var(--border)" }}>
-          <h2 className="text-2xl font-bold mb-1" style={{ color: "var(--foreground)" }}>
-            My Songs
-          </h2>
-          <p className="text-sm mb-4" style={{ color: "var(--muted)" }}>
+        <section className="stem-splitter-mysongs-section">
+          <h2>My Songs</h2>
+          <p className="stem-page-desc mb-4">
             Pick one of your songs to view it.
           </p>
           {(() => {
@@ -1447,29 +1440,22 @@ export default function StemSplitterPage() {
             uniqueKeys.sort()
             return (
               <>
-                <div className="flex flex-wrap items-center gap-3 mb-4">
+                <div className="profile-filter-bar flex flex-wrap items-center gap-3 mb-4">
                   <div className="relative flex-1 min-w-[200px] max-w-md">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--muted)]">
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
-                        <circle cx="11" cy="11" r="8" />
-                        <path d="m21 21-4.35-4.35" />
-                      </svg>
-                    </span>
                     <input
                       type="search"
                       placeholder={`Search [${mySongs.length}]`}
                       value={mySongsSearch}
                       onChange={(e) => setMySongsSearch(e.target.value)}
-                      className="w-full pl-10 pr-4 py-2.5 rounded-lg border text-sm"
-                      style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                      className="stem-input w-full py-2.5"
                       aria-label="Search my songs"
                     />
                   </div>
                   <select
                     value={mySongsKeyFilter}
                     onChange={(e) => setMySongsKeyFilter(e.target.value)}
-                    className="px-3 py-2.5 rounded-lg border text-sm"
-                    style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                    className="profile-key-select px-3 py-2.5 rounded-lg border text-sm"
+                    style={{ borderColor: "rgba(74, 55, 40, 0.2)", background: "var(--warm)", color: "var(--brown)" }}
                     aria-label="Filter by key"
                   >
                     <option value="">Any key</option>
@@ -1480,7 +1466,7 @@ export default function StemSplitterPage() {
                     ))}
                   </select>
                   <div className="flex items-center gap-2">
-                    <label className="text-xs whitespace-nowrap" style={{ color: "var(--muted)" }}>
+                    <label className="stem-control-label text-xs whitespace-nowrap">
                       Tempo:
                     </label>
                     <input
@@ -1489,40 +1475,37 @@ export default function StemSplitterPage() {
                       max={300}
                       value={tempoMin}
                       onChange={(e) => setMySongsTempoRange(([_, max]) => [Number(e.target.value) || 20, max])}
-                      className="w-14 px-2 py-2 rounded-lg border text-sm tabular-nums"
-                      style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                      className="stem-input w-14 tabular-nums"
                       aria-label="Min BPM"
                     />
-                    <span style={{ color: "var(--muted)" }}>–</span>
+                    <span className="stem-control-label">–</span>
                     <input
                       type="number"
                       min={20}
                       max={300}
                       value={tempoMax}
                       onChange={(e) => setMySongsTempoRange(([min, _]) => [min, Number(e.target.value) || 300])}
-                      className="w-14 px-2 py-2 rounded-lg border text-sm tabular-nums"
-                      style={{ borderColor: "var(--border)", background: "var(--background)", color: "var(--foreground)" }}
+                      className="stem-input w-14 tabular-nums"
                       aria-label="Max BPM"
                     />
-                    <span className="text-xs" style={{ color: "var(--muted)" }}>bpm</span>
+                    <span className="stem-control-label text-xs">bpm</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                   {filtered.map((song) => (
                     <div
                       key={song.id}
-                      className="flex items-center gap-3 rounded-xl p-4 border"
-                      style={{ borderColor: "var(--border)", background: "var(--background)" }}
+                      className="profile-card flex items-center gap-3"
                     >
                       <button
                         type="button"
                         onClick={() => loadMySong(song)}
                         className="flex-1 min-w-0 text-left"
                       >
-                        <p className="text-sm font-medium truncate" style={{ color: "var(--foreground)" }} title={song.title}>
+                        <p className="profile-card-title truncate" title={song.title}>
                           {song.title}
                         </p>
-                        <p className="text-xs tabular-nums" style={{ color: "var(--muted)" }}>
+                        <p className="profile-card-channel text-xs tabular-nums">
                           {song.bpm != null ? `${song.bpm} bpm` : "—"} {song.key ?? "—"}
                         </p>
                       </button>
@@ -1530,7 +1513,7 @@ export default function StemSplitterPage() {
                         type="button"
                         onClick={() => deleteMySong(song.id)}
                         className="shrink-0 w-8 h-8 flex items-center justify-center rounded-full border transition hover:opacity-80"
-                        style={{ borderColor: "var(--border)", color: "var(--muted)" }}
+                        style={{ borderColor: "rgba(74, 55, 40, 0.2)", color: "var(--brown)" }}
                         aria-label={`Delete ${song.title}`}
                         title="Remove from My Songs"
                       >
@@ -1542,7 +1525,7 @@ export default function StemSplitterPage() {
                   ))}
                 </div>
                 {filtered.length === 0 && (
-                  <p className="text-sm py-6 text-center" style={{ color: "var(--muted)" }}>
+                  <p className="stem-page-desc py-6 text-center">
                     {mySongs.length === 0 ? "Songs you split will appear here." : "No songs match your filters."}
                   </p>
                 )}
@@ -1550,6 +1533,20 @@ export default function StemSplitterPage() {
             )
           })()}
         </section>
+
+        <footer className="dig-footer mt-10 pt-8 border-t px-2 sm:px-4" style={{ borderColor: "rgba(74, 55, 40, 0.15)" }}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+            <div>
+              <p className="footer-title text-lg font-semibold" style={{ fontFamily: "var(--font-bebas), 'Bebas Neue', sans-serif", color: "var(--brown)" }}>Sample Roll</p>
+              <p className="text-sm mt-0.5 stem-page-desc">Helping you find samples that matter.</p>
+            </div>
+            <div className="flex flex-wrap gap-6 text-sm stem-page-desc">
+              <a href="/dig" className="hover:underline">Dig</a>
+              <a href="/profile" className="hover:underline">My Saved Samples</a>
+              <a href="/stem-splitter" className="hover:underline">Stem Splitter</a>
+            </div>
+          </div>
+        </footer>
       </div>
     </div>
   )

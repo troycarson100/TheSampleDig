@@ -1011,6 +1011,9 @@ body.theme-vinyl::before {
   overflow: hidden;
   transition: border-color 0.2s, box-shadow 0.2s;
 }
+.theme-vinyl .stem-splitter-mysongs-section .profile-card {
+  padding: 14px 16px;
+}
 .theme-vinyl .profile-card:hover {
   border-color: rgba(184, 92, 56, 0.25);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
@@ -1084,4 +1087,156 @@ body.theme-vinyl::before {
 .theme-vinyl .profile-key-select:focus {
   outline: none;
   border-color: var(--rust);
+}
+
+/* ─── Stem Splitter page — match dig page style ───────────────────────── */
+.theme-vinyl .stem-splitter-page-wrap {
+  margin-top: 56px;
+  max-width: 1440px;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 24px 28px;
+}
+.theme-vinyl .stem-splitter-page-wrap .stem-page-title {
+  font-family: var(--font-bebas), 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.2em;
+  color: var(--brown);
+  margin-bottom: 4px;
+}
+.theme-vinyl .stem-splitter-page-wrap .stem-page-desc {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--brown);
+  opacity: 0.85;
+  margin-bottom: 24px;
+}
+.theme-vinyl .stem-splitter-card {
+  background: var(--warm);
+  border: 1px solid rgba(74, 55, 40, 0.1);
+  border-radius: 8px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+.theme-vinyl .stem-splitter-dropzone {
+  border: 2px dashed rgba(74, 55, 40, 0.25);
+  border-radius: 8px;
+  padding: 40px 24px;
+  text-align: center;
+  transition: border-color 0.2s, background 0.2s;
+}
+.theme-vinyl .stem-splitter-dropzone.dragging {
+  border-color: var(--rust);
+  background: rgba(184, 92, 56, 0.06);
+}
+.theme-vinyl .stem-splitter-dropzone .dropzone-title {
+  font-family: var(--font-dm-serif), 'DM Serif Display', serif;
+  font-size: 16px;
+  color: var(--brown);
+  margin-bottom: 4px;
+}
+.theme-vinyl .stem-splitter-dropzone .dropzone-hint {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--brown);
+  opacity: 0.75;
+}
+.theme-vinyl .stem-splitter-page-wrap .stem-btn-primary {
+  background: var(--primary);
+  color: var(--primary-foreground);
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: none;
+  transition: opacity 0.2s;
+}
+.theme-vinyl .stem-splitter-page-wrap .stem-btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+}
+.theme-vinyl .stem-splitter-page-wrap .stem-btn-secondary {
+  background: transparent;
+  color: var(--brown);
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  padding: 10px 20px;
+  border-radius: 6px;
+  border: 1px solid rgba(74, 55, 40, 0.2);
+  transition: border-color 0.2s, background 0.2s;
+}
+.theme-vinyl .stem-splitter-page-wrap .stem-btn-secondary:hover {
+  border-color: var(--rust);
+  background: rgba(184, 92, 56, 0.06);
+}
+.theme-vinyl .stem-splitter-controls-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(74, 55, 40, 0.08);
+  margin-bottom: 16px;
+}
+.theme-vinyl .stem-splitter-controls-bar .stem-control-label {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--brown);
+  opacity: 0.8;
+}
+.theme-vinyl .stem-splitter-stem-card {
+  background: var(--warm);
+  border: 1px solid rgba(74, 55, 40, 0.1);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+.theme-vinyl .stem-splitter-stem-card .stem-name {
+  font-family: var(--font-dm-serif), 'DM Serif Display', serif;
+  font-size: 14px;
+  color: var(--brown);
+}
+.theme-vinyl .stem-splitter-mysongs-section {
+  margin-top: 32px;
+  padding: 24px 0 32px;
+  border-top: 1px solid rgba(74, 55, 40, 0.1);
+}
+.theme-vinyl .stem-splitter-mysongs-section h2 {
+  font-family: var(--font-bebas), 'Bebas Neue', sans-serif;
+  font-size: 18px;
+  letter-spacing: 0.18em;
+  color: var(--brown);
+  margin-bottom: 16px;
+}
+.theme-vinyl .stem-splitter-dropdown-panel {
+  border: 1px solid rgba(74, 55, 40, 0.12);
+  background: var(--warm);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+.theme-vinyl .stem-splitter-page-wrap .stem-input {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--brown);
+  background: white;
+  border: 1px solid rgba(74, 55, 40, 0.12);
+  border-radius: 4px;
+  padding: 8px 12px;
+}
+.theme-vinyl .stem-splitter-page-wrap .stem-input:focus {
+  outline: none;
+  border-color: var(--rust);
+}
+.theme-vinyl .stem-vol-slider {
+  height: 6px;
+  max-width: 56px;
+}
+.theme-vinyl .stem-download-btn:hover {
+  border-color: var(--rust);
+  background: rgba(184, 92, 56, 0.08);
 }
