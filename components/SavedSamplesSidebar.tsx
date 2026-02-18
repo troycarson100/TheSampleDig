@@ -20,6 +20,7 @@ interface SavedSample {
   duration?: number
   chops?: { key: string; time: number; color: string; index: number }[]
   loop?: { sequence: { key: string; timeMs: number }[]; loopStartMs: number; loopEndMs: number; fullLengthMs?: number }
+  notes?: string | null
 }
 
 interface SavedSamplesSidebarProps {

@@ -6,10 +6,17 @@
  *   node scripts/collect-10k-videos.js [secret] no-discover   # skip discover, only run pipeline
  *
  * Env: POPULATE_SECRET, NEXTAUTH_URL or BASE_URL
- *      MAX_ENRICH_BATCHES_PER_RUN - optional; stop after this many pipeline runs (daily cap). Exit 0 so cron can run again tomorrow.
+ *      SEED_PLAYLIST_IDS - comma-separated playlist IDs to ingest first (no search, 1 unit/50 videos)
+ *      SKIP_PLAYLIST_SEARCH - if "1" and SEED_PLAYLIST_IDS set, skip search; only use seed playlists
+ *      MAX_ENRICH_BATCHES_PER_RUN - optional; stop after this many pipeline runs (daily cap)
  */
 
 const SECRET = process.env.POPULATE_SECRET || "change-me-in-production"
+const SEED_PLAYLIST_IDS = (process.env.SEED_PLAYLIST_IDS || "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean)
+const SKIP_PLAYLIST_SEARCH = process.env.SKIP_PLAYLIST_SEARCH === "1" || process.env.SKIP_PLAYLIST_SEARCH === "true"
 const MAX_ENRICH_BATCHES_PER_RUN = process.env.MAX_ENRICH_BATCHES_PER_RUN
   ? parseInt(process.env.MAX_ENRICH_BATCHES_PER_RUN, 10)
   : null
@@ -20,17 +27,26 @@ const PIPELINE_BATCH = { enrichLimit: 150, scoreLimit: 300, processLimit: 75 }
 const REQUEST_TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes for long-running discover
 
 async function discoverPlaylists() {
-  console.log("[10k] Discovering playlists and ingesting video IDs...")
+  const useSeed = SEED_PLAYLIST_IDS.length > 0
+  console.log(
+    "[10k] Discovering playlists and ingesting video IDs...",
+    useSeed ? `(seed: ${SEED_PLAYLIST_IDS.length} playlists)` : ""
+  )
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+  const body = {
+    maxPlaylistSearches: 8,
+    maxPlaylistsToIngest: 25,
+    maxVideosPerPlaylist: 300,
+  }
+  if (useSeed) {
+    body.seedPlaylistIds = SEED_PLAYLIST_IDS
+    body.skipSearch = SKIP_PLAYLIST_SEARCH
+  }
   const res = await fetch(`${BASE_URL}/api/candidates/discover-playlists?secret=${SECRET}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      maxPlaylistSearches: 8,
-      maxPlaylistsToIngest: 25,
-      maxVideosPerPlaylist: 300,
-    }),
+    body: JSON.stringify(body),
     signal: controller.signal,
   })
   clearTimeout(timeout)

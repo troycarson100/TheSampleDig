@@ -19,6 +19,10 @@ export async function GET(request: Request) {
     let excludedVideoIds: string[] = excludedParam ? excludedParam.split(",").filter(id => id.length === 11) : []
     const genreParam = searchParams.get("genre")
     const genre = (genreParam && genreParam.trim() !== "") ? genreParam.trim() : undefined
+    const eraParam = searchParams.get("era")
+    const samplePacks = searchParams.get("samplePacks") === "1" || searchParams.get("samplePacks") === "true" || searchParams.get("royaltyFree") === "1" || searchParams.get("royaltyFree") === "true"
+    // When Sample Packs mode: ignore era (sample packs mostly post-1990)
+    const era = (samplePacks ? undefined : (eraParam && eraParam.trim() !== "") ? eraParam.trim() : undefined)
     const drumBreak = searchParams.get("drumBreak") === "1" || searchParams.get("drumBreak") === "true"
     
     // Also exclude videos the user has saved (if logged in)
@@ -61,16 +65,16 @@ export async function GET(request: Request) {
     
     let video
     try {
-      console.log(`[Dig] Calling findRandomSample with ${excludedVideoIds.length} exclusions${genre ? `, genre=${genre}` : ""}${drumBreak ? ", drumBreak=true" : ""}...`)
+      console.log(`[Dig] Calling findRandomSample with ${excludedVideoIds.length} exclusions${genre ? `, genre=${genre}` : ""}${era ? `, era=${era}` : ""}${drumBreak ? ", drumBreak=true" : ""}${samplePacks ? ", samplePacks=true" : ""}...`)
       try {
-        video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, drumBreakOnly: drumBreak })
-      } catch (noDrumBreakErr: any) {
-        // When drum break mode is on but no matching samples, fall back to any sample
-        if (drumBreak && /no samples|no results/i.test(noDrumBreakErr?.message ?? "")) {
-          console.log(`[Dig] No drum-break samples found, falling back to any sample`)
-          video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre })
+        video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, era, drumBreakOnly: drumBreak, royaltyFreeOnly: samplePacks })
+      } catch (noFilterErr: any) {
+        // When drum break or sample packs mode has no matches, fall back to any sample so digging isn't blocked
+        if ((drumBreak || samplePacks) && /no samples|no results/i.test(noFilterErr?.message ?? "")) {
+          console.log(`[Dig] No matching samples found (${samplePacks ? "sample packs" : "drum break"}), falling back to any sample`)
+          video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, era: samplePacks ? undefined : era })
         } else {
-          throw noDrumBreakErr
+          throw noFilterErr
         }
       }
       console.log(`[Dig] ✓ Found video: ${video.id} - ${video.title}`)
@@ -83,7 +87,7 @@ export async function GET(request: Request) {
         console.log(`[Dig] Video ${video.id} is not embeddable (blocked), skipping...`)
         excludedVideoIds = [...excludedVideoIds, video.id]
         excludedVideoIds = [...new Set(excludedVideoIds)]
-        video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre })
+        video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, era, royaltyFreeOnly: samplePacks })
         console.log(`[Dig] ✓ Replaced with: ${video.id} - ${video.title}`)
       }
     } catch (youtubeError: any) {
@@ -338,7 +342,7 @@ export async function GET(request: Request) {
       console.error(`[Dig] ERROR: Selected video ${video.id} is in excluded list! This should never happen.`)
       console.error(`[Dig] Excluded list contains:`, excludedVideoIds.slice(0, 10).join(", "), excludedVideoIds.length > 10 ? "..." : "")
       // This is a critical error - retry with same exclusions
-      const retryVideo = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre })
+      const retryVideo = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, era, royaltyFreeOnly: samplePacks })
       return NextResponse.json({
         id: retryVideo.id,
         youtubeId: retryVideo.id,

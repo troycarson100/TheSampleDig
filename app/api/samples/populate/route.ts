@@ -36,6 +36,7 @@ const TAG_THRESHOLD = 5500
  * - startFresh: If "true", clear saved resume state and start from page 1 of template 0.
  * - verbose: If "true", include per-page stats (rawCount, excludedCount, etc.) in response for debugging filter bottlenecks.
  * - skipPages: Number of pages to skip at start of each template (e.g. 3 = start at page 4). Skips already-mined early pages.
+ * - validate: If "true", minimal run (~2 pages) with REAL excluded IDs to simulate production. Returns GO/NO-GO before burning quota.
  */
 export async function POST(request: Request) {
   try {
@@ -46,6 +47,7 @@ export async function POST(request: Request) {
     const startFresh = searchParams.get("startFresh") === "true"
     const verbose = searchParams.get("verbose") === "true" || searchParams.get("debug") === "1"
     const skipPages = Math.max(0, parseInt(searchParams.get("skipPages") || "0", 10))
+    const validate = searchParams.get("validate") === "true" || searchParams.get("validate") === "1"
 
     if (secret !== POPULATE_SECRET) {
       return NextResponse.json(
@@ -54,16 +56,21 @@ export async function POST(request: Request) {
       )
     }
 
+    const isValidationRun = validate
+    if (isValidationRun) {
+      console.log(`[Populate] VALIDATE mode: 2 pages max, real exclusions, no store. Use to confirm pipeline before full run.`)
+    }
+
     console.log(`[Populate] Starting pre-population: ${limit} samples${dryRun ? " (dry run – no store)" : ""}${skipPages > 0 ? ` (skip first ${skipPages} pages per template)` : ""}`)
 
     const existingIds = await getExistingYoutubeIds()
-    const excludedIds = dryRun ? [] : existingIds
-    if (!dryRun) console.log(`[Populate] Excluding ${existingIds.length} existing samples from search (saving quota)`)
+    const excludedIds = dryRun && !isValidationRun ? [] : existingIds
+    if (!dryRun || isValidationRun) console.log(`[Populate] Excluding ${existingIds.length} existing samples from search (saving quota)`)
     const templates = generateQueryTemplates()
 
     let startTemplateIndex = 0
     let initialPageToken: string | undefined
-    if (!dryRun && !startFresh) {
+    if (!dryRun && !startFresh && !isValidationRun) {
       const resume = await loadPopulateResumeState()
       if (resume && resume.templateIndex < templates.length) {
         startTemplateIndex = resume.templateIndex
@@ -90,10 +97,11 @@ export async function POST(request: Request) {
     // No YouTube upload-date filter: we want vintage *content* (songs from before 2010), not old uploads.
     const publishedBefore: Date | undefined = undefined
 
-    for (let i = startTemplateIndex; i < templates.length && samplesStored < limit; i++) {
+    for (let i = startTemplateIndex; i < templates.length && (samplesStored < limit || isValidationRun); i++) {
       if (stoppedEarly) break
-      if (dryRun && pagesQueried >= DRY_RUN_MAX_PAGES) {
-        stoppedEarly = "dry_run_page_cap"
+      const pageCap = isValidationRun ? skipPages + 2 : dryRun ? DRY_RUN_MAX_PAGES : Infinity
+      if ((dryRun || isValidationRun) && pagesQueried >= pageCap) {
+        stoppedEarly = isValidationRun ? "validate_page_cap" : "dry_run_page_cap"
         break
       }
 
@@ -119,8 +127,8 @@ export async function POST(request: Request) {
         }
 
         do {
-          if (dryRun && pagesQueried >= DRY_RUN_MAX_PAGES) {
-            stoppedEarly = "dry_run_page_cap"
+          if ((dryRun || isValidationRun) && pagesQueried >= pageCap) {
+            stoppedEarly = isValidationRun ? "validate_page_cap" : "dry_run_page_cap"
             break
           }
           if (!dryRun && pagesQueried >= MAX_PAGES_PER_BATCH) {
@@ -175,7 +183,7 @@ export async function POST(request: Request) {
             if (!dryRun && samplesStored >= limit) break
 
             try {
-              if (dryRun) continue
+              if (dryRun || isValidationRun) continue
 
               const metadata = extractMetadata(
                 query,
@@ -213,14 +221,14 @@ export async function POST(request: Request) {
           }
 
           pageToken = nextPageToken
-          if (!dryRun) {
+          if (!dryRun && !isValidationRun) {
             await savePopulateResumeState({
               templateIndex: nextPageToken ? i : (i + 1 < templates.length ? i + 1 : 0),
               pageToken: nextPageToken ?? null,
             })
           }
           if (pageToken) await new Promise((r) => setTimeout(r, 800))
-        } while (pageToken && samplesStored < limit && !stoppedEarly)
+        } while (pageToken && (samplesStored < limit || isValidationRun) && !stoppedEarly)
 
         await new Promise((r) => setTimeout(r, 1000))
       } catch (error: any) {
@@ -253,6 +261,28 @@ export async function POST(request: Request) {
     if (verbose && pageStatsAccum.length > 0) {
       json.pageStats = pageStatsAccum
     }
+
+    if (isValidationRun) {
+      const hadCandidates = pagesWithCandidatesScored > 0
+      if (totalPassedFilter > 0) {
+        json.validationRecommendation = "GO"
+        json.validationReason = `${totalPassedFilter} video(s) passed filter. Pipeline looks good. Proceed with full populate.`
+      } else if (hadCandidates) {
+        json.validationRecommendation = "NO-GO"
+        json.validationReason = `${pagesWithCandidatesScored} page(s) had candidates but 0 passed filter. Filter may be too strict. Check pageStats for rejection breakdown.`
+      } else {
+        json.validationRecommendation = "NO-GO"
+        json.validationReason = `All ${pagesQueried} page(s) had 0 candidates (all excluded or no results). Try different skipPages or discovery method.`
+      }
+      json.validationDetails = {
+        pagesQueried,
+        pagesWithCandidatesScored,
+        totalPassedFilter,
+        excludedIdsCount: excludedIds.length,
+        errors,
+      }
+    }
+
     return NextResponse.json(json)
   } catch (error: any) {
     console.error("[Populate] Error:", error)

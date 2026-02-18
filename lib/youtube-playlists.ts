@@ -41,6 +41,12 @@ export interface PlaylistItemVideo {
   publishedAt?: string
 }
 
+/** Full playlist item (search-compatible format for processVideoItems). */
+export interface PlaylistItemSearchFormat {
+  id: { videoId: string }
+  snippet: { title: string; channelTitle: string; channelId?: string; thumbnails?: any; publishedAt?: string }
+}
+
 /**
  * Get the "uploads" playlist ID for a channel (required to list channel videos).
  * Cost: 1 unit.
@@ -105,6 +111,61 @@ export async function fetchVideoIdsFromPlaylist(
   } while (pageToken)
 
   return videos
+}
+
+/**
+ * Fetch playlist items in search-compatible format (id.videoId + full snippet).
+ * Used by channel discovery to run through the same filter pipeline as search.
+ * Cost: 1 unit per 50 items.
+ */
+export async function fetchPlaylistItemsAsSearchFormat(
+  playlistId: string,
+  maxVideos: number = 500
+): Promise<PlaylistItemSearchFormat[]> {
+  const items: PlaylistItemSearchFormat[] = []
+  let pageToken: string | undefined
+  if (getYouTubeApiKeys().length === 0) return items
+
+  do {
+    const res = await fetchWithKeyRoundRobin((key) => {
+      const params = new URLSearchParams({
+        part: "snippet",
+        playlistId,
+        maxResults: "50",
+        key,
+      })
+      if (pageToken) params.set("pageToken", pageToken)
+      return fetch(`${PLAYLIST_ITEMS_URL}?${params}`)
+    })
+    const data = await res.json()
+    for (const item of data.items || []) {
+      const videoId = item.snippet?.resourceId?.videoId
+      if (videoId && item.snippet) {
+        items.push({
+          id: { videoId },
+          snippet: item.snippet,
+        })
+        if (items.length >= maxVideos) return items
+      }
+    }
+    pageToken = data.nextPageToken
+    if (pageToken) await new Promise((r) => setTimeout(r, 100))
+  } while (pageToken)
+
+  return items
+}
+
+/**
+ * Fetch channel uploads in search-compatible format (for filter pipeline).
+ * Cost: 1 (channels.list) + ceil(n/50) units.
+ */
+export async function fetchChannelUploadsAsSearchFormat(
+  channelId: string,
+  maxVideos: number = 500
+): Promise<PlaylistItemSearchFormat[]> {
+  const playlistId = await getChannelUploadsPlaylistId(channelId)
+  if (!playlistId) return []
+  return fetchPlaylistItemsAsSearchFormat(playlistId, maxVideos)
 }
 
 /**

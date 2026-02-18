@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation"
 import HeartToggle from "@/components/HeartToggle"
 import SiteNav from "@/components/SiteNav"
 import GenreSelect from "@/components/GenreSelect"
+import TempoRangeSlider from "@/components/TempoRangeSlider"
 
 const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
 
@@ -26,9 +27,10 @@ interface SavedSample {
   duration?: number
   chops?: { key: string; time: number; color: string; index: number }[]
   loop?: { sequence: { key: string; timeMs: number }[]; loopStartMs: number; loopEndMs: number; fullLengthMs?: number }
+  notes?: string | null
 }
 
-type FilterType = "genre" | "key"
+type FilterType = "genre" | "key" | "tempo"
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()
@@ -39,6 +41,7 @@ export default function ProfilePage() {
   const [searchQuery, setSearchQuery] = useState("")
   const [genreFilter, setGenreFilter] = useState<string | null>(null)
   const [keyFilter, setKeyFilter] = useState<string | null>(null)
+  const [tempoRange, setTempoRange] = useState<[number, number]>([20, 300])
 
   useEffect(() => {
     if (session) {
@@ -98,9 +101,10 @@ export default function ProfilePage() {
     [samples]
   )
 
-  // Filter samples by search (title, bpm, key, genre) and dropdown filters
+  // Filter samples by search (title, bpm, key, genre), dropdown filters, and tempo range
   const filteredSamples = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
+    const [tempoMin, tempoMax] = tempoRange
     return samples.filter((s) => {
       if (q) {
         const titleMatch = s.title?.toLowerCase().includes(q)
@@ -111,16 +115,23 @@ export default function ProfilePage() {
       }
       if (genreFilter != null && genreFilter !== "" && s.genre !== genreFilter) return false
       if (keyFilter != null && keyFilter !== "" && s.key !== keyFilter) return false
+      if (s.bpm != null && (s.bpm < tempoMin || s.bpm > tempoMax)) return false
       return true
     })
-  }, [samples, searchQuery, genreFilter, keyFilter])
+  }, [samples, searchQuery, genreFilter, keyFilter, tempoRange])
 
   const clearFilter = (type: FilterType) => {
     if (type === "genre") setGenreFilter(null)
     if (type === "key") setKeyFilter(null)
+    if (type === "tempo") setTempoRange([20, 300])
   }
 
-  const hasActiveFilters = searchQuery.trim() !== "" || genreFilter != null || keyFilter != null
+  const hasActiveFilters =
+    searchQuery.trim() !== "" ||
+    genreFilter != null ||
+    keyFilter != null ||
+    tempoRange[0] !== 20 ||
+    tempoRange[1] !== 300
 
   const openInDig = (s: SavedSample) => {
     try {
@@ -141,6 +152,7 @@ export default function ProfilePage() {
           duration: s.duration,
           chops: s.chops,
           loop: s.loop,
+          notes: s.notes,
         })
       )
       router.push("/dig")
@@ -220,6 +232,12 @@ export default function ProfilePage() {
                     <option key={k} value={k}>{k}</option>
                   ))}
                 </select>
+                <span className="filter-label">Tempo</span>
+                <TempoRangeSlider
+                  value={tempoRange}
+                  onChange={setTempoRange}
+                  className="min-w-[180px]"
+                />
               </div>
               {hasActiveFilters && (
                 <div className="flex flex-wrap items-center gap-2 profile-active-filters">
@@ -248,6 +266,14 @@ export default function ProfilePage() {
                       </button>
                     </span>
                   )}
+                  {(tempoRange[0] !== 20 || tempoRange[1] !== 300) && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-mono" style={{ background: "var(--muted-light)", color: "var(--brown)" }}>
+                      {tempoRange[0]}-{tempoRange[1]} bpm
+                      <button type="button" onClick={() => clearFilter("tempo")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Remove tempo filter">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </span>
+                  )}
                   <span>Showing {filteredSamples.length} of {samples.length} samples</span>
                 </div>
               )}
@@ -266,7 +292,7 @@ export default function ProfilePage() {
           ) : filteredSamples.length === 0 ? (
             <div className="text-center py-12">
               <p className="profile-count mb-4">No samples match your filters.</p>
-              <button type="button" onClick={() => { setSearchQuery(""); setGenreFilter(null); setKeyFilter(null) }} className="btn-primary">Clear filters</button>
+              <button type="button" onClick={() => { setSearchQuery(""); setGenreFilter(null); setKeyFilter(null); setTempoRange([20, 300]) }} className="btn-primary">Clear filters</button>
             </div>
           ) : (
           <div className="pb-8">

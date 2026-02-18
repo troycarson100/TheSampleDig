@@ -17,17 +17,49 @@ const DRUM_BREAK_TITLE_PHRASES = [
   "drum sample",
 ]
 
+/** Title phrases for Sample Packs mode: royalty-free or sample pack videos (case-insensitive) */
+const ROYALTY_FREE_TITLE_PHRASES = [
+  "royalty free",
+  "royalty-free",
+  "royaltyfree",
+  "creative commons",
+  "cc0",
+  "public domain",
+  "free to use",
+  "no copyright",
+  "free sample pack",
+  "sample pack",
+  "sample packs",
+  "samplepack",
+  "samplepacks",
+  "sample kit",
+  "loop pack",
+  "loop packs",
+  "drum pack",
+  "drum packs",
+  "free samples",
+  "free loops",
+  "free drums",
+  "sample loops",
+  "one shot",
+  "one shots",
+]
+
 /**
  * Get a random sample from the database
  * Excludes videos that the user has already seen or saved
  * @param genre - Optional genre filter (case-insensitive); when set, only samples with this genre are returned
+ * @param era - Optional era filter (e.g. "1960s", "1970s"); when set, only samples with this era are returned (ignored when royaltyFreeOnly)
  * @param drumBreakOnly - When true, only return samples whose title suggests drum-break content
+ * @param royaltyFreeOnly - When true, only return samples whose title contains "royalty free" or "sample pack" etc.; disables era filter
  */
 export async function getRandomSampleFromDatabase(
   excludedVideoIds: string[] = [],
   userId?: string,
   genre?: string,
-  drumBreakOnly?: boolean
+  drumBreakOnly?: boolean,
+  era?: string,
+  royaltyFreeOnly?: boolean
 ): Promise<(YouTubeVideo & { genre?: string; era?: string; duration?: number }) | null> {
   try {
     // Build exclusion list
@@ -45,23 +77,41 @@ export async function getRandomSampleFromDatabase(
     }
     
     // Log exclusion details for debugging
-    console.log(`[DB] Excluding ${excludeIds.length} videos (${excludeIds.slice(0, 3).join(", ")}${excludeIds.length > 3 ? "..." : ""})${genre ? `, genre=${genre}` : ""}${drumBreakOnly ? ", drumBreakOnly=true" : ""}`)
+    console.log(`[DB] Excluding ${excludeIds.length} videos (${excludeIds.slice(0, 3).join(", ")}${excludeIds.length > 3 ? "..." : ""})${genre ? `, genre=${genre}` : ""}${era && !royaltyFreeOnly ? `, era=${era}` : ""}${drumBreakOnly ? ", drumBreakOnly=true" : ""}${royaltyFreeOnly ? ", royaltyFreeOnly=true" : ""}`)
     
-    // Build where: exclusions + optional genre + optional drum-break title filter
+    // Build where: exclusions + optional genre + optional era (skipped when royaltyFree) + optional title filters
     type WhereClause = {
       youtubeId?: { notIn: string[] }
       genre?: { equals: string; mode: "insensitive" }
+      era?: { equals: string }
       OR?: { title: { contains: string; mode: "insensitive" } }[]
+      AND?: { OR: { title: { contains: string; mode: "insensitive" } }[] }[]
     }
     const whereClause: WhereClause =
       excludeIds.length > 0 ? { youtubeId: { notIn: excludeIds } } : {}
     if (genre && genre.trim() !== "") {
       whereClause.genre = { equals: genre.trim(), mode: "insensitive" }
     }
+    if (era && era.trim() !== "" && !royaltyFreeOnly) {
+      whereClause.era = { equals: era.trim() }
+    }
+    const andClauses: { OR: { title: { contains: string; mode: "insensitive" } }[] }[] = []
     if (drumBreakOnly) {
-      whereClause.OR = DRUM_BREAK_TITLE_PHRASES.map((phrase) => ({
-        title: { contains: phrase, mode: "insensitive" as const },
-      }))
+      andClauses.push({
+        OR: DRUM_BREAK_TITLE_PHRASES.map((phrase) => ({
+          title: { contains: phrase, mode: "insensitive" as const },
+        })),
+      })
+    }
+    if (royaltyFreeOnly) {
+      andClauses.push({
+        OR: ROYALTY_FREE_TITLE_PHRASES.map((phrase) => ({
+          title: { contains: phrase, mode: "insensitive" as const },
+        })),
+      })
+    }
+    if (andClauses.length > 0) {
+      whereClause.AND = andClauses
     }
     
     const totalCount = await prisma.sample.count({
@@ -96,7 +146,7 @@ export async function getRandomSampleFromDatabase(
       console.error(`[DB] ERROR: Selected sample ${sample.youtubeId} is in excluded list! Retrying...`)
       console.error(`[DB] Excluded list:`, excludeIds.slice(0, 10).join(", "), excludeIds.length > 10 ? "..." : "")
       // Retry with same exclusions
-      return getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly)
+      return getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly, era, royaltyFreeOnly)
     }
     
     console.log(`[DB] Retrieved sample from database: ${sample.youtubeId} - ${sample.title}`)

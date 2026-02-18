@@ -3,14 +3,14 @@
  * Uses video search (not playlist discover) so we get new videos each batch.
  *
  * Usage: node scripts/populate-until-10k.js [secret]
- * Env: POPULATE_SECRET, NEXTAUTH_URL or BASE_URL, SKIP_DRY_RUN=1 to skip dry run and start main loop
+ * Env: POPULATE_SECRET, NEXTAUTH_URL or BASE_URL, SKIP_VALIDATE=1 to skip validation and start main loop
  *       VERBOSE=1 to include per-page stats in response (for debugging filter bottlenecks)
  *       SKIP_PAGES=N to skip first N pages per template (e.g. 3 = start at page 4)
  */
 
 const SECRET = process.argv[2] || process.env.POPULATE_SECRET || "change-me-in-production"
-const SKIP_PAGES = Math.max(0, parseInt(process.env.SKIP_PAGES || "9", 10)) // default 9 = start at page 10
-const SKIP_DRY_RUN = process.env.SKIP_DRY_RUN === "1" || process.env.SKIP_DRY_RUN === "true"
+const SKIP_PAGES = Math.max(0, parseInt(process.env.SKIP_PAGES || "20", 10)) // default 20 = start at page 21 (early pages mined)
+const SKIP_VALIDATE = process.env.SKIP_VALIDATE === "1" || process.env.SKIP_VALIDATE === "true"
 const VERBOSE = process.env.VERBOSE === "1" || process.env.VERBOSE === "true"
 const BASE_URL = process.env.NEXTAUTH_URL || process.env.BASE_URL || "http://localhost:3000"
 const TARGET = 10000
@@ -29,8 +29,8 @@ async function getCount() {
 }
 
 async function populateBatch(limit, opts = {}) {
-  const { dryRun = false, startFresh = false, verbose = false } = opts
-  const url = `${BASE_URL}/api/samples/populate?secret=${encodeURIComponent(SECRET)}&limit=${limit}${dryRun ? "&dryRun=true" : ""}${startFresh ? "&startFresh=true" : ""}${verbose ? "&verbose=true" : ""}${SKIP_PAGES > 0 ? `&skipPages=${SKIP_PAGES}` : ""}`
+  const { dryRun = false, validate = false, startFresh = false, verbose = false } = opts
+  const url = `${BASE_URL}/api/samples/populate?secret=${encodeURIComponent(SECRET)}&limit=${limit}${dryRun ? "&dryRun=true" : ""}${validate ? "&validate=1" : ""}${startFresh ? "&startFresh=true" : ""}${verbose ? "&verbose=true" : ""}${SKIP_PAGES > 0 ? `&skipPages=${SKIP_PAGES}` : ""}`
   const controller = new AbortController()
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
   const res = await fetch(url, { method: "POST", signal: controller.signal })
@@ -77,30 +77,33 @@ async function main() {
   await checkQuota()
   console.log("[Populate-10k] Quota OK.")
 
-  // Safeguard: dry run first (uses only a few pages). If filter passes 0, abort to avoid wasting quota. Set SKIP_DRY_RUN=1 to skip.
-  if (!SKIP_DRY_RUN) {
-    console.log("[Populate-10k] Dry run (verify filter passes videos)...")
+  // Safeguard: validate first (2 pages, REAL exclusions). Proves pipeline will return results. Cost ~1200 units. Set SKIP_VALIDATE=1 to skip.
+  if (!SKIP_VALIDATE) {
+    console.log("[Populate-10k] Validating pipeline (2 pages, real exclusions, skipPages=" + SKIP_PAGES + ")...")
     try {
-      const dryResult = await populateBatch(5, { dryRun: true, verbose: VERBOSE })
-      const passed = dryResult.stats?.totalPassedFilter ?? 0
-      const pages = dryResult.stats?.pagesQueried ?? 0
-      console.log("[Populate-10k] Dry run: ", passed, "passed filter over", pages, "pages")
-      if (pages >= 1 && passed === 0) {
-        console.error("[Populate-10k] ABORT: Filter passed 0 videos. Fix pipeline before running. Not starting main loop to save quota.")
+      const valResult = await populateBatch(0, { validate: true, verbose: true })
+      const rec = valResult.validationRecommendation
+      const passed = valResult.stats?.totalPassedFilter ?? 0
+      if (rec === "GO") {
+        console.log("[Populate-10k] Validation GO:", passed, "passed filter. Starting main loop.")
+      } else {
+        console.error("[Populate-10k] Validation NO-GO:", valResult.validationReason || "0 passed. Fix pipeline before running.")
+        if (valResult.pageStats?.length) {
+          valResult.pageStats.forEach((p, i) => {
+            console.error(`  Page ${i + 1}: raw=${p.rawCount} excluded=${p.excludedCount} candidates=${p.candidateCount} hardFilter=${p.hardFilterRejectCount ?? "?"} passed=${p.passedCount ?? "?"}`)
+          })
+        }
         process.exit(1)
-      }
-      if (passed > 0) {
-        console.log("[Populate-10k] Filter OK. Starting main loop.")
       }
     } catch (e) {
       if (e.quota) {
-        console.log("[Populate-10k] Quota exceeded on dry run. Stop.")
+        console.log("[Populate-10k] Quota exceeded on validation. Stop.")
         process.exit(0)
       }
       throw e
     }
   } else {
-    console.log("[Populate-10k] Skipping dry run (SKIP_DRY_RUN=1). Starting main loop.")
+    console.log("[Populate-10k] Skipping validation (SKIP_VALIDATE=1). Starting main loop.")
   }
 
   let batchNum = 0

@@ -55,34 +55,34 @@ export async function PATCH(request: Request) {
         }
       : null
 
-    // Merge chops + loop: use body loop if valid, else preserve existing loop
-    let notesValue: string | null = null
-    if (existing.notes) {
-      try {
+    // Merge chops + loop + userNote: preserve userNote when updating chops/loop
+    let keptUserNote: string | undefined
+    let existingChops: unknown[] = []
+    let existingLoop: unknown = null
+    try {
+      if (existing.notes) {
         const parsed = JSON.parse(existing.notes) as unknown
-        if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-          const obj = parsed as { chops?: unknown[]; loop?: unknown }
-          const keptLoop = loopData ?? (obj.loop ?? null)
-          const newChops = Array.isArray(chops) ? chops : (obj.chops ?? [])
-          notesValue =
-            keptLoop != null
-              ? JSON.stringify({ chops: newChops, loop: keptLoop })
-              : newChops.length > 0
-                ? JSON.stringify({ chops: newChops })
-                : null
+        if (Array.isArray(parsed)) {
+          existingChops = parsed
+        } else if (parsed && typeof parsed === "object") {
+          const obj = parsed as { chops?: unknown[]; loop?: unknown; userNote?: string }
+          if (Array.isArray(obj.chops)) existingChops = obj.chops
+          if (obj.loop != null) existingLoop = obj.loop
+          if (typeof obj.userNote === "string") keptUserNote = obj.userNote
         }
-      } catch {
-        // fall through
       }
+    } catch {
+      // ignore
     }
-    if (notesValue === null) {
-      notesValue =
-        loopData != null
-          ? JSON.stringify({ chops: Array.isArray(chops) ? chops : [], loop: loopData })
-          : Array.isArray(chops) && chops.length > 0
-            ? JSON.stringify(chops)
-            : null
-    }
+    const keptLoop = loopData ?? existingLoop
+    const newChops = Array.isArray(chops) ? chops : existingChops
+    const base: Record<string, unknown> = { chops: newChops }
+    if (keptLoop != null) base.loop = keptLoop
+    if (keptUserNote !== undefined) base.userNote = keptUserNote
+    const notesValue =
+      newChops.length > 0 || keptLoop != null || keptUserNote != null
+        ? JSON.stringify(base)
+        : null
 
     await prisma.userSample.update({
       where: {

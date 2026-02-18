@@ -132,6 +132,29 @@ export function generateQueryTemplates(): string[] {
   templates.push(`"library music" "vinyl" ${negativeKw}`)
   templates.push(`"bossa nova" "vinyl" ${negativeKw}`)
 
+  // International / language variants (less-mined territory)
+  templates.push(`"vinyle rip" "full album" ${negativeKw}`)
+  templates.push(`"rip vinyle" "1970s" ${negativeKw}`)
+  templates.push(`"vinil rip" "album" ${negativeKw}`)
+  templates.push(`"disco de vinil" "LP" ${negativeKw}`)
+  templates.push(`"plak dinleme" "vinyl" ${negativeKw}`)
+  templates.push(`"レコード" "vinyl" "album" ${negativeKw}`)
+  templates.push(`"vinilo" "full album" "rip" ${negativeKw}`)
+  templates.push(`"vinilo criollo" "LP" ${negativeKw}`)
+  templates.push(`"vinyl criollo" "album" ${negativeKw}`)
+
+  // Label-specific (CTI, Prestige, Carosello, Sonopresse, etc.)
+  templates.push(`"CTI records" "full album" "vinyl" ${negativeKw}`)
+  templates.push(`"prestige records" "vinyl rip" ${negativeKw}`)
+  templates.push(`"carosello records" "vinyl" ${negativeKw}`)
+  templates.push(`"sonopresse" "vinyl" "album" ${negativeKw}`)
+  templates.push(`"private press" "full album" "vinyl" ${negativeKw}`)
+  templates.push(`"blue note" "vinyl rip" "full album" ${negativeKw}`)
+  templates.push(`"strata-east" "vinyl" ${negativeKw}`)
+  templates.push(`"flying dutchman" "vinyl rip" ${negativeKw}`)
+  templates.push(`"black jazz" "full album" ${negativeKw}`)
+  templates.push(`"Creed Taylor" "vinyl" "jazz" ${negativeKw}`)
+
   return templates
 }
 
@@ -331,11 +354,12 @@ export function extractMetadata(query: string, title?: string, description?: str
   }
   
   // Era detection - look for years
-  const eraMatch = allText.match(/(19[6-9]\d|20[0-1]\d)/)
+  const eraMatch = allText.match(/(19[5-9]\d|20[0-1]\d)/)
   let era: string | undefined
   if (eraMatch) {
     const year = parseInt(eraMatch[1])
-    if (year >= 1960 && year < 1970) era = "1960s"
+    if (year >= 1950 && year < 1960) era = "1950s"
+    else if (year >= 1960 && year < 1970) era = "1960s"
     else if (year >= 1970 && year < 1980) era = "1970s"
     else if (year >= 1980 && year < 1990) era = "1980s"
     else if (year >= 1990 && year < 2000) era = "1990s"
@@ -758,7 +782,18 @@ function shouldHardFilter(
       return true
     }
   }
-  
+
+  // Reject if song/content year is 2000+ (unless free sample pack etc.)
+  const allText = `${titleLower} ${descLower}`
+  const modernYearMatch = allText.match(/\b(20[0-2][0-9])\b/)
+  if (modernYearMatch) {
+    const keepPhrases = ["free sample pack", "sample pack", "royalty free", "royalty-free", "creative commons", "cc0", "public domain", "free to use", "no copyright"]
+    if (!keepPhrases.some((p) => allText.includes(p))) {
+      console.log(`[Hard Filter] REJECTED: ${title} - Modern year ${modernYearMatch[1]} in title/description`)
+      return true
+    }
+  }
+
   return false
 }
 
@@ -1073,7 +1108,7 @@ export async function searchWithQuery(
     return []
   }
   
-  const out = await processSearchPageItems(items, query, excludedVideoIds)
+  const out = await processVideoItems(items, query, excludedVideoIds)
   cacheSearchResult(query, excludedVideoIds, out.results)
   return out.results
 }
@@ -1094,17 +1129,19 @@ export interface PageStats {
 }
 
 /**
- * Process raw search items into filtered + scored results (shared by searchWithQuery and searchWithQueryPaginated).
+ * Process raw video items into filtered + scored results.
+ * Used by search and by channel/playlist discovery. Items must have id.videoId and snippet.
  */
-async function processSearchPageItems(
+export async function processVideoItems(
   rawItems: any[],
   query: string,
   excludedVideoIds: string[],
-  options?: { verbose?: boolean }
+  options?: { verbose?: boolean; breakEarlyAt?: number }
 ): Promise<{ results: any[]; hadCandidates: boolean; pageStats?: PageStats }> {
   const videosToCheck = rawItems
   const excludedSet = excludedVideoIds.length > 0 ? new Set(excludedVideoIds) : null
   const verbose = options?.verbose ?? false
+  const breakEarlyAt = options?.breakEarlyAt ?? 10
 
   const stats: PageStats = {
     rawCount: rawItems.length,
@@ -1435,9 +1472,8 @@ async function processSearchPageItems(
         channelReputation
       })
       
-      // Break early if we have enough high-scoring videos (optimize for speed)
-      // We only need 5-10 good candidates, not 20
-      if (scoredVideos.length >= 10) {
+      // Break early if we have enough high-scoring videos (optimize for search; channel discovery uses breakEarlyAt=0)
+      if (breakEarlyAt > 0 && scoredVideos.length >= breakEarlyAt) {
         console.log(`[Search] Found ${scoredVideos.length} high-scoring videos, breaking early for speed`)
         break
       }
@@ -1478,7 +1514,7 @@ export async function searchWithQueryPaginated(
   if (!items.length) {
     return { results: [], nextPageToken, hadCandidates: false }
   }
-  const out = await processSearchPageItems(items, query, excludedVideoIds, options)
+  const out = await processVideoItems(items, query, excludedVideoIds, options)
   return {
     results: out.results,
     nextPageToken,
@@ -1492,20 +1528,22 @@ export async function searchWithQueryPaginated(
  * Uses database-first approach: checks database → (optional) cache/YouTube API
  * @param excludedVideoIds - Array of YouTube video IDs to exclude (already shown videos)
  * @param userId - Optional user ID to exclude their saved samples
- * @param options - databaseOnly: if true, never call YouTube API (quota-safe); genre: optional genre filter; drumBreakOnly: if true, prefer samples with drum-break–style titles
+ * @param options - databaseOnly: if true, never call YouTube API (quota-safe); genre: optional genre filter; era: optional era filter (e.g. "1960s"); drumBreakOnly: if true, prefer samples with drum-break–style titles; royaltyFreeOnly: if true, only royalty-free samples (skips era filter)
  */
 export async function findRandomSample(
   excludedVideoIds: string[] = [],
   userId?: string,
-  options?: { databaseOnly?: boolean; genre?: string; drumBreakOnly?: boolean }
+  options?: { databaseOnly?: boolean; genre?: string; era?: string; drumBreakOnly?: boolean; royaltyFreeOnly?: boolean }
 ): Promise<YouTubeVideo & { genre?: string; era?: string; duration?: number }> {
   const databaseOnly = options?.databaseOnly === true
   const genre = options?.genre?.trim() || undefined
+  const era = options?.era?.trim() || undefined
   const drumBreakOnly = options?.drumBreakOnly === true
+  const royaltyFreeOnly = options?.royaltyFreeOnly === true
 
   // STEP 1: Try database first (fastest, no API calls)
   console.log(`[Dig] Step 1: Checking database for pre-populated samples...`)
-  const dbSample = await getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly)
+  const dbSample = await getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly, era, royaltyFreeOnly)
   if (dbSample) {
     console.log(`[Dig] ✓ Found sample in database: ${dbSample.id}`)
     return dbSample

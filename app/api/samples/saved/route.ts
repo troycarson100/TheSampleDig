@@ -31,16 +31,18 @@ export async function GET() {
     const samples = userSamples.map(us => {
       let chops: unknown = undefined
       let loop: unknown = undefined
+      let notes: string | undefined = undefined
       if (us.notes) {
         try {
           const parsed = JSON.parse(us.notes) as unknown
           if (Array.isArray(parsed) && parsed.length > 0) {
             chops = parsed
           } else if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-            const obj = parsed as { chops?: unknown; loop?: unknown }
+            const obj = parsed as { chops?: unknown; loop?: unknown; userNote?: string }
             if (Array.isArray(obj.chops) && obj.chops.length > 0) chops = obj.chops
             if (obj.loop && typeof obj.loop === "object" && Array.isArray((obj.loop as { sequence?: unknown }).sequence))
               loop = obj.loop
+            if (typeof obj.userNote === "string") notes = obj.userNote
           }
         } catch {
           // notes was not valid JSON, ignore
@@ -61,6 +63,7 @@ export async function GET() {
         duration: us.sample.duration ?? undefined,
         chops,
         loop,
+        notes,
         savedAt: us.createdAt,
       }
     })

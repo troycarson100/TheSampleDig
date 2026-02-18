@@ -33,6 +33,10 @@ interface SamplePlayerProps {
   initialLoop?: SavedLoopData | null
   /** When sample is saved, called (debounced) when chops or loop change so parent can persist them. */
   onSavedChopsChange?: (chops: Chop[], loop?: SavedLoopData | null) => void
+  /** DB Sample id – required for saving notes when isSaved. */
+  sampleId?: string | null
+  /** Restore saved notes when loading a saved sample. */
+  initialNotes?: string | null
   onVideoError?: () => void // Callback when video is unavailable
 }
 
@@ -47,6 +51,19 @@ function EighthNoteIcon({ className }: { className?: string }) {
     <span className={className} aria-hidden style={{ fontSize: "14px", lineHeight: 1, color: "inherit" }}>
       ♪
     </span>
+  )
+}
+
+/** Note icon for Notes button */
+function NoteIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="16" y1="13" x2="8" y2="13" />
+      <line x1="16" y1="17" x2="8" y2="17" />
+      <polyline points="10 9 9 9 8 9" />
+    </svg>
   )
 }
 
@@ -172,6 +189,8 @@ function SamplePlayer({
   initialChops,
   initialLoop,
   onSavedChopsChange,
+  sampleId,
+  initialNotes,
 }: SamplePlayerProps) {
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const tapResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -206,6 +225,53 @@ function SamplePlayer({
   const bpmDragMouseXRef = useRef(0)
   const bpmDragRafRef = useRef<number | null>(null)
   const bpmDragLastRenderedRef = useRef<number | null>(null)
+  const [notesOpen, setNotesOpen] = useState(false)
+  const [notes, setNotes] = useState(initialNotes ?? "")
+  const notesSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const notesContainerRef = useRef<HTMLDivElement>(null)
+
+  // Sync notes when loading a different saved sample
+  useEffect(() => {
+    setNotes(initialNotes ?? "")
+  }, [youtubeId, initialNotes])
+
+  const saveNotes = useCallback(
+    (value: string) => {
+      if (!isSaved || !sampleId) return
+      if (notesSaveTimeoutRef.current) clearTimeout(notesSaveTimeoutRef.current)
+      notesSaveTimeoutRef.current = setTimeout(() => {
+        notesSaveTimeoutRef.current = null
+        fetch("/api/samples/update-notes", {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ sampleId, userNote: value }),
+        }).catch((err) => console.warn("[Notes] Save failed:", err))
+      }, 500)
+    },
+    [isSaved, sampleId]
+  )
+
+  const handleNotesChange = useCallback(
+    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+      const v = e.target.value
+      setNotes(v)
+      saveNotes(v)
+    },
+    [saveNotes]
+  )
+
+  // Click outside to close notes dropdown
+  useEffect(() => {
+    if (!notesOpen) return
+    const handleClick = (ev: MouseEvent) => {
+      if (notesContainerRef.current && !notesContainerRef.current.contains(ev.target as Node)) {
+        setNotesOpen(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClick)
+    return () => document.removeEventListener("mousedown", handleClick)
+  }, [notesOpen])
+
   const onAfterChopPlay = useCallback(() => {
     chopKeysFocusTrapRef.current?.focus()
   }, [])
@@ -1013,8 +1079,8 @@ function SamplePlayer({
           <h3 className="track-title text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>{title}</h3>
           {(genre || era || effectiveBpm != null || musicalKey) && (
             <div className="flex gap-2 flex-wrap items-stretch">
-              {genre && <span className="tag-genre meta-tag-box inline-flex items-center min-h-[32px] px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--rust)", borderColor: "var(--rust)" }}>{genre}</span>}
-              {era && <span className="tag-era meta-tag-box inline-flex items-center min-h-[32px] px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--olive)", borderColor: "var(--olive)" }}>{era}</span>}
+              {genre && <span className="tag-genre meta-tag-box inline-flex items-center min-h-[32px] h-8 px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--rust)", borderColor: "var(--rust)" }}>{genre}</span>}
+              {era && <span className="tag-era meta-tag-box inline-flex items-center min-h-[32px] h-8 px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--olive)", borderColor: "var(--olive)" }}>{era}</span>}
               {effectiveBpm != null && (
                 <div
                   className="meta-tag-box relative inline-flex items-center min-h-[32px] rounded-xl border select-none gap-0"
@@ -1131,10 +1197,53 @@ function SamplePlayer({
                 </div>
               )}
               {musicalKey && (
-                <span className="meta-tag-box inline-flex items-center min-h-[32px] gap-2 rounded-xl border box-border" style={{ ...META_BOX_STYLE }}>
+                <span className="meta-tag-box inline-flex items-center h-8 min-h-[32px] gap-2 rounded-xl border box-border" style={{ ...META_BOX_STYLE, height: 32, lineHeight: 1, boxSizing: "border-box" }}>
                   <EighthNoteIcon className="shrink-0" />
                   <span className="font-mono">{musicalKey}</span>
                 </span>
+              )}
+              {showHeart && (
+                <div className="relative" ref={notesContainerRef}>
+                  <button
+                    type="button"
+                    onClick={() => setNotesOpen((o) => !o)}
+                    className="meta-tag-box inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg border box-border hover:opacity-80 transition-opacity"
+                    style={{
+                      ...META_BOX_STYLE,
+                      background: "rgba(255, 255, 255, 0.92)",
+                      padding: "0 12px",
+                      lineHeight: 1,
+                      boxSizing: "border-box",
+                    }}
+                    aria-expanded={notesOpen}
+                    aria-label="Notes"
+                    title="Add notes about this sample"
+                  >
+                    <NoteIcon className="shrink-0" />
+                    <span>Notes</span>
+                  </button>
+                  {notesOpen && (
+                    <div
+                      className="absolute left-0 top-full mt-1 z-50 rounded-xl border p-3 min-w-[240px] max-w-[320px]"
+                      style={{
+                        background: "var(--warm)",
+                        borderColor: "rgba(74, 55, 40, 0.2)",
+                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                      }}
+                    >
+                      <textarea
+                        value={notes}
+                        onChange={handleNotesChange}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        placeholder={isSaved ? "Add a note about this sample..." : "Save the sample first to add notes"}
+                        disabled={!isSaved}
+                        rows={3}
+                        className="w-full resize-none rounded-lg border bg-white/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                        style={{ borderColor: "rgba(74, 55, 40, 0.2)", color: "var(--brown)" }}
+                      />
+                    </div>
+                  )}
+                </div>
               )}
             </div>
           )}
@@ -1604,8 +1713,12 @@ export default memo(SamplePlayer, (prevProps, nextProps) => {
   
   const otherPropsEqual = (
     prevProps.showHeart === nextProps.showHeart &&
+    prevProps.isSaved === nextProps.isSaved &&
     prevProps.onVideoError === nextProps.onVideoError &&
     prevProps.initialChops === nextProps.initialChops &&
+    prevProps.initialLoop === nextProps.initialLoop &&
+    prevProps.sampleId === nextProps.sampleId &&
+    prevProps.initialNotes === nextProps.initialNotes &&
     prevProps.onSavedChopsChange === nextProps.onSavedChopsChange
   )
   

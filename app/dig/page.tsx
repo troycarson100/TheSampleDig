@@ -30,9 +30,18 @@ const GENRE_OPTIONS: { value: string; label: string }[] = [
   { value: "lounge", label: "Lounge" },
   { value: "library", label: "Library" },
   { value: "soundtrack", label: "Soundtrack" },
-  { value: "exotica", label: "Exotica" },
   { value: "folk", label: "Folk" },
   { value: "world", label: "World" },
+]
+
+/** Era options for the dig filter (value matches DB era; label for display) */
+const ERA_OPTIONS: { value: string; label: string }[] = [
+  { value: "", label: "Any era" },
+  { value: "1950s", label: "50s" },
+  { value: "1960s", label: "60s" },
+  { value: "1970s", label: "70s" },
+  { value: "1980s", label: "80s" },
+  { value: "1990s", label: "90s" },
 ]
 
 interface Chop {
@@ -57,6 +66,7 @@ interface Sample {
   duration?: number
   chops?: Chop[]
   loop?: SavedLoopData | null
+  notes?: string | null
 }
 
 const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
@@ -70,7 +80,9 @@ export default function DigPage() {
   const [isSaved, setIsSaved] = useState(false)
   const [autoplay, setAutoplay] = useState(true)
   const [drumBreak, setDrumBreak] = useState(false)
+  const [samplePacks, setSamplePacks] = useState(false)
   const [genreFilter, setGenreFilter] = useState("")
+  const [eraFilter, setEraFilter] = useState("")
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
   const isSavedRef = useRef(isSaved)
   const sampleRef = useRef(sample)
@@ -132,6 +144,22 @@ export default function DigPage() {
     localStorage.setItem("digDrumBreak", drumBreak.toString())
   }, [drumBreak])
 
+  // Load Sample Packs preference from localStorage; clear era when loading (sample packs mostly post-1990)
+  useEffect(() => {
+    const saved = localStorage.getItem("digSamplePacks") ?? localStorage.getItem("digRoyaltyFree")
+    if (saved !== null) {
+      const val = saved === "true"
+      setSamplePacks(val)
+      if (val) setEraFilter("")
+    }
+  }, [])
+
+  // Save Sample Packs preference to localStorage; clear era when enabling
+  useEffect(() => {
+    localStorage.setItem("digSamplePacks", samplePacks.toString())
+    if (samplePacks) setEraFilter("")
+  }, [samplePacks])
+
   // Load genre filter from localStorage
   useEffect(() => {
     const saved = localStorage.getItem("digGenre")
@@ -144,6 +172,20 @@ export default function DigPage() {
   useEffect(() => {
     localStorage.setItem("digGenre", genreFilter)
   }, [genreFilter])
+
+  // Load era filter from localStorage (skip if Sample Packs mode is on — era doesn't apply)
+  useEffect(() => {
+    if (localStorage.getItem("digSamplePacks") === "true" || localStorage.getItem("digRoyaltyFree") === "true") return
+    const saved = localStorage.getItem("digEra")
+    if (saved !== null && ERA_OPTIONS.some((o) => o.value === saved)) {
+      setEraFilter(saved)
+    }
+  }, [])
+
+  // Save era filter to localStorage
+  useEffect(() => {
+    localStorage.setItem("digEra", eraFilter)
+  }, [eraFilter])
 
   // Get seen video IDs from sessionStorage
   const getSeenVideoIds = (): string[] => {
@@ -206,7 +248,9 @@ export default function DigPage() {
       const params = new URLSearchParams()
       if (excludedIds.length > 0) params.set("excluded", excludedIds.join(","))
       if (genreFilter.trim() !== "") params.set("genre", genreFilter.trim())
+      if (!samplePacks && eraFilter.trim() !== "") params.set("era", eraFilter.trim())
       if (drumBreak) params.set("drumBreak", "1")
+      if (samplePacks) params.set("samplePacks", "1")
       const url = params.toString() ? `/api/samples/dig?${params.toString()}` : "/api/samples/dig"
 
       const response = await fetch(url)
@@ -443,10 +487,12 @@ export default function DigPage() {
       </header>
       <div className="genre-ticker">
         <div className="ticker-track" aria-hidden>
-          {/* All dropdown genres, one per item; sequence repeated for seamless loop (track duplicated so -50% loops) */}
+          {/* Genres + eras for ticker; sequence repeated for seamless loop (track duplicated so -50% loops) */}
           {(() => {
             const genres = GENRE_OPTIONS.filter((o) => o.value).map((o) => o.label)
-            const repeated = [...Array(8)].flatMap(() => genres)
+            const eras = ERA_OPTIONS.filter((o) => o.value).map((o) => o.label)
+            const labels = [...genres, ...eras]
+            const repeated = [...Array(8)].flatMap(() => labels)
             return (
               <>
                 {repeated.flatMap((label, i) =>
@@ -496,6 +542,24 @@ export default function DigPage() {
                     Drum Break
                   </span>
                 </button>
+                {/* Sample Packs toggle - commented out for now
+                <button
+                  type="button"
+                  onClick={() => setSamplePacks((r) => !r)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-full transition"
+                  style={{ background: "transparent", color: "var(--foreground)" }}
+                  aria-label="Toggle sample packs mode"
+                >
+                  <div className={`toggle-track relative w-12 h-6 rounded-full transition-colors ${samplePacks ? "opacity-100 checked" : "opacity-50"}`} style={{ background: samplePacks ? "var(--primary)" : "var(--muted)" }}>
+                    <div
+                      className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${samplePacks ? "translate-x-6" : "translate-x-0"}`}
+                    />
+                  </div>
+                  <span className="toggle-label text-sm font-medium">
+                    Sample Packs
+                  </span>
+                </button>
+                */}
                 <GenreSelect
                   value={genreFilter}
                   onChange={setGenreFilter}
@@ -503,6 +567,15 @@ export default function DigPage() {
                   ariaLabel="Filter samples by genre"
                   className="min-w-[140px]"
                 />
+                <div className={samplePacks ? "opacity-50 pointer-events-none" : ""} title={samplePacks ? "Era filter disabled — sample packs are mostly from 1990s onward" : undefined}>
+                  <GenreSelect
+                    value={eraFilter}
+                    onChange={setEraFilter}
+                    options={ERA_OPTIONS}
+                    ariaLabel="Filter samples by era"
+                    className="min-w-[120px]"
+                  />
+                </div>
               </div>
             </div>
 
@@ -534,6 +607,8 @@ export default function DigPage() {
                   showHeart={!!session}
                   initialChops={sample.chops}
                   initialLoop={sample.loop}
+                  sampleId={sample.id}
+                  initialNotes={sample.notes}
                   onSavedChopsChange={session ? handleSavedChopsChange : undefined}
                   onVideoError={() => {
                     if (sample?.youtubeId) {
@@ -579,6 +654,7 @@ export default function DigPage() {
                       duration: savedSample.duration,
                       chops: savedSample.chops,
                       loop: savedSample.loop,
+                      notes: savedSample.notes,
                     })
                     setIsSaved(true)
                     // Add to seen list to prevent it from showing again when rolling dice

@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { useSession } from "next-auth/react"
 import SiteNav from "@/components/SiteNav"
+import TempoRangeSlider from "@/components/TempoRangeSlider"
 
 type DownloadFormat = "wav" | "mp3"
 
@@ -1469,26 +1470,11 @@ export default function StemSplitterPage() {
                     <label className="stem-control-label text-xs whitespace-nowrap">
                       Tempo:
                     </label>
-                    <input
-                      type="number"
-                      min={20}
-                      max={300}
-                      value={tempoMin}
-                      onChange={(e) => setMySongsTempoRange(([_, max]) => [Number(e.target.value) || 20, max])}
-                      className="stem-input w-14 tabular-nums"
-                      aria-label="Min BPM"
+                    <TempoRangeSlider
+                      value={[tempoMin, tempoMax]}
+                      onChange={(v) => setMySongsTempoRange(v)}
+                      className="min-w-[180px]"
                     />
-                    <span className="stem-control-label">–</span>
-                    <input
-                      type="number"
-                      min={20}
-                      max={300}
-                      value={tempoMax}
-                      onChange={(e) => setMySongsTempoRange(([min, _]) => [min, Number(e.target.value) || 300])}
-                      className="stem-input w-14 tabular-nums"
-                      aria-label="Max BPM"
-                    />
-                    <span className="stem-control-label text-xs">bpm</span>
                   </div>
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

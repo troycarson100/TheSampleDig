@@ -3,10 +3,12 @@
  * Uses curated queries (rare samples, vintage jazz, genres, artists/albums).
  *
  * POST body (optional):
+ *   seedPlaylistIds: string[] - curated playlist IDs to ingest first (no search, 1 unit/50 videos)
  *   queries: string[] - override default search queries
  *   maxPlaylistSearches: number - max API search calls (default 25, 100 units each)
  *   maxPlaylistsToIngest: number - max playlists to fetch videos from (default 80)
  *   maxVideosPerPlaylist: number - max videos to take per playlist (default 400)
+ *   skipSearch: boolean - if true and seedPlaylistIds provided, skip search entirely
  */
 
 import { NextResponse } from "next/server"
@@ -46,23 +48,37 @@ export async function POST(request: Request) {
       parseInt(String(body.maxVideosPerPlaylist || 400), 10),
       500
     )
+    const seedPlaylistIds: string[] = Array.isArray(body.seedPlaylistIds)
+      ? body.seedPlaylistIds.filter((id: unknown) => typeof id === "string" && id.trim().length > 0)
+      : []
+    const skipSearch = body.skipSearch === true
 
     const seenPlaylistIds = new Set<string>()
-    const playlistsByQuery: { playlistId: string; title: string }[] = []
+    const playlistsToIngest: { playlistId: string; title: string }[] = []
 
-    for (let i = 0; i < Math.min(queries.length, maxPlaylistSearches); i++) {
-      const q = queries[i]
-      const results = await searchPlaylists(q, 50)
-      for (const p of results) {
-        if (!seenPlaylistIds.has(p.playlistId)) {
-          seenPlaylistIds.add(p.playlistId)
-          playlistsByQuery.push(p)
-        }
+    // Seed playlists first (curated, no search cost)
+    for (const pid of seedPlaylistIds) {
+      if (!seenPlaylistIds.has(pid)) {
+        seenPlaylistIds.add(pid)
+        playlistsToIngest.push({ playlistId: pid, title: "(seed)" })
       }
-      if (i < queries.length - 1) await new Promise((r) => setTimeout(r, 200))
     }
 
-    const toIngest = playlistsByQuery.slice(0, maxPlaylistsToIngest)
+    if (!skipSearch) {
+      for (let i = 0; i < Math.min(queries.length, maxPlaylistSearches); i++) {
+        const q = queries[i]
+        const results = await searchPlaylists(q, 50)
+        for (const p of results) {
+          if (!seenPlaylistIds.has(p.playlistId)) {
+            seenPlaylistIds.add(p.playlistId)
+            playlistsToIngest.push(p)
+          }
+        }
+        if (i < queries.length - 1) await new Promise((r) => setTimeout(r, 200))
+      }
+    }
+
+    const toIngest = playlistsToIngest.slice(0, maxPlaylistsToIngest)
     let totalAdded = 0
     let totalSkipped = 0
 
@@ -79,11 +95,12 @@ export async function POST(request: Request) {
 
     return NextResponse.json({
       success: true,
-      playlistsFound: playlistsByQuery.length,
+      seedPlaylistsIngested: seedPlaylistIds.length,
+      playlistsFound: playlistsToIngest.length - seedPlaylistIds.length,
       playlistsIngested: toIngest.length,
       candidatesAdded: totalAdded,
       candidatesSkipped: totalSkipped,
-      message: `Discovered ${playlistsByQuery.length} playlists, ingested ${toIngest.length}. ${totalAdded} new candidate videos added.`,
+      message: `Ingested ${toIngest.length} playlists (${seedPlaylistIds.length} seed). ${totalAdded} new candidate videos added.`,
     })
   } catch (e: any) {
     console.error("[Discover Playlists]", e)

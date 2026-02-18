@@ -55,13 +55,19 @@ export const HARD_FILTER_PATTERNS = {
   // Title/channel patterns
   titleChannel: [
     "live", "session", "sessions", "mic sessions", "rehearsal", "tutorial", "lesson",
-    "backing track", "karaoke", "remix", "tribute",
+    "backing track", "karaoke", "remix", "remixed", "remixes", "tribute",
     "how to play", "tabs", "playthrough", "guitar cover", "drum cover", "piano cover", "bass cover",
     "cover by", "cover song", "cover version", "covered by", "instrumental cover",
     "official video", "music video", "official audio", "official music video",
     "mv", "official mv",
     "interview", "interviews", "talks about", "discusses", "explains",
     "filming", "filming my", "record player setup",
+    // Non-music: shed/storage, economics, manufacturing, haul/finds
+    "shed", "portable shed", "storage shed", "vinyl shed", "storage buildings", "barns", "portable storage",
+    "economist", "economics", "examines",
+    "vinyl finds", "vinyl haul", "record finds", "crate finds",
+    "manufacturing", "record pressing", "vinyl production", "pressing process", "pressage",
+    "como arte", "vinyl as art",
     "unboxing", "unbox", "first listen", "reaction", "reacts to",
     "review", "reviews", "breakdown", "analysis", "explained",
     "street", "people in", "random", "vlog", "walking", "driving",
@@ -107,9 +113,14 @@ export const HARD_FILTER_PATTERNS = {
     "unboxing", "first listen", "reaction", "reacts to",
     "review", "breakdown", "analysis", "explained",
     "what i think", "my thoughts", "opinion on",
+    "remix", "remixed", "remixes",
     "official video", "official audio", "official music video", "music video", "mv",
     "street", "people in", "random", "vlog", "walking", "driving", "in the city", "city streets", "urban",
-    "billboard", "top 40", "chart", "hit", "popular"
+    "billboard", "top 40", "chart", "hit", "popular",
+    "shed", "portable shed", "storage shed", "storage buildings", "barns",
+    "economist", "economics", "examines",
+    "vinyl finds", "vinyl haul", "record finds",
+    "manufacturing", "record pressing", "vinyl production", "pressing process"
   ]
 }
 
