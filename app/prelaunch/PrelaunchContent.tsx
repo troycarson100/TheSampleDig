@@ -238,10 +238,10 @@ export default function PrelaunchContent() {
         <div className={`${styles.heroLogo} ${styles.reveal}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/SampleRoll-logo-white-long.svg"
+            src="/SampleRoll-text.svg"
             alt="Sample Roll"
-            width={320}
-            height={52}
+            width={1384}
+            height={279}
             className="h-8 w-auto object-contain"
             style={{ height: 32, width: "auto" }}
           />
@@ -320,7 +320,7 @@ export default function PrelaunchContent() {
               <div className={styles.featTitle}>Chop Mode</div>
               <div className={styles.featDesc}>
                 Map samples to your keyboard and chop in real time. Tap tempo, metronome
-                overlay, and drum break mode for the serious digger.
+                overlay, and drum break mode for the serious producer.
               </div>
             </div>
             <div className={`${styles.featCard} ${styles.reveal} ${styles.d4}`}>
@@ -347,12 +347,33 @@ export default function PrelaunchContent() {
         <div className={styles.previewIn}>
           <div className={`${styles.secEy} ${styles.reveal}`}>Sneak Peek</div>
           <h2 className={`${styles.previewH} ${styles.reveal} ${styles.d1}`}>
-            A tool that <em>thinks</em> like a digger
+            A tool that <em>thinks</em> like a producer
           </h2>
           <p className={`${styles.previewSub} ${styles.reveal} ${styles.d2}`}>
             Obsessively crafted for producers, beat-makers & crate diggers.
           </p>
 
+          {/* Option A: composite mockup (roll + my samples) — commented out
+          <div className={`${styles.mockupFrame} ${styles.reveal} ${styles.d3}`}>
+            <div className={styles.mockupBar}>
+              <div className={styles.mockupDot} /><div className={styles.mockupDot} /><div className={styles.mockupDot} />
+              <span className={styles.mockupUrl}>sampleroll.com/dig</span>
+            </div>
+            <div className={styles.mockupBody}>
+              <div className={styles.mockupGlow} />
+              <div className={styles.mockPlayer}>
+                <div className={styles.mockScreen}>
+                  <img src="/prelaunch/roll-section.png" alt="Sample Roll dig" className={styles.mockRollImage} />
+                </div>
+                <div className={styles.mockProgress}><div className={styles.mockProgressFill} /></div>
+              </div>
+              <div className={styles.mockSidebar}>
+                <img src="/prelaunch/my-samples.png" alt="My Samples" className={styles.mockMySamplesImage} />
+              </div>
+            </div>
+          </div>
+          */}
+          {/* Looping screen recording inside browser mockup */}
           <div className={`${styles.mockupFrame} ${styles.reveal} ${styles.d3}`}>
             <div className={styles.mockupBar}>
               <div className={styles.mockupDot} />
@@ -361,66 +382,16 @@ export default function PrelaunchContent() {
               <span className={styles.mockupUrl}>sampleroll.com/dig</span>
             </div>
             <div className={styles.mockupBody}>
-              <div className={styles.mockupGlow} />
-              <div className={styles.mockPlayer}>
-                <div className={styles.mockScreen}>
-                  <div className={styles.mockVinyl} />
-                </div>
-                <div className={styles.mockInfo}>
-                  <div>
-                    <div className={styles.mockTrack}>Bill — Space Lady</div>
-                    <div className={styles.mockMeta}>
-                      Rare Samples · Disco · 1960s
-                    </div>
-                  </div>
-                  <div className={styles.mockHeart}>♥</div>
-                </div>
-                <div className={styles.mockProgress}>
-                  <div className={styles.mockProgressFill} />
-                </div>
-              </div>
-              <div className={styles.mockSidebar}>
-                <div className={styles.mockSidebarTitle}>MY SAMPLES</div>
-                <div className={styles.mockSampleRow}>
-                  <div
-                    className={styles.mockThumb}
-                    style={{
-                      background: "linear-gradient(135deg,#1A2845,#0A1428)",
-                    }}
-                  />
-                  <div>
-                    <div className={styles.mockSampleName}>
-                      Ken-Ichiro Isoda — マジエル
-                    </div>
-                    <div className={styles.mockSampleBpm}>96 BPM · Dm</div>
-                  </div>
-                </div>
-                <div className={styles.mockSampleRow}>
-                  <div
-                    className={styles.mockThumb}
-                    style={{
-                      background: "linear-gradient(135deg,#141414,#0E0E0E)",
-                    }}
-                  />
-                  <div>
-                    <div className={styles.mockSampleName}>チコ本田 — 待っている</div>
-                    <div className={styles.mockSampleBpm}>56 BPM · Bm</div>
-                  </div>
-                </div>
-                <div className={styles.mockSampleRow}>
-                  <div
-                    className={styles.mockThumb}
-                    style={{
-                      background: "linear-gradient(135deg,#2A0A08,#1A0604)",
-                    }}
-                  />
-                  <div>
-                    <div className={styles.mockSampleName}>
-                      Count Buffalos — Emergency
-                    </div>
-                    <div className={styles.mockSampleBpm}>117 BPM · Em</div>
-                  </div>
-                </div>
+              <div className={styles.mockDigVideoWrap}>
+                <video
+                  src="/prelaunch/dig-browser-recording.mov"
+                  className={styles.mockDigVideo}
+                  loop
+                  muted
+                  autoPlay
+                  playsInline
+                  aria-label="Sample Roll Dig page preview"
+                />
               </div>
             </div>
           </div>

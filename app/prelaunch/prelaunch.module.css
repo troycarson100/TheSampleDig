@@ -557,30 +557,67 @@
   border-radius: 3px;
 }
 .mockupBody {
-  aspect-ratio: 16/9;
+  /* Slightly shorter than 16/9 (~20px less height at typical width) */
+  aspect-ratio: 16/8.6;
   background: var(--groove);
   position: relative;
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: center;
   overflow: hidden;
+}
+.mockDigExampleImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
+}
+.mockDigVideoWrap {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+.mockDigVideo {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  /* Slightly taller than container, pulled up a bit to clip black bar at top of recording */
+  height: calc(100% + 22px);
+  min-height: calc(100% + 22px);
+  object-fit: cover;
+  object-position: top center;
+  display: block;
+  background: var(--groove);
+  transform: translateY(-22px);
 }
 
 .mockPlayer {
   width: 55%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   gap: 0;
+  align-self: stretch;
 }
 .mockScreen {
-  aspect-ratio: 16/9;
-  background: #080706;
+  flex: 1;
+  min-height: 0;
+  background: transparent;
   border-radius: 4px 4px 0 0;
   position: relative;
   overflow: hidden;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-content: stretch;
+}
+.mockRollImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  display: block;
 }
 .mockVinyl {
   width: 80px;
@@ -645,11 +682,24 @@
   right: 24px;
   top: 50%;
   transform: translateY(-50%);
-  width: 22%;
-  background: rgba(14, 12, 10, 0.9);
-  border: 1px solid rgba(240, 235, 225, 0.05);
-  border-radius: 4px;
-  padding: 10px;
+  width: 18%;
+  max-width: 160px;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mockMySamplesImage {
+  width: 100%;
+  height: auto;
+  max-height: 85%;
+  object-fit: contain;
+  object-position: top;
+  display: block;
 }
 .mockSidebarTitle {
   font-family: var(--font-bebas, "Bebas Neue", sans-serif);

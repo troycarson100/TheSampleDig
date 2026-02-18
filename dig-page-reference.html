@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<!--
+  Dig Page — Static reference for developers
+  Source: app/dig/page.tsx + SamplePlayer, SavedSamplesSidebar, GenreSelect, SiteNav.
+  Replace placeholder content (track title, sample cards, thumbnails) with real data.
+  Logo: use /SampleRoll-text.svg from the app's public folder when serving from the app.
+-->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dig Page — Sample Roll (reference for developer)</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display&family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --cream: #F0EBE1;
+      --warm: #F7F3EC;
+      --paper: #E8E0D0;
+      --dust: #C8BEA8;
+      --brown: #4A3728;
+      --dark: #2C1F14;
+      --rust: #B85C38;
+      --rust-l: #D4784E;
+      --olive: #7A7A50;
+      --groove: #0E0C0A;
+      --background: var(--cream);
+      --foreground: var(--dark);
+      --muted: var(--brown);
+      --muted-light: var(--paper);
+      --primary: var(--groove);
+      --border: rgba(74, 55, 40, 0.12);
+      --font-bebas: 'Bebas Neue', sans-serif;
+      --font-dm-serif: 'DM Serif Display', serif;
+      --font-ibm-mono: 'IBM Plex Mono', monospace;
+      --nav-bg: rgba(14, 12, 10, 0.92);
+      --nav-blur: 12px;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--background); color: var(--foreground); font-family: var(--font-ibm-mono), monospace; min-height: 100vh; }
+
+    /* Header (simplified nav) */
+    .site-header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 500;
+      height: 56px;
+      background: var(--nav-bg); backdrop-filter: blur(var(--nav-blur));
+      border-bottom: 1px solid rgba(240,235,225,0.08);
+      display: flex; align-items: center; justify-content: space-between; padding: 0 20px;
+    }
+    .site-header .logo { height: 24px; }
+    .site-header a { color: var(--cream); text-decoration: none; font-size: 12px; letter-spacing: 0.1em; margin-left: 20px; }
+
+    /* Genre ticker */
+    .genre-ticker {
+      position: fixed; top: 56px; left: 0; right: 0; z-index: 499;
+      height: 34px; background: var(--rust); border-bottom: 1px solid rgba(0,0,0,0.15);
+      overflow: hidden; display: flex; align-items: center;
+    }
+    .ticker-track { display: flex; gap: 0; animation: tickroll 480s linear infinite; white-space: nowrap; }
+    .ticker-label { font-family: var(--font-bebas); font-size: 13px; letter-spacing: 0.18em; color: rgba(255,255,255,0.72); padding: 0 26px; }
+    .ticker-dot { color: rgba(255,255,255,0.28); font-size: 10px; padding: 0 14px; }
+    @keyframes tickroll { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+    /* Page wrap */
+    .dig-page-wrap { margin-top: 90px; max-width: 1440px; margin-left: auto; margin-right: auto; padding: 24px 28px; }
+    .dig-app-grid { display: grid; grid-template-columns: 1fr 280px; gap: 24px; align-items: start; min-height: calc(100vh - 90px); }
+    @media (max-width: 767px) { .dig-app-grid { grid-template-columns: 1fr; } }
+    @media (min-width: 1100px) { .dig-app-grid { grid-template-columns: 1fr 340px; } }
+
+    /* Player area card */
+    .player-area-card {
+      border: 1px solid rgba(74,55,40,0.1); border-radius: 8px; overflow: hidden;
+      background: var(--warm); display: flex; flex-direction: column;
+    }
+    .controls-bar {
+      display: flex; align-items: center; justify-content: center; gap: 24px; flex-wrap: wrap;
+      padding: 16px 22px; background: var(--warm); border-radius: 8px 8px 0 0;
+    }
+    .controls-bar .btn-back { width: 52px; height: 52px; border-radius: 8px; background: var(--muted-light); color: var(--foreground); border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+    .controls-bar .btn-dice { width: 52px; height: 52px; border-radius: 8px; background: var(--rust); color: var(--cream); border: none; cursor: pointer; font-size: 24px; }
+    .toggle-wrap { display: flex; align-items: center; gap: 8px; }
+    .toggle-track { width: 38px; height: 20px; border-radius: 10px; background: var(--dust); position: relative; }
+    .toggle-track.checked { background: var(--rust); }
+    .toggle-track .knob { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 50%; background: white; box-shadow: 0 1px 4px rgba(0,0,0,0.2); transition: transform 0.25s; }
+    .toggle-track.checked .knob { transform: translateX(18px); }
+    .toggle-label { font-family: var(--font-ibm-mono); font-size: 8px; font-weight: 500; letter-spacing: 0.2em; text-transform: uppercase; color: var(--brown); opacity: 0.8; }
+    .genre-select {
+      min-width: 140px; padding: 10px 32px 10px 14px; border-radius: 4px;
+      font-family: var(--font-ibm-mono); font-size: 9px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase;
+      background: white; border: 1px solid rgba(74,55,40,0.12); color: var(--brown); cursor: pointer;
+      appearance: none; background-image: url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%234A3728' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 12px center;
+    }
+
+    /* Video / player wrap */
+    .player-wrap {
+      aspect-ratio: 16/9; width: 100%; background: var(--groove); position: relative; overflow: hidden;
+      border-left: 1px solid rgba(74,55,40,0.1); border-right: 1px solid rgba(74,55,40,0.1);
+    }
+    .player-wrap .video-placeholder { width: 100%; height: 100%; background: #080706; display: flex; align-items: center; justify-content: center; color: rgba(255,255,255,0.3); font-size: 12px; }
+    .player-wrap video { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .heart-btn { position: absolute; top: 16px; right: 18px; z-index: 20; width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.9); border: 1px solid rgba(74,55,40,0.15); display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 18px; color: var(--brown); }
+    .heart-btn.saved { background: rgba(184,92,56,0.25); border-color: var(--rust); color: var(--rust); }
+
+    /* Track meta bar (below video) */
+    .track-meta-bar { padding: 20px 24px; background: var(--warm); }
+    .track-meta-bar .track-title { font-family: var(--font-dm-serif); font-size: 20px; font-weight: bold; color: var(--foreground); margin: 0 0 12px 0; }
+    .meta-tags { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .tag-genre { padding: 6px 14px; border-radius: 6px; font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--rust); color: var(--rust); background: transparent; }
+    .tag-era { padding: 6px 14px; border-radius: 6px; font-size: 9px; font-weight: 500; letter-spacing: 0.12em; text-transform: uppercase; border: 1px solid var(--olive); color: var(--olive); background: transparent; }
+    .bpm-box { display: inline-flex; align-items: center; padding: 0; border: 1px solid rgba(74,55,40,0.14); border-radius: 6px; background: rgba(74,55,40,0.04); font-family: var(--font-ibm-mono); font-size: 9px; color: var(--brown); }
+    .bpm-box button { padding: 8px 10px; background: none; border: none; cursor: pointer; color: inherit; }
+    .bpm-box .value { padding: 8px 12px; min-width: 3.5rem; text-align: center; }
+    .key-box { display: inline-flex; align-items: center; gap: 6px; padding: 6px 14px; border-radius: 6px; border: 1px solid rgba(74,55,40,0.14); background: rgba(74,55,40,0.04); font-family: var(--font-ibm-mono); font-size: 9px; color: var(--brown); }
+    .meta-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+    .meta-right .row { display: flex; align-items: center; gap: 12px; }
+    .meta-right .row span { font-size: 12px; font-weight: 500; color: var(--foreground); }
+
+    /* Sidebar */
+    .samples-panel { position: sticky; top: 102px; max-height: calc(100vh - 114px); display: flex; flex-direction: column; min-height: 0; }
+    @media (max-width: 767px) { .samples-panel { position: static; max-height: none; } }
+    .sidebar-dark { background: var(--nav-bg); border: 1px solid rgba(240,235,225,0.06); border-radius: 8px; overflow: hidden; display: flex; flex-direction: column; min-height: 0; }
+    .samples-panel-header { display: flex; align-items: center; justify-content: space-between; padding: 20px 20px; }
+    .sidebar-title { font-family: var(--font-bebas); font-size: 18px; letter-spacing: 0.2em; color: #fff; margin: 0; }
+    .sidebar-count { font-family: var(--font-ibm-mono); font-size: 10px; letter-spacing: 0.1em; color: rgba(240,235,225,0.6); }
+    .samples-list-inner { flex: 1; min-height: 0; overflow-y: auto; padding: 0 20px 20px; }
+    .sample-card { padding: 14px 0; cursor: pointer; transition: background 0.2s; border-bottom: 1px solid #393734; }
+    .sample-card:last-child { border-bottom: none; }
+    .sample-card .sample-title { font-family: var(--font-dm-serif); font-size: 13px; line-height: 1.35; color: #fff; margin: 0 0 8px 0; }
+    .sample-thumb { position: relative; aspect-ratio: 16/9; width: 100%; border-radius: 8px; overflow: hidden; background: #111; }
+    .sample-thumb img { width: 100%; height: 100%; object-fit: cover; }
+    .sample-thumb .heart-overlay { position: absolute; top: 8px; right: 8px; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; font-size: 12px; }
+    .sample-thumb .meta-overlay { position: absolute; bottom: 8px; left: 8px; right: 60px; display: flex; flex-wrap: wrap; gap: 4px; }
+    .sample-thumb .meta-overlay span { background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 10px; font-family: var(--font-ibm-mono); }
+    .sample-thumb .duration { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.7); color: #fff; padding: 2px 8px; border-radius: 4px; font-size: 10px; }
+
+    /* Footer */
+    .dig-footer { margin-top: 40px; padding-top: 32px; border-top: 1px solid var(--border); }
+    .dig-footer .footer-title { font-family: var(--font-bebas); font-size: 18px; letter-spacing: 0.1em; color: var(--foreground); margin: 0; }
+    .dig-footer p, .dig-footer a { font-family: var(--font-ibm-mono); font-size: 12px; color: var(--muted); }
+    .dig-footer a { margin-right: 24px; text-decoration: none; }
+    .dig-footer a:hover { color: var(--foreground); }
+  </style>
+</head>
+<body class="theme-vinyl">
+  <header class="site-header">
+    <img src="/SampleRoll-text.svg" alt="Sample Roll" class="logo" onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+    <span style="display:none; font-family: var(--font-bebas); font-size: 20px; letter-spacing: 0.14em;">SAMPLE ROLL</span>
+    <nav>
+      <a href="/dig">Dig</a>
+      <a href="/stem-splitter">Stem Splitter</a>
+      <a href="/profile">My Samples</a>
+      <a href="/login">Login</a>
+    </nav>
+  </header>
+
+  <div class="genre-ticker">
+    <div class="ticker-track">
+      <span class="ticker-label">Jazz</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Soul</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Funk</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">R&B</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Hip Hop</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Bossa Nova</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Blues</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Disco</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Reggae</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Latin</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Prog</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Psychedelic</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Afrobeat</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Lounge</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Library</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Soundtrack</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Exotica</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Folk</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">World</span>
+      <!-- duplicate for seamless loop -->
+      <span class="ticker-dot">✦</span><span class="ticker-label">Jazz</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Soul</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Funk</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">R&B</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Hip Hop</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Bossa Nova</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Blues</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Disco</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Reggae</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Latin</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Prog</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Psychedelic</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Afrobeat</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Lounge</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Library</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Soundtrack</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Exotica</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">Folk</span><span class="ticker-dot">✦</span>
+      <span class="ticker-label">World</span>
+    </div>
+  </div>
+
+  <div class="dig-page-wrap">
+    <div class="dig-app-grid">
+      <div class="dig-col">
+        <div class="player-area-card">
+          <div class="controls-bar">
+            <button type="button" class="btn-back" aria-label="Go back">←</button>
+            <button type="button" class="btn-dice" aria-label="Roll dice">⚄</button>
+            <div class="toggle-wrap">
+              <div class="toggle-track checked" role="switch"><div class="knob"></div></div>
+              <span class="toggle-label">AUTO-PLAY</span>
+            </div>
+            <div class="toggle-wrap">
+              <div class="toggle-track" role="switch"><div class="knob"></div></div>
+              <span class="toggle-label">DRUM BREAK</span>
+            </div>
+            <select class="genre-select" aria-label="Filter by genre">
+              <option>Any genre</option>
+              <option>Jazz</option>
+              <option>Soul</option>
+              <option>Funk</option>
+              <option>R&B</option>
+              <option>Hip Hop</option>
+              <option>Bossa Nova</option>
+              <option>Blues</option>
+              <option>Disco</option>
+              <option>Reggae</option>
+              <option>Latin</option>
+              <option>Prog</option>
+              <option>Psychedelic</option>
+              <option>Afrobeat</option>
+              <option>Lounge</option>
+              <option>Library</option>
+              <option>Soundtrack</option>
+              <option>Exotica</option>
+              <option>Folk</option>
+              <option>World</option>
+            </select>
+          </div>
+
+          <div class="player-wrap">
+            <video src="dig-browser-recording.mov" loop muted autoplay playsinline></video>
+            <button type="button" class="heart-btn saved" aria-label="Saved">♥</button>
+          </div>
+
+          <div class="track-meta-bar">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px;">
+              <div>
+                <h3 class="track-title">The Real Roxanne And Howie Tee — Roxannes Groove</h3>
+                <div class="meta-tags">
+                  <span class="tag-genre">JAZZ</span>
+                  <span class="tag-era">1960S</span>
+                  <div class="bpm-box">
+                    <button type="button" aria-label="Decrease BPM">‹</button>
+                    <span class="value">96 BPM</span>
+                    <button type="button" aria-label="Increase BPM">›</button>
+                  </div>
+                  <span class="key-box">♪ AM</span>
+                </div>
+              </div>
+              <div class="meta-right">
+                <div class="row">
+                  <span>Tap tempo</span>
+                  <div class="toggle-wrap"><div class="toggle-track" role="switch"><div class="knob"></div></div></div>
+                </div>
+                <div class="row">
+                  <span>Metronome (recording)</span>
+                  <div class="toggle-wrap"><div class="toggle-track" role="switch"><div class="knob"></div></div></div>
+                </div>
+                <div class="row">
+                  <span>CHOP MODE</span>
+                  <div class="toggle-wrap"><div class="toggle-track checked" role="switch"><div class="knob"></div></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="samples-panel">
+        <div class="sidebar-dark">
+          <header class="samples-panel-header">
+            <h2 class="sidebar-title">MY SAMPLES</h2>
+            <span class="sidebar-count">3 saved</span>
+          </header>
+          <div class="samples-list-inner">
+            <div class="sample-card">
+              <h3 class="sample-title">Corviria — Albatros</h3>
+              <div class="sample-thumb">
+                <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg" alt="">
+                <div class="heart-overlay">♥</div>
+                <div class="meta-overlay"><span>103 BPM</span><span>C#</span></div>
+                <span class="duration">1:12</span>
+              </div>
+            </div>
+            <div class="sample-card">
+              <h3 class="sample-title">Ken-Ichiro Isoda (磯田健一郎): マジエルのまどろみ (with Raindrops)</h3>
+              <div class="sample-thumb">
+                <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg" alt="">
+                <div class="heart-overlay">♥</div>
+                <div class="meta-overlay"><span>96 BPM</span><span>Dm</span></div>
+                <span class="duration">4:51</span>
+              </div>
+            </div>
+            <div class="sample-card">
+              <h3 class="sample-title">チコ本田 / 待っている CHIKO</h3>
+              <div class="sample-thumb">
+                <img src="https://img.youtube.com/vi/dQw4w9WgXcQ/mqdefault.jpg" alt="">
+                <div class="heart-overlay">♥</div>
+                <div class="meta-overlay"><span>JAZZ</span><span>56 BPM</span><span>Bm</span></div>
+                <span class="duration">1:33</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <footer class="dig-footer">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 24px;">
+        <div>
+          <p class="footer-title">Sample Roll</p>
+          <p>Helping you find samples that matter.</p>
+        </div>
+        <div>
+          <a href="/dig">Dig</a>
+          <a href="/profile">My Samples</a>
+          <a href="/blog">Blog</a>
+          <a href="/login">Login</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
