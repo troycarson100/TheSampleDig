@@ -54,3 +54,7 @@ next-env.d.ts
 
 # daily backfill logs
 /logs
+
+# prelaunch/dig reference video (large; add locally or host elsewhere)
+dig-browser-recording.mov
+public/prelaunch/dig-browser-recording.mov
