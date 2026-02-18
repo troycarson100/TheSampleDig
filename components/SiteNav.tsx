@@ -4,7 +4,7 @@ import { useState } from "react"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
-import { useSession } from "next-auth/react"
+import { useSession, signOut } from "next-auth/react"
 
 const navLinkBase = "nav-tab-link relative flex items-center h-full px-5 py-0 border-none bg-transparent cursor-pointer transition-colors"
 const navLinkActive = "nav-link-active"
@@ -61,15 +61,19 @@ export default function SiteNav() {
             </Link>
           )}
         </div>
-        {/* Right: sign out / login */}
+        {/* Right: sign out / sign in */}
         <div className="flex justify-end shrink-0">
           {session ? (
-            <Link href="/api/auth/signout" className="sign-out-btn">
+            <button
+              type="button"
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="sign-out-btn cursor-pointer"
+            >
               Sign out
-            </Link>
+            </button>
           ) : (
-            <Link href="/login" className="sign-out-btn">
-              Login
+            <Link href="/login" className="sign-in-btn">
+              Sign In
             </Link>
           )}
         </div>

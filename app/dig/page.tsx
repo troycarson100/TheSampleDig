@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import Link from "next/link"
 import { useSession } from "next-auth/react"
 import SamplePlayer from "@/components/SamplePlayer"
 import type { SavedLoopData } from "@/hooks/useChopMode"
@@ -84,6 +85,7 @@ export default function DigPage() {
   const [genreFilter, setGenreFilter] = useState("")
   const [eraFilter, setEraFilter] = useState("")
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
+  const [showAuthModal, setShowAuthModal] = useState(false)
   const isSavedRef = useRef(isSaved)
   const sampleRef = useRef(sample)
   const sessionRef = useRef(session)
@@ -215,6 +217,14 @@ export default function DigPage() {
     } catch (error) {
       console.error("Error saving seen video:", error)
     }
+  }
+
+  const onRollClick = () => {
+    if (status === "unauthenticated") {
+      setShowAuthModal(true)
+      return
+    }
+    handleDig()
   }
 
   const handleDig = async () => {
@@ -485,6 +495,61 @@ export default function DigPage() {
       <header className="site-header w-full">
         <SiteNav />
       </header>
+
+      {/* Sign up / login modal when guest clicks roll */}
+      {showAuthModal && (
+        <div
+          className="fixed inset-0 z-[700] flex items-center justify-center p-4"
+          style={{ background: "rgba(0,0,0,0.5)" }}
+          onClick={() => setShowAuthModal(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="auth-modal-title"
+        >
+          <div
+            className="rounded-xl shadow-xl max-w-md w-full p-6 flex flex-col gap-4"
+            style={{ background: "var(--background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between gap-4">
+              <h2 id="auth-modal-title" className="text-xl font-semibold" style={{ fontFamily: "var(--font-halant), Georgia, serif" }}>
+                Sign up for free
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowAuthModal(false)}
+                className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition hover:opacity-70"
+                style={{ background: "var(--muted-light)" }}
+                aria-label="Close"
+              >
+                <svg className="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+            <p className="text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
+              Create an account or log in to roll the dice and save samples.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 mt-2">
+              <Link
+                href="/register"
+                className="flex-1 text-center py-3 px-4 rounded-lg font-medium no-underline transition"
+                style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+                onClick={() => setShowAuthModal(false)}
+              >
+                Register
+              </Link>
+              <Link
+                href="/login"
+                className="flex-1 text-center py-3 px-4 rounded-lg font-medium no-underline border transition"
+                style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+                onClick={() => setShowAuthModal(false)}
+              >
+                Login
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="genre-ticker">
         <div className="ticker-track" aria-hidden>
           {/* Genres + eras for ticker; sequence repeated for seamless loop (track duplicated so -50% loops) */}
@@ -524,7 +589,7 @@ export default function DigPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   </button>
                 )}
-                <DiceButton onClick={handleDig} loading={loading} />
+                <DiceButton onClick={onRollClick} loading={loading} />
                 <AutoplayToggle enabled={autoplay} onChange={setAutoplay} />
                 <button
                   type="button"

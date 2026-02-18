@@ -181,10 +181,15 @@ export default function ProfilePage() {
           <SiteNav />
         </header>
         <div className="profile-page-wrap">
-          <div className="flex flex-col items-center justify-center text-center py-16">
-            <h1 className="profile-title uppercase mb-2">My Saved Samples</h1>
-            <p className="profile-count mb-6">Please log in to view your saved samples.</p>
-            <Link href="/login" className="btn-primary inline-block no-underline">Login</Link>
+          <div className="flex flex-col items-center justify-center text-center py-16 px-4">
+            <h1 className="profile-title uppercase mb-2">My Samples</h1>
+            <p className="profile-count mb-6" style={{ color: "var(--muted)" }}>
+              Sign up for free to save samples. Log in to see your saved samples.
+            </p>
+            <div className="flex flex-wrap items-center justify-center gap-3">
+              <Link href="/register" className="btn-primary inline-block no-underline">Register</Link>
+              <Link href="/login" className="inline-block no-underline py-2.5 px-5 rounded-lg border font-medium" style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>Login</Link>
+            </div>
           </div>
         </div>
       </div>

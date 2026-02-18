@@ -4,16 +4,24 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
+/** Terms document: served from public/SampleRoll_Terms_and_Conditions.pdf */
+const TERMS_URL = "/SampleRoll_Terms_and_Conditions.pdf"
+
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
+  const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!agreeToTerms) {
+      setError("You must agree to the Terms and Conditions to register.")
+      return
+    }
     setError("")
     setLoading(true)
 
@@ -61,7 +69,24 @@ export default function RegisterPage() {
             <label htmlFor="password" className="block text-sm font-medium mb-2" style={{ color: "var(--foreground)" }}>Password</label>
             <input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={6} className="w-full px-4 py-2 rounded-xl border outline-none focus:ring-2 focus:ring-offset-1" style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--foreground)" }} />
           </div>
-          <button type="submit" disabled={loading} className="w-full py-2.5 rounded-[var(--radius-button)] font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "var(--primary)" }}>
+          <div className="flex items-start gap-3">
+            <input
+              id="agreeToTerms"
+              type="checkbox"
+              checked={agreeToTerms}
+              onChange={(e) => setAgreeToTerms(e.target.checked)}
+              className="mt-1 rounded border shrink-0"
+              style={{ accentColor: "var(--primary)" }}
+              aria-describedby="terms-desc"
+            />
+            <label id="terms-desc" htmlFor="agreeToTerms" className="text-sm cursor-pointer" style={{ color: "var(--foreground)" }}>
+              I agree to the{" "}
+              <a href={TERMS_URL} target="_blank" rel="noopener noreferrer" className="font-medium underline hover:no-underline" style={{ color: "var(--primary)" }}>
+                Terms and Conditions
+              </a>
+            </label>
+          </div>
+          <button type="submit" disabled={loading || !agreeToTerms} className="w-full py-2.5 rounded-[var(--radius-button)] font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "var(--primary)" }}>
             {loading ? "Registering..." : "Register"}
           </button>
         </form>

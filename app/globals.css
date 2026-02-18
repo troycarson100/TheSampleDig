@@ -365,6 +365,26 @@ body.theme-vinyl::before {
   border-color: rgba(240, 235, 225, 0.2);
 }
 
+.theme-vinyl .sign-in-btn {
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  background: #fff;
+  color: var(--brown);
+  border: 1px solid rgba(240, 235, 225, 0.3);
+  padding: 8px 18px;
+  border-radius: 3px;
+  transition: all 0.2s;
+  text-decoration: none;
+}
+.theme-vinyl .sign-in-btn:hover {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--brown);
+  border-color: rgba(240, 235, 225, 0.5);
+}
+
 /* Genre ticker (redesign: rust bar, Bebas, white text) */
 .genre-ticker {
   position: fixed;
