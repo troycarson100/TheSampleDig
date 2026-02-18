@@ -4,6 +4,43 @@ import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import styles from "./prelaunch.module.css"
 
+const ROTATING_WORDS = ["SIMPLIFIED", "EASY", "FREE"]
+
+function RotatingWord() {
+  const [index, setIndex] = useState(0)
+  useEffect(() => {
+    const id = setInterval(() => {
+      setIndex((i) => (i + 1) % ROTATING_WORDS.length)
+    }, 3000)
+    return () => clearInterval(id)
+  }, [])
+  return (
+    <span className={styles.bbWrap}>
+      {/* Invisible widest word reserves width so no horizontal shift when rotating */}
+      <span className={styles.bb} aria-hidden style={{ visibility: "hidden", display: "block" }}>
+        SIMPLIFIED
+      </span>
+      {ROTATING_WORDS.map((word, i) => (
+        <span
+          key={word}
+          aria-hidden={i !== index}
+          className={styles.bb}
+          style={{
+            opacity: i === index ? 1 : 0,
+            position: "absolute",
+            left: "50%",
+            top: 0,
+            transform: "translateX(-50%)",
+            transition: "opacity 0.6s ease",
+          }}
+        >
+          {word}
+        </span>
+      ))}
+    </span>
+  )
+}
+
 const TICKER_ITEMS = [
   "Jazz",
   "Soul",
@@ -92,7 +129,7 @@ function HeroForm({
               onClick={submit}
               disabled={status === "loading"}
             >
-              {status === "loading" ? "..." : "Notify Me →"}
+              {status === "loading" ? "..." : "Roll The Dice →"}
             </button>
           </div>
         ) : (
@@ -113,8 +150,7 @@ function HeroForm({
           <div className={styles.proofAv}>🎸</div>
         </div>
         <div className={styles.proofText}>
-          <strong>{count != null ? count.toLocaleString() : "—"}</strong> producers already
-          waiting
+          <strong>{count != null ? count.toLocaleString() : "—"}</strong> producers finding gems
         </div>
       </div>
     </>
@@ -193,7 +229,6 @@ function FinalCtaForm({ onSuccess }: { onSuccess: () => void }) {
 
 export default function PrelaunchContent() {
   const count = useSignupCount()
-  const [bumpCount, setBumpCount] = useState(0)
   const revealRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -225,10 +260,13 @@ export default function PrelaunchContent() {
     })
   }, [])
 
-  const displayCount = count != null ? count + bumpCount : 0
+  const displayCount = count
 
   return (
     <div ref={revealRef} className={styles.wrap}>
+      <Link href="/login" className={styles.landingSignIn} aria-label="Sign in">
+        Sign in
+      </Link>
       <section className={styles.hero}>
         <div className={styles.heroVinyl} aria-hidden />
         <div className={styles.heroGlow} aria-hidden />
@@ -247,13 +285,15 @@ export default function PrelaunchContent() {
           />
         </div>
 
+        {/* Coming soon — commented out (landing page, product is live and free)
         <div className={`${styles.heroEyebrow} ${styles.reveal} ${styles.d1}`}>
           Coming Soon
         </div>
+        */}
 
         <h1 className={`${styles.heroH1} ${styles.reveal} ${styles.d2}`}>
           <span className={styles.heroH1Top}>Sample digging</span>
-          <span className={styles.bb}>simplified</span>
+          <RotatingWord />
         </h1>
 
         <p className={`${styles.heroSub} ${styles.reveal} ${styles.d3}`}>
@@ -263,13 +303,25 @@ export default function PrelaunchContent() {
         </p>
 
         <div className={`${styles.reveal} ${styles.d4}`}>
-          <HeroForm onSuccess={() => setBumpCount((c) => c + 1)} count={displayCount} />
+          <div className={styles.signupBox}>
+            <Link href="/register" className={styles.heroCtaButton}>
+              Roll The Dice →
+            </Link>
+          </div>
+          <div className={styles.socialProof}>
+            <div className={styles.proofAvatars}>
+              <div className={styles.proofAv}>🎧</div>
+              <div className={styles.proofAv}>🎹</div>
+              <div className={styles.proofAv}>🎷</div>
+              <div className={styles.proofAv}>🥁</div>
+              <div className={styles.proofAv}>🎸</div>
+            </div>
+            <div className={styles.proofText}>
+              <strong>{displayCount != null ? displayCount.toLocaleString() : "—"}</strong> producers finding gems
+            </div>
+          </div>
         </div>
 
-        <div className={`${styles.scrollHint} ${styles.reveal} ${styles.d6}`}>
-          <span>See what&apos;s coming</span>
-          <div className={styles.scrollArrow} />
-        </div>
       </section>
 
       <div className={styles.ticker} aria-hidden>
@@ -373,6 +425,22 @@ export default function PrelaunchContent() {
                 breaks — dial into exactly the sound you&apos;re hunting for.
               </div>
             </div>
+            <div className={`${styles.featCard} ${styles.reveal} ${styles.d6}`}>
+              <div className={styles.featIcon}>
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <line x1="16" y1="13" x2="8" y2="13" />
+                  <line x1="16" y1="17" x2="8" y2="17" />
+                  <line x1="10" y1="9" x2="8" y2="9" />
+                </svg>
+              </div>
+              <div className={styles.featTitle}>Notes</div>
+              <div className={styles.featDesc}>
+                Add private notes to any sample — source, chops, ideas. Your notes stay with
+                the save so you never lose the story behind the dig.
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -383,21 +451,24 @@ export default function PrelaunchContent() {
             className={`${styles.secEy} ${styles.reveal}`}
             style={{ color: "var(--rust)" }}
           >
-            Don&apos;t Miss It
+            Find Samples Today
           </div>
           <h2 className={`${styles.finalH} ${styles.reveal} ${styles.d1}`}>
             The <em>crate</em>
             <br />
-            is almost open.
+            is open.
           </h2>
           <p className={`${styles.finalSub} ${styles.reveal} ${styles.d2}`}>
-            Be the first to know when we launch.
-            <br />
-            One email. No spam. Just the drop date.
+            It&apos;s free. No credit card. Just dig in.
           </p>
 
           <div className={`${styles.reveal} ${styles.d3}`}>
-            <FinalCtaForm onSuccess={() => {}} />
+            <Link
+              href="/register"
+              className={styles.finalCtaButton}
+            >
+              Start free →
+            </Link>
           </div>
 
           <div className={`${styles.orn} ${styles.reveal} ${styles.d4}`}>
@@ -424,15 +495,15 @@ export default function PrelaunchContent() {
         </div>
         <ul className={styles.fLinks}>
           <li>
-            <Link href="/privacy">Privacy</Link>
+            <Link href="/privacy">Privacy Policy</Link>
           </li>
           <li>
             <a
-              href="https://www.youtube.com/t/terms"
+              href="/SampleRoll_Terms_and_Conditions.pdf"
               target="_blank"
               rel="noopener noreferrer"
             >
-              Terms
+              Terms and Conditions
             </a>
           </li>
           <li>

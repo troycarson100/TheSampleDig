@@ -12,38 +12,40 @@ import SiteNav from "@/components/SiteNav"
 import GenreSelect from "@/components/GenreSelect"
 // import BeatsPanel from "@/components/BeatsPanel" // Beat loop section commented out for now
 
-/** Genre options for the dig filter (value matches DB genre; label for display) */
-const GENRE_OPTIONS: { value: string; label: string }[] = [
-  { value: "", label: "Any genre" },
-  { value: "jazz", label: "Jazz" },
-  { value: "soul", label: "Soul" },
-  { value: "funk", label: "Funk" },
-  { value: "r&b", label: "R&B" },
-  { value: "hip hop", label: "Hip Hop" },
-  { value: "bossa nova", label: "Bossa Nova" },
-  { value: "blues", label: "Blues" },
-  { value: "disco", label: "Disco" },
-  { value: "reggae", label: "Reggae" },
-  { value: "latin", label: "Latin" },
-  { value: "prog", label: "Prog" },
-  { value: "psychedelic", label: "Psychedelic" },
-  { value: "afrobeat", label: "Afrobeat" },
-  { value: "lounge", label: "Lounge" },
-  { value: "japanese", label: "Japanese" },
-  { value: "soundtrack", label: "Soundtrack" },
-  { value: "folk", label: "Folk" },
-  { value: "world", label: "World" },
-]
+/** Label maps for display; used for both static fallback and dynamic options from API */
+const GENRE_LABELS: Record<string, string> = {
+  jazz: "Jazz",
+  soul: "Soul",
+  funk: "Funk",
+  "r&b": "R&B",
+  "hip hop": "Hip Hop",
+  "bossa nova": "Bossa Nova",
+  blues: "Blues",
+  disco: "Disco",
+  reggae: "Reggae",
+  latin: "Latin",
+  prog: "Prog",
+  psychedelic: "Psychedelic",
+  afrobeat: "Afrobeat",
+  lounge: "Lounge",
+  japanese: "Japanese",
+  soundtrack: "Soundtrack",
+  folk: "Folk",
+  world: "World",
+}
 
-/** Era options for the dig filter (value matches DB era; label for display) */
-const ERA_OPTIONS: { value: string; label: string }[] = [
-  { value: "", label: "Any era" },
-  { value: "1950s", label: "50s" },
-  { value: "1960s", label: "60s" },
-  { value: "1970s", label: "70s" },
-  { value: "1980s", label: "80s" },
-  { value: "1990s", label: "90s" },
-]
+const ERA_LABELS: Record<string, string> = {
+  "1950s": "50s",
+  "1960s": "60s",
+  "1970s": "70s",
+  "1980s": "80s",
+  "1990s": "90s",
+}
+
+function toLabel(value: string, labels: Record<string, string>): string {
+  if (!value) return value
+  return labels[value] ?? value.replace(/\b\w/g, (c) => c.toUpperCase())
+}
 
 interface Chop {
   key: string
@@ -84,6 +86,13 @@ export default function DigPage() {
   const [samplePacks, setSamplePacks] = useState(false)
   const [genreFilter, setGenreFilter] = useState("")
   const [eraFilter, setEraFilter] = useState("")
+  const [genreOptions, setGenreOptions] = useState<{ value: string; label: string }[]>(() => [
+    { value: "", label: "Any genre" },
+  ])
+  const [eraOptions, setEraOptions] = useState<{ value: string; label: string }[]>(() => [
+    { value: "", label: "Any era" },
+  ])
+  const [filtersLoaded, setFiltersLoaded] = useState(false)
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
   const isSavedRef = useRef(isSaved)
@@ -162,27 +171,51 @@ export default function DigPage() {
     if (samplePacks) setEraFilter("")
   }, [samplePacks])
 
-  // Load genre filter from localStorage
+  // Fetch genre/era options from API (only show genres/eras that have samples in DB)
   useEffect(() => {
-    const saved = localStorage.getItem("digGenre")
-    if (saved !== null && GENRE_OPTIONS.some((o) => o.value === saved)) {
-      setGenreFilter(saved)
+    let cancelled = false
+    fetch("/api/samples/filters")
+      .then((r) => r.json())
+      .then((data: { genres?: string[]; eras?: string[] }) => {
+        if (cancelled) return
+        const genres = Array.isArray(data.genres) ? data.genres : []
+        const eras = Array.isArray(data.eras) ? data.eras : []
+        setGenreOptions([
+          { value: "", label: "Any genre" },
+          ...genres.map((g) => ({ value: g, label: toLabel(g, GENRE_LABELS) })),
+        ])
+        setEraOptions([
+          { value: "", label: "Any era" },
+          ...eras.map((e) => ({ value: e, label: toLabel(e, ERA_LABELS) })),
+        ])
+        setFiltersLoaded(true)
+      })
+      .catch(() => setFiltersLoaded(true))
+    return () => {
+      cancelled = true
     }
   }, [])
+
+  // Load genre/era from localStorage once filters have been fetched (restore saved filter if still valid)
+  const filtersRestoredRef = useRef(false)
+  useEffect(() => {
+    if (!filtersLoaded || filtersRestoredRef.current) return
+    filtersRestoredRef.current = true
+    const savedGenre = localStorage.getItem("digGenre")
+    if (savedGenre !== null && genreOptions.some((o) => o.value === savedGenre)) {
+      setGenreFilter(savedGenre)
+    }
+    if (localStorage.getItem("digSamplePacks") === "true" || localStorage.getItem("digRoyaltyFree") === "true") return
+    const savedEra = localStorage.getItem("digEra")
+    if (savedEra !== null && eraOptions.some((o) => o.value === savedEra)) {
+      setEraFilter(savedEra)
+    }
+  }, [filtersLoaded, genreOptions, eraOptions])
 
   // Save genre filter to localStorage
   useEffect(() => {
     localStorage.setItem("digGenre", genreFilter)
   }, [genreFilter])
-
-  // Load era filter from localStorage (skip if Sample Packs mode is on — era doesn't apply)
-  useEffect(() => {
-    if (localStorage.getItem("digSamplePacks") === "true" || localStorage.getItem("digRoyaltyFree") === "true") return
-    const saved = localStorage.getItem("digEra")
-    if (saved !== null && ERA_OPTIONS.some((o) => o.value === saved)) {
-      setEraFilter(saved)
-    }
-  }, [])
 
   // Save era filter to localStorage
   useEffect(() => {
@@ -554,8 +587,8 @@ export default function DigPage() {
         <div className="ticker-track" aria-hidden>
           {/* Genres + eras for ticker; sequence repeated for seamless loop (track duplicated so -50% loops) */}
           {(() => {
-            const genres = GENRE_OPTIONS.filter((o) => o.value).map((o) => o.label)
-            const eras = ERA_OPTIONS.filter((o) => o.value).map((o) => o.label)
+            const genres = genreOptions.filter((o) => o.value).map((o) => o.label)
+            const eras = eraOptions.filter((o) => o.value).map((o) => o.label)
             const labels = [...genres, ...eras]
             const repeated = [...Array(8)].flatMap(() => labels)
             return (
@@ -628,7 +661,7 @@ export default function DigPage() {
                 <GenreSelect
                   value={genreFilter}
                   onChange={setGenreFilter}
-                  options={GENRE_OPTIONS}
+                  options={genreOptions}
                   ariaLabel="Filter samples by genre"
                   className="min-w-[140px]"
                 />
@@ -636,7 +669,7 @@ export default function DigPage() {
                   <GenreSelect
                     value={eraFilter}
                     onChange={setEraFilter}
-                    options={ERA_OPTIONS}
+                    options={eraOptions}
                     ariaLabel="Filter samples by era"
                     className="min-w-[120px]"
                   />

@@ -198,6 +198,7 @@ function SamplePlayer({
   const isInitializedRef = useRef(false)
   const adapterRef = useRef<YouTubePlayerAdapter | null>(null)
   const [chopModeEnabled, setChopModeEnabled] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const [tapTempoEnabled, setTapTempoEnabled] = useState(false)
   const [tapTimes, setTapTimes] = useState<number[]>([])
   const [tapBpm, setTapBpm] = useState<number | null>(null)
@@ -215,10 +216,23 @@ function SamplePlayer({
   const [videoCurrentTime, setVideoCurrentTime] = useState(0)
   const [videoDurationFromPlayer, setVideoDurationFromPlayer] = useState(0)
   const chopKeysFocusTrapRef = useRef<HTMLDivElement>(null)
+  const chopOverlayRef = useRef<HTMLDivElement>(null)
   const loopBarRef = useRef<HTMLDivElement>(null)
   const loopBoundsRef = useRef({ start: 0, end: 0 })
   const playbackBoundsRef = useRef<{ start: number; end: number } | null>(null)
-  const chopOverlayRef = useRef<HTMLDivElement>(null)
+
+  // Hide chop mode on mobile (too laggy); under 768px
+  useEffect(() => {
+    const mql = window.matchMedia("(max-width: 767px)")
+    const handler = () => {
+      const mobile = mql.matches
+      setIsMobile(mobile)
+      if (mobile) setChopModeEnabled(false)
+    }
+    handler()
+    mql.addEventListener("change", handler)
+    return () => mql.removeEventListener("change", handler)
+  }, [])
   const bpmArrowIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const bpmArrowDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const bpmDragStartRef = useRef<{ startX: number; startBpm: number } | null>(null)
@@ -1005,7 +1019,7 @@ function SamplePlayer({
               }}
             />
             {/* When Chop Mode is on, overlay keeps focus so Space and chop keys work; click toggles play/pause via API */}
-            {chopModeEnabled && (
+            {chopModeEnabled && !isMobile && (
               <div
                 ref={chopOverlayRef}
                 tabIndex={0}
@@ -1057,7 +1071,7 @@ function SamplePlayer({
           </div>
         )}
         {/* Chop Mode: video timeline with playhead (and chop markers when present). Use duration from props or from player. */}
-        {chopModeEnabled && effectiveTimelineDuration > 0 && (
+        {chopModeEnabled && !isMobile && effectiveTimelineDuration > 0 && (
           <ChopTimelineMarkers
             chops={chops}
             duration={effectiveTimelineDuration}
@@ -1329,6 +1343,10 @@ function SamplePlayer({
           aria-label="Focus for chop keys"
         />
         <div className="chop-row flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-8">
+          {isMobile ? (
+            <span className="text-sm" style={{ color: "var(--muted)" }}>Chop mode not available on mobile</span>
+          ) : (
+          <>
           <label className="flex items-center gap-2 cursor-pointer shrink-0">
             <span className="text-sm font-medium toggle-label" style={{ color: "var(--foreground)" }}>Chop Mode</span>
             <button
@@ -1557,8 +1575,10 @@ function SamplePlayer({
               )}
             </div>
           )}
+          </>
+          )}
         </div>
-        {chopModeEnabled && (
+        {chopModeEnabled && !isMobile && (
           <div className="chop-keyboard">
             <div className="flex flex-col md:flex-row md:items-start gap-3 md:gap-4">
               <button
@@ -1594,7 +1614,7 @@ function SamplePlayer({
             </div>
           </div>
         )}
-        {chopModeEnabled && savedLoopsList.length > 0 && (
+        {chopModeEnabled && !isMobile && savedLoopsList.length > 0 && (
           <div className="mt-3 w-full max-w-2xl mx-auto">
             <p
               className="mb-1.5 text-[9px] font-medium uppercase tracking-[0.14em]"

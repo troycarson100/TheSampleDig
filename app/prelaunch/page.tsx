@@ -1,5 +1,5 @@
-import PrelaunchContent from "./PrelaunchContent"
+import { redirect } from "next/navigation"
 
 export default function PrelaunchPage() {
-  return <PrelaunchContent />
+  redirect("/")
 }
