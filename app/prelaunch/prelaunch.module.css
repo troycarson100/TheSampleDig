@@ -139,6 +139,19 @@
   font-style: italic;
   color: var(--gold-l);
 }
+.heroH1Top {
+  display: block;
+  font-family: var(--font-cormorant-garamond), "Cormorant Garamond", serif;
+  font-size: clamp(48px, 8.5vw, 108px);
+  font-weight: 300;
+  font-style: italic;
+  letter-spacing: -0.025em;
+  color: var(--gold);
+  margin-bottom: 0.2em;
+}
+.heroH1 .heroH1Top {
+  font-weight: 300;
+}
 .heroH1 .bb {
   font-family: var(--font-bebas, "Bebas Neue", sans-serif);
   font-size: clamp(52px, 9vw, 115px);

@@ -40,15 +40,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   const gradientIndex = getAllSlugs().indexOf(slug) % placeholderGradients.length
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
-        <div className="max-w-6xl mx-auto px-3 sm:px-4">
-          <SiteNav />
-        </div>
+    <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
+      <header className="site-header w-full">
+        <SiteNav />
       </header>
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+      <div className="blog-page-wrap">
         <article>
-          <div className="rounded-2xl overflow-hidden border mb-6" style={{ borderColor: "var(--border)", background: "var(--card)" }}>
+          <div className="rounded-2xl overflow-hidden border mb-6" style={{ borderColor: "rgba(74, 55, 40, 0.1)", background: "var(--warm)" }}>
             {post.imageUrl ? (
               <BlogCardImage
                 src={post.imageUrl}
@@ -66,21 +64,21 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             )}
           </div>
           <header className="mb-6">
-            <h1 className="text-3xl sm:text-4xl font-semibold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>
+            <h1 className="blog-post-title">
               {post.title}
             </h1>
-            <time className="text-sm" style={{ color: "var(--muted)" }} dateTime={post.date}>
+            <time className="blog-meta text-sm block" dateTime={post.date}>
               {new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
             </time>
           </header>
-          <div className="max-w-none" style={{ color: "var(--foreground)" }}>
+          <div className="max-w-none prose-blog">
             {post.content.map((block, i) => {
               if (block.type === "h2") {
                 return (
                   <h2
                     key={i}
                     className="text-xl font-semibold mt-8 mb-3 first:mt-0"
-                    style={{ fontFamily: "var(--font-halant), Georgia, serif", color: "var(--foreground)" }}
+                    style={{ fontFamily: "var(--font-dm-serif), 'DM Serif Display', serif", color: "var(--foreground)" }}
                   >
                     {block.text}
                   </h2>
@@ -91,7 +89,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   <h3
                     key={i}
                     className="text-lg font-semibold mt-6 mb-2"
-                    style={{ fontFamily: "var(--font-halant), Georgia, serif", color: "var(--foreground)" }}
+                    style={{ fontFamily: "var(--font-dm-serif), 'DM Serif Display', serif", color: "var(--foreground)" }}
                   >
                     {block.text}
                   </h3>
@@ -102,7 +100,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   <p
                     key={i}
                     className="text-[15px] leading-relaxed mb-4"
-                    style={{ color: "var(--muted)" }}
+                    style={{ color: "var(--brown)", opacity: 0.9 }}
                   >
                     {block.segments.map((seg, j) =>
                       seg.type === "link" ? (
@@ -110,7 +108,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                           key={j}
                           href={seg.href}
                           className="font-medium underline underline-offset-2 hover:opacity-80 transition"
-                          style={{ color: "var(--primary)" }}
+                          style={{ color: "var(--rust)" }}
                           target={seg.href.startsWith("http") ? "_blank" : undefined}
                           rel={seg.href.startsWith("http") ? "noopener noreferrer" : undefined}
                         >
@@ -127,7 +125,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                 <p
                   key={i}
                   className="text-[15px] leading-relaxed mb-4"
-                  style={{ color: "var(--muted)" }}
+                  style={{ color: "var(--brown)", opacity: 0.9 }}
                 >
                   {block.text}
                 </p>
@@ -137,25 +135,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         </article>
 
         <div className="mt-8">
-          <Link href="/blog" className="text-sm font-medium hover:underline" style={{ color: "var(--primary)" }}>
+          <Link href="/blog" className="text-sm font-medium hover:underline" style={{ color: "var(--rust)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>
             ← Back to Blog
           </Link>
         </div>
-
-        <footer className="mt-10 pt-8 border-t" style={{ borderColor: "var(--border)" }}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div>
-              <p className="text-lg font-semibold" style={{ fontFamily: "var(--font-halant), Georgia, serif", color: "var(--foreground)" }}>Sample Roll</p>
-              <p className="text-sm mt-0.5" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Helping you find samples that matter.</p>
-            </div>
-            <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
-              <Link href="/dig" className="hover:text-[var(--foreground)] transition">Dig</Link>
-              <Link href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</Link>
-              <Link href="/blog" className="hover:text-[var(--foreground)] transition">Blog</Link>
-              <Link href="/login" className="hover:text-[var(--foreground)] transition">Login</Link>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   )

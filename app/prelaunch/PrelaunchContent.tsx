@@ -252,8 +252,8 @@ export default function PrelaunchContent() {
         </div>
 
         <h1 className={`${styles.heroH1} ${styles.reveal} ${styles.d2}`}>
-          <em>The crate</em>
-          <span className={styles.bb}>Never Ends</span>
+          <span className={styles.heroH1Top}>Sample digging</span>
+          <span className={styles.bb}>simplified</span>
         </h1>
 
         <p className={`${styles.heroSub} ${styles.reveal} ${styles.d3}`}>
@@ -283,6 +283,39 @@ export default function PrelaunchContent() {
       </div>
 
       <section className={styles.features}>
+        <div className={styles.previewIn}>
+          <div className={`${styles.secEy} ${styles.reveal}`}>Sneak Peek</div>
+          <h2 className={`${styles.previewH} ${styles.reveal} ${styles.d1}`}>
+            A tool that <em>thinks</em> like a producer
+          </h2>
+          <p className={`${styles.previewSub} ${styles.reveal} ${styles.d2}`}>
+            Obsessively crafted for producers, beat-makers & crate diggers.
+          </p>
+          <div className={`${styles.mockupFrame} ${styles.reveal} ${styles.d3}`}>
+            <div className={styles.mockupBar}>
+              <div className={styles.mockupDot} />
+              <div className={styles.mockupDot} />
+              <div className={styles.mockupDot} />
+              <span className={styles.mockupUrl}>sampleroll.com/dig</span>
+            </div>
+            <div className={styles.mockupBody}>
+              <div className={styles.mockDigVideoWrap}>
+                <video
+                  src="/prelaunch/dig-browser-recording.mov"
+                  className={styles.mockDigVideo}
+                  loop
+                  muted
+                  autoPlay
+                  playsInline
+                  aria-label="Sample Roll Dig page preview"
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section className={styles.preview}>
         <div className={styles.featuresIn}>
           <div className={`${styles.featuresHead} ${styles.reveal}`}>
             <div className={styles.secEy}>What You&apos;ll Get</div>
@@ -337,61 +370,6 @@ export default function PrelaunchContent() {
               <div className={styles.featDesc}>
                 Jazz, soul, funk, disco, bossa nova, rare groove, afrobeat, psych, Latin,
                 breaks — dial into exactly the sound you&apos;re hunting for.
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className={styles.preview}>
-        <div className={styles.previewIn}>
-          <div className={`${styles.secEy} ${styles.reveal}`}>Sneak Peek</div>
-          <h2 className={`${styles.previewH} ${styles.reveal} ${styles.d1}`}>
-            A tool that <em>thinks</em> like a producer
-          </h2>
-          <p className={`${styles.previewSub} ${styles.reveal} ${styles.d2}`}>
-            Obsessively crafted for producers, beat-makers & crate diggers.
-          </p>
-
-          {/* Option A: composite mockup (roll + my samples) — commented out
-          <div className={`${styles.mockupFrame} ${styles.reveal} ${styles.d3}`}>
-            <div className={styles.mockupBar}>
-              <div className={styles.mockupDot} /><div className={styles.mockupDot} /><div className={styles.mockupDot} />
-              <span className={styles.mockupUrl}>sampleroll.com/dig</span>
-            </div>
-            <div className={styles.mockupBody}>
-              <div className={styles.mockupGlow} />
-              <div className={styles.mockPlayer}>
-                <div className={styles.mockScreen}>
-                  <img src="/prelaunch/roll-section.png" alt="Sample Roll dig" className={styles.mockRollImage} />
-                </div>
-                <div className={styles.mockProgress}><div className={styles.mockProgressFill} /></div>
-              </div>
-              <div className={styles.mockSidebar}>
-                <img src="/prelaunch/my-samples.png" alt="My Samples" className={styles.mockMySamplesImage} />
-              </div>
-            </div>
-          </div>
-          */}
-          {/* Looping screen recording inside browser mockup */}
-          <div className={`${styles.mockupFrame} ${styles.reveal} ${styles.d3}`}>
-            <div className={styles.mockupBar}>
-              <div className={styles.mockupDot} />
-              <div className={styles.mockupDot} />
-              <div className={styles.mockupDot} />
-              <span className={styles.mockupUrl}>sampleroll.com/dig</span>
-            </div>
-            <div className={styles.mockupBody}>
-              <div className={styles.mockDigVideoWrap}>
-                <video
-                  src="/prelaunch/dig-browser-recording.mov"
-                  className={styles.mockDigVideo}
-                  loop
-                  muted
-                  autoPlay
-                  playsInline
-                  aria-label="Sample Roll Dig page preview"
-                />
               </div>
             </div>
           </div>

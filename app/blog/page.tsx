@@ -18,18 +18,14 @@ const placeholderGradients = [
 
 export default function BlogPage() {
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
-        <div className="max-w-6xl mx-auto px-3 sm:px-4">
-          <SiteNav />
-        </div>
+    <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
+      <header className="site-header w-full">
+        <SiteNav />
       </header>
-      <div className="max-w-6xl mx-auto px-3 sm:px-4 py-6 sm:py-8">
+      <div className="blog-page-wrap">
         <div className="pt-2 pb-4">
-          <h1 className="text-3xl sm:text-4xl font-semibold mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>
-            Blog
-          </h1>
-          <p className="text-[15px]" style={{ color: "var(--muted)" }}>
+          <h1 className="blog-title uppercase">Blog</h1>
+          <p className="blog-meta">
             {blogPosts.length} {blogPosts.length === 1 ? "post" : "posts"}
           </p>
         </div>
@@ -40,10 +36,10 @@ export default function BlogPage() {
               <Link
                 key={post.slug}
                 href={`/blog/${post.slug}`}
-                className="rounded-2xl overflow-hidden border transition-all hover:border-[var(--primary)]/40 block"
+                className="rounded-2xl overflow-hidden border transition-all hover:border-[var(--rust)]/40 block"
                 style={{
-                  background: "var(--card)",
-                  borderColor: "var(--border)",
+                  background: "var(--warm)",
+                  borderColor: "rgba(74, 55, 40, 0.1)",
                 }}
               >
                 {post.imageUrl ? (
@@ -60,13 +56,13 @@ export default function BlogPage() {
                   />
                 )}
                 <div className="p-4">
-                  <h2 className="font-semibold text-lg mb-1 line-clamp-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>
+                  <h2 className="font-semibold text-lg mb-1 line-clamp-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-dm-serif), 'DM Serif Display', serif" }}>
                     {post.title}
                   </h2>
-                  <p className="text-sm line-clamp-2 mb-2" style={{ color: "var(--muted)" }}>
+                  <p className="text-sm line-clamp-2 mb-2" style={{ color: "var(--brown)", opacity: 0.85 }}>
                     {post.excerpt}
                   </p>
-                  <time className="text-xs" style={{ color: "var(--muted)" }} dateTime={post.date}>
+                  <time className="text-xs" style={{ color: "var(--brown)", opacity: 0.7, fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }} dateTime={post.date}>
                     {new Date(post.date).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" })}
                   </time>
                 </div>
@@ -74,21 +70,6 @@ export default function BlogPage() {
             ))}
           </div>
         </div>
-
-        <footer className="mt-10 pt-8 border-t" style={{ borderColor: "var(--border)" }}>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
-            <div>
-              <p className="text-lg font-semibold" style={{ fontFamily: "var(--font-halant), Georgia, serif", color: "var(--foreground)" }}>Sample Roll</p>
-              <p className="text-sm mt-0.5" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Helping you find samples that matter.</p>
-            </div>
-            <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
-              <Link href="/dig" className="hover:text-[var(--foreground)] transition">Dig</Link>
-              <Link href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</Link>
-              <Link href="/blog" className="hover:text-[var(--foreground)] transition">Blog</Link>
-              <Link href="/login" className="hover:text-[var(--foreground)] transition">Login</Link>
-            </div>
-          </div>
-        </footer>
       </div>
     </div>
   )

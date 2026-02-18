@@ -1,5 +1,5 @@
 import type { Metadata } from "next"
-import { Geist, Geist_Mono, Halant, DM_Serif_Display, Bebas_Neue, IBM_Plex_Mono } from "next/font/google"
+import { Geist, Geist_Mono, Halant, DM_Serif_Display, Bebas_Neue, IBM_Plex_Mono, Cormorant_Garamond } from "next/font/google"
 import "./globals.css"
 import RootBody from "@/components/RootBody"
 
@@ -32,6 +32,13 @@ const bebasNeue = Bebas_Neue({
   weight: ["400"],
 })
 
+const cormorantGaramond = Cormorant_Garamond({
+  variable: "--font-cormorant-garamond",
+  subsets: ["latin"],
+  weight: ["300"],
+  style: ["italic"],
+})
+
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-mono",
   subsets: ["latin"],
@@ -51,7 +58,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${halant.variable} ${dmSerif.variable} ${bebasNeue.variable} ${ibmPlexMono.variable} font-sans antialiased flex flex-col min-h-screen theme-vinyl`}
+        className={`${geistSans.variable} ${geistMono.variable} ${halant.variable} ${dmSerif.variable} ${bebasNeue.variable} ${ibmPlexMono.variable} ${cormorantGaramond.variable} font-sans antialiased flex flex-col min-h-screen theme-vinyl`}
       >
         <RootBody>{children}</RootBody>
       </body>
