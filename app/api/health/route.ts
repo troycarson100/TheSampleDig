@@ -1,10 +1,9 @@
 import { NextResponse } from "next/server"
-import { getFirstYouTubeApiKey } from "@/lib/youtube-keys"
 
 export async function GET() {
   try {
+    // Only expose checks that don't leak admin config (YouTube key is admin-only, not used by users)
     const checks = {
-      youtubeApiKey: !!getFirstYouTubeApiKey(),
       databaseUrl: !!process.env.DATABASE_URL,
       nextAuthSecret: !!process.env.NEXTAUTH_SECRET,
     }

@@ -1,17 +1,9 @@
 import { NextResponse } from "next/server"
-import { findRandomSample, getVideoEmbeddable } from "@/lib/youtube"
-import { getFirstYouTubeApiKey } from "@/lib/youtube-keys"
+import { findRandomSample } from "@/lib/youtube"
 
 export async function GET(request: Request) {
   try {
-    if (!getFirstYouTubeApiKey()) {
-      return NextResponse.json(
-        {
-          error: "YouTube API key is not configured. Add YOUTUBE_API_KEY or YOUTUBE_API_KEYS to your .env file and restart the server."
-        },
-        { status: 500 }
-      )
-    }
+    // Sample Roll is DB-only for users; YouTube API is never used here (only admin populate uses keys).
 
     // Get excluded video IDs and optional genre / drumBreak from query params
     const { searchParams } = new URL(request.url)
@@ -78,18 +70,7 @@ export async function GET(request: Request) {
         }
       }
       console.log(`[Dig] ✓ Found video: ${video.id} - ${video.title}`)
-
-      // Skip videos that aren't embeddable (blocked on external sites) - try up to 6 times
-      const maxEmbeddableRetries = 6
-      for (let r = 0; r < maxEmbeddableRetries; r++) {
-        const embeddable = await getVideoEmbeddable(video.id)
-        if (embeddable) break
-        console.log(`[Dig] Video ${video.id} is not embeddable (blocked), skipping...`)
-        excludedVideoIds = [...excludedVideoIds, video.id]
-        excludedVideoIds = [...new Set(excludedVideoIds)]
-        video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, era, royaltyFreeOnly: samplePacks })
-        console.log(`[Dig] ✓ Replaced with: ${video.id} - ${video.title}`)
-      }
+      // No YouTube API call: user path is DB-only; embeddable filtering is not done here.
     } catch (youtubeError: any) {
       console.error("[Dig] ✗ Error:", youtubeError?.message)
       console.error("[Dig] Excluded videos count:", excludedVideoIds.length)
@@ -99,15 +80,12 @@ export async function GET(request: Request) {
         errorMessage.includes("No samples available") ||
         errorMessage.includes("No valid videos found") ||
         errorMessage.includes("No results")
-      const isQuota = /quota|exceeded|403/i.test(errorMessage)
 
       let userMessage: string
       if (isNoSamples) {
-        userMessage = "No samples in the database right now. Add videos by running the collect script (node scripts/collect-10k-videos.js), or try again later."
-      } else if (isQuota) {
-        userMessage = "YouTube API quota used for today. Try again after midnight Pacific, or add more API keys to .env."
+        userMessage = "No samples in the database right now. Try again in a few minutes."
       } else {
-        userMessage = "Failed to fetch video from YouTube. " + (errorMessage.length < 100 ? errorMessage : "")
+        userMessage = "Failed to load sample. " + (errorMessage.length < 100 ? errorMessage : "")
       }
 
       return NextResponse.json(
@@ -123,7 +101,7 @@ export async function GET(request: Request) {
     if (!video || !video.id) {
       console.error("[Dig] ✗ Invalid video object returned")
       return NextResponse.json(
-        { error: "Invalid video data returned from YouTube API" },
+        { error: "Invalid video data." },
         { status: 500 }
       )
     }

@@ -1,5 +1,6 @@
 /**
  * Multi-key support for YouTube Data API.
+ * Keys are for admin only (populate, discovery, cron). User-facing Sample Roll is DB-only and never uses these.
  * Set YOUTUBE_API_KEYS=key1,key2,key3 in .env (or YOUTUBE_API_KEY for a single key).
  * When a request returns 403 quota exceeded, the next key is tried automatically.
  */
