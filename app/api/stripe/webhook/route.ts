@@ -59,7 +59,7 @@ export async function POST(request: Request) {
         let periodEnd: Date | null = null
         if (subscriptionId) {
           const stripe = new Stripe(secret)
-          const sub = await stripe.subscriptions.retrieve(subscriptionId) as Stripe.Subscription
+          const sub = await stripe.subscriptions.retrieve(subscriptionId) as { current_period_end?: number }
           periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null
         }
 
@@ -76,7 +76,7 @@ export async function POST(request: Request) {
 
       case "customer.subscription.updated":
       case "customer.subscription.deleted": {
-        const subscription = event.data.object as Stripe.Subscription
+        const subscription = event.data.object as Stripe.Subscription & { current_period_end?: number }
         const userId = subscription.metadata?.userId
         if (!userId || typeof userId !== "string") {
           console.warn("[Stripe webhook] subscription event missing userId in metadata")

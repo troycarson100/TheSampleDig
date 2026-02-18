@@ -344,7 +344,7 @@ export default function DigPage() {
 
   // Memoize the save toggle handler to prevent unnecessary re-renders
   // Use refs to keep callback completely stable - no dependencies
-  const handleSaveToggle = useCallback(async (opts?: { chops?: Chop[] }) => {
+  const handleSaveToggle = useCallback(async (opts?: { chops?: Chop[]; loop?: SavedLoopData | null }) => {
     const currentSample = sampleRef.current
     const currentSession = sessionRef.current
     if (!currentSession) {
