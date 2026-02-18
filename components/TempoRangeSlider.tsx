@@ -31,6 +31,7 @@ export default function TempoRangeSlider(props: TempoRangeSliderProps) {
   } = props
 
   const trackRef = useRef<HTMLDivElement>(null)
+  const captureRef = useRef<{ el: HTMLElement; pointerId: number } | null>(null)
   const [minInput, setMinInput] = useState(String(minVal))
   const [maxInput, setMaxInput] = useState(String(maxVal))
   const [dragging, setDragging] = useState<"min" | "max" | null>(null)
@@ -80,7 +81,9 @@ export default function TempoRangeSlider(props: TempoRangeSliderProps) {
   const handlePointerDown = useCallback(
     (which: "min" | "max") => (e: React.PointerEvent) => {
       e.preventDefault()
-      ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+      const el = e.target as HTMLElement
+      el.setPointerCapture(e.pointerId)
+      captureRef.current = { el, pointerId: e.pointerId }
       setDragging(which)
     },
     []
@@ -104,10 +107,14 @@ export default function TempoRangeSlider(props: TempoRangeSliderProps) {
       }
     }
     const onUp = () => {
+      const cap = captureRef.current
+      if (cap) {
+        try {
+          cap.el.releasePointerCapture(cap.pointerId)
+        } catch (_) {}
+        captureRef.current = null
+      }
       setDragging(null)
-      document.releasePointerCapture?.(
-        (document as any).activePointerId ?? 0
-      )
     }
     window.addEventListener("pointermove", onMove)
     window.addEventListener("pointerup", onUp)
