@@ -59,7 +59,7 @@ export async function POST(request: Request) {
         let periodEnd: Date | null = null
         if (subscriptionId) {
           const stripe = new Stripe(secret)
-          const sub = await stripe.subscriptions.retrieve(subscriptionId)
+          const sub = await stripe.subscriptions.retrieve(subscriptionId) as Stripe.Subscription
           periodEnd = sub.current_period_end ? new Date(sub.current_period_end * 1000) : null
         }
 

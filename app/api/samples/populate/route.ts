@@ -5,7 +5,7 @@
  */
 
 import { NextResponse } from "next/server"
-import { generateQueryTemplates, searchWithQueryPaginated, extractMetadata } from "@/lib/youtube"
+import { generateQueryTemplates, searchWithQueryPaginated, extractMetadata, type PageStats } from "@/lib/youtube"
 import { storeSampleInDatabase, getExistingYoutubeIds } from "@/lib/database-samples"
 import { loadPopulateResumeState, savePopulateResumeState, clearPopulateResumeState } from "@/lib/populate-resume-state"
 
@@ -85,7 +85,7 @@ export async function POST(request: Request) {
     let consecutiveZeroFilterPages = 0
     let stoppedEarly: string | null = null
     const startTime = Date.now()
-    const pageStatsAccum: Array<Record<string, number>> = []
+    const pageStatsAccum: PageStats[] = []
 
     // No YouTube upload-date filter: we want vintage *content* (songs from before 2010), not old uploads.
     const publishedBefore: Date | undefined = undefined
