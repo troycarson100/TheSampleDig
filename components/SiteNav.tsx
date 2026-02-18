@@ -51,9 +51,10 @@ export default function SiteNav() {
           <Link href="/dig" className={`${navLinkBase} ${isActive("/dig") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/dig" ? "page" : undefined}>
             Dig
           </Link>
-          <Link href="/stem-splitter" className={`${navLinkBase} ${isActive("/stem-splitter") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/stem-splitter" ? "page" : undefined}>
+          {/* Stem Splitter commented out (site free; no stem-splitting). Set STEM_SPLITTER_ENABLED = true in app/stem-splitter/page.tsx to re-enable, then uncomment these. */}
+          {/* <Link href="/stem-splitter" className={`${navLinkBase} ${isActive("/stem-splitter") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/stem-splitter" ? "page" : undefined}>
             Stem Splitter
-          </Link>
+          </Link> */}
           {session && (
             <Link href="/profile" className={`${navLinkBase} ${isActive("/profile") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/profile" ? "page" : undefined}>
               My Samples
@@ -105,9 +106,8 @@ export default function SiteNav() {
               <Link href="/dig" className={`${navLinkBase} block py-3 !h-auto !px-0 ${pathname === "/dig" ? navLinkActive : ""}`} style={navLinkStyle} onClick={() => setMenuOpen(false)} aria-current={pathname === "/dig" ? "page" : undefined}>
                 Dig
               </Link>
-              <Link href="/stem-splitter" className={`${navLinkBase} block py-3 !h-auto !px-0 ${pathname === "/stem-splitter" ? navLinkActive : ""}`} style={navLinkStyle} onClick={() => setMenuOpen(false)} aria-current={pathname === "/stem-splitter" ? "page" : undefined}>
-                Stem Splitter
-              </Link>
+              {/* Stem Splitter commented out — see desktop nav */}
+              {/* <Link href="/stem-splitter" ...>Stem Splitter</Link> */}
               {session && (
                 <Link href="/profile" className={`${navLinkBase} block py-3 !h-auto !px-0 ${pathname === "/profile" ? navLinkActive : ""}`} style={navLinkStyle} onClick={() => setMenuOpen(false)} aria-current={pathname === "/profile" ? "page" : undefined}>
                   My Samples

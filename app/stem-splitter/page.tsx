@@ -5,6 +5,9 @@ import { useSession } from "next-auth/react"
 import SiteNav from "@/components/SiteNav"
 import TempoRangeSlider from "@/components/TempoRangeSlider"
 
+/** Set to true to re-enable the Stem Splitter (commented out while site is free; no stem-splitting costs). */
+const STEM_SPLITTER_ENABLED = false
+
 type DownloadFormat = "wav" | "mp3"
 
 const STEM_IDS = ["vocals", "drums", "bass", "other"] as const
@@ -923,6 +926,21 @@ export default function StemSplitterPage() {
       })
     })
   }, [extraStemsStateByType])
+
+  if (!STEM_SPLITTER_ENABLED) {
+    return (
+      <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
+        <header className="site-header w-full">
+          <SiteNav />
+        </header>
+        <div className="stem-splitter-page-wrap max-w-2xl mx-auto px-4 py-16 text-center">
+          <h1 className="stem-page-title mb-4">Stem Splitter</h1>
+          <p className="stem-page-desc mb-6">Stem splitting is temporarily unavailable. It may return in a future update.</p>
+          <a href="/dig" className="stem-btn-primary inline-block">Back to Dig</a>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>

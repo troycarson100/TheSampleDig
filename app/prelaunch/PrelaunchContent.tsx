@@ -259,7 +259,7 @@ export default function PrelaunchContent() {
         <p className={`${styles.heroSub} ${styles.reveal} ${styles.d3}`}>
           YouTube's infinite record collection, at your fingertips.
           <br />
-          Roll the dice. Split stems. Save gold. Make music.
+          Roll the dice. Save gold. Make music.
         </p>
 
         <div className={`${styles.reveal} ${styles.d4}`}>
@@ -332,14 +332,15 @@ export default function PrelaunchContent() {
                 becomes your limitless crate — filtered by genre, era, BPM and key.
               </div>
             </div>
-            <div className={`${styles.featCard} ${styles.reveal} ${styles.d1}`}>
+            {/* Stem Splitter card commented out (site free; no stem-splitting). Re-enable with stem-splitter page if adding back. */}
+            {/* <div className={`${styles.featCard} ${styles.reveal} ${styles.d1}`}>
               <div className={styles.featIcon}>⊗</div>
               <div className={styles.featTitle}>Stem Splitter</div>
               <div className={styles.featDesc}>
                 AI-powered separation pulls up to 13 individual instruments from any track.
                 Isolate the drums. Flip a vocal. Sample just the keys.
               </div>
-            </div>
+            </div> */}
             <div className={`${styles.featCard} ${styles.reveal} ${styles.d2}`}>
               <div className={styles.featIcon}>♥</div>
               <div className={styles.featTitle}>Your Personal Crate</div>
