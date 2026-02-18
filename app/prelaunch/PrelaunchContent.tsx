@@ -230,6 +230,7 @@ function FinalCtaForm({ onSuccess }: { onSuccess: () => void }) {
 export default function PrelaunchContent() {
   const count = useSignupCount()
   const revealRef = useRef<HTMLDivElement>(null)
+  const [mockupVideoError, setMockupVideoError] = useState(false)
 
   useEffect(() => {
     const el = revealRef.current
@@ -352,15 +353,27 @@ export default function PrelaunchContent() {
             </div>
             <div className={styles.mockupBody}>
               <div className={styles.mockDigVideoWrap}>
-                <video
-                  src="/prelaunch/dig-browser-recording.mov"
-                  className={styles.mockDigVideo}
-                  loop
-                  muted
-                  autoPlay
-                  playsInline
-                  aria-label="Sample Roll Dig page preview"
-                />
+                {mockupVideoError ? (
+                  <div className={styles.mockDigVideoPlaceholder} aria-hidden>
+                    <span>Dig preview</span>
+                  </div>
+                ) : (
+                  <video
+                    key="prelaunch-video"
+                    src={
+                      typeof process.env.NEXT_PUBLIC_PRELAUNCH_VIDEO_URL === "string" && process.env.NEXT_PUBLIC_PRELAUNCH_VIDEO_URL
+                        ? process.env.NEXT_PUBLIC_PRELAUNCH_VIDEO_URL
+                        : "/prelaunch/previewvid.mp4"
+                    }
+                    className={styles.mockDigVideo}
+                    loop
+                    muted
+                    autoPlay
+                    playsInline
+                    aria-label="Sample Roll Dig page preview"
+                    onError={() => setMockupVideoError(true)}
+                  />
+                )}
               </div>
             </div>
           </div>
@@ -487,7 +500,7 @@ export default function PrelaunchContent() {
             alt="Sample Roll"
             width={160}
             height={26}
-            style={{ height: 16, width: "auto", opacity: 0.7 }}
+            style={{ height: 16, width: "auto", opacity: 1 }}
           />
         </div>
         <div className={styles.fCopy}>
