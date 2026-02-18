@@ -28,7 +28,7 @@ const GENRE_OPTIONS: { value: string; label: string }[] = [
   { value: "psychedelic", label: "Psychedelic" },
   { value: "afrobeat", label: "Afrobeat" },
   { value: "lounge", label: "Lounge" },
-  { value: "library", label: "Library" },
+  { value: "japanese", label: "Japanese" },
   { value: "soundtrack", label: "Soundtrack" },
   { value: "folk", label: "Folk" },
   { value: "world", label: "World" },
