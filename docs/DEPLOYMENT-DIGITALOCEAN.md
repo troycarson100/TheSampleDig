@@ -27,7 +27,7 @@ Sample Roll is **DB-only** for end users. The app **never** uses the YouTube API
 
 | Variable | Required | Example / notes |
 |----------|----------|------------------|
-| `DATABASE_URL` | **Yes** | PostgreSQL connection string. Use DigitalOcean Managed Database or any Postgres; run `prisma migrate deploy` against it before or during deploy. |
+| `DATABASE_URL` | **Yes** | PostgreSQL connection string. Must be the **same** Supabase (or DB) URL as local so users exist. For Supabase, use the **Connection pooling** string from Dashboard → Settings → Database; if login fails with "Invalid email or password", try appending `?sslmode=require` to the URL. Run `prisma migrate deploy` against it before or during deploy. |
 
 ### Optional (Stripe, populate, etc.)
 
