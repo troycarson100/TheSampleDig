@@ -466,7 +466,7 @@ export default function DigPage() {
             <div className="player-area-card w-full">
             {/* Controls */}
             <div className="controls-bar w-full">
-              <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="flex flex-wrap items-center justify-center gap-4 w-full">
                 {previousSample && (
                   <button
                     onClick={handleGoBack}

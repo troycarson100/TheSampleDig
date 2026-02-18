@@ -435,6 +435,7 @@ body.theme-vinyl::before {
 .theme-vinyl [class*="ctrl-bar"] {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 24px;
   padding: 16px 22px;
   background: var(--warm);

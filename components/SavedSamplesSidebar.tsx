@@ -185,7 +185,7 @@ export default function SavedSamplesSidebar({
               </div>
               {index < samples.length - 1 && (
                 <div className="py-3 flex flex-col">
-                  <div className="border-t w-full" style={{ borderColor: "rgba(240, 235, 225, 0.06)" }} />
+                  <div className="border-t w-full" style={{ borderColor: "#393734" }} />
                 </div>
               )}
             </div>
