@@ -75,7 +75,10 @@ export const authOptions = {
       return session
     },
   },
-  secret: process.env.NEXTAUTH_SECRET,
+  // Support both AUTH_SECRET (v5) and NEXTAUTH_SECRET; required in production
+  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
+  // Required when hosted behind a proxy (e.g. DigitalOcean App Platform)
+  trustHost: true,
 }
 
 // Export auth function for NextAuth v5

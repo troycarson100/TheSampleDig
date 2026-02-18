@@ -6,10 +6,14 @@ Set these in **DigitalOcean** → your app → **Settings** → **App-Level Envi
 
 ### Login (fixes "Server error – server configuration")
 
+If you see **"There is a problem with the server configuration"** on login, the app is missing the secret or URL below. Add them in DO env vars and redeploy.
+
 | Variable | Required | Example / notes |
 |----------|----------|------------------|
-| `NEXTAUTH_SECRET` | **Yes** | Generate with `openssl rand -base64 32`. Used to sign sessions; must be set in production or login fails. |
+| `NEXTAUTH_SECRET` or `AUTH_SECRET` | **Yes** (one of them) | Generate with `openssl rand -base64 32`. Used to sign sessions; **must** be set in production or login fails. |
 | `NEXTAUTH_URL` | **Yes** | Your production URL, e.g. `https://sampleroll.com` or `https://your-app-xxxx.ondigitalocean.app`. No trailing slash. Must match the URL users actually use. |
+
+The app uses `trustHost: true` so it works behind DigitalOcean’s proxy; you still must set the secret and URL above.
 
 ### Sample Roll / Dig (no YouTube key for users)
 
