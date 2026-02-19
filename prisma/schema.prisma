@@ -56,6 +56,7 @@ model Sample {
   source         String?       // "search" | "playlist" | "channel"
   tags           String?       // e.g. "post-5.5k" for samples added after 5.5k threshold
   embeddable     Boolean?       @map("embeddable") // false = blocked on external sites
+  dateAddedDb    DateTime?     @map("date_added_db") // when added from YouTube API (for batch delete)
   createdAt      DateTime      @default(now()) @map("created_at")
   userSamples    UserSample[]
   channelRel     Channel?      @relation(fields: [channelId], references: [id])

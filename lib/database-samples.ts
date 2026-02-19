@@ -247,6 +247,7 @@ export async function storeSampleInDatabase(video: YouTubeVideo & {
     const createData = {
       ...baseData,
       tags: video.tags ?? null,
+      dateAddedDb: new Date(),
     }
 
     if (existing) {

@@ -193,6 +193,7 @@ export async function GET(request: Request) {
               genre: video.genre || null,
               era: video.era || null,
               analysisStatus: "pending",
+              dateAddedDb: new Date(),
             }
           })
           console.log(`[Dig] ✓ Created sample: ${sample.id} for YouTube ID: ${video.id}`)
