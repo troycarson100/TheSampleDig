@@ -2,6 +2,7 @@
   "name": "thesampledig",
   "version": "0.1.0",
   "private": true,
+  "engines": { "node": ">=20.9.0 <23" },
   "scripts": {
     "dev": "node scripts/start-dev.js",
     "dev:open": "bash scripts/run-dev-and-open.sh",
@@ -10,11 +11,12 @@
     "dev:webpack:mem": "NODE_OPTIONS='--max-old-space-size=4096' next dev -p 3000 -H 0.0.0.0 --webpack",
     "dev:no-turbopack": "next dev -p 3000 --webpack",
     "dev:3001": "next dev -p 3001 -H 127.0.0.1",
+    "dev:node20": "node scripts/run-with-node20.js",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "check-quota": "node -r dotenv/config scripts/check-youtube-quota.js",
-    "postinstall": "node scripts/fix-node-releases-json.js && node scripts/fix-prisma-default.js && node scripts/copy-worklet.js",
+    "postinstall": "node scripts/fix-node-releases-json.js && node scripts/fix-prisma-default.js && node scripts/copy-worklet.js && node scripts/fix-next-compiled-package-json.js && node scripts/fix-fast-glob-package-json.js && node scripts/fix-caniuse-lite-unpacker.js && node scripts/fix-jose-if-incomplete.js",
     "backfill-bpm-key": "tsx scripts/backfill-bpm-key.ts",
     "backfill-bpm-key-ytdlp": "tsx scripts/backfill-bpm-key-ytdlp.ts",
     "export-samples-list": "tsx scripts/export-samples-for-bpm-key.ts"

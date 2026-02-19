@@ -2,6 +2,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Avoid PackFileCacheStrategy ENOENT rename errors (path with spaces / cache dir race)
+  webpack: (config, { dev }) => {
+    if (dev) config.cache = { type: "memory" };
+    return config;
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "images.unsplash.com", pathname: "/**" },

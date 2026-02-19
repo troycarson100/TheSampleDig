@@ -96,18 +96,30 @@ export default function SiteNav() {
             </Link>
           )}
         </div>
-        {/* Right: sign out / sign in */}
-        <div className="flex justify-end shrink-0">
+        {/* Right: Support (always) + Sign out / Sign In (desktop only; mobile has them in drawer) */}
+        <div className="flex items-center justify-end shrink-0 gap-2">
+          <a
+            href="https://www.paypal.com/donate/?hosted_button_id=34ZVX9VFAZ3JC"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="support-btn"
+            aria-label="Support us (opens in new tab)"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+            </svg>
+            Support Us
+          </a>
           {session ? (
             <button
               type="button"
               onClick={() => signOut({ callbackUrl: "/" })}
-              className="sign-out-btn cursor-pointer"
+              className="sign-out-btn cursor-pointer hidden md:inline-flex"
             >
               Sign out
             </button>
           ) : (
-            <Link href="/login" className="sign-in-btn">
+            <Link href="/login" className="sign-in-btn hidden md:inline-flex">
               Sign In
             </Link>
           )}

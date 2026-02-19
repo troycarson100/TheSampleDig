@@ -13,6 +13,29 @@ const MAX_PORT_WAIT_MS = 15000
 const rootDir = path.join(__dirname, "..")
 const devLockPath = path.join(rootDir, ".next", "dev", "lock")
 
+// Next.js 16 does not run reliably on Node 22 (ERR_INVALID_PACKAGE_CONFIG, etc). Use Node 20.
+const nodeMajor = parseInt(process.versions.node.split(".")[0], 10)
+const NODE20_PATHS = [
+  "/opt/homebrew/opt/node@20/bin/node",
+  "/usr/local/opt/node@20/bin/node",
+]
+function getNodeBinary() {
+  if (nodeMajor < 22) return process.execPath
+  for (const p of NODE20_PATHS) {
+    try {
+      if (fs.existsSync(p)) {
+        console.log("[start-dev] Using Node 20 at", p, "(current is Node " + process.versions.node + ")")
+        return p
+      }
+    } catch (_) {}
+  }
+  console.warn(
+    "[start-dev] Node " + process.versions.node + " may crash. Install Node 20: brew install node@20 (then re-run npm run dev)"
+  )
+  return process.execPath
+}
+const nodeBinary = getNodeBinary()
+
 function killPort(port) {
   try {
     const pids = execSync(`lsof -ti :${port}`, { encoding: "utf8" })
@@ -53,11 +76,12 @@ function waitForPortThenStart() {
   function check() {
     if (isPortFree(PORT)) {
       console.log("[start-dev] Port", PORT, "is free, starting Next.js...")
-      const nextBin = path.join(rootDir, "node_modules", ".bin", "next")
+      // Run next via node to avoid ENOEXEC when project path has spaces or .bin/next isn't executable
+      const nextCli = path.join(rootDir, "node_modules", "next", "dist", "bin", "next")
       const child = spawn(
-        nextBin,
-        ["dev", "-p", String(PORT), "-H", "127.0.0.1", "--webpack"],
-        { stdio: "inherit", cwd: rootDir }
+        nodeBinary,
+        [nextCli, "dev", "-p", String(PORT), "-H", "127.0.0.1", "--webpack"],
+        { stdio: "inherit", cwd: rootDir, env: { ...process.env, FORCE_COLOR: "1" } }
       )
       child.on("exit", (code) => process.exit(code != null ? code : 0))
       return

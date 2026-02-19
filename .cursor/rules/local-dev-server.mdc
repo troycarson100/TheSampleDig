@@ -1,12 +1,37 @@
 # Local dev server fix (Next.js 16)
 
-**Remember for next time:** Use `middleware.ts` (not `proxy.ts`) and, if 500s return, run `rm -rf .next && npm run dev` and wait for first compile.
+**Remember for next time:** Use Node 20, `middleware.ts` (not `proxy.ts`), and `npm run dev`. If 500s return, run `rm -rf .next && npm run dev` and wait for first compile.
 
-For thesampledig local development to work without 500 errors:
+## Node version (required)
+
+- **Use Node.js 20.** Next.js 16 does not run reliably on Node 22 (ENOEXEC, ERR_INVALID_PACKAGE_CONFIG, or CLI errors). Use Node 20:
+  - **nvm:** `nvm install 20 && nvm use 20` (or put `20` in `.nvmrc` and run `nvm use`).
+  - **fnm:** `fnm use 20` or `fnm install 20 && fnm use 20`.
+  - **Other:** Install Node 20 LTS from https://nodejs.org/ and use it in this project.
+- Run **in your terminal (foreground)** so you see output: `npm run dev` or `npm run dev:node20`. Wait until you see "Ready" or the app compiles, then open http://127.0.0.1:3000.
+- **If you're on macOS with Homebrew:** Node 20 is used automatically if installed (`brew install node@20`). The start script looks for `/opt/homebrew/opt/node@20/bin/node`.
+
+## How the dev script works
+
+- `npm run dev` runs `scripts/start-dev.js`, which clears port 3000, removes stale `.next/dev/lock`, then starts Next via **node** (not the `.bin/next` script) to avoid ENOEXEC when the project path has spaces.
+- Postinstall runs `fix-next-compiled-package-json.js` so Next’s compiled package.json files have a `version` field for Node 22 compatibility when others use the project; the dev server itself should still be run with Node 20.
+
+## Webpack cache (ENOENT)
+
+- **"Caching failed for pack ... 0.pack.gz_"** is avoided by using in-memory webpack cache in dev (`next.config.ts`: `config.cache = { type: "memory" }`). If it still appears, run `rm -rf .next && npm run dev`.
+
+## Middleware and webpack
 
 - **Use `middleware.ts`**, not `proxy.ts`. The webpack dev server only generates `.next/dev/server/middleware-manifest.json` when it finds a middleware file; with only `proxy.ts` you get MODULE_NOT_FOUND and every request returns 500.
 - **Run dev with webpack**: the start script uses `--webpack`; Turbopack can hit cache corruption (`.sst` errors).
-- Start with `npm run dev` (port 3000, host 127.0.0.1). Open http://127.0.0.1:3000.
 - The deprecation warning *"The 'middleware' file convention is deprecated. Please use 'proxy' instead"* is expected; keeping `middleware.ts` is the fix for local dev until Next.js generates manifests for `proxy.ts` in webpack dev.
 
-**If Internal Server Error comes back:** The dev manifest (e.g. `middleware-manifest.json`) may be missing—e.g. after something cleared `.next`. Do a clean restart: stop the server, then `rm -rf .next && npm run dev`, and wait for the first page load to finish compiling (first request can take ~10s) before refreshing.
+## Jose / next-auth (incomplete install)
+
+- **"Module not found: Can't resolve './jwe/compact/decrypt.js'"** means the `jose` package (used by next-auth) was installed incomplete. Postinstall runs `fix-jose-if-incomplete.js` to detect and auto-fix this. If it still happens, run: `rm -rf node_modules/jose node_modules/@auth/core node_modules/next-auth && npm install`.
+
+## If something goes wrong
+
+- **If the server won’t start (ENOEXEC, ERR_INVALID_PACKAGE_CONFIG, or "Cannot read properties of undefined" in next/dist/bin/next):** Use Node 20 (see above). Do not use Node 22 for `npm run dev`.
+- **If Internal Server Error comes back:** The dev manifest may be missing. Do a clean restart: stop the server, then `rm -rf .next && npm run dev`, and wait for the first page load to finish compiling (first request can take ~10s) before refreshing.
+- **If 500s happen every few minutes:** Avoid clearing `.next` during normal dev; only do `rm -rf .next && npm run dev` when you need a clean slate.
