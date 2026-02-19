@@ -1,0 +1,12 @@
+# Local dev server fix (Next.js 16)
+
+**Remember for next time:** Use `middleware.ts` (not `proxy.ts`) and, if 500s return, run `rm -rf .next && npm run dev` and wait for first compile.
+
+For thesampledig local development to work without 500 errors:
+
+- **Use `middleware.ts`**, not `proxy.ts`. The webpack dev server only generates `.next/dev/server/middleware-manifest.json` when it finds a middleware file; with only `proxy.ts` you get MODULE_NOT_FOUND and every request returns 500.
+- **Run dev with webpack**: the start script uses `--webpack`; Turbopack can hit cache corruption (`.sst` errors).
+- Start with `npm run dev` (port 3000, host 127.0.0.1). Open http://127.0.0.1:3000.
+- The deprecation warning *"The 'middleware' file convention is deprecated. Please use 'proxy' instead"* is expected; keeping `middleware.ts` is the fix for local dev until Next.js generates manifests for `proxy.ts` in webpack dev.
+
+**If Internal Server Error comes back:** The dev manifest (e.g. `middleware-manifest.json`) may be missing—e.g. after something cleared `.next`. Do a clean restart: stop the server, then `rm -rf .next && npm run dev`, and wait for the first page load to finish compiling (first request can take ~10s) before refreshing.

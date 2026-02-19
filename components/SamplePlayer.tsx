@@ -212,6 +212,7 @@ function SamplePlayer({
   const [recordingFullLengthMs, setRecordingFullLengthMs] = useState(0)
   const recordingFullLengthRef = useRef(0)
   const [draggingLoopEdge, setDraggingLoopEdge] = useState<"start" | "end" | null>(null)
+  const [draggingRecordedIndex, setDraggingRecordedIndex] = useState<number | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
   const [videoCurrentTime, setVideoCurrentTime] = useState(0)
   const [videoDurationFromPlayer, setVideoDurationFromPlayer] = useState(0)
@@ -219,6 +220,7 @@ function SamplePlayer({
   const chopOverlayRef = useRef<HTMLDivElement>(null)
   const loopBarRef = useRef<HTMLDivElement>(null)
   const loopBoundsRef = useRef({ start: 0, end: 0 })
+  const loopBarTotalMsRef = useRef(0)
   const playbackBoundsRef = useRef<{ start: number; end: number } | null>(null)
 
   // Hide chop mode on mobile (too laggy); under 768px
@@ -634,9 +636,19 @@ function SamplePlayer({
     }
   }, [draggingLoopEdge, recordedSequence.length, recordingFullLengthMs])
 
+  const updateRecordedEventTime = useCallback((stateIndex: number, timeMs: number, sortAfter: boolean) => {
+    setRecordedSequence((prev) => {
+      const next = [...prev]
+      if (stateIndex < 0 || stateIndex >= next.length) return prev
+      next[stateIndex] = { ...next[stateIndex], timeMs }
+      return sortAfter ? next.sort((a, b) => a.timeMs - b.timeMs) : next
+    })
+    if (sortAfter) setDraggingRecordedIndex(null)
+  }, [])
+
   // When loop start/end change while playing, restart playback with new bounds (only when not dragging, so playback stays smooth during drag)
   useEffect(() => {
-    if (!isPlayingLoop || recordedSequence.length === 0 || draggingLoopEdge !== null) return
+    if (!isPlayingLoop || recordedSequence.length === 0 || draggingLoopEdge !== null || draggingRecordedIndex !== null) return
     const fullMs = recordingFullLengthMs || recordingFullLengthRef.current || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
     const requestedStart = loopStartMs
     const requestedEnd = loopEndMs || fullMs
@@ -645,7 +657,7 @@ function SamplePlayer({
       stopLoopPlayback()
       startLoopPlayback(recordedSequence, requestedStart, requestedEnd)
     }
-  }, [isPlayingLoop, loopStartMs, loopEndMs, draggingLoopEdge, recordedSequence, recordingFullLengthMs, startLoopPlayback, stopLoopPlayback])
+  }, [isPlayingLoop, loopStartMs, loopEndMs, draggingLoopEdge, draggingRecordedIndex, recordedSequence, recordingFullLengthMs, startLoopPlayback, stopLoopPlayback])
 
   useEffect(() => {
     return () => {
@@ -1443,6 +1455,14 @@ function SamplePlayer({
                     : -1
                   const showPlayhead =
                     (isRecording && totalLengthMs > 0) || (isPlayingLoop && loopLengthMsRef.current > 0)
+                  loopBarTotalMsRef.current = totalLengthMs
+                  const getTimeMsFromClientX = (clientX: number) => {
+                    const bar = loopBarRef.current
+                    if (!bar || totalLengthMs <= 0) return 0
+                    const rect = bar.getBoundingClientRect()
+                    const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
+                    return Math.round(pct * totalLengthMs)
+                  }
                   return (
                     <div className="relative w-full h-full rounded-sm overflow-visible">
                       {/* Darker overlay for region left of loop start (not playing) */}
@@ -1469,18 +1489,59 @@ function SamplePlayer({
                       )}
                       <div className="absolute inset-0 rounded-sm overflow-visible z-[1]">
                         {events.length > 0 &&
-                          [...events]
-                            .sort((a, b) => a.timeMs - b.timeMs)
-                            .map((ev, i) => (
-                              <div
-                                key={isRecording ? `${ev.key}-${ev.timeMs}-${i}` : `s-${ev.key}-${ev.timeMs}-${i}`}
-                                className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-0.5 min-w-[2px] h-5 rounded-px"
-                                style={{
-                                  left: `${(ev.timeMs / totalLengthMs) * 100}%`,
-                                  backgroundColor: KEY_COLORS[ev.key] ?? "#888",
-                                }}
-                              />
-                            ))}
+                          (isRecording
+                            ? [...events]
+                                .sort((a, b) => a.timeMs - b.timeMs)
+                                .map((ev, i) => (
+                                  <div
+                                    key={`${ev.key}-${ev.timeMs}-${i}`}
+                                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-0.5 min-w-[2px] h-5 rounded-px"
+                                    style={{
+                                      left: `${(ev.timeMs / totalLengthMs) * 100}%`,
+                                      backgroundColor: KEY_COLORS[ev.key] ?? "#888",
+                                    }}
+                                  />
+                                ))
+                            : recordedSequence
+                                .map((ev, stateIndex) => ({ ev, stateIndex }))
+                                .sort((a, b) => a.ev.timeMs - b.ev.timeMs)
+                                .map(({ ev, stateIndex }) => (
+                                  <div
+                                    key={`s-${ev.key}-${ev.timeMs}-${stateIndex}`}
+                                    className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 min-w-[4px] h-5 rounded-px cursor-grab active:cursor-grabbing touch-none z-[3] select-none"
+                                    style={{
+                                      left: `${(ev.timeMs / totalLengthMs) * 100}%`,
+                                      backgroundColor: KEY_COLORS[ev.key] ?? "#888",
+                                    }}
+                                    onPointerDown={(e) => {
+                                      e.preventDefault()
+                                      e.stopPropagation()
+                                      setDraggingRecordedIndex(stateIndex)
+                                      ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+                                    }}
+                                    onPointerMove={(e) => {
+                                      if (draggingRecordedIndex !== stateIndex) return
+                                      const timeMs = getTimeMsFromClientX(e.clientX)
+                                      updateRecordedEventTime(stateIndex, timeMs, false)
+                                    }}
+                                    onPointerUp={(e) => {
+                                      if (draggingRecordedIndex === stateIndex) {
+                                        const timeMs = getTimeMsFromClientX(e.clientX)
+                                        updateRecordedEventTime(stateIndex, timeMs, true)
+                                      }
+                                      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+                                    }}
+                                    onPointerLeave={(e) => {
+                                      if (draggingRecordedIndex === stateIndex) {
+                                        const timeMs = getTimeMsFromClientX(e.clientX)
+                                        updateRecordedEventTime(stateIndex, timeMs, true)
+                                      }
+                                    }}
+                                    role="slider"
+                                    aria-label={`Chop ${ev.key} at ${(ev.timeMs / 1000).toFixed(1)}s`}
+                                  />
+                                ))
+                          )}
                         {showPlayhead && playheadPercent >= 0 && (
                           <div
                             className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-0.5 min-w-[2px] h-5 rounded-px pointer-events-none z-[1]"

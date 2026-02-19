@@ -93,8 +93,8 @@ export async function auth() {
     }
     const { auth: nextAuth } = authInstance
     return await nextAuth()
-  } catch (error: any) {
-    console.error("Error in auth function:", error)
-    throw error
+  } catch (error: unknown) {
+    console.error("Auth failed (returning null):", error)
+    return null
   }
 }

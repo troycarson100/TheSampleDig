@@ -56,7 +56,7 @@ function waitForPortThenStart() {
       const nextBin = path.join(rootDir, "node_modules", ".bin", "next")
       const child = spawn(
         nextBin,
-        ["dev", "-p", String(PORT), "-H", "127.0.0.1"],
+        ["dev", "-p", String(PORT), "-H", "127.0.0.1", "--webpack"],
         { stdio: "inherit", cwd: rootDir }
       )
       child.on("exit", (code) => process.exit(code != null ? code : 0))

@@ -26,6 +26,7 @@ export default function ChopTimelineMarkers({
 }: ChopTimelineMarkersProps) {
   const barRef = useRef<HTMLDivElement>(null)
   const draggingKeyRef = useRef<string | null>(null)
+  const draggingPlayheadRef = useRef<boolean>(false)
 
   const getTimeFromClientX = useCallback(
     (clientX: number): number => {
@@ -83,12 +84,43 @@ export default function ChopTimelineMarkers({
     return `${m}:${s.toString().padStart(2, "0")}`
   }
 
-  const handleBarClick = useCallback(
-    (e: React.MouseEvent<HTMLDivElement>) => {
+  const handleTrackPointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
       if (draggingKeyRef.current) return
-      if (e.target !== e.currentTarget) return
+      if ((e.target as HTMLElement).closest("[data-chop-marker]")) return
       const time = getTimeFromClientX(e.clientX)
       onSeek?.(time)
+    },
+    [getTimeFromClientX, onSeek]
+  )
+
+  const handlePlayheadPointerDown = useCallback(
+    (e: React.PointerEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      draggingPlayheadRef.current = true
+      ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    },
+    []
+  )
+
+  const handlePlayheadPointerMove = useCallback(
+    (e: React.PointerEvent) => {
+      if (!draggingPlayheadRef.current) return
+      const time = getTimeFromClientX(e.clientX)
+      onSeek?.(time)
+    },
+    [getTimeFromClientX, onSeek]
+  )
+
+  const handlePlayheadPointerUp = useCallback(
+    (e: React.PointerEvent) => {
+      if (draggingPlayheadRef.current) {
+        const time = getTimeFromClientX(e.clientX)
+        onSeek?.(time)
+        draggingPlayheadRef.current = false
+      }
+      ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
     },
     [getTimeFromClientX, onSeek]
   )
@@ -97,22 +129,22 @@ export default function ChopTimelineMarkers({
     <div
       ref={barRef}
       role="slider"
-      aria-label="Video timeline: click to seek"
+      aria-label="Video timeline: drag playhead or click to seek"
       aria-valuemin={0}
       aria-valuemax={duration}
       aria-valuenow={currentTime}
       tabIndex={0}
-      onClick={handleBarClick}
       className="absolute bottom-0 left-0 right-0 flex flex-col pointer-events-auto z-20 cursor-pointer"
       style={{ borderRadius: "0 0 8px 8px", minHeight: "1.75rem" }}
     >
-      {/* Red progress bar: track (lighter) + elapsed (darker red) + chop markers */}
+      {/* Red progress bar: track (lighter) + elapsed (darker red) + playhead thumb + chop markers */}
       <div
         className="relative w-full h-1.5 rounded-t-sm overflow-visible"
         style={{ background: "rgba(255,255,255,0.2)" }}
+        onPointerDown={handleTrackPointerDown}
       >
         <div
-          className="absolute inset-y-0 left-0 transition-[width] duration-150 rounded-l-sm"
+          className="absolute inset-y-0 left-0 transition-[width] duration-150 rounded-l-sm pointer-events-none"
           style={{ width: `${playheadPercent}%`, background: "#b91c1c" }}
         />
         {chops.map((chop) => {
@@ -121,13 +153,17 @@ export default function ChopTimelineMarkers({
         return (
           <div
             key={chop.key}
+            data-chop-marker
             className="absolute top-1/2 cursor-grab active:cursor-grabbing touch-none select-none transition-transform"
             style={{
               left: `${percent}%`,
               transform: `translate(-50%, -50%) ${isPressed ? "scale(1.35)" : ""}`,
               filter: isPressed ? "brightness(1.25)" : undefined,
             }}
-            onPointerDown={(e) => handlePointerDown(e, chop.key)}
+            onPointerDown={(e) => {
+              e.stopPropagation()
+              handlePointerDown(e, chop.key)
+            }}
             onPointerMove={(e) => handlePointerMove(e, chop.key)}
             onPointerUp={(e) => handlePointerUp(e, chop.key)}
             onPointerLeave={(e) => {
@@ -156,6 +192,24 @@ export default function ChopTimelineMarkers({
           </div>
         )
       })}
+        {/* Draggable playhead thumb (after markers so it stays on top) */}
+        <div
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-4 rounded-sm bg-white border border-red-800 shadow cursor-ew-resize touch-none select-none z-10"
+          style={{ left: `${playheadPercent}%` }}
+          onPointerDown={handlePlayheadPointerDown}
+          onPointerMove={handlePlayheadPointerMove}
+          onPointerUp={handlePlayheadPointerUp}
+          onPointerLeave={(e) => {
+            if (draggingPlayheadRef.current) {
+              const time = getTimeFromClientX(e.clientX)
+              onSeek?.(time)
+              draggingPlayheadRef.current = false
+            }
+            ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+          }}
+          role="slider"
+          aria-label="Playhead: drag to seek"
+        />
       </div>
       {/* Time display: current / total */}
       <div className="flex items-center justify-between px-2 py-0.5 text-white text-xs font-medium bg-black/60 rounded-b-[6px]">
