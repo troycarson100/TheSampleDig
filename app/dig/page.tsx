@@ -95,6 +95,7 @@ export default function DigPage() {
   const [filtersLoaded, setFiltersLoaded] = useState(false)
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [hasClickedDice, setHasClickedDice] = useState(false)
   const isSavedRef = useRef(isSaved)
   const sampleRef = useRef(sample)
   const sessionRef = useRef(session)
@@ -253,6 +254,7 @@ export default function DigPage() {
   }
 
   const onRollClick = () => {
+    setHasClickedDice(true)
     if (status === "unauthenticated") {
       setShowAuthModal(true)
       return
@@ -622,7 +624,7 @@ export default function DigPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   </button>
                 )}
-                <DiceButton onClick={onRollClick} loading={loading} />
+                <DiceButton onClick={onRollClick} loading={loading} breathing={!hasClickedDice && !sample} />
                 <AutoplayToggle enabled={autoplay} onChange={setAutoplay} />
                 <button
                   type="button"

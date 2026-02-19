@@ -90,6 +90,30 @@ body.theme-vinyl::before {
   }
 }
 
+/* Chop (Space Bar) hint: smooth breathing when no chops yet */
+@keyframes chop-button-breathe {
+  0%, 100% {
+    background-color: #e8e6e3;
+    transform: scale(1);
+    box-shadow: none;
+    border-color: rgba(0, 0, 0, 0.08);
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(74, 55, 40, 0.16);
+  }
+  50% {
+    background-color: #f5f2ee;
+    transform: scale(1.02);
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.5);
+    border-color: rgba(74, 55, 40, 0.2);
+    border-bottom-width: 2px;
+    border-bottom-color: rgba(74, 55, 40, 0.28);
+  }
+}
+
+.chop-space-bar-breathe {
+  animation: chop-button-breathe 2.5s ease-in-out infinite;
+}
+
 @keyframes burst-center-inner {
   0% {
     opacity: 0;
@@ -223,6 +247,58 @@ body.theme-vinyl::before {
   border-color: rgba(184, 92, 56, 0.35);
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), 0 0 24px rgba(184, 92, 56, 0.18);
   transform: scale(1.06);
+}
+/* Slow breathing until first click or video loaded */
+.theme-vinyl .dice-btn.breathing:not(:disabled)::before {
+  animation: diceBreatheGlow 2.8s ease-in-out infinite;
+}
+.theme-vinyl .dice-btn.breathing:not(:disabled) {
+  animation: diceBreathe 2.8s ease-in-out infinite;
+}
+@keyframes diceBreathe {
+  0%, 100% {
+    border-color: rgba(240, 235, 225, 0.08);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.2);
+    transform: scale(1);
+  }
+  50% {
+    border-color: rgba(184, 92, 56, 0.35);
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), 0 0 24px rgba(184, 92, 56, 0.18);
+    transform: scale(1.06);
+  }
+}
+@keyframes diceBreatheGlow {
+  0%, 100% { opacity: 0; }
+  50% { opacity: 1; }
+}
+/* Shine sweep during breathing — signals "click to begin" */
+.theme-vinyl .dice-shine {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    transparent 30%,
+    rgba(255, 255, 255, 0.08) 40%,
+    rgba(232, 184, 90, 0.35) 50%,
+    rgba(255, 255, 255, 0.12) 60%,
+    transparent 70%,
+    transparent 100%
+  );
+  background-size: 180% 100%;
+  background-position: -100% 0;
+}
+.theme-vinyl .dice-btn.breathing:not(:disabled) .dice-shine {
+  opacity: 1;
+  animation: diceShine 2.8s ease-in-out infinite;
+}
+@keyframes diceShine {
+  0%, 100% { background-position: -100% 0; }
+  50% { background-position: 200% 0; }
 }
 .theme-vinyl .dice-btn.rolling,
 .theme-vinyl .dice-btn.landed {

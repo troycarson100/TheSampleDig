@@ -5,6 +5,8 @@ import { useState, useRef, useCallback, useEffect } from "react"
 interface DiceButtonProps {
   onClick: () => void
   loading?: boolean
+  /** When true, show slow breathing hover-style animation until first click or video loaded */
+  breathing?: boolean
 }
 
 /** Dice face dot positions (0–5 = faces 1–6) within 40×40 viewBox, 32×32 rect offset by 4 */
@@ -21,7 +23,7 @@ const PARTICLE_COLORS = ["#B85C38", "#D4784E", "#C9933A", "#E8B85A", "#F0EBE1", 
 const ROLL_DURATION_MS = 650
 const LANDED_CLEANUP_MS = 500
 
-export default function DiceButton({ onClick, loading }: DiceButtonProps) {
+export default function DiceButton({ onClick, loading, breathing = false }: DiceButtonProps) {
   const [faceIndex, setFaceIndex] = useState(3) // 4 dots by default
   const [isRolling, setIsRolling] = useState(false)
   const [isLanded, setIsLanded] = useState(false)
@@ -109,7 +111,7 @@ export default function DiceButton({ onClick, loading }: DiceButtonProps) {
       type="button"
       onClick={startRoll}
       disabled={disabled}
-      className={`dice-btn ${isRolling ? "rolling" : ""} ${isLanded ? "landed" : ""} disabled:opacity-50 disabled:cursor-not-allowed`}
+      className={`dice-btn ${isRolling ? "rolling" : ""} ${isLanded ? "landed" : ""} ${breathing ? "breathing" : ""} disabled:opacity-50 disabled:cursor-not-allowed`}
       aria-label="Roll for sample"
     >
       <svg
@@ -124,6 +126,7 @@ export default function DiceButton({ onClick, loading }: DiceButtonProps) {
           <circle key={i} cx={cx} cy={cy} r="2.8" fill="currentColor" />
         ))}
       </svg>
+      <span className="dice-shine" aria-hidden />
       <div ref={particlesRef} className="dice-particles" aria-hidden />
       <div ref={ringRef} className="dice-ring" aria-hidden />
     </button>
