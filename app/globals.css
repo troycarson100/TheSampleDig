@@ -168,6 +168,11 @@ body.theme-vinyl::before {
   background: var(--rust);
   border-radius: 1px 1px 0 0;
 }
+/* Mobile drawer: underline only under the text (link width = text width) */
+.theme-vinyl .nav-drawer-link.nav-link-active::after {
+  left: 0;
+  right: 0;
+}
 
 .theme-vinyl .nav-dice-btn,
 .theme-vinyl .roll-btn {

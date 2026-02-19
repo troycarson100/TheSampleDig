@@ -8,8 +8,8 @@ const path = require("path")
 const fs = require("fs")
 
 const PORT = 3000
-const WAIT_MS = 3000
-const MAX_PORT_WAIT_MS = 10000
+const WAIT_MS = 5000
+const MAX_PORT_WAIT_MS = 15000
 const rootDir = path.join(__dirname, "..")
 const devLockPath = path.join(rootDir, ".next", "dev", "lock")
 
@@ -56,14 +56,14 @@ function waitForPortThenStart() {
       const nextBin = path.join(rootDir, "node_modules", ".bin", "next")
       const child = spawn(
         nextBin,
-        ["dev", "-p", String(PORT), "-H", "0.0.0.0"],
+        ["dev", "-p", String(PORT), "-H", "127.0.0.1"],
         { stdio: "inherit", cwd: rootDir }
       )
       child.on("exit", (code) => process.exit(code != null ? code : 0))
       return
     }
     if (Date.now() - start >= MAX_PORT_WAIT_MS) {
-      console.error("[start-dev] Port", PORT, "still in use after", MAX_PORT_WAIT_MS / 1000, "s. Try closing other apps or use: npm run dev:3001")
+      console.error("[start-dev] Port", PORT, "still in use after", MAX_PORT_WAIT_MS / 1000, "s. Run: npm run dev:3001 (port 3001) or npm run dev:direct (after killing the process on 3000)")
       process.exit(1)
     }
     setTimeout(check, 500)

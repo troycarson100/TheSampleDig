@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, useRef } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
@@ -10,11 +11,43 @@ const navLinkBase = "nav-tab-link relative flex items-center h-full px-5 py-0 bo
 const navLinkActive = "nav-link-active"
 const navLinkStyle = { fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }
 
+/** z-index above header (500), ticker (499), and auth modal (700) so mobile menu always on top */
+const MOBILE_MENU_OVERLAY_Z = 10000
+const MOBILE_MENU_DRAWER_Z = 10001
+
 export default function SiteNav() {
   const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const pathname = usePathname()
+  const hamburgerRef = useRef<HTMLButtonElement>(null)
+  const closeBtnRef = useRef<HTMLButtonElement>(null)
+  const wasMenuOpenRef = useRef(false)
   const isActive = (path: string) => pathname === path || (path !== "/dig" && pathname?.startsWith(path))
+
+  useEffect(() => setMounted(true), [])
+
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (!menuOpen) return
+    const prev = document.body.style.overflow
+    document.body.style.overflow = "hidden"
+    return () => {
+      document.body.style.overflow = prev
+    }
+  }, [menuOpen])
+
+  // Focus: close button when opening; hamburger when closing (not on initial mount)
+  useEffect(() => {
+    if (menuOpen) {
+      closeBtnRef.current?.focus()
+    } else if (wasMenuOpenRef.current) {
+      hamburgerRef.current?.focus({ preventScroll: true })
+    }
+    wasMenuOpenRef.current = menuOpen
+  }, [menuOpen])
+
+  const closeMenu = () => setMenuOpen(false)
 
   return (
     <>
@@ -22,13 +55,15 @@ export default function SiteNav() {
         {/* Left: hamburger on mobile; logo (dice + brand + BETA) always */}
         <div className="flex items-center gap-2 min-w-0">
           <button
+            ref={hamburgerRef}
             type="button"
             onClick={() => setMenuOpen(true)}
-            className="md:hidden flex items-center justify-center w-10 h-10 rounded -ml-2 flex-shrink-0"
+            className="md:hidden flex items-center justify-center w-10 h-10 rounded -ml-2 flex-shrink-0 touch-manipulation"
             style={{ color: "var(--cream)" }}
             aria-label="Open menu"
+            aria-expanded={menuOpen}
           >
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
               <line x1="3" y1="6" x2="21" y2="6" />
               <line x1="3" y1="12" x2="21" y2="12" />
               <line x1="3" y1="18" x2="21" y2="18" />
@@ -79,47 +114,95 @@ export default function SiteNav() {
         </div>
       </nav>
 
-      {/* Mobile menu overlay + drawer from left */}
-      {menuOpen && (
-        <>
-          <div
-            className="fixed inset-0 z-40 bg-black/40 md:hidden"
-            aria-hidden
-            onClick={() => setMenuOpen(false)}
-          />
-          <div
-            className="fixed left-0 top-0 bottom-0 z-50 w-64 max-w-[85vw] py-6 px-4 md:hidden"
-            style={{ background: "var(--background)", borderRight: "1px solid var(--border)" }}
-            role="dialog"
-            aria-label="Navigation menu"
-          >
-            <div className="flex items-center justify-end mb-6">
+      {/* Mobile menu: render in portal so it's above genre ticker and header; vinyl theme */}
+      {mounted &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 md:hidden transition-opacity duration-200"
+              style={{
+                zIndex: MOBILE_MENU_OVERLAY_Z,
+                background: menuOpen ? "rgba(0,0,0,0.5)" : "transparent",
+                pointerEvents: menuOpen ? "auto" : "none",
+                opacity: menuOpen ? 1 : 0,
+              }}
+              aria-hidden
+              onClick={closeMenu}
+            />
+            <div
+              className="fixed left-0 top-0 bottom-0 w-64 max-w-[85vw] py-6 pl-5 pr-4 md:hidden transition-[transform] duration-200 ease-out flex flex-col"
+              style={{
+                zIndex: MOBILE_MENU_DRAWER_Z,
+                transform: menuOpen ? "translateX(0)" : "translateX(-100%)",
+                pointerEvents: menuOpen ? "auto" : "none",
+                background: "var(--nav-bg, rgba(14, 12, 10, 0.98))",
+                backdropFilter: "blur(var(--nav-blur, 20px))",
+                WebkitBackdropFilter: "blur(var(--nav-blur, 20px))",
+                borderRight: "1px solid rgba(201, 147, 58, 0.08)",
+              }}
+              role="dialog"
+              aria-modal="true"
+              aria-label="Navigation menu"
+              aria-hidden={!menuOpen}
+            >
+              {/* Header row: close button only */}
+              <div className="flex items-center justify-end shrink-0 pt-2 min-h-[52px] mb-6">
+                <button
+                  ref={closeBtnRef}
+                  type="button"
+                  onClick={closeMenu}
+                  className="flex items-center justify-center w-10 h-10 rounded touch-manipulation focus:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[rgba(240,235,225,0.4)]"
+                  style={{ color: "var(--cream)" }}
+                  aria-label="Close menu"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+          <div className="flex flex-col items-start gap-1">
+            <Link
+              href="/dig"
+              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/dig" ? navLinkActive : ""}`}
+              style={navLinkStyle}
+              onClick={closeMenu}
+              aria-current={pathname === "/dig" ? "page" : undefined}
+            >
+              Dig
+            </Link>
+            {session && (
+              <Link
+                href="/profile"
+                className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/profile" ? navLinkActive : ""}`}
+                style={navLinkStyle}
+                onClick={closeMenu}
+                aria-current={pathname === "/profile" ? "page" : undefined}
+              >
+                My Samples
+              </Link>
+            )}
+          </div>
+          <div className="mt-8 pt-6 border-t border-[rgba(201,147,58,0.08)]">
+            {session ? (
               <button
                 type="button"
-                onClick={() => setMenuOpen(false)}
-                className="flex items-center justify-center w-10 h-10 rounded-lg -mr-2"
-                style={{ color: "var(--foreground)" }}
-                aria-label="Close menu"
+                onClick={() => {
+                  closeMenu()
+                  signOut({ callbackUrl: "/" })
+                }}
+                className="sign-out-btn w-full flex justify-center"
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
+                Sign out
               </button>
-            </div>
-            <div className="flex flex-col">
-              <Link href="/dig" className={`${navLinkBase} block py-3 !h-auto !px-0 ${pathname === "/dig" ? navLinkActive : ""}`} style={navLinkStyle} onClick={() => setMenuOpen(false)} aria-current={pathname === "/dig" ? "page" : undefined}>
-                Dig
+            ) : (
+              <Link href="/login" className="sign-in-btn block text-center" onClick={closeMenu}>
+                Sign In
               </Link>
-              {/* Stem Splitter commented out — see desktop nav */}
-              {/* <Link href="/stem-splitter" ...>Stem Splitter</Link> */}
-              {session && (
-                <Link href="/profile" className={`${navLinkBase} block py-3 !h-auto !px-0 ${pathname === "/profile" ? navLinkActive : ""}`} style={navLinkStyle} onClick={() => setMenuOpen(false)} aria-current={pathname === "/profile" ? "page" : undefined}>
-                  My Samples
-                </Link>
-              )}
-            </div>
+            )}
           </div>
-        </>
+        </div>
+        </>,
+        document.body
       )}
     </>
   )
