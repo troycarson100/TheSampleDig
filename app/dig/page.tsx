@@ -624,7 +624,7 @@ export default function DigPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   </button>
                 )}
-                <DiceButton onClick={onRollClick} loading={loading} breathing={!hasClickedDice && !sample} />
+                <DiceButton onClick={onRollClick} loading={loading} breathing bounce={!sample} />
                 <AutoplayToggle enabled={autoplay} onChange={setAutoplay} />
                 <button
                   type="button"

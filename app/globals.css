@@ -248,11 +248,11 @@ body.theme-vinyl::before {
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.35), 0 0 24px rgba(184, 92, 56, 0.18);
   transform: scale(1.06);
 }
-/* Slow breathing until first click or video loaded */
-.theme-vinyl .dice-btn.breathing:not(:disabled)::before {
+/* Bounce (scale + glow) only when .bounce — no video; shine runs whenever .breathing */
+.theme-vinyl .dice-btn.breathing.bounce:not(:disabled)::before {
   animation: diceBreatheGlow 2.8s ease-in-out infinite;
 }
-.theme-vinyl .dice-btn.breathing:not(:disabled) {
+.theme-vinyl .dice-btn.breathing.bounce:not(:disabled) {
   animation: diceBreathe 2.8s ease-in-out infinite;
 }
 @keyframes diceBreathe {
@@ -271,34 +271,45 @@ body.theme-vinyl::before {
   0%, 100% { opacity: 0; }
   50% { opacity: 1; }
 }
-/* Shine sweep during breathing — signals "click to begin" */
-.theme-vinyl .dice-shine {
+/* Shine sweep during breathing — right to left; transform-based so it doesn't glitch */
+.theme-vinyl .dice-shine-wrap {
   position: absolute;
   inset: 0;
   border-radius: 8px;
   pointer-events: none;
   z-index: 1;
+  overflow: hidden;
   opacity: 0;
+}
+.theme-vinyl .dice-btn.breathing:not(:disabled) .dice-shine-wrap {
+  opacity: 1;
+}
+.theme-vinyl .dice-shine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 70%;
+  border-radius: 8px;
+  pointer-events: none;
   background: linear-gradient(
     105deg,
     transparent 0%,
-    transparent 30%,
-    rgba(255, 255, 255, 0.08) 40%,
+    transparent 25%,
+    rgba(255, 255, 255, 0.08) 38%,
     rgba(232, 184, 90, 0.35) 50%,
-    rgba(255, 255, 255, 0.12) 60%,
-    transparent 70%,
+    rgba(255, 255, 255, 0.12) 62%,
+    transparent 75%,
     transparent 100%
   );
-  background-size: 180% 100%;
-  background-position: -100% 0;
+  will-change: transform;
+  backface-visibility: hidden;
+  animation: diceShineSlide 5.5s linear infinite;
 }
-.theme-vinyl .dice-btn.breathing:not(:disabled) .dice-shine {
-  opacity: 1;
-  animation: diceShine 2.8s ease-in-out infinite;
-}
-@keyframes diceShine {
-  0%, 100% { background-position: -100% 0; }
-  50% { background-position: 200% 0; }
+@keyframes diceShineSlide {
+  0%, 10% { transform: translateX(150%); }
+  30% { transform: translateX(-150%); }
+  30.01%, 100% { transform: translateX(-150%); }
 }
 .theme-vinyl .dice-btn.rolling,
 .theme-vinyl .dice-btn.landed {
