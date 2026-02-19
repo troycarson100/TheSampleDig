@@ -197,7 +197,7 @@ function SamplePlayer({
   const youtubeIdRef = useRef<string | null>(null)
   const isInitializedRef = useRef(false)
   const adapterRef = useRef<YouTubePlayerAdapter | null>(null)
-  const [chopModeEnabled, setChopModeEnabled] = useState(false)
+  const [chopModeEnabled, setChopModeEnabled] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
   const [tapTempoEnabled, setTapTempoEnabled] = useState(false)
   const [tapTimes, setTapTimes] = useState<number[]>([])
@@ -1657,12 +1657,18 @@ function SamplePlayer({
               type="button"
               onClick={() => !slotsFull && addChop()}
               disabled={slotsFull}
-              className="chop-space-bar py-3 rounded-lg border transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
+              className={`chop-space-bar py-3 rounded-lg border transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${chops.length === 0 && !spaceBarFlash ? "chop-space-bar-breathe" : ""}`}
               style={{
                 width: `${CHOP_KEYBOARD_WIDTH_REM}rem`,
-                background: spaceBarFlash ? "#d4d1cc" : "#e8e6e3",
-                border: "1px solid rgba(0,0,0,0.08)",
-                borderBottom: spaceBarFlash ? "1px solid rgba(74,55,40,0.16)" : "2px solid rgba(74,55,40,0.16)",
+                ...(chops.length > 0 || spaceBarFlash
+                  ? {
+                      background: spaceBarFlash ? "#d4d1cc" : "#e8e6e3",
+                      border: "1px solid rgba(0,0,0,0.08)",
+                      borderBottom: spaceBarFlash ? "2px solid rgba(74,55,40,0.28)" : "2px solid rgba(74,55,40,0.16)",
+                      boxShadow: undefined,
+                      transform: "scale(1)",
+                    }
+                  : {}),
                 color: "#9a9590",
               }}
               aria-label="Chop at current time (Space)"

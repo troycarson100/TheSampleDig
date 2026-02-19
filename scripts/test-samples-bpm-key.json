@@ -1,0 +1,11 @@
+{
+  "description": "Add samples with known BPM/key to test analysis accuracy. Run: npx tsx scripts/test-bpm-key-accuracy.ts",
+  "samples": [
+    {
+      "youtubeId": "EXAMPLE_ID",
+      "expectedBpm": 90,
+      "expectedKey": "Am",
+      "note": "Replace with a real YouTube ID and your known BPM/key, or use audioPath for a local file"
+    }
+  ]
+}

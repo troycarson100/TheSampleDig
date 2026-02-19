@@ -81,6 +81,7 @@ const BPM_MAX = 175
 
 /**
  * Analyze audio file for BPM using librosa with tempo folding to fix 2x/half-time errors.
+ * Uses harmonic-percussive separation and runs tempo on the percussive component for more stable BPM on drum-heavy material.
  */
 async function detectBPM(audioPath: string): Promise<number | null> {
   try {
@@ -106,7 +107,6 @@ def fold_tempo_to_range(tempo):
         candidates.append(tempo * 2)
         if tempo < BPM_MIN / 2:
             candidates.append(tempo * 4)
-    # Prefer value in [BPM_MIN, BPM_MAX]; else pick closest to middle of range
     in_range = [c for c in candidates if BPM_MIN <= c <= BPM_MAX]
     if in_range:
         return round(in_range[0])
@@ -118,17 +118,24 @@ BPM_MIN = ${BPM_MIN}
 BPM_MAX = ${BPM_MAX}
 
 try:
-    y, sr = librosa.load('${audioPath}', duration=30)
-    # start_bpm=120 biases toward common tempo range, reduces octave errors (prior=scipy dist in newer librosa)
-    tempo, _ = librosa.beat.beat_track(y=y, sr=sr, start_bpm=120.0)
-    # tempo is a numpy array (1-element), not a float in recent librosa
+    y, sr = librosa.load(sys.argv[1], duration=45)
+    # Harmonic-percussive separation: run tempo on percussive for more stable BPM on drums/beats
+    y_harm, y_perc = librosa.effects.harmonic_percussive_separate(y, margin=2.0)
+    # Prefer percussive (drums); fall back to full signal if percussive is too quiet
+    if np.sqrt(np.mean(y_perc ** 2)) < 0.01:
+        y_use = y
+    else:
+        y_use = y_perc
+    tempo, _ = librosa.beat.beat_track(y=y_use, sr=sr, start_bpm=120.0)
     raw_bpm = float(np.atleast_1d(tempo).flat[0])
     bpm = fold_tempo_to_range(raw_bpm)
     print(json.dumps({"bpm": bpm}))
 except Exception as e:
     print(json.dumps({"error": str(e)}))
     sys.exit(1)
-        `
+        `,
+        '--',
+        audioPath
       ])
 
       let output = ''
@@ -181,8 +188,7 @@ except Exception as e:
 }
 
 /**
- * Detect musical key using chroma features
- * Uses Python with librosa for key detection
+ * Detect musical key using chroma from the harmonic component (HPSS) and optional multi-segment voting for stability.
  */
 async function detectKey(audioPath: string): Promise<string | null> {
   try {
@@ -195,40 +201,47 @@ import sys
 import json
 import numpy as np
 
-try:
-    y, sr = librosa.load('${audioPath}', duration=30)
-    
-    # Extract chroma features
-    chroma = librosa.feature.chroma_stft(y=y, sr=sr)
-    chroma_mean = np.mean(chroma, axis=1)
-    
-    # Key profiles (Krumhansl-Schmuckler key profiles)
+def chroma_to_key(chroma_mean):
     major_profile = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
     minor_profile = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
-    
     keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
-    
-    best_key = None
-    best_score = -np.inf
-    
+    best_key, best_score = None, -np.inf
     for i in range(12):
-        # Major key
         major_score = np.dot(chroma_mean, np.roll(major_profile, i))
         if major_score > best_score:
-            best_score = major_score
-            best_key = keys[i]
-        
-        # Minor key
+            best_score, best_key = major_score, keys[i]
         minor_score = np.dot(chroma_mean, np.roll(minor_profile, i))
         if minor_score > best_score:
-            best_score = minor_score
-            best_key = keys[i] + 'm'
-    
+            best_score, best_key = minor_score, keys[i] + 'm'
+    return best_key
+
+try:
+    y, sr = librosa.load(sys.argv[1], duration=45)
+    # Use harmonic component only for chroma (reduces drum/percussion noise)
+    y_harm, y_perc = librosa.effects.harmonic_percussive_separate(y, margin=2.0)
+    # Multi-segment: compute key on 15s windows and vote
+    segment_frames = 15 * sr
+    keys = []
+    for start in range(0, min(len(y_harm), 45 * sr) - segment_frames, int(segment_frames)):
+        seg = y_harm[start:start + segment_frames]
+        chroma = librosa.feature.chroma_stft(y=seg, sr=sr)
+        chroma_mean = np.mean(chroma, axis=1)
+        keys.append(chroma_to_key(chroma_mean))
+    if not keys:
+        chroma = librosa.feature.chroma_stft(y=y_harm, sr=sr)
+        chroma_mean = np.mean(chroma, axis=1)
+        best_key = chroma_to_key(chroma_mean)
+    else:
+        # Vote: most common key wins
+        from collections import Counter
+        best_key = Counter(keys).most_common(1)[0][0]
     print(json.dumps({"key": best_key}))
 except Exception as e:
     print(json.dumps({"error": str(e)}))
     sys.exit(1)
-        `
+        `,
+        '--',
+        audioPath
       ])
 
       let output = ''
