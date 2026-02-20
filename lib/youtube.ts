@@ -10,6 +10,8 @@ import {
 import { getCachedSearchResult, cacheSearchResult, getCachedVideoDetailsBatch, cacheVideoDetailsBatch } from "./cache"
 import { getRandomSampleFromDatabase, getDatabaseSampleCount } from "./database-samples"
 import { fetchWithKeyRotation, fetchWithKeyRoundRobin, getFirstYouTubeApiKey } from "./youtube-keys"
+import { getRandomCrateDiggerQuery } from "./crate-digger-list"
+import { scrapeYouTubeSearch } from "./youtube-scraper"
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/search"
 
@@ -312,8 +314,9 @@ export function getRandomQueryTemplate(): string {
  * Extract genre and era from search query and video metadata
  * Checks title, description, tags, and query equally - first pattern match wins
  */
-export function extractMetadata(query: string, title?: string, description?: string, tags?: string[]): { genre?: string; era?: string; label?: string } {
-  const allText = `${query} ${title || ""} ${description || ""} ${(tags || []).join(" ")}`.toLowerCase()
+export function extractMetadata(query: string, title?: string, description?: string, tags?: string[]): { genre?: string; era?: string; year?: string; label?: string } {
+  const allText = `${query} ${title || ""} ${description || ""} ${(tags || []).join(" ")}`
+  const allTextLower = allText.toLowerCase()
   
   // Genre detection - check query first, then description/tags
   const genrePatterns = [
@@ -353,18 +356,20 @@ export function extractMetadata(query: string, title?: string, description?: str
     }
   }
   
-  // Era detection - look for years
+  // Era and year detection - look for years in tags/title/description
   const eraMatch = allText.match(/(19[5-9]\d|20[0-1]\d)/)
   let era: string | undefined
+  let year: string | undefined
   if (eraMatch) {
-    const year = parseInt(eraMatch[1])
-    if (year >= 1950 && year < 1960) era = "1950s"
-    else if (year >= 1960 && year < 1970) era = "1960s"
-    else if (year >= 1970 && year < 1980) era = "1970s"
-    else if (year >= 1980 && year < 1990) era = "1980s"
-    else if (year >= 1990 && year < 2000) era = "1990s"
+    const yearNum = parseInt(eraMatch[1])
+    year = eraMatch[1]
+    if (yearNum >= 1950 && yearNum < 1960) era = "1950s"
+    else if (yearNum >= 1960 && yearNum < 1970) era = "1960s"
+    else if (yearNum >= 1970 && yearNum < 1980) era = "1970s"
+    else if (yearNum >= 1980 && yearNum < 1990) era = "1980s"
+    else if (yearNum >= 1990 && yearNum < 2000) era = "1990s"
   }
-  
+
   // Label detection - famous jazz/soul labels
   const labelPatterns = [
     /blue note/i,
@@ -388,7 +393,7 @@ export function extractMetadata(query: string, title?: string, description?: str
     }
   }
   
-  return { genre, era, label }
+  return { genre, era, year, label }
 }
 
 /**
@@ -798,14 +803,17 @@ function shouldHardFilter(
 }
 
 /**
- * Calculate VinylRipScore (0-100) for a candidate video
+ * Calculate VinylRipScore (0-100) for a candidate video.
+ * When relaxVinylIndicators is true (e.g. crate-digger artist/album search), the -80 penalty
+ * for missing static/vinyl indicators is skipped so artist+album matches can pass.
  */
 function calculateVinylRipScore(
   title: string,
   channelTitle: string,
   description: string,
   duration: number,
-  channelReputation: number
+  channelReputation: number,
+  relaxVinylIndicators?: boolean
 ): number {
   let score = 0
   const titleLower = title.toLowerCase()
@@ -917,8 +925,9 @@ function calculateVinylRipScore(
     textForVinylSignals.includes("7 inch")
   )
   
-  // Only penalize when BOTH static and strong vinyl are missing (so "vinyl rip" in description can pass)
-  if (!hasStaticVisualIndicator && !hasStrongVinylSignals) {
+  // Only penalize when BOTH static and strong vinyl are missing (so "vinyl rip" in description can pass).
+  // Skip this penalty when relaxVinylIndicators (crate-digger artist/album searches).
+  if (!relaxVinylIndicators && !hasStaticVisualIndicator && !hasStrongVinylSignals) {
     score -= 80
     console.log(`  - No static visual/vinyl indicators (-80)`)
   }
@@ -1053,12 +1062,27 @@ function calculateVinylRipScore(
 /**
  * Fetch one page of YouTube search results (for pagination or single page).
  * Returns raw items and nextPageToken; does not filter or score.
+ * When USE_YOUTUBE_SCRAPER=true, uses Playwright to scrape search (saves Search API quota); pagination not supported.
  */
 async function fetchSearchPage(
   query: string,
   publishedBeforeDate: Date | undefined,
   pageToken?: string
 ): Promise<{ items: any[]; nextPageToken?: string }> {
+  const useScraper = process.env.USE_YOUTUBE_SCRAPER === "true"
+  if (useScraper) {
+    if (pageToken) {
+      console.log("[Search] Scraper: pagination not supported, using first page only")
+    }
+    console.log(`[Search] Scraping YouTube (no Search API quota) for: ${query.substring(0, 80)}...`)
+    const { items } = await scrapeYouTubeSearch(query, {
+      timeoutMs: 25000,
+      headless: true,
+      enrichDetailsForFirst: 1,
+    })
+    return { items, nextPageToken: undefined }
+  }
+
   const response = await fetchWithKeyRotation((key) => {
     const params = new URLSearchParams({
       part: "snippet",
@@ -1088,7 +1112,8 @@ export async function searchWithQuery(
   excludedVideoIds: string[] = [],
   publishedBeforeDate?: Date
 ): Promise<Array<any>> {
-  if (!getFirstYouTubeApiKey()) {
+  const useScraper = process.env.USE_YOUTUBE_SCRAPER === "true"
+  if (!useScraper && !getFirstYouTubeApiKey()) {
     throw new Error("No YouTube API key set. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
   }
 
@@ -1100,14 +1125,19 @@ export async function searchWithQuery(
   }
 
   const dateFilter = publishedBeforeDate || new Date("2010-01-01")
-  console.log(`[Search] Fetching from YouTube API with query: ${query.substring(0, 80)}...`)
   const { items } = await fetchSearchPage(query, dateFilter)
 
   if (!items.length) {
     console.log(`[Search] No results for query: ${query.substring(0, 50)}`)
     return []
   }
-  
+
+  if (useScraper) {
+    const out = processVideoItemsScraperOnly(items, excludedVideoIds)
+    cacheSearchResult(query, excludedVideoIds, out.results)
+    return out.results
+  }
+
   const out = await processVideoItems(items, query, excludedVideoIds)
   cacheSearchResult(query, excludedVideoIds, out.results)
   return out.results
@@ -1129,6 +1159,40 @@ export interface PageStats {
 }
 
 /**
+ * When USE_YOUTUBE_SCRAPER is true: process scraped items without calling the YouTube API.
+ * Only filters by excluded IDs; no description/duration/tags (parse bad videos after).
+ * Returns same shape as processVideoItems so callers work unchanged.
+ */
+function processVideoItemsScraperOnly(
+  rawItems: any[],
+  excludedVideoIds: string[]
+): { results: any[]; hadCandidates: boolean } {
+  const excludedSet = excludedVideoIds.length > 0 ? new Set(excludedVideoIds) : null
+  const candidateVideos = excludedSet
+    ? rawItems.filter((v: { id: { videoId: string } }) => !excludedSet.has(v.id.videoId))
+    : rawItems
+  if (candidateVideos.length === 0) {
+    return { results: [], hadCandidates: false }
+  }
+  const results = candidateVideos.map((video: any) => {
+    const details = {
+      duration: video.duration ?? 0,
+      description: (video.description ?? "") as string | undefined,
+      tags: (video.tags ?? []) as string[],
+    }
+    return {
+      ...video,
+      details,
+      duration: video.duration ?? null,
+      description: details.description,
+      tags: details.tags,
+    }
+  })
+  console.log(`[Search] Scraper-only: ${results.length} candidates (no API calls)`)
+  return { results, hadCandidates: results.length > 0 }
+}
+
+/**
  * Process raw video items into filtered + scored results.
  * Used by search and by channel/playlist discovery. Items must have id.videoId and snippet.
  */
@@ -1136,12 +1200,13 @@ export async function processVideoItems(
   rawItems: any[],
   query: string,
   excludedVideoIds: string[],
-  options?: { verbose?: boolean; breakEarlyAt?: number }
+  options?: { verbose?: boolean; breakEarlyAt?: number; relaxVinylIndicators?: boolean }
 ): Promise<{ results: any[]; hadCandidates: boolean; pageStats?: PageStats }> {
   const videosToCheck = rawItems
   const excludedSet = excludedVideoIds.length > 0 ? new Set(excludedVideoIds) : null
   const verbose = options?.verbose ?? false
   const breakEarlyAt = options?.breakEarlyAt ?? 10
+  const relaxVinylIndicators = options?.relaxVinylIndicators ?? false
 
   const stats: PageStats = {
     rawCount: rawItems.length,
@@ -1259,24 +1324,24 @@ export async function processVideoItems(
       continue // Skip - reject DJ/manipulation videos
     }
 
-    // Must have static indicator OR strong vinyl signal
-    if (!hasStaticIndicator && !hasStrongSignal) {
-      console.log(`[Search] REJECTED: No static visual/vinyl indicators in: ${video.snippet.title}`)
-      stats.indicatorRejectCount++
-      continue // Skip - must have at least one static visual or strong vinyl indicator
-    }
-
-    const requiredIndicators = [...requiredStaticIndicators, ...strongVinylSignals]
-    const hasRequiredIndicator = requiredIndicators.some(indicator =>
-      titleLower.includes(indicator) ||
-      channelLower.includes(indicator) ||
-      descLower.includes(indicator)
-    )
-
-    if (!hasRequiredIndicator) {
-      console.log(`[Search] REJECTED: No vinyl/album indicators in: ${video.snippet.title}`)
-      stats.indicatorRejectCount++
-      continue // Skip - must have at least one vinyl/album indicator
+    // Must have static indicator OR strong vinyl signal (skip when relaxVinylIndicators for crate-digger artist/album searches)
+    if (!relaxVinylIndicators) {
+      if (!hasStaticIndicator && !hasStrongSignal) {
+        console.log(`[Search] REJECTED: No static visual/vinyl indicators in: ${video.snippet.title}`)
+        stats.indicatorRejectCount++
+        continue // Skip - must have at least one static visual or strong vinyl indicator
+      }
+      const requiredIndicators = [...requiredStaticIndicators, ...strongVinylSignals]
+      const hasRequiredIndicator = requiredIndicators.some(indicator =>
+        titleLower.includes(indicator) ||
+        channelLower.includes(indicator) ||
+        descLower.includes(indicator)
+      )
+      if (!hasRequiredIndicator) {
+        console.log(`[Search] REJECTED: No vinyl/album indicators in: ${video.snippet.title}`)
+        stats.indicatorRejectCount++
+        continue // Skip - must have at least one vinyl/album indicator
+      }
     }
     
     // Additional filter: Modern hip-hop/rap artists (mainstream, not rare vinyl)
@@ -1399,13 +1464,14 @@ export async function processVideoItems(
     // This saves database calls and speeds up search significantly
     const channelReputation = 0.5 // Default neutral reputation (was: await getChannelReputation(...))
     
-    // Calculate VinylRipScore
+    // Calculate VinylRipScore (pass relaxVinylIndicators so crate-digger queries don't get -80)
     const vinylRipScore = calculateVinylRipScore(
       video.snippet.title,
       video.snippet.channelTitle,
       details.description || "",
       details.duration,
-      channelReputation
+      channelReputation,
+      relaxVinylIndicators
     )
     
     // Accept videos with score >= 20 AND must have STATIC visual indicators
@@ -1458,9 +1524,9 @@ export async function processVideoItems(
     }
 
     // Only accept videos with:
-    // 1. Score >= 20 (increased from 15)
-    // 2. AND has static visual indicator OR strong vinyl signal
-    if (vinylRipScore >= 15 && (hasStaticVisualIndicator || hasStrongVinylSignal)) {
+    // 1. Score >= 15
+    // 2. AND (relaxed mode for crate-digger, OR has static visual indicator OR strong vinyl signal)
+    if (vinylRipScore >= 15 && (relaxVinylIndicators || hasStaticVisualIndicator || hasStrongVinylSignal)) {
       stats.passedCount++
       scoredVideos.push({
         ...video,
@@ -1507,12 +1573,17 @@ export async function searchWithQueryPaginated(
   pageToken?: string,
   options?: { verbose?: boolean }
 ): Promise<{ results: any[]; nextPageToken?: string; hadCandidates: boolean; pageStats?: PageStats }> {
-  if (!getFirstYouTubeApiKey()) {
+  const useScraper = process.env.USE_YOUTUBE_SCRAPER === "true"
+  if (!useScraper && !getFirstYouTubeApiKey()) {
     throw new Error("No YouTube API key set. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
   }
   const { items, nextPageToken } = await fetchSearchPage(query, publishedBeforeDate, pageToken)
   if (!items.length) {
     return { results: [], nextPageToken, hadCandidates: false }
+  }
+  if (useScraper) {
+    const out = processVideoItemsScraperOnly(items, excludedVideoIds)
+    return { results: out.results, nextPageToken, hadCandidates: out.hadCandidates }
   }
   const out = await processVideoItems(items, query, excludedVideoIds, options)
   return {
@@ -1571,15 +1642,32 @@ export async function findRandomSample(
   let usedQuery = ""
   let lastError: Error | null = null
 
+  // Crate digger pass (25%): try a random artist/album from the 700+ reference list
+  if (validVideos.length === 0 && Math.random() < 0.25) {
+    try {
+      const crateQuery = getRandomCrateDiggerQuery()
+      usedQuery = crateQuery
+      validVideos = await searchWithQuery(crateQuery, false, excludedVideoIds)
+      if (validVideos.length > 0) {
+        console.log(`[Dig] Crate digger pass: Found ${validVideos.length} videos`)
+      }
+    } catch (error: any) {
+      console.warn(`[Dig] Crate digger pass error:`, error?.message)
+      lastError = error
+    }
+  }
+
   // First pass: Try high-signal query templates (pre-2000s default)
-  try {
-    const queryTemplate = getRandomQueryTemplate()
-    usedQuery = queryTemplate
-    validVideos = await searchWithQuery(queryTemplate, false, excludedVideoIds)
-    console.log(`[Dig] First pass: Found ${validVideos.length} videos`)
-  } catch (error: any) {
-    console.warn(`[Dig] First pass error:`, error?.message)
-    lastError = error
+  if (validVideos.length === 0) {
+    try {
+      const queryTemplate = getRandomQueryTemplate()
+      usedQuery = queryTemplate
+      validVideos = await searchWithQuery(queryTemplate, false, excludedVideoIds)
+      console.log(`[Dig] First pass: Found ${validVideos.length} videos`)
+    } catch (error: any) {
+      console.warn(`[Dig] First pass error:`, error?.message)
+      lastError = error
+    }
   }
   
   // Second pass: If no results, try another template
