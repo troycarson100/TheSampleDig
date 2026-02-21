@@ -3,6 +3,8 @@
  * Used by discover-playlists to find playlists via YouTube API search (type=playlist).
  */
 
+import { getCrateDiggerPlaylistQueries } from "./crate-digger-list"
+
 /** Queries aimed at "rare samples" and vintage vinyl (genres + artists/albums). */
 export const DISCOVER_PLAYLIST_QUERIES = [
   // General / rare samples
@@ -47,4 +49,6 @@ export const DISCOVER_PLAYLIST_QUERIES = [
   "Bruton library music vinyl",
   "private press soul funk",
   "deep funk 70s vinyl",
+  // Crate digger list (700+ reference albums) — subset for playlist discovery
+  ...getCrateDiggerPlaylistQueries(120),
 ]

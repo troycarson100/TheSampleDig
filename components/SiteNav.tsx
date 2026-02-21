@@ -49,6 +49,9 @@ export default function SiteNav() {
 
   const closeMenu = () => setMenuOpen(false)
 
+  // Use current origin so sign-out always redirects to this site (e.g. sampleroll.com), not NEXTAUTH_URL (e.g. stock DO URL)
+  const signOutCallbackUrl = typeof window !== "undefined" ? `${window.location.origin}/` : "/"
+
   return (
     <>
       <nav className="flex items-center justify-between w-full h-full gap-4">
@@ -113,7 +116,7 @@ export default function SiteNav() {
           {session ? (
             <button
               type="button"
-              onClick={() => signOut({ callbackUrl: "/" })}
+              onClick={() => signOut({ callbackUrl: signOutCallbackUrl })}
               className="sign-out-btn cursor-pointer hidden md:inline-flex"
             >
               Sign out
@@ -200,7 +203,7 @@ export default function SiteNav() {
                 type="button"
                 onClick={() => {
                   closeMenu()
-                  signOut({ callbackUrl: "/" })
+                  signOut({ callbackUrl: signOutCallbackUrl })
                 }}
                 className="sign-out-btn w-full flex justify-center"
               >

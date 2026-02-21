@@ -4,13 +4,32 @@
  */
 
 import { spawn } from 'child_process'
-import { createWriteStream, unlinkSync, existsSync } from 'fs'
+import { createWriteStream, existsSync } from 'fs'
 import { join } from 'path'
 import { promisify } from 'util'
 import { pipeline } from 'stream/promises'
 
 const TEMP_DIR = join(process.cwd(), 'tmp')
+/** Persistent cache so we never have to re-download the same YouTube audio for BPM/key. */
+const AUDIO_CACHE_DIR = join(TEMP_DIR, 'audio-cache')
 const MAX_AUDIO_DURATION = 60 // Analyze first 60 seconds for speed
+
+/**
+ * Path where a cached snippet for a YouTube ID would be stored.
+ * Does not check existence.
+ */
+export function getCachedAudioPath(youtubeId: string): string {
+  return join(AUDIO_CACHE_DIR, `${youtubeId}.wav`)
+}
+
+/**
+ * Returns the path to cached audio for this YouTube ID if the file exists; otherwise null.
+ * Use this to re-analyze BPM/key without re-downloading.
+ */
+export function findCachedAudio(youtubeId: string): string | null {
+  const path = getCachedAudioPath(youtubeId)
+  return existsSync(path) ? path : null
+}
 
 export interface AnalysisResult {
   bpm: number | null
@@ -78,10 +97,13 @@ async function downloadYouTubeAudio(
 /** Preferred BPM range for sample material (avoids 2x / 0.5x octave errors). */
 const BPM_MIN = 55
 const BPM_MAX = 175
+/** Sweet spot for sample material; when multiple candidates in range, prefer closest to this (reduces double-speed). */
+const BPM_PREFERRED_CENTER = 92
 
 /**
  * Analyze audio file for BPM using librosa with tempo folding to fix 2x/half-time errors.
- * Uses harmonic-percussive separation and runs tempo on the percussive component for more stable BPM on drum-heavy material.
+ * Always considers halved/doubled candidates even when raw is in-range, then picks the one
+ * closest to BPM_PREFERRED_CENTER to avoid double-speed (e.g. 140 -> 70).
  */
 async function detectBPM(audioPath: string): Promise<number | null> {
   try {
@@ -94,34 +116,38 @@ import sys
 import json
 import numpy as np
 
+BPM_MIN = ${BPM_MIN}
+BPM_MAX = ${BPM_MAX}
+BPM_PREFERRED = ${BPM_PREFERRED_CENTER}
+
 def fold_tempo_to_range(tempo):
-    """Correct 2x (double-time) and 0.5x (half-time) octave errors. Prefer 55-175 BPM."""
+    """Build all 2x/0.5x candidates, keep in-range, prefer closest to BPM_PREFERRED (fixes double-speed)."""
     if tempo is None or tempo <= 0:
         return None
     candidates = [tempo]
-    if tempo > BPM_MAX:
+    if tempo > BPM_MIN:
         candidates.append(tempo / 2)
-        if tempo > BPM_MAX * 2:
+        if tempo > BPM_MIN * 2:
             candidates.append(tempo / 4)
-    if tempo < BPM_MIN:
+    if tempo < BPM_MAX:
         candidates.append(tempo * 2)
-        if tempo < BPM_MIN / 2:
+        if tempo < BPM_MAX / 2:
             candidates.append(tempo * 4)
     in_range = [c for c in candidates if BPM_MIN <= c <= BPM_MAX]
-    if in_range:
-        return round(in_range[0])
-    mid = (BPM_MIN + BPM_MAX) / 2
-    best = min(candidates, key=lambda c: abs(c - mid))
+    if not in_range:
+        mid = (BPM_MIN + BPM_MAX) / 2
+        best = min(candidates, key=lambda c: abs(c - mid))
+        return round(best)
+    # Prefer candidate closest to sweet spot (reduces double-speed: 140 and 70 -> prefer 70)
+    best = min(in_range, key=lambda c: abs(c - BPM_PREFERRED))
     return round(best)
-
-BPM_MIN = ${BPM_MIN}
-BPM_MAX = ${BPM_MAX}
 
 try:
     y, sr = librosa.load(sys.argv[1], duration=45)
-    # Harmonic-percussive separation: run tempo on percussive for more stable BPM on drums/beats
-    y_harm, y_perc = librosa.effects.harmonic_percussive_separate(y, margin=2.0)
-    # Prefer percussive (drums); fall back to full signal if percussive is too quiet
+    try:
+        y_harm, y_perc = librosa.effects.harmonic_percussive_separate(y, margin=2.0)
+    except AttributeError:
+        y_harm, y_perc = y, y
     if np.sqrt(np.mean(y_perc ** 2)) < 0.01:
         y_use = y
     else:
@@ -134,7 +160,6 @@ except Exception as e:
     print(json.dumps({"error": str(e)}))
     sys.exit(1)
         `,
-        '--',
         audioPath
       ])
 
@@ -188,7 +213,7 @@ except Exception as e:
 }
 
 /**
- * Detect musical key using chroma from the harmonic component (HPSS) and optional multi-segment voting for stability.
+ * Detect musical key using CQT chroma (more accurate pitch), smoothing, and multi-segment voting.
  */
 async function detectKey(audioPath: string): Promise<string | null> {
   try {
@@ -200,47 +225,61 @@ import librosa
 import sys
 import json
 import numpy as np
+from collections import Counter
+
+# Krumhansl-Schmuckler profiles
+major_profile = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
+minor_profile = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
+keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
+# Small bias for very common keys when scores are close (soul/funk/sample material)
+common_key_bias = {'C': 0.03, 'Cm': 0.03, 'G': 0.02, 'Gm': 0.02, 'Am': 0.03, 'F': 0.02, 'Dm': 0.02, 'Em': 0.02}
 
 def chroma_to_key(chroma_mean):
-    major_profile = np.array([6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88])
-    minor_profile = np.array([6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17])
-    keys = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B']
     best_key, best_score = None, -np.inf
     for i in range(12):
         major_score = np.dot(chroma_mean, np.roll(major_profile, i))
+        key_name = keys[i]
+        if key_name in common_key_bias:
+            major_score += common_key_bias[key_name]
         if major_score > best_score:
-            best_score, best_key = major_score, keys[i]
+            best_score, best_key = major_score, key_name
         minor_score = np.dot(chroma_mean, np.roll(minor_profile, i))
+        key_name_m = keys[i] + 'm'
+        if key_name_m in common_key_bias:
+            minor_score += common_key_bias[key_name_m]
         if minor_score > best_score:
-            best_score, best_key = minor_score, keys[i] + 'm'
+            best_score, best_key = minor_score, key_name_m
     return best_key
 
 try:
     y, sr = librosa.load(sys.argv[1], duration=45)
-    # Use harmonic component only for chroma (reduces drum/percussion noise)
-    y_harm, y_perc = librosa.effects.harmonic_percussive_separate(y, margin=2.0)
-    # Multi-segment: compute key on 15s windows and vote
+    try:
+        y_harm, y_perc = librosa.effects.harmonic_percussive_separate(y, margin=2.0)
+    except AttributeError:
+        y_harm = y
     segment_frames = 15 * sr
-    keys = []
-    for start in range(0, min(len(y_harm), 45 * sr) - segment_frames, int(segment_frames)):
+    segment_keys = []
+    n_frames = min(len(y_harm), 45 * sr)
+    for start in range(0, n_frames - segment_frames, int(segment_frames)):
         seg = y_harm[start:start + segment_frames]
-        chroma = librosa.feature.chroma_stft(y=seg, sr=sr)
-        chroma_mean = np.mean(chroma, axis=1)
-        keys.append(chroma_to_key(chroma_mean))
-    if not keys:
-        chroma = librosa.feature.chroma_stft(y=y_harm, sr=sr)
-        chroma_mean = np.mean(chroma, axis=1)
-        best_key = chroma_to_key(chroma_mean)
+        # CQT chroma: better pitch resolution than STFT
+        chroma = librosa.feature.chroma_cqt(y=seg, sr=sr, hop_length=2048)
+        # Smooth: median over time (reduces noise, stabilizes key)
+        chroma_smooth = np.median(chroma, axis=1)
+        chroma_smooth = chroma_smooth / (np.linalg.norm(chroma_smooth) + 1e-8)
+        segment_keys.append(chroma_to_key(chroma_smooth))
+    if not segment_keys:
+        chroma = librosa.feature.chroma_cqt(y=y_harm, sr=sr, hop_length=2048)
+        chroma_smooth = np.median(chroma, axis=1)
+        chroma_smooth = chroma_smooth / (np.linalg.norm(chroma_smooth) + 1e-8)
+        best_key = chroma_to_key(chroma_smooth)
     else:
-        # Vote: most common key wins
-        from collections import Counter
-        best_key = Counter(keys).most_common(1)[0][0]
+        best_key = Counter(segment_keys).most_common(1)[0][0]
     print(json.dumps({"key": best_key}))
 except Exception as e:
     print(json.dumps({"error": str(e)}))
     sys.exit(1)
         `,
-        '--',
         audioPath
       ])
 
@@ -270,7 +309,17 @@ except Exception as e:
             resolve(null)
           }
         } else {
-          console.error('Python key detection failed:', errorOutput)
+          // Python writes exceptions to stdout as {"error": "..."}; stderr is often empty
+          let msg = errorOutput.trim()
+          if (!msg && output.trim()) {
+            try {
+              const parsed = JSON.parse(output.trim()) as { error?: string }
+              if (parsed.error) msg = parsed.error
+            } catch {
+              msg = output.trim().slice(0, 200)
+            }
+          }
+          console.error('Python key detection failed:', msg || `exit code ${code}`)
           resolve(null)
         }
       })
@@ -305,46 +354,52 @@ export async function analyzeAudioFile(
 }
 
 /**
- * Main analysis function
- * Downloads audio from YouTube and analyzes BPM and key
+ * Re-analyze BPM/key from cached audio only. No download.
+ * Returns null if no cached file exists for this youtubeId.
+ */
+export async function reAnalyzeFromCache(youtubeId: string): Promise<AnalysisResult | null> {
+  const path = findCachedAudio(youtubeId)
+  if (!path) return null
+  const result = await analyzeAudioFile(path)
+  return result
+}
+
+/**
+ * Main analysis function.
+ * Uses persistent cache: if audio already exists at cache path, skips download.
+ * Never deletes the cached file so we never have to re-download for the same video.
  */
 export async function analyzeYouTubeVideo(
   youtubeId: string
 ): Promise<AnalysisResult> {
-  const audioPath = join(TEMP_DIR, `${youtubeId}.wav`)
+  const audioPath = getCachedAudioPath(youtubeId)
 
   try {
     console.log(`[Analysis] Starting for ${youtubeId}`)
-    
-    // Ensure temp directory exists
+
     const { mkdir } = await import('fs/promises')
-    try {
-      await mkdir(TEMP_DIR, { recursive: true })
-      console.log(`[Analysis] Temp directory ready: ${TEMP_DIR}`)
-    } catch (e) {
-      // Directory might already exist
-      console.log(`[Analysis] Temp directory already exists`)
+    await mkdir(AUDIO_CACHE_DIR, { recursive: true })
+
+    if (!existsSync(audioPath)) {
+      console.log(`[Analysis] Downloading audio for ${youtubeId}...`)
+      const downloadPromise = downloadYouTubeAudio(youtubeId, audioPath)
+      const downloadTimeout = new Promise<never>((_, reject) => {
+        setTimeout(() => {
+          console.warn(`[Analysis] Download timeout after 15 seconds for ${youtubeId}`)
+          reject(new Error('Download timeout after 15 seconds'))
+        }, 15000)
+      })
+      try {
+        await Promise.race([downloadPromise, downloadTimeout])
+        console.log(`[Analysis] Audio downloaded: ${audioPath}`)
+      } catch (downloadError: any) {
+        console.error(`[Analysis] Download failed for ${youtubeId}:`, downloadError?.message)
+        return { bpm: null, key: null }
+      }
+    } else {
+      console.log(`[Analysis] Using cached audio: ${audioPath}`)
     }
 
-    // Download audio with shorter timeout (15 seconds)
-    console.log(`[Analysis] Downloading audio for ${youtubeId}...`)
-    const downloadPromise = downloadYouTubeAudio(youtubeId, audioPath)
-    const downloadTimeout = new Promise<never>((_, reject) => {
-      setTimeout(() => {
-        console.warn(`[Analysis] Download timeout after 15 seconds for ${youtubeId}`)
-        reject(new Error('Download timeout after 15 seconds'))
-      }, 15000) // Reduced to 15 seconds
-    })
-    
-    try {
-      await Promise.race([downloadPromise, downloadTimeout])
-      console.log(`[Analysis] Audio downloaded: ${audioPath}`)
-    } catch (downloadError: any) {
-      console.error(`[Analysis] Download failed for ${youtubeId}:`, downloadError?.message)
-      return { bpm: null, key: null }
-    }
-
-    // Analyze BPM and key in parallel with shorter timeout (10 seconds)
     console.log(`[Analysis] Starting BPM and key detection...`)
     const analysisPromise = Promise.all([
       detectBPM(audioPath),
@@ -354,33 +409,14 @@ export async function analyzeYouTubeVideo(
       setTimeout(() => {
         console.warn(`[Analysis] Analysis timeout after 10 seconds for ${youtubeId}`)
         resolve([null, null])
-      }, 10000) // Reduced to 10 seconds
+      }, 10000)
     })
-    
+
     const [bpm, key] = await Promise.race([analysisPromise, analysisTimeout])
     console.log(`[Analysis] Complete - BPM: ${bpm}, Key: ${key}`)
 
-    // Cleanup
-    try {
-      if (existsSync(audioPath)) {
-        unlinkSync(audioPath)
-        console.log(`[Analysis] Cleaned up audio file`)
-      }
-    } catch (e) {
-      console.warn('Failed to cleanup audio file:', e)
-    }
-
     return { bpm, key }
   } catch (error: any) {
-    // Cleanup on error
-    try {
-      if (existsSync(audioPath)) {
-        unlinkSync(audioPath)
-      }
-    } catch (e) {
-      // Ignore cleanup errors
-    }
-
     console.error(`[Analysis] Error for ${youtubeId}:`, error?.message || error)
     return { bpm: null, key: null }
   }

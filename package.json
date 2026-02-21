@@ -2,9 +2,12 @@
   "name": "thesampledig",
   "version": "0.1.0",
   "private": true,
-  "engines": { "node": "20.x" },
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "node scripts/start-dev.js",
+    "dev:clean": "node -e \"require('fs').rmSync('.next',{recursive:true,force:true})\" && node scripts/start-dev.js",
     "dev:open": "bash scripts/run-dev-and-open.sh",
     "dev:direct": "next dev -p 3000",
     "dev:webpack": "next dev -p 3000 -H 0.0.0.0 --webpack",
@@ -16,10 +19,13 @@
     "start": "next start",
     "lint": "eslint",
     "check-quota": "node -r dotenv/config scripts/check-youtube-quota.js",
-    "postinstall": "node scripts/fix-node-releases-json.js && node scripts/fix-prisma-default.js && node scripts/copy-worklet.js && node scripts/fix-next-compiled-package-json.js && node scripts/fix-fast-glob-package-json.js && node scripts/fix-caniuse-lite-unpacker.js && node scripts/fix-jose-if-incomplete.js",
+    "postinstall": "npx prisma generate && node scripts/fix-node-releases-json.js && node scripts/fix-prisma-default.js && node scripts/copy-worklet.js && node scripts/fix-next-compiled-package-json.js && node scripts/fix-fast-glob-package-json.js && node scripts/fix-caniuse-lite-unpacker.js && node scripts/fix-jose-if-incomplete.js",
     "backfill-bpm-key": "tsx scripts/backfill-bpm-key.ts",
     "backfill-bpm-key-ytdlp": "tsx scripts/backfill-bpm-key-ytdlp.ts",
-    "export-samples-list": "tsx scripts/export-samples-for-bpm-key.ts"
+    "backfill-reanalyze": "npx tsx@latest scripts/backfill-reanalyze-bpm-key.ts",
+    "export-samples-list": "tsx scripts/export-samples-for-bpm-key.ts",
+    "populate-300-japanese": "USE_YOUTUBE_SCRAPER=true tsx scripts/populate-300-rare-japanese-tracks.ts",
+    "populate-500-jazz": "USE_YOUTUBE_SCRAPER=true tsx scripts/populate-500-rare-vintage-jazz.ts"
   },
   "dependencies": {
     "@prisma/client": "^5.19.0",
@@ -28,6 +34,7 @@
     "bcryptjs": "^3.0.3",
     "next": "16.1.6",
     "next-auth": "^5.0.0-beta.30",
+    "playwright": "^1.58.2",
     "prisma": "^5.19.0",
     "react": "19.2.3",
     "react-dom": "19.2.3",
@@ -41,9 +48,10 @@
     "dotenv": "^16.6.1",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "pdf-parse": "^2.4.5",
     "postcss": "^8.4.49",
     "tailwindcss": "^3.4.17",
-    "tsx": "^4.19.2",
+    "tsx": "^4.20.0",
     "typescript": "^5"
   }
 }

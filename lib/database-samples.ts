@@ -3,8 +3,84 @@
  * Gets samples from pre-populated database instead of live YouTube API calls
  */
 
+import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db"
 import { YouTubeVideo } from "@/types/sample"
+
+/** PostgreSQL regex: at least one character in Hiragana, Katakana, or CJK Unified Ideographs (common Kanji). Inlined in SQL to avoid parameter encoding issues. */
+const JAPANESE_TITLE_REGEX_LITERAL = "[ぁ-んァ-ン一-龥]"
+
+/**
+ * Get a random sample when genre filter is "japanese": matches genre, tags containing "japanese",
+ * or title/channel containing Japanese script (Hiragana, Katakana, Kanji). Uses raw SQL for regex.
+ */
+async function getRandomSampleJapanese(
+  excludeIds: string[],
+  era?: string,
+  drumBreakOnly?: boolean,
+  royaltyFreeOnly?: boolean
+): Promise<(YouTubeVideo & { genre?: string; era?: string; duration?: number }) | null> {
+  const excludeCondition =
+    excludeIds.length === 0
+      ? Prisma.sql`true`
+      : Prisma.sql`s.youtube_id NOT IN (${Prisma.join(excludeIds.map((id) => Prisma.sql`${id}`), Prisma.sql`, `)})`
+  // Use Prisma.raw for regex so pattern is inlined (constant, no injection); parameterized regex can break in some drivers
+  const japaneseMatch = Prisma.raw(
+    `(s.genre ILIKE 'japanese' OR s.tags ILIKE '%japanese%' OR s.title ~ '${JAPANESE_TITLE_REGEX_LITERAL.replace(/'/g, "''")}' OR s.channel ~ '${JAPANESE_TITLE_REGEX_LITERAL.replace(/'/g, "''")}')`
+  )
+  const eraCondition =
+    era && era.trim() !== "" && !royaltyFreeOnly ? Prisma.sql`AND s.era = ${era.trim()}` : Prisma.empty
+  const drumCondition =
+    drumBreakOnly && DRUM_BREAK_TITLE_PHRASES.length > 0
+      ? Prisma.sql`AND (${Prisma.join(
+          DRUM_BREAK_TITLE_PHRASES.map((p) => Prisma.sql`s.title ILIKE ${"%" + p + "%"}`),
+          Prisma.sql` OR `
+        )})`
+      : Prisma.empty
+  const royaltyCondition =
+    royaltyFreeOnly && ROYALTY_FREE_TITLE_PHRASES.length > 0
+      ? Prisma.sql`AND (${Prisma.join(
+          ROYALTY_FREE_TITLE_PHRASES.map((p) => Prisma.sql`s.title ILIKE ${"%" + p + "%"}`),
+          Prisma.sql` OR `
+        )})`
+      : Prisma.empty
+
+  type Row = {
+    youtube_id: string
+    title: string
+    channel: string
+    channel_id: string | null
+    thumbnail_url: string
+    created_at: Date
+    genre: string | null
+    era: string | null
+    duration_seconds: number | null
+  }
+  const rows = await prisma.$queryRaw<Row[]>`
+    SELECT s.youtube_id, s.title, s.channel, s.channel_id, s.thumbnail_url, s.created_at, s.genre, s.era, s.duration_seconds
+    FROM samples s
+    WHERE ${excludeCondition}
+      AND ${japaneseMatch}
+      ${eraCondition}
+      ${drumCondition}
+      ${royaltyCondition}
+    ORDER BY random()
+    LIMIT 1
+  `
+  const row = rows[0]
+  if (!row) return null
+  return {
+    id: row.youtube_id,
+    title: row.title,
+    channelTitle: row.channel,
+    channelId: row.channel_id ?? undefined,
+    thumbnail: row.thumbnail_url,
+    publishedAt: row.created_at.toISOString(),
+    genre: row.genre ?? undefined,
+    era: row.era ?? undefined,
+    duration: row.duration_seconds ?? undefined,
+  }
+}
 
 /** Title phrases that suggest a drum-break or breakbeat video (case-insensitive match) */
 const DRUM_BREAK_TITLE_PHRASES = [
@@ -78,19 +154,45 @@ export async function getRandomSampleFromDatabase(
     
     // Log exclusion details for debugging
     console.log(`[DB] Excluding ${excludeIds.length} videos (${excludeIds.slice(0, 3).join(", ")}${excludeIds.length > 3 ? "..." : ""})${genre ? `, genre=${genre}` : ""}${era && !royaltyFreeOnly ? `, era=${era}` : ""}${drumBreakOnly ? ", drumBreakOnly=true" : ""}${royaltyFreeOnly ? ", royaltyFreeOnly=true" : ""}`)
-    
+
+    // Japanese filter: try raw SQL (genre/tags/title/channel with Japanese script) first; on error fall back to Prisma (genre OR tags only)
+    if (genre?.trim().toLowerCase() === "japanese") {
+      try {
+        const jp = await getRandomSampleJapanese(
+          excludeIds,
+          era?.trim() || undefined,
+          drumBreakOnly,
+          royaltyFreeOnly
+        )
+        if (jp) return jp
+      } catch (err) {
+        console.error("[DB] Japanese raw query failed, using Prisma fallback:", (err as Error)?.message)
+      }
+    }
+
     // Build where: exclusions + optional genre + optional era (skipped when royaltyFree) + optional title filters
     type WhereClause = {
       youtubeId?: { notIn: string[] }
       genre?: { equals: string; mode: "insensitive" }
       era?: { equals: string }
-      OR?: { title: { contains: string; mode: "insensitive" } }[]
+      OR?: Array<
+        | { genre: { equals: string; mode: "insensitive" } }
+        | { tags: { contains: string; mode: "insensitive" } }
+      >
       AND?: { OR: { title: { contains: string; mode: "insensitive" } }[] }[]
     }
     const whereClause: WhereClause =
       excludeIds.length > 0 ? { youtubeId: { notIn: excludeIds } } : {}
     if (genre && genre.trim() !== "") {
-      whereClause.genre = { equals: genre.trim(), mode: "insensitive" }
+      const g = genre.trim()
+      if (g.toLowerCase() === "japanese") {
+        whereClause.OR = [
+          { genre: { equals: g, mode: "insensitive" } },
+          { tags: { contains: "japanese", mode: "insensitive" } },
+        ]
+      } else {
+        whereClause.genre = { equals: g, mode: "insensitive" }
+      }
     }
     if (era && era.trim() !== "" && !royaltyFreeOnly) {
       whereClause.era = { equals: era.trim() }

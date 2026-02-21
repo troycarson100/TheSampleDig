@@ -52,12 +52,13 @@ export const HARD_FILTER_WORD_BOUNDARY_TITLE_CHANNEL = new Set(["nas"])
 
 // Hard filter patterns (immediate rejection)
 export const HARD_FILTER_PATTERNS = {
-  // Title/channel patterns
+  // Title/channel patterns (live/cover/performance - same as old API search)
   titleChannel: [
-    "live", "session", "sessions", "mic sessions", "rehearsal", "tutorial", "lesson",
+    "live", " (live)", "(live)", "live at", "live from", "live in ", "live recording", "live session", "live performance", "live concert", "live)",
+    "session", "sessions", "mic sessions", "rehearsal", "tutorial", "lesson",
     "backing track", "karaoke", "remix", "remixed", "remixes", "tribute",
     "how to play", "tabs", "playthrough", "guitar cover", "drum cover", "piano cover", "bass cover",
-    "cover by", "cover song", "cover version", "covered by", "instrumental cover",
+    "cover by", "cover song", "cover version", "covered by", "instrumental cover", " (cover)", "(cover)", " - cover ",
     "official video", "music video", "official audio", "official music video",
     "mv", "official mv",
     "interview", "interviews", "talks about", "discusses", "explains",
@@ -104,9 +105,10 @@ export const HARD_FILTER_PATTERNS = {
     "humble", "dna", "alright", "good kid", "maad city",
     "no role modelz", "work out", "crooked smile", "power trip"
   ],
-  // Description patterns
+  // Description patterns (live/cover - same as old API search)
   description: [
     "performed by", "recorded live", "filmed at", "my cover",
+    "live recording", "live at", "live from", "live performance", "in concert", "cover of",
     "gear used", "lesson", "tutorial", "how to",
     "interview", "talks about", "discusses", "explains",
     "filming", "record player setup",

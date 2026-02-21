@@ -11,7 +11,7 @@ If you see **"There is a problem with the server configuration"** on login, the 
 | Variable | Required | Example / notes |
 |----------|----------|------------------|
 | `NEXTAUTH_SECRET` or `AUTH_SECRET` | **Yes** (one of them) | Generate with `openssl rand -base64 32`. Used to sign sessions; **must** be set in production or login fails. |
-| `NEXTAUTH_URL` | **Yes** | Your production URL, e.g. `https://sampleroll.com` or `https://your-app-xxxx.ondigitalocean.app`. No trailing slash. Must match the URL users actually use. |
+| `NEXTAUTH_URL` | **Yes** | Your production URL, e.g. `https://sampleroll.com`. No trailing slash. **Use your custom domain** (e.g. `https://sampleroll.com`), not the stock `*.ondigitalocean.app` URL—otherwise logout can redirect users to the DO default site and session can appear to persist on the custom domain. |
 
 The app uses `trustHost: true` so it works behind DigitalOcean’s proxy; you still must set the secret and URL above.
 

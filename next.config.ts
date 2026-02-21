@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
+  // Don't bundle playwright (native/binary deps); resolve at runtime
+  serverExternalPackages: ["playwright"],
   // Avoid PackFileCacheStrategy ENOENT rename errors (path with spaces / cache dir race)
   webpack: (config, { dev }) => {
     if (dev) config.cache = { type: "memory" };

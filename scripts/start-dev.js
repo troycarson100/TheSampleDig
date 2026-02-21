@@ -71,6 +71,27 @@ try {
   // ignore
 }
 
+// Prevent ENOTEMPTY when Next.js tries to rmdir .next/dev/static (stale cache)
+const staticDir = path.join(rootDir, ".next", "dev", "static")
+function emptyDir(dir) {
+  if (!fs.existsSync(dir)) return
+  try {
+    for (const name of fs.readdirSync(dir)) {
+      const full = path.join(dir, name)
+      const stat = fs.statSync(full)
+      if (stat.isDirectory()) {
+        emptyDir(full)
+        fs.rmdirSync(full)
+      } else {
+        fs.unlinkSync(full)
+      }
+    }
+  } catch (e) {
+    console.warn("[start-dev] Could not clear .next/dev/static:", e.message)
+  }
+}
+emptyDir(staticDir)
+
 function waitForPortThenStart() {
   const start = Date.now()
   function check() {

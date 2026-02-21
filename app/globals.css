@@ -1274,7 +1274,9 @@ body.theme-vinyl::before {
 .theme-vinyl .profile-key-select {
   font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
   font-size: 9px;
-  letter-spacing: 0.1em;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   color: var(--brown);
   background: white;
   border: 1px solid rgba(74, 55, 40, 0.12);

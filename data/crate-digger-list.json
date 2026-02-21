@@ -1,0 +1,3295 @@
+[
+  {
+    "artist": "James Brown",
+    "album": "In the Jungle Groove",
+    "year": 1986
+  },
+  {
+    "artist": "James Brown",
+    "album": "Sex Machine",
+    "year": 1970,
+    "category": "Funk"
+  },
+  {
+    "artist": "James Brown",
+    "album": "Super Bad",
+    "year": 1971,
+    "category": "Funk"
+  },
+  {
+    "artist": "The Meters",
+    "album": "Look-Ka Py Py",
+    "year": 1969,
+    "category": "Funk"
+  },
+  {
+    "artist": "The Meters",
+    "album": "Struttin'",
+    "year": 1970,
+    "category": "Funk"
+  },
+  {
+    "artist": "The Meters",
+    "album": "Cissy Strut",
+    "year": 1969,
+    "category": "Funk"
+  },
+  {
+    "artist": "Sly & The Family Stone",
+    "album": "There's a Riot Goin' On",
+    "year": 1971,
+    "category": "Funk"
+  },
+  {
+    "artist": "Sly & The Family Stone",
+    "album": "Stand!",
+    "year": 1969,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Parliament",
+    "album": "Mothership Connection",
+    "year": 1975,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Parliament",
+    "album": "The Clones of Dr. Funkenstein",
+    "year": 1976,
+    "category": "P-Funk"
+  },
+  {
+    "artist": "Funkadelic",
+    "album": "Maggot Brain",
+    "year": 1971,
+    "category": "P-Funk"
+  },
+  {
+    "artist": "Funkadelic",
+    "album": "One Nation Under a Groove",
+    "year": 1978,
+    "category": "Funk/Psych"
+  },
+  {
+    "artist": "Funkadelic",
+    "album": "Free Your Mind...and Your Ass Will Follow",
+    "year": 1970,
+    "category": "P-Funk"
+  },
+  {
+    "artist": "Marvin Gaye",
+    "album": "What's Going On",
+    "year": 1971,
+    "category": "Funk/Psych"
+  },
+  {
+    "artist": "Marvin Gaye",
+    "album": "Let's Get It On",
+    "year": 1973,
+    "category": "Soul"
+  },
+  {
+    "artist": "Al Green",
+    "album": "Call Me",
+    "year": 1973,
+    "category": "Soul"
+  },
+  {
+    "artist": "Al Green",
+    "album": "I'm Still in Love with You",
+    "year": 1972,
+    "category": "Soul"
+  },
+  {
+    "artist": "Curtis Mayfield",
+    "album": "Superfly (OST)",
+    "year": 1972,
+    "category": "Soul"
+  },
+  {
+    "artist": "Curtis Mayfield",
+    "album": "Roots",
+    "year": 1971,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Curtis Mayfield",
+    "album": "There's No Place Like America Today",
+    "year": 1975,
+    "category": "Soul"
+  },
+  {
+    "artist": "Donny Hathaway",
+    "album": "Extension of a Man",
+    "year": 1973,
+    "category": "Soul"
+  },
+  {
+    "artist": "Donny Hathaway",
+    "album": "Live",
+    "year": 1972,
+    "category": "Soul"
+  },
+  {
+    "artist": "Bill Withers",
+    "album": "Just As I Am",
+    "year": 1971,
+    "category": "Soul"
+  },
+  {
+    "artist": "Bill Withers",
+    "album": "Still Bill",
+    "year": 1972,
+    "category": "Soul"
+  },
+  {
+    "artist": "Isaac Hayes",
+    "album": "Hot Buttered Soul",
+    "year": 1969,
+    "category": "Soul"
+  },
+  {
+    "artist": "Isaac Hayes",
+    "album": "Shaft (OST)",
+    "year": 1971,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Isaac Hayes",
+    "album": "Black Moses",
+    "year": 1971,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Willie Mitchell",
+    "album": "On Top",
+    "year": 1969,
+    "category": "Soul"
+  },
+  {
+    "artist": "Bobby Womack",
+    "album": "Understanding",
+    "year": 1972,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Ann Peebles",
+    "album": "I Can't Stand the Rain",
+    "year": 1973,
+    "category": "Soul"
+  },
+  {
+    "artist": "O.V. Wright",
+    "album": "Into Something (Can't Shake Loose)",
+    "year": 1977,
+    "category": "Soul"
+  },
+  {
+    "artist": "Leon Haywood",
+    "album": "Back to Stay",
+    "year": 1974,
+    "category": "Soul"
+  },
+  {
+    "artist": "Ohio Players",
+    "album": "Fire",
+    "year": 1974,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Ohio Players",
+    "album": "Honey",
+    "year": 1975,
+    "category": "Funk"
+  },
+  {
+    "artist": "Kool & the Gang",
+    "album": "Kool & the Gang",
+    "year": 1969,
+    "category": "Funk"
+  },
+  {
+    "artist": "Kool & the Gang",
+    "album": "Live at the Sex Machine",
+    "year": 1971,
+    "category": "Funk"
+  },
+  {
+    "artist": "Average White Band",
+    "album": "AWB",
+    "year": 1974,
+    "category": "Funk"
+  },
+  {
+    "artist": "Tower of Power",
+    "album": "Bump City",
+    "year": 1972,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Tower of Power",
+    "album": "Tower of Power",
+    "year": 1973,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Cymande",
+    "album": "Cymande",
+    "year": 1972,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Cymande",
+    "album": "Second Time Round",
+    "year": 1973,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Fred Wesley & The JBs",
+    "album": "Damn Right I Am Somebody",
+    "year": 1974,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Maceo & All the King's Men",
+    "album": "Doing Their Own Thing",
+    "year": 1974,
+    "category": "Funk"
+  },
+  {
+    "artist": "Eddie Harris",
+    "album": "Plug Me In",
+    "year": 1968,
+    "category": "Funk"
+  },
+  {
+    "artist": "Marva Whitney",
+    "album": "It's My Thing",
+    "year": 1969,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Lynn Collins",
+    "album": "Think (About It)",
+    "year": 1972,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Lyn Collins",
+    "album": "Check Me Out If You Don't Know Me By Now",
+    "year": 1975,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Millie Jackson",
+    "album": "Caught Up",
+    "year": 1974,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Shirley Brown",
+    "album": "Woman to Woman",
+    "year": 1974,
+    "category": "Soul"
+  },
+  {
+    "artist": "Betty Wright",
+    "album": "Hard to Stop",
+    "year": 1973,
+    "category": "Soul"
+  },
+  {
+    "artist": "Aretha Franklin",
+    "album": "Spirit in the Dark",
+    "year": 1970,
+    "category": "Soul"
+  },
+  {
+    "artist": "Aretha Franklin",
+    "album": "Young, Gifted and Black",
+    "year": 1972,
+    "category": "Soul"
+  },
+  {
+    "artist": "Sam Cooke",
+    "album": "Night Beat",
+    "year": 1963,
+    "category": "Soul"
+  },
+  {
+    "artist": "Otis Redding",
+    "album": "Otis Blue",
+    "year": 1965,
+    "category": "Soul"
+  },
+  {
+    "artist": "Wilson Pickett",
+    "album": "In the Midnight Hour",
+    "year": 1965,
+    "category": "Soul"
+  },
+  {
+    "artist": "Joe Tex",
+    "album": "I Gotcha",
+    "year": 1972,
+    "category": "Soul"
+  },
+  {
+    "artist": "The Isley Brothers",
+    "album": "3+3",
+    "year": 1973,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "The Isley Brothers",
+    "album": "The Heat Is On",
+    "year": 1975,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "The Isley Brothers",
+    "album": "Go for Your Guns",
+    "year": 1977,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Bobby Byrd",
+    "album": "I Know You Got Soul",
+    "year": 1971,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Syl Johnson",
+    "album": "Is It Because I'm Black",
+    "year": 1970,
+    "category": "Funk"
+  },
+  {
+    "artist": "Syl Johnson",
+    "album": "Total Explosion",
+    "year": 1976,
+    "category": "Soul"
+  },
+  {
+    "artist": "Rufus Thomas",
+    "album": "Do the Funky Chicken",
+    "year": 1970,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Staple Singers",
+    "album": "Be Altitude: Respect Yourself",
+    "year": 1972,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Gladys Knight & The Pips",
+    "album": "Imagination",
+    "year": 1973,
+    "category": "Soul/Gospel"
+  },
+  {
+    "artist": "The Temptations",
+    "album": "All Directions",
+    "year": 1972,
+    "category": "Soul"
+  },
+  {
+    "artist": "The Temptations",
+    "album": "Masterpiece",
+    "year": 1973,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Edwin Starr",
+    "album": "War & Peace",
+    "year": 1970,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Jackie Wilson",
+    "album": "Higher and Higher",
+    "year": 1967,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Major Lance",
+    "album": "Um, Um, Um, Um, Um, Um",
+    "year": 1964,
+    "category": "Soul"
+  },
+  {
+    "artist": "Little Willie John",
+    "album": "Fever",
+    "year": 1956,
+    "category": "Soul"
+  },
+  {
+    "artist": "Don Covay",
+    "album": "Mercy!",
+    "year": 1964,
+    "category": "R&B/Soul"
+  },
+  {
+    "artist": "Charles Wright & the Watts 103rd St. Rhythm Band",
+    "album": "Express Yourself",
+    "year": 1970,
+    "category": "Soul/R&B"
+  },
+  {
+    "artist": "The Bar-Kays",
+    "album": "Soul Finger",
+    "year": 1967,
+    "category": "Funk"
+  },
+  {
+    "artist": "The Bar-Kays",
+    "album": "Money Talks",
+    "year": 1978,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Brick",
+    "album": "Good High",
+    "year": 1976,
+    "category": "Funk"
+  },
+  {
+    "artist": "Mandrill",
+    "album": "Composite Truth",
+    "year": 1973,
+    "category": "Funk"
+  },
+  {
+    "artist": "War",
+    "album": "The World Is a Ghetto",
+    "year": 1972,
+    "category": "Funk/Latin"
+  },
+  {
+    "artist": "War",
+    "album": "Deliver the Word",
+    "year": 1973,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Graham Central Station",
+    "album": "Release Yourself",
+    "year": 1974,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Slave",
+    "album": "Slave",
+    "year": 1977,
+    "category": "Funk"
+  },
+  {
+    "artist": "Zapp",
+    "album": "Zapp",
+    "year": 1980,
+    "category": "Funk"
+  },
+  {
+    "artist": "Con Funk Shun",
+    "album": "Secrets",
+    "year": 1977,
+    "category": "Funk"
+  },
+  {
+    "artist": "Brass Construction",
+    "album": "Brass Construction",
+    "year": 1976,
+    "category": "Funk"
+  },
+  {
+    "artist": "B.T. Express",
+    "album": "Do It ('Til You're Satisfied)",
+    "year": 1974,
+    "category": "Funk"
+  },
+  {
+    "artist": "Fatback Band",
+    "album": "Yum Yum (Gimme Some)",
+    "year": 1975,
+    "category": "Funk"
+  },
+  {
+    "artist": "Sugarhill Gang",
+    "album": "8th Wonder",
+    "year": 1981,
+    "category": "Funk"
+  },
+  {
+    "artist": "The Headhunters",
+    "album": "Survival of the Fittest",
+    "year": 1975,
+    "category": "Funk/Early Hip-Hop"
+  },
+  {
+    "artist": "Roy Ayers",
+    "album": "Everybody Loves the Sunshine",
+    "year": 1976,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Roy Ayers",
+    "album": "Ubiquity",
+    "year": 1975,
+    "category": "Jazz/Funk/Soul"
+  },
+  {
+    "artist": "Roy Ayers",
+    "album": "You Send Me",
+    "year": 1978,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Grover Washington Jr.",
+    "album": "Mister Magic",
+    "year": 1975,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Grover Washington Jr.",
+    "album": "Winelight",
+    "year": 1980,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "George Duke",
+    "album": "Feel",
+    "year": 1974,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Lonnie Liston Smith",
+    "album": "Astral Traveling",
+    "year": 1973,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Lonnie Liston Smith",
+    "album": "Expansions",
+    "year": 1974,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Norman Connors",
+    "album": "Saturday Night Special",
+    "year": 1975,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Norman Connors",
+    "album": "You Are My Starship",
+    "year": 1976,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "John Coltrane",
+    "album": "A Love Supreme",
+    "year": 1965,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "John Coltrane",
+    "album": "Giant Steps",
+    "year": 1960,
+    "category": "Spiritual Jazz"
+  },
+  {
+    "artist": "John Coltrane",
+    "album": "My Favorite Things",
+    "year": 1961,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Miles Davis",
+    "album": "Kind of Blue",
+    "year": 1959,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Miles Davis",
+    "album": "Bitches Brew",
+    "year": 1970,
+    "category": "Modal Jazz"
+  },
+  {
+    "artist": "Miles Davis",
+    "album": "In a Silent Way",
+    "year": 1969,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Miles Davis",
+    "album": "On the Corner",
+    "year": 1972,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Miles Davis",
+    "album": "Get Up with It",
+    "year": 1974,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Herbie Hancock",
+    "album": "Head Hunters",
+    "year": 1973,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Herbie Hancock",
+    "album": "Thrust",
+    "year": 1974,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Herbie Hancock",
+    "album": "Inventions and Dimensions",
+    "year": 1964,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Herbie Hancock",
+    "album": "Empyrean Isles",
+    "year": 1964,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Herbie Hancock",
+    "album": "Maiden Voyage",
+    "year": 1965,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Wayne Shorter",
+    "album": "Speak No Evil",
+    "year": 1966,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Wayne Shorter",
+    "album": "Schizophrenia",
+    "year": 1967,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Wayne Shorter",
+    "album": "Super Nova",
+    "year": 1969,
+    "category": "Jazz"
+  },
+  {
+    "artist": "McCoy Tyner",
+    "album": "Sahara",
+    "year": 1972,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "McCoy Tyner",
+    "album": "Extensions",
+    "year": 1970,
+    "category": "Spiritual Jazz"
+  },
+  {
+    "artist": "Pharoah Sanders",
+    "album": "Karma",
+    "year": 1969,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Pharoah Sanders",
+    "album": "Thembi",
+    "year": 1971,
+    "category": "Spiritual Jazz"
+  },
+  {
+    "artist": "Pharoah Sanders",
+    "album": "Black Unity",
+    "year": 1971,
+    "category": "Spiritual Jazz"
+  },
+  {
+    "artist": "Sun Ra",
+    "album": "Space is the Place (OST)",
+    "year": 1974,
+    "category": "Spiritual Jazz"
+  },
+  {
+    "artist": "Alice Coltrane",
+    "album": "Journey in Satchidananda",
+    "year": 1970,
+    "category": "Avant-Jazz"
+  },
+  {
+    "artist": "Alice Coltrane",
+    "album": "Universal Consciousness",
+    "year": 1971,
+    "category": "Spiritual Jazz"
+  },
+  {
+    "artist": "Horace Silver",
+    "album": "Song for My Father",
+    "year": 1964,
+    "category": "Spiritual Jazz"
+  },
+  {
+    "artist": "Horace Silver",
+    "album": "The Cape Verdean Blues",
+    "year": 1965,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Lee Morgan",
+    "album": "The Sidewinder",
+    "year": 1964,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Lee Morgan",
+    "album": "Cornbread",
+    "year": 1965,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Freddie Hubbard",
+    "album": "Red Clay",
+    "year": 1970,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Freddie Hubbard",
+    "album": "Straight Life",
+    "year": 1970,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Freddie Hubbard",
+    "album": "First Light",
+    "year": 1971,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Donald Byrd",
+    "album": "Black Byrd",
+    "year": 1973,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Donald Byrd",
+    "album": "Street Lady",
+    "year": 1973,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Donald Byrd",
+    "album": "Places and Spaces",
+    "year": 1975,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Grant Green",
+    "album": "Alive!",
+    "year": 1970,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Grant Green",
+    "album": "Iron City!",
+    "year": 1967,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Grant Green",
+    "album": "Carryin' On",
+    "year": 1969,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Wes Montgomery",
+    "album": "A Day in the Life",
+    "year": 1967,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Wes Montgomery",
+    "album": "Down Here on the Ground",
+    "year": 1968,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Kenny Burrell",
+    "album": "Midnight Blue",
+    "year": 1963,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Kenny Burrell",
+    "album": "God Bless the Child",
+    "year": 1962,
+    "category": "Jazz/Blues"
+  },
+  {
+    "artist": "Hank Mobley",
+    "album": "Soul Station",
+    "year": 1960,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Hank Mobley",
+    "album": "Workout",
+    "year": 1962,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Dexter Gordon",
+    "album": "Go!",
+    "year": 1962,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Sonny Rollins",
+    "album": "A Night at the Village Vanguard",
+    "year": 1957,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Art Blakey & The Jazz Messengers",
+    "album": "Moanin'",
+    "year": 1958,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Art Blakey & The Jazz Messengers",
+    "album": "A Night in Tunisia",
+    "year": 1960,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Thelonious Monk",
+    "album": "Brilliant Corners",
+    "year": 1957,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Bill Evans",
+    "album": "Waltz for Debby",
+    "year": 1962,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Bill Evans",
+    "album": "Undercurrent",
+    "year": 1962,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Duke Ellington & John Coltrane",
+    "album": "Duke Ellington & John Coltrane",
+    "year": 1963,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Charles Mingus",
+    "album": "The Black Saint and the Sinner Lady",
+    "year": 1963,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Charles Mingus",
+    "album": "Mingus Ah Um",
+    "year": 1959,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Ornette Coleman",
+    "album": "The Shape of Jazz to Come",
+    "year": 1959,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Ornette Coleman",
+    "album": "Free Jazz",
+    "year": 1960,
+    "category": "Free Jazz"
+  },
+  {
+    "artist": "Eric Dolphy",
+    "album": "Out to Lunch!",
+    "year": 1964,
+    "category": "Free Jazz"
+  },
+  {
+    "artist": "Andrew Hill",
+    "album": "Point of Departure",
+    "year": 1964,
+    "category": "Jazz/Avant-Garde"
+  },
+  {
+    "artist": "Bobby Hutcherson",
+    "album": "Dialogue",
+    "year": 1965,
+    "category": "Jazz/Avant-Garde"
+  },
+  {
+    "artist": "Bobby Hutcherson",
+    "album": "Components",
+    "year": 1966,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Milt Jackson",
+    "album": "Sunflower",
+    "year": 1972,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Warne Marsh",
+    "album": "All Music",
+    "year": 1977,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Chet Baker",
+    "album": "Chet Baker Sings",
+    "year": 1954,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Stan Getz & Joao Gilberto",
+    "album": "Getz/Gilberto",
+    "year": 1964,
+    "category": "Jazz/Vocal"
+  },
+  {
+    "artist": "Jimmy Smith",
+    "album": "The Sermon!",
+    "year": 1959,
+    "category": "Bossa Nova/Jazz"
+  },
+  {
+    "artist": "Jimmy Smith",
+    "album": "Back at the Chicken Shack",
+    "year": 1963,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Jimmy McGriff",
+    "album": "I've Got a New Woman",
+    "year": 1962,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Richard 'Groove' Holmes",
+    "album": "Soul Message",
+    "year": 1966,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Shirley Scott",
+    "album": "Queen of the Organ",
+    "year": 1965,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Les McCann",
+    "album": "Swiss Movement",
+    "year": 1969,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Les McCann & Eddie Harris",
+    "album": "Second Movement",
+    "year": 1971,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Cal Tjader",
+    "album": "Soul Burst",
+    "year": 1966,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Cal Tjader",
+    "album": "El Sonido Nuevo",
+    "year": 1966,
+    "category": "Latin Jazz"
+  },
+  {
+    "artist": "Gabor Szabo",
+    "album": "Jazz Raga",
+    "year": 1967,
+    "category": "Latin Jazz"
+  },
+  {
+    "artist": "Gabor Szabo",
+    "album": "Spellbinder",
+    "year": 1966,
+    "category": "Jazz/World"
+  },
+  {
+    "artist": "Joe Farrell",
+    "album": "Moon Germs",
+    "year": 1972,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Hubert Laws",
+    "album": "The Rite of Spring",
+    "year": 1971,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Hubert Laws",
+    "album": "Morning Star",
+    "year": 1972,
+    "category": "Jazz/Classical"
+  },
+  {
+    "artist": "Ron Carter",
+    "album": "Blues Farm",
+    "year": 1973,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Stanley Clarke",
+    "album": "Stanley Clarke",
+    "year": 1974,
+    "category": "Jazz"
+  },
+  {
+    "artist": "Return to Forever",
+    "album": "Romantic Warrior",
+    "year": 1976,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Weather Report",
+    "album": "Heavy Weather",
+    "year": 1977,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Weather Report",
+    "album": "Mysterious Traveller",
+    "year": 1974,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Mahavishnu Orchestra",
+    "album": "The Inner Mounting Flame",
+    "year": 1971,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Mahavishnu Orchestra",
+    "album": "Birds of Fire",
+    "year": 1973,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Pat Metheny Group",
+    "album": "Pat Metheny Group",
+    "year": 1978,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Jan Garbarek",
+    "album": "Dansere",
+    "year": 1975,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Egberto Gismonti",
+    "album": "Akademia",
+    "year": 1976,
+    "category": "Jazz/ECM"
+  },
+  {
+    "artist": "Keith Jarrett",
+    "album": "The Köln Concert",
+    "year": 1975,
+    "category": "Jazz/World"
+  },
+  {
+    "artist": "Freddie Roach",
+    "album": "Mo' Greens Please",
+    "year": 1963,
+    "category": "Jazz/Solo Piano"
+  },
+  {
+    "artist": "Big John Patton",
+    "album": "Along Came John",
+    "year": 1963,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Jack McDuff",
+    "album": "Brother Jack",
+    "year": 1960,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Reuben Wilson",
+    "album": "On Broadway",
+    "year": 1968,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Idris Muhammad",
+    "album": "Power of Soul",
+    "year": 1974,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Billy Cobham",
+    "album": "Spectrum",
+    "year": 1973,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Tony Williams Lifetime",
+    "album": "Emergency!",
+    "year": 1969,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "Buddy Rich",
+    "album": "Big Swing Face",
+    "year": 1967,
+    "category": "Jazz/Fusion"
+  },
+  {
+    "artist": "KPM All Stars",
+    "album": "KPM 1000 Series (Various)",
+    "year": 1970,
+    "category": "Jazz/Big Band"
+  },
+  {
+    "artist": "Alan Hawkshaw",
+    "album": "The Synthesizer Sound (KPM)",
+    "year": 1972,
+    "category": "Library"
+  },
+  {
+    "artist": "Alan Hawkshaw",
+    "album": "Brain Feeder (KPM)",
+    "year": 1970,
+    "category": "Library/Electronic"
+  },
+  {
+    "artist": "Keith Mansfield",
+    "album": "Funky Fanfare (KPM)",
+    "year": 1971,
+    "category": "Library/Funk"
+  },
+  {
+    "artist": "Syd Dale",
+    "album": "The Big Beat (Chappell)",
+    "year": 1967,
+    "category": "Library/Funk"
+  },
+  {
+    "artist": "Johnny Hawksworth",
+    "album": "The Champ (KPM)",
+    "year": 1968,
+    "category": "Library/Big Band"
+  },
+  {
+    "artist": "Janko Nilovic",
+    "album": "Soul Impressions",
+    "year": 1974,
+    "category": "Library/Funk"
+  },
+  {
+    "artist": "Janko Nilovic",
+    "album": "Funky Fuzzy (Montparnasse 2000)",
+    "year": 1972,
+    "category": "Library/Jazz"
+  },
+  {
+    "artist": "Piero Umiliani",
+    "album": "Mah Na Mah Na",
+    "year": 1968,
+    "category": "Library/Funk"
+  },
+  {
+    "artist": "Piero Umiliani",
+    "album": "To-day's Sound",
+    "year": 1973,
+    "category": "Library/Jazz"
+  },
+  {
+    "artist": "Piero Piccioni",
+    "album": "Camille 2000 (OST)",
+    "year": 1969,
+    "category": "Library/Funk"
+  },
+  {
+    "artist": "Alessandro Alessandroni",
+    "album": "Io e Te (Gemelli)",
+    "year": 1972,
+    "category": "Library/Cinematic"
+  },
+  {
+    "artist": "Ennio Morricone",
+    "album": "Various OSTs",
+    "year": 1965,
+    "category": "Library/Italian"
+  },
+  {
+    "artist": "Francis Lai",
+    "album": "Un Homme et une Femme (OST)",
+    "year": 1966,
+    "category": "Library/Cinematic"
+  },
+  {
+    "artist": "Nino Rota",
+    "album": "Il Padrino (OST)",
+    "year": 1972,
+    "category": "Library/French"
+  },
+  {
+    "artist": "Lalo Schifrin",
+    "album": "Mission: Impossible Theme",
+    "year": 1967,
+    "category": "Library/Cinematic"
+  },
+  {
+    "artist": "Lalo Schifrin",
+    "album": "Cool Hand Luke (OST)",
+    "year": 1967,
+    "category": "Library/Cinematic"
+  },
+  {
+    "artist": "David Axelrod",
+    "album": "Song of Innocence",
+    "year": 1968,
+    "category": "Library/Cinematic"
+  },
+  {
+    "artist": "David Axelrod",
+    "album": "Song of Experience",
+    "year": 1969,
+    "category": "Library/Orchestral Funk"
+  },
+  {
+    "artist": "David Axelrod",
+    "album": "Earth Rot",
+    "year": 1970,
+    "category": "Library/Orchestral Funk"
+  },
+  {
+    "artist": "Quincy Jones",
+    "album": "Walking in Space",
+    "year": 1969,
+    "category": "Library/Orchestral Funk"
+  },
+  {
+    "artist": "Quincy Jones",
+    "album": "Smackwater Jack",
+    "year": 1971,
+    "category": "Jazz/Library"
+  },
+  {
+    "artist": "Oliver Nelson",
+    "album": "The Blues and the Abstract Truth",
+    "year": 1961,
+    "category": "Jazz/Library"
+  },
+  {
+    "artist": "Oliver Nelson",
+    "album": "Skull Session",
+    "year": 1975,
+    "category": "Jazz/Library"
+  },
+  {
+    "artist": "Mike Vickers",
+    "album": "KPM Recorded Music Library",
+    "year": 1969,
+    "category": "Jazz/Library"
+  },
+  {
+    "artist": "Bruton Music Library",
+    "album": "Various",
+    "year": 1978,
+    "category": "Library"
+  },
+  {
+    "artist": "Chappell Recorded Music Library",
+    "album": "Various",
+    "year": 1968,
+    "category": "Library"
+  },
+  {
+    "artist": "De Wolfe Music Library",
+    "album": "Various",
+    "year": 1965,
+    "category": "Library"
+  },
+  {
+    "artist": "Carosello Records Library",
+    "album": "Various",
+    "year": 1971,
+    "category": "Library"
+  },
+  {
+    "artist": "CAM Records",
+    "album": "Various OSTs",
+    "year": 1970,
+    "category": "Library/Italian"
+  },
+  {
+    "artist": "Toby (Toshiba EMI)",
+    "album": "Various",
+    "year": 1975,
+    "category": "Library/Italian"
+  },
+  {
+    "artist": "Sound Workshop Library",
+    "album": "Various",
+    "year": 1972,
+    "category": "Library/Japanese"
+  },
+  {
+    "artist": "Atmosphere Music Library",
+    "album": "Various",
+    "year": 1969,
+    "category": "Library"
+  },
+  {
+    "artist": "Boosey & Hawkes",
+    "album": "Various",
+    "year": 1965,
+    "category": "Library"
+  },
+  {
+    "artist": "Amphonic Music Library",
+    "album": "Various",
+    "year": 1970,
+    "category": "Library"
+  },
+  {
+    "artist": "Alan Parker",
+    "album": "Alan Parker (KPM)",
+    "year": 1971,
+    "category": "Library"
+  },
+  {
+    "artist": "John Cameron",
+    "album": "KPM Recordings",
+    "year": 1969,
+    "category": "Library/Funk"
+  },
+  {
+    "artist": "Roger Webb",
+    "album": "The House Sound of KPM",
+    "year": 1973,
+    "category": "Library"
+  },
+  {
+    "artist": "Harry Roche Constellation",
+    "album": "Spiral",
+    "year": 1974,
+    "category": "Library"
+  },
+  {
+    "artist": "Sam Sklair",
+    "album": "Percussion in the Night (KPM)",
+    "year": 1970,
+    "category": "Library/Funk"
+  },
+  {
+    "artist": "Alyn Ainsworth",
+    "album": "The Big Sound (KPM)",
+    "year": 1969,
+    "category": "Library/Percussion"
+  },
+  {
+    "artist": "Burt Rhodes",
+    "album": "Rhythm Workshop (KPM)",
+    "year": 1971,
+    "category": "Library/Big Band"
+  },
+  {
+    "artist": "Johnny Gregory",
+    "album": "Various (Chappell)",
+    "year": 1968,
+    "category": "Library/Funk"
+  },
+  {
+    "artist": "Tommy Watt",
+    "album": "Various (Chappell)",
+    "year": 1969,
+    "category": "Library"
+  },
+  {
+    "artist": "Francis Monkman",
+    "album": "Various (KPM)",
+    "year": 1972,
+    "category": "Library"
+  },
+  {
+    "artist": "João Gilberto",
+    "album": "Chega de Saudade",
+    "year": 1959,
+    "category": "Library/Electronic"
+  },
+  {
+    "artist": "João Gilberto",
+    "album": "João Gilberto",
+    "year": 1973,
+    "category": "Bossa Nova"
+  },
+  {
+    "artist": "Antônio Carlos Jobim",
+    "album": "Wave",
+    "year": 1967,
+    "category": "Bossa Nova"
+  },
+  {
+    "artist": "Antônio Carlos Jobim",
+    "album": "Stone Flower",
+    "year": 1970,
+    "category": "Bossa Nova"
+  },
+  {
+    "artist": "Antônio Carlos Jobim",
+    "album": "The Composer of Desafinado, Plays",
+    "year": 1963,
+    "category": "Bossa Nova"
+  },
+  {
+    "artist": "Sergio Mendes",
+    "album": "Herb Alpert Presents Sergio Mendes & Brasil '66",
+    "year": 1966,
+    "category": "Bossa Nova"
+  },
+  {
+    "artist": "Marcos Valle",
+    "album": "Samba '68",
+    "year": 1968,
+    "category": "Bossa Nova/Pop"
+  },
+  {
+    "artist": "Marcos Valle",
+    "album": "Vento Sul",
+    "year": 1972,
+    "category": "Bossa Nova/Soul"
+  },
+  {
+    "artist": "Marcos Valle",
+    "album": "Marcos Valle",
+    "year": 1983,
+    "category": "Bossa Nova/Soul"
+  },
+  {
+    "artist": "Edu Lobo",
+    "album": "Cantiga de Longe",
+    "year": 1970,
+    "category": "Bossa Nova/Electronic"
+  },
+  {
+    "artist": "Milton Nascimento",
+    "album": "Clube da Esquina",
+    "year": 1972,
+    "category": "Bossa Nova/MPB"
+  },
+  {
+    "artist": "Milton Nascimento",
+    "album": "Milagre dos Peixes",
+    "year": 1973,
+    "category": "MPB/Brazilian"
+  },
+  {
+    "artist": "Gilberto Gil",
+    "album": "Expresso 2222",
+    "year": 1972,
+    "category": "MPB/Brazilian"
+  },
+  {
+    "artist": "Caetano Veloso",
+    "album": "Tropicália ou Panis et Circencis",
+    "year": 1968,
+    "category": "MPB/Funk"
+  },
+  {
+    "artist": "Gal Costa",
+    "album": "Índia",
+    "year": 1973,
+    "category": "Tropicália"
+  },
+  {
+    "artist": "Jorge Ben",
+    "album": "A Tábua de Esmeralda",
+    "year": 1974,
+    "category": "MPB/Tropicália"
+  },
+  {
+    "artist": "Jorge Ben",
+    "album": "África Brasil",
+    "year": 1976,
+    "category": "MPB/Funk"
+  },
+  {
+    "artist": "Hermeto Pascoal",
+    "album": "A Música Livre de Hermeto Pascoal",
+    "year": 1973,
+    "category": "MPB/Funk"
+  },
+  {
+    "artist": "Airto Moreira",
+    "album": "Free",
+    "year": 1972,
+    "category": "Brazilian/Avant"
+  },
+  {
+    "artist": "Flora Purim",
+    "album": "Stories to Tell",
+    "year": 1974,
+    "category": "Brazilian/Jazz"
+  },
+  {
+    "artist": "Eumir Deodato",
+    "album": "Prelude",
+    "year": 1973,
+    "category": "Brazilian/Jazz"
+  },
+  {
+    "artist": "Azymuth",
+    "album": "Light as a Feather",
+    "year": 1979,
+    "category": "Bossa/Jazz/Funk"
+  },
+  {
+    "artist": "Azymuth",
+    "album": "Telecommunication",
+    "year": 1982,
+    "category": "Brazilian Jazz/Funk"
+  },
+  {
+    "artist": "Ivan Lins",
+    "album": "Somos Todos Iguais Nesta Noite",
+    "year": 1976,
+    "category": "Brazilian Electronic"
+  },
+  {
+    "artist": "Djavan",
+    "album": "Djavan",
+    "year": 1978,
+    "category": "MPB"
+  },
+  {
+    "artist": "Roberto Carlos",
+    "album": "Roberto Carlos",
+    "year": 1969,
+    "category": "MPB/Soul"
+  },
+  {
+    "artist": "Tamba Trio",
+    "album": "Avanço",
+    "year": 1968,
+    "category": "Brazilian Pop/Soul"
+  },
+  {
+    "artist": "Quarteto em Cy",
+    "album": "Quarteto em Cy",
+    "year": 1968,
+    "category": "Bossa Nova/Jazz"
+  },
+  {
+    "artist": "Nara Leão",
+    "album": "Dez Anos Depois",
+    "year": 1971,
+    "category": "Bossa Nova/Vocal"
+  },
+  {
+    "artist": "Elis Regina",
+    "album": "Elis & Tom",
+    "year": 1974,
+    "category": "MPB/Bossa"
+  },
+  {
+    "artist": "Banda Black Rio",
+    "album": "Maria Fumaça",
+    "year": 1977,
+    "category": "MPB/Bossa"
+  },
+  {
+    "artist": "Tim Maia",
+    "album": "Tim Maia",
+    "year": 1970,
+    "category": "Brazilian Funk"
+  },
+  {
+    "artist": "Luiz Bonfá",
+    "album": "Luiz Bonfá Plays and Sings Bossa Nova",
+    "year": 1963,
+    "category": "Brazilian Soul/Funk"
+  },
+  {
+    "artist": "Charlie Byrd",
+    "album": "Bossa Nova Pelos Passaros",
+    "year": 1963,
+    "category": "Bossa Nova"
+  },
+  {
+    "artist": "Bud Shank",
+    "album": "Bossa Nova Jazz Samba",
+    "year": 1962,
+    "category": "Bossa Nova/Jazz"
+  },
+  {
+    "artist": "Cal Tjader",
+    "album": "Several Shades of Jade",
+    "year": 1963,
+    "category": "Bossa Nova/Jazz"
+  },
+  {
+    "artist": "Eddie Palmieri",
+    "album": "Harlem River Drive",
+    "year": 1971,
+    "category": "Latin Jazz/Bossa"
+  },
+  {
+    "artist": "Eddie Palmieri",
+    "album": "Vamonos Pa'l Monte",
+    "year": 1971,
+    "category": "Latin Soul/Funk"
+  },
+  {
+    "artist": "Willie Colón",
+    "album": "El Malo",
+    "year": 1967,
+    "category": "Salsa/Latin"
+  },
+  {
+    "artist": "Willie Colón & Rubén Blades",
+    "album": "Siembra",
+    "year": 1978,
+    "category": "Salsa"
+  },
+  {
+    "artist": "Celia Cruz & Tito Puente",
+    "album": "Cuba y Puerto Rico Son...",
+    "year": 1966,
+    "category": "Salsa"
+  },
+  {
+    "artist": "Tito Puente",
+    "album": "Dance Mania",
+    "year": 1958,
+    "category": "Latin/Afro-Cuban"
+  },
+  {
+    "artist": "Ray Barretto",
+    "album": "Acid",
+    "year": 1968,
+    "category": "Latin/Mambo"
+  },
+  {
+    "artist": "Joe Bataan",
+    "album": "Salsoul",
+    "year": 1975,
+    "category": "Latin Soul/Funk"
+  },
+  {
+    "artist": "Mongo Santamaria",
+    "album": "Watermelon Man",
+    "year": 1963,
+    "category": "Latin Soul/Disco"
+  },
+  {
+    "artist": "Irakere",
+    "album": "Irakere",
+    "year": 1979,
+    "category": "Latin Jazz"
+  },
+  {
+    "artist": "Quinteto Violado",
+    "album": "Quinteto Violado",
+    "year": 1972,
+    "category": "Afro-Cuban Jazz"
+  },
+  {
+    "artist": "Novos Baianos",
+    "album": "Acabou Chorare",
+    "year": 1972,
+    "category": "Brazilian Folk/MPB"
+  },
+  {
+    "artist": "Los Incas",
+    "album": "El Condor Pasa",
+    "year": 1963,
+    "category": "Brazilian Rock/MPB"
+  },
+  {
+    "artist": "Cuarteto Patria",
+    "album": "Son de la Loma",
+    "year": 1994,
+    "category": "Latin/Folk"
+  },
+  {
+    "artist": "Fela Kuti",
+    "album": "Expensive Shit",
+    "year": 1975,
+    "category": "Cuban Son"
+  },
+  {
+    "artist": "Fela Kuti",
+    "album": "Zombie",
+    "year": 1977,
+    "category": "Afrobeat"
+  },
+  {
+    "artist": "Fela Kuti",
+    "album": "He Miss Road",
+    "year": 1975,
+    "category": "Afrobeat"
+  },
+  {
+    "artist": "Fela Kuti",
+    "album": "Shakara",
+    "year": 1972,
+    "category": "Afrobeat"
+  },
+  {
+    "artist": "Fela Kuti",
+    "album": "Roforofo Fight",
+    "year": 1972,
+    "category": "Afrobeat"
+  },
+  {
+    "artist": "Fela Kuti",
+    "album": "Afrodisiac",
+    "year": 1973,
+    "category": "Afrobeat"
+  },
+  {
+    "artist": "Fela Kuti",
+    "album": "Gentleman",
+    "year": 1973,
+    "category": "Afrobeat"
+  },
+  {
+    "artist": "Tony Allen",
+    "album": "No Accommodation for Lagos",
+    "year": 1979,
+    "category": "Afrobeat"
+  },
+  {
+    "artist": "Tony Allen",
+    "album": "Progress",
+    "year": 1977,
+    "category": "Afrobeat"
+  },
+  {
+    "artist": "William Onyeabor",
+    "album": "Atomic Bomb",
+    "year": 1978,
+    "category": "Afrobeat"
+  },
+  {
+    "artist": "William Onyeabor",
+    "album": "Crashes in Love",
+    "year": 1977,
+    "category": "Afro-Electronic"
+  },
+  {
+    "artist": "William Onyeabor",
+    "album": "Body and Soul",
+    "year": 1983,
+    "category": "Afro-Electronic"
+  },
+  {
+    "artist": "Osibisa",
+    "album": "Osibisa",
+    "year": 1971,
+    "category": "Afro-Electronic"
+  },
+  {
+    "artist": "Hugh Masekela",
+    "album": "Home Is Where the Music Is",
+    "year": 1972,
+    "category": "Afro-Rock"
+  },
+  {
+    "artist": "Hugh Masekela",
+    "album": "The Promise of a Future",
+    "year": 1968,
+    "category": "African Jazz"
+  },
+  {
+    "artist": "Miriam Makeba",
+    "album": "Miriam Makeba",
+    "year": 1960,
+    "category": "African Jazz"
+  },
+  {
+    "artist": "Mulatu Astatke",
+    "album": "Mulatu of Ethiopia",
+    "year": 1972,
+    "category": "African/World"
+  },
+  {
+    "artist": "Mulatu Astatke",
+    "album": "Ethiopiques Vol. 4",
+    "year": 1972,
+    "category": "Ethio-Jazz"
+  },
+  {
+    "artist": "Alemayehu Eshete",
+    "album": "Ethiopiques Vol. 9",
+    "year": 1975,
+    "category": "Ethio-Jazz"
+  },
+  {
+    "artist": "Mahmoud Ahmed",
+    "album": "Ere Mela Mela",
+    "year": 1975,
+    "category": "Ethiopian Soul"
+  },
+  {
+    "artist": "Hailu Mergia",
+    "album": "Hailu Mergia & His Classical Instrument",
+    "year": 1985,
+    "category": "Ethio-Soul"
+  },
+  {
+    "artist": "Orchestra Baobab",
+    "album": "Bamba",
+    "year": 1981,
+    "category": "Ethio-Jazz"
+  },
+  {
+    "artist": "Bembeya Jazz National",
+    "album": "Regard sur le Passé",
+    "year": 1974,
+    "category": "Senegalese/Afro-Cuban"
+  },
+  {
+    "artist": "Tabu Ley Rochereau",
+    "album": "Muzina",
+    "year": 1977,
+    "category": "Guinean Jazz"
+  },
+  {
+    "artist": "Franco & TPOK Jazz",
+    "album": "Mario",
+    "year": 1985,
+    "category": "Congolese Rumba"
+  },
+  {
+    "artist": "King Sunny Ade",
+    "album": "Juju Music",
+    "year": 1982,
+    "category": "Congolese Rumba"
+  },
+  {
+    "artist": "Youssou N'Dour",
+    "album": "Immigrés",
+    "year": 1984,
+    "category": "Juju/Nigerian"
+  },
+  {
+    "artist": "Baaba Maal",
+    "album": "Djam Leelii",
+    "year": 1984,
+    "category": "Mbalax/Senegalese"
+  },
+  {
+    "artist": "Ali Farka Touré",
+    "album": "African Blues",
+    "year": 1990,
+    "category": "Senegalese Folk"
+  },
+  {
+    "artist": "Oumou Sangaré",
+    "album": "Moussoulou",
+    "year": 1991,
+    "category": "African Blues"
+  },
+  {
+    "artist": "Miriam Makeba & Harry Belafonte",
+    "album": "An Evening with Belafonte/Makeba",
+    "year": 1965,
+    "category": "West African"
+  },
+  {
+    "artist": "Abdullah Ibrahim",
+    "album": "African Piano",
+    "year": 1969,
+    "category": "World/African"
+  },
+  {
+    "artist": "Dollar Brand",
+    "album": "Anatomy of a South African Village",
+    "year": 1965,
+    "category": "African Jazz"
+  },
+  {
+    "artist": "Chris McGregor's Brotherhood of Breath",
+    "album": "Brotherhood of Breath",
+    "year": 1971,
+    "category": "African Jazz"
+  },
+  {
+    "artist": "Manu Dibango",
+    "album": "Soul Makossa",
+    "year": 1972,
+    "category": "African Jazz/Free"
+  },
+  {
+    "artist": "Manu Dibango",
+    "album": "O Boso",
+    "year": 1976,
+    "category": "Afro-Soul"
+  },
+  {
+    "artist": "Ebo Taylor",
+    "album": "Love and Death",
+    "year": 1978,
+    "category": "Afro-Soul"
+  },
+  {
+    "artist": "Pat Thomas",
+    "album": "Confessions",
+    "year": 1980,
+    "category": "Ghanaian Funk"
+  },
+  {
+    "artist": "C.K. Mann",
+    "album": "Funky Highlife",
+    "year": 1977,
+    "category": "Ghanaian Highlife"
+  },
+  {
+    "artist": "Orchestre Poly-Rythmo de Cotonou",
+    "album": "Vol. 1",
+    "year": 1972,
+    "category": "Ghanaian Highlife/Funk"
+  },
+  {
+    "artist": "Tabu Ley & L'Afrisa International",
+    "album": "Nakombela",
+    "year": 1977,
+    "category": "Beninese Funk"
+  },
+  {
+    "artist": "Les Amazones de Guinée",
+    "album": "Au Coeur de Paris",
+    "year": 1966,
+    "category": "Congolese Rumba"
+  },
+  {
+    "artist": "Djourou Gnawa",
+    "album": "Gnawa Music of Marrakesh",
+    "year": 1990,
+    "category": "West African"
+  },
+  {
+    "artist": "Nusrat Fateh Ali Khan",
+    "album": "Shahen-Shah",
+    "year": 1989,
+    "category": "Moroccan/Gnawa"
+  },
+  {
+    "artist": "Ravi Shankar",
+    "album": "West Meets East",
+    "year": 1967,
+    "category": "Qawwali/World"
+  },
+  {
+    "artist": "Lee 'Scratch' Perry",
+    "album": "Super Ape",
+    "year": 1976,
+    "category": "Indian Classical/Jazz"
+  },
+  {
+    "artist": "Lee 'Scratch' Perry",
+    "album": "Heart of the Congos (The Congos)",
+    "year": 1977,
+    "category": "Dub/Reggae"
+  },
+  {
+    "artist": "Lee 'Scratch' Perry",
+    "album": "Roast Fish Collie Weed & Corn Bread",
+    "year": 1978,
+    "category": "Roots Reggae"
+  },
+  {
+    "artist": "King Tubby",
+    "album": "Dub from the Roots",
+    "year": 1974,
+    "category": "Dub"
+  },
+  {
+    "artist": "King Tubby",
+    "album": "Meets Rockers Uptown",
+    "year": 1976,
+    "category": "Dub"
+  },
+  {
+    "artist": "Augustus Pablo",
+    "album": "This Is Augustus Pablo",
+    "year": 1974,
+    "category": "Dub"
+  },
+  {
+    "artist": "Augustus Pablo",
+    "album": "East of the River Nile",
+    "year": 1977,
+    "category": "Melodica/Dub"
+  },
+  {
+    "artist": "Bob Marley & The Wailers",
+    "album": "Burnin'",
+    "year": 1973,
+    "category": "Dub"
+  },
+  {
+    "artist": "Bob Marley & The Wailers",
+    "album": "Natty Dread",
+    "year": 1974,
+    "category": "Reggae"
+  },
+  {
+    "artist": "Bob Marley & The Wailers",
+    "album": "Catch a Fire",
+    "year": 1973,
+    "category": "Reggae"
+  },
+  {
+    "artist": "Burning Spear",
+    "album": "Marcus Garvey",
+    "year": 1975,
+    "category": "Reggae"
+  },
+  {
+    "artist": "Burning Spear",
+    "album": "Man in the Hills",
+    "year": 1976,
+    "category": "Roots Reggae"
+  },
+  {
+    "artist": "Culture",
+    "album": "Two Sevens Clash",
+    "year": 1977,
+    "category": "Roots Reggae"
+  },
+  {
+    "artist": "Culture",
+    "album": "Harder Than the Rest",
+    "year": 1978,
+    "category": "Roots Reggae"
+  },
+  {
+    "artist": "The Abyssinians",
+    "album": "Satta Massagana",
+    "year": 1976,
+    "category": "Roots Reggae"
+  },
+  {
+    "artist": "Israel Vibration",
+    "album": "The Same Song",
+    "year": 1978,
+    "category": "Roots Reggae"
+  },
+  {
+    "artist": "The Heptones",
+    "album": "Party Time",
+    "year": 1977,
+    "category": "Roots Reggae"
+  },
+  {
+    "artist": "Toots and the Maytals",
+    "album": "Funky Kingston",
+    "year": 1973,
+    "category": "Reggae"
+  },
+  {
+    "artist": "Jimmy Cliff",
+    "album": "The Harder They Come (OST)",
+    "year": 1972,
+    "category": "Reggae/Soul"
+  },
+  {
+    "artist": "Derrick Harriott",
+    "album": "Derrick Harriott's Rocksteady Party",
+    "year": 1968,
+    "category": "Reggae"
+  },
+  {
+    "artist": "Alton Ellis",
+    "album": "Mr. Soul of Jamaica",
+    "year": 1968,
+    "category": "Rocksteady"
+  },
+  {
+    "artist": "John Holt",
+    "album": "A Love I Can Feel",
+    "year": 1967,
+    "category": "Rocksteady/Reggae"
+  },
+  {
+    "artist": "Dennis Brown",
+    "album": "Wolf and Leopard",
+    "year": 1977,
+    "category": "Rocksteady"
+  },
+  {
+    "artist": "Gregory Isaacs",
+    "album": "Night Nurse",
+    "year": 1982,
+    "category": "Roots Reggae"
+  },
+  {
+    "artist": "Gregory Isaacs",
+    "album": "Soon Forward",
+    "year": 1979,
+    "category": "Lover's Rock/Reggae"
+  },
+  {
+    "artist": "Linton Kwesi Johnson",
+    "album": "Dread Beat an' Blood",
+    "year": 1978,
+    "category": "Roots Reggae"
+  },
+  {
+    "artist": "Scientist",
+    "album": "Scientist Rids the World of the Evil Curse of the Vampires",
+    "year": 1981,
+    "category": "Dub Poetry"
+  },
+  {
+    "artist": "Sly & Robbie",
+    "album": "Taxi!",
+    "year": 1981,
+    "category": "Dub"
+  },
+  {
+    "artist": "The Skatalites",
+    "album": "Ska Authentic",
+    "year": 1967,
+    "category": "Reggae/Dub"
+  },
+  {
+    "artist": "Desmond Dekker",
+    "album": "007 (Shanty Town)",
+    "year": 1967,
+    "category": "Ska"
+  },
+  {
+    "artist": "Prince Far I",
+    "album": "Cry Tuff Dub Encounter",
+    "year": 1978,
+    "category": "Ska/Reggae"
+  },
+  {
+    "artist": "U-Roy",
+    "album": "Version Galore",
+    "year": 1971,
+    "category": "Dub"
+  },
+  {
+    "artist": "Big Youth",
+    "album": "Screaming Target",
+    "year": 1972,
+    "category": "Deejay/Reggae"
+  },
+  {
+    "artist": "Led Zeppelin",
+    "album": "Led Zeppelin II",
+    "year": 1969,
+    "category": "Deejay/Reggae"
+  },
+  {
+    "artist": "Led Zeppelin",
+    "album": "Physical Graffiti",
+    "year": 1975,
+    "category": "Rock/Psych"
+  },
+  {
+    "artist": "Jimi Hendrix",
+    "album": "Are You Experienced",
+    "year": 1967,
+    "category": "Rock"
+  },
+  {
+    "artist": "Jimi Hendrix",
+    "album": "Electric Ladyland",
+    "year": 1968,
+    "category": "Psych/Rock"
+  },
+  {
+    "artist": "The Beatles",
+    "album": "The White Album",
+    "year": 1968,
+    "category": "Psych/Rock"
+  },
+  {
+    "artist": "The Beatles",
+    "album": "Revolver",
+    "year": 1966,
+    "category": "Rock/Pop"
+  },
+  {
+    "artist": "The Doors",
+    "album": "The Doors",
+    "year": 1967,
+    "category": "Psych/Rock"
+  },
+  {
+    "artist": "Cream",
+    "album": "Wheels of Fire",
+    "year": 1968,
+    "category": "Psych/Rock"
+  },
+  {
+    "artist": "The Who",
+    "album": "My Generation",
+    "year": 1965,
+    "category": "Rock/Blues"
+  },
+  {
+    "artist": "Vanilla Fudge",
+    "album": "Vanilla Fudge",
+    "year": 1967,
+    "category": "Rock"
+  },
+  {
+    "artist": "Iron Butterfly",
+    "album": "In-A-Gadda-Da-Vida",
+    "year": 1968,
+    "category": "Psych/Rock"
+  },
+  {
+    "artist": "Steppenwolf",
+    "album": "Steppenwolf",
+    "year": 1968,
+    "category": "Psych/Rock"
+  },
+  {
+    "artist": "Santana",
+    "album": "Abraxas",
+    "year": 1970,
+    "category": "Rock"
+  },
+  {
+    "artist": "Santana",
+    "album": "Santana",
+    "year": 1969,
+    "category": "Latin Rock"
+  },
+  {
+    "artist": "Carlos Santana & Buddy Miles",
+    "album": "Live!",
+    "year": 1972,
+    "category": "Latin Rock"
+  },
+  {
+    "artist": "Sly Stone",
+    "album": "Dance to the Music",
+    "year": 1968,
+    "category": "Latin Rock/Funk"
+  },
+  {
+    "artist": "Stevie Wonder",
+    "album": "Innervisions",
+    "year": 1973,
+    "category": "Rock/Funk"
+  },
+  {
+    "artist": "Stevie Wonder",
+    "album": "Songs in the Key of Life",
+    "year": 1976,
+    "category": "Soul/Rock"
+  },
+  {
+    "artist": "Stevie Wonder",
+    "album": "Fulfillingness' First Finale",
+    "year": 1974,
+    "category": "Soul/Pop"
+  },
+  {
+    "artist": "Stevie Wonder",
+    "album": "Talking Book",
+    "year": 1972,
+    "category": "Soul"
+  },
+  {
+    "artist": "Stevie Wonder",
+    "album": "Music of My Mind",
+    "year": 1972,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "The Temptations",
+    "album": "Cloud Nine",
+    "year": 1969,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Sly & The Family Stone",
+    "album": "Fresh",
+    "year": 1973,
+    "category": "Soul/Psych"
+  },
+  {
+    "artist": "The 5th Dimension",
+    "album": "Stoned Soul Picnic",
+    "year": 1968,
+    "category": "Funk/Soul"
+  },
+  {
+    "artist": "Bobby Fuller Four",
+    "album": "KRLA King of the Wheels",
+    "year": 1965,
+    "category": "Soul/Pop"
+  },
+  {
+    "artist": "Skull Snaps",
+    "album": "Skull Snaps",
+    "year": 1973,
+    "category": "Rock/Surf"
+  },
+  {
+    "artist": "Lyn Collins",
+    "album": "Think (About It)",
+    "year": 1972,
+    "category": "Funk/Breaks"
+  },
+  {
+    "artist": "The Winstons",
+    "album": "Color Him Father",
+    "year": 1969,
+    "category": "Funk"
+  },
+  {
+    "artist": "James Brown",
+    "album": "Funky Drummer",
+    "year": 1970,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "The Honeydrippers",
+    "album": "Impeach the President",
+    "year": 1973,
+    "category": "Funk"
+  },
+  {
+    "artist": "Baby Huey & The Babysitters",
+    "album": "The Baby Huey Story",
+    "year": 1971,
+    "category": "Funk"
+  },
+  {
+    "artist": "Esther Phillips",
+    "album": "Confessin' the Blues",
+    "year": 1976,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Rotary Connection",
+    "album": "Rotary Connection",
+    "year": 1967,
+    "category": "Blues/Soul"
+  },
+  {
+    "artist": "Minnie Riperton",
+    "album": "Come to My Garden",
+    "year": 1970,
+    "category": "Psych/Soul"
+  },
+  {
+    "artist": "Shuggie Otis",
+    "album": "Inspiration Information",
+    "year": 1974,
+    "category": "Soul/Psych"
+  },
+  {
+    "artist": "Terry Callier",
+    "album": "What Color Is Love",
+    "year": 1973,
+    "category": "Soul/Psych"
+  },
+  {
+    "artist": "Terry Callier",
+    "album": "I Just Can't Help Myself",
+    "year": 1973,
+    "category": "Folk/Soul"
+  },
+  {
+    "artist": "Gil Scott-Heron",
+    "album": "Pieces of a Man",
+    "year": 1971,
+    "category": "Soul/Folk"
+  },
+  {
+    "artist": "Gil Scott-Heron",
+    "album": "Winter in America",
+    "year": 1974,
+    "category": "Spoken Word/Jazz"
+  },
+  {
+    "artist": "The Last Poets",
+    "album": "The Last Poets",
+    "year": 1970,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Lightnin' Rod (Jalal Nuriddin)",
+    "album": "Hustlers Convention",
+    "year": 1973,
+    "category": "Spoken Word/Funk"
+  },
+  {
+    "artist": "Cymbal & Clef",
+    "album": "Cymbal & Clef",
+    "year": 1966,
+    "category": "Spoken Word/Funk"
+  },
+  {
+    "artist": "Comus",
+    "album": "First Utterance",
+    "year": 1971,
+    "category": "Psych/Pop"
+  },
+  {
+    "artist": "Ennio Morricone",
+    "album": "The Good, the Bad and the Ugly (OST)",
+    "year": 1966,
+    "category": "Folk/Psych"
+  },
+  {
+    "artist": "Lalo Schifrin",
+    "album": "Enter the Dragon (OST)",
+    "year": 1973,
+    "category": "Cinematic/Western"
+  },
+  {
+    "artist": "Isaac Hayes",
+    "album": "Truck Turner (OST)",
+    "year": 1974,
+    "category": "Cinematic/Funk"
+  },
+  {
+    "artist": "Bobby Womack",
+    "album": "Across 110th Street (OST)",
+    "year": 1972,
+    "category": "Cinematic/Funk"
+  },
+  {
+    "artist": "J.J. Johnson",
+    "album": "Man and Boy (OST)",
+    "year": 1971,
+    "category": "Soul/Cinematic"
+  },
+  {
+    "artist": "Roy Ayers",
+    "album": "Coffy (OST)",
+    "year": 1973,
+    "category": "Jazz/Cinematic"
+  },
+  {
+    "artist": "James Brown",
+    "album": "Black Caesar (OST)",
+    "year": 1973,
+    "category": "Jazz/Funk/Cinematic"
+  },
+  {
+    "artist": "Marvin Gaye",
+    "album": "Trouble Man (OST)",
+    "year": 1972,
+    "category": "Funk/Cinematic"
+  },
+  {
+    "artist": "Weldon Irvine",
+    "album": "Sinbad",
+    "year": 1974,
+    "category": "Soul/Cinematic"
+  },
+  {
+    "artist": "Weldon Irvine",
+    "album": "Time Capsule",
+    "year": 1973,
+    "category": "Rare Groove/Jazz"
+  },
+  {
+    "artist": "Leon Spencer Jr.",
+    "album": "Sneak Preview",
+    "year": 1974,
+    "category": "Rare Groove/Jazz"
+  },
+  {
+    "artist": "Idris Muhammad",
+    "album": "House of the Rising Sun",
+    "year": 1976,
+    "category": "Jazz/Funk/Rare Groove"
+  },
+  {
+    "artist": "Bobbi Humphrey",
+    "album": "Blacks and Blues",
+    "year": 1973,
+    "category": "Jazz/Rare Groove"
+  },
+  {
+    "artist": "Bobbi Humphrey",
+    "album": "Fancy Dancer",
+    "year": 1975,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Johnny Hammond Smith",
+    "album": "Gears",
+    "year": 1975,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Johnny Hammond",
+    "album": "Gambler's Life",
+    "year": 1974,
+    "category": "Jazz/Funk/Rare Groove"
+  },
+  {
+    "artist": "Reuben Wilson",
+    "album": "Blue Mode",
+    "year": 1969,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Rusty Bryant",
+    "album": "Fire Eater",
+    "year": 1975,
+    "category": "Jazz/Organ/Rare Groove"
+  },
+  {
+    "artist": "Charles Earland",
+    "album": "Black Talk!",
+    "year": 1970,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Charles Earland",
+    "album": "Living Black!",
+    "year": 1970,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Houston Person",
+    "album": "Stolen Sweets",
+    "year": 1975,
+    "category": "Jazz/Organ"
+  },
+  {
+    "artist": "Sonny Criss",
+    "album": "Sonny's Dream (Birth of the New Cool)",
+    "year": 1968,
+    "category": "Jazz/Rare Groove"
+  },
+  {
+    "artist": "Gary Bartz",
+    "album": "Music Is My Sanctuary",
+    "year": 1977,
+    "category": "Jazz/Rare Groove"
+  },
+  {
+    "artist": "Gary Bartz NTU Troop",
+    "album": "Harlem Bush Music - Uhuru",
+    "year": 1971,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Archie Shepp",
+    "album": "Kwanza (The First)",
+    "year": 1974,
+    "category": "Spiritual Jazz/Funk"
+  },
+  {
+    "artist": "Rahsaan Roland Kirk",
+    "album": "We Free Kings",
+    "year": 1961,
+    "category": "Spiritual Jazz/Rare Groove"
+  },
+  {
+    "artist": "Rahsaan Roland Kirk",
+    "album": "Blacknuss",
+    "year": 1972,
+    "category": "Jazz/Avant"
+  },
+  {
+    "artist": "Yusef Lateef",
+    "album": "Eastern Sounds",
+    "year": 1961,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Yusef Lateef",
+    "album": "Part of the Search",
+    "year": 1973,
+    "category": "Jazz/World"
+  },
+  {
+    "artist": "Melvin Sparks",
+    "album": "Sparks!",
+    "year": 1970,
+    "category": "Jazz/World"
+  },
+  {
+    "artist": "George Coleman",
+    "album": "Amsterdam After Dark",
+    "year": 1979,
+    "category": "Jazz/Funk"
+  },
+  {
+    "artist": "Gary McFarland",
+    "album": "America the Beautiful",
+    "year": 1968,
+    "category": "Jazz/Rare Groove"
+  },
+  {
+    "artist": "Nat Adderley",
+    "album": "Work Song",
+    "year": 1960,
+    "category": "Jazz/Rare Groove"
+  },
+  {
+    "artist": "Stanley Turrentine",
+    "album": "Sugar",
+    "year": 1970,
+    "category": "Hard Bop/Rare Groove"
+  },
+  {
+    "artist": "Stanley Turrentine",
+    "album": "Pieces of Dreams",
+    "year": 1974,
+    "category": "Jazz/Soul/Rare Groove"
+  },
+  {
+    "artist": "Cedar Walton",
+    "album": "Cedar!",
+    "year": 1967,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Gene Harris",
+    "album": "The Three Sounds",
+    "year": 1958,
+    "category": "Jazz/Rare Groove"
+  },
+  {
+    "artist": "Phineas Newborn Jr.",
+    "album": "A World of Piano!",
+    "year": 1961,
+    "category": "Jazz/Rare Groove"
+  },
+  {
+    "artist": "Dodo Greene",
+    "album": "My Hour of Need",
+    "year": 1962,
+    "category": "Jazz/Rare Groove"
+  },
+  {
+    "artist": "Baby Face Willette",
+    "album": "Stop and Listen",
+    "year": 1961,
+    "category": "Jazz/Soul/Rare Groove"
+  },
+  {
+    "artist": "Don Wilkerson",
+    "album": "Elder Don",
+    "year": 1963,
+    "category": "Jazz/Blues"
+  },
+  {
+    "artist": "Ike Quebec",
+    "album": "Heavy Soul",
+    "year": 1963,
+    "category": "Jazz/Blues"
+  },
+  {
+    "artist": "Tina Brooks",
+    "album": "True Blue",
+    "year": 1960,
+    "category": "Jazz/Blues"
+  },
+  {
+    "artist": "Duke Pearson",
+    "album": "Wahoo!",
+    "year": 1964,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Walter Davis Jr.",
+    "album": "Davis Cup",
+    "year": 1959,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Kenny Drew",
+    "album": "Undercurrent",
+    "year": 1961,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Mal Waldron",
+    "album": "The Quest",
+    "year": 1962,
+    "category": "Hard Bop"
+  },
+  {
+    "artist": "Eric Dolphy",
+    "album": "Far Cry",
+    "year": 1960,
+    "category": "Hard Bop/Free"
+  },
+  {
+    "artist": "Ornette Coleman",
+    "album": "This Is Our Music",
+    "year": 1961,
+    "category": "Jazz/Avant"
+  },
+  {
+    "artist": "Leroy Hutson",
+    "album": "Hutson",
+    "year": 1975,
+    "category": "Free Jazz"
+  },
+  {
+    "artist": "Leroy Hutson",
+    "album": "Hutson II",
+    "year": 1976,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Gene Chandler",
+    "album": "Get Down",
+    "year": 1978,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Harold Melvin & The Blue Notes",
+    "album": "Wake Up Everybody",
+    "year": 1975,
+    "category": "Disco/Funk"
+  },
+  {
+    "artist": "MFSB",
+    "album": "Love Is the Message",
+    "year": 1973,
+    "category": "Soul"
+  },
+  {
+    "artist": "The O'Jays",
+    "album": "Back Stabbers",
+    "year": 1972,
+    "category": "Philly Soul/Disco"
+  },
+  {
+    "artist": "Lou Rawls",
+    "album": "All Things in Time",
+    "year": 1976,
+    "category": "Philly Soul"
+  },
+  {
+    "artist": "Teddy Pendergrass",
+    "album": "Life Is a Song Worth Singing",
+    "year": 1978,
+    "category": "Soul/Rare Groove"
+  },
+  {
+    "artist": "Billy Paul",
+    "album": "360 Degrees of Billy Paul",
+    "year": 1972,
+    "category": "Soul"
+  },
+  {
+    "artist": "Dee Dee Bridgewater",
+    "album": "Dee Dee Bridgewater",
+    "year": 1976,
+    "category": "Soul/Jazz"
+  },
+  {
+    "artist": "Carmen McRae",
+    "album": "Great American Songbook",
+    "year": 1972,
+    "category": "Jazz/Soul/Rare Groove"
+  },
+  {
+    "artist": "Dakota Staton",
+    "album": "Dakota Staton with Paul Gonsalves",
+    "year": 1963,
+    "category": "Jazz/Vocal"
+  },
+  {
+    "artist": "Shirley Horn",
+    "album": "Loads of Love",
+    "year": 1963,
+    "category": "Jazz/Vocal"
+  },
+  {
+    "artist": "Nancy Wilson",
+    "album": "Today, My Way",
+    "year": 1965,
+    "category": "Jazz/Vocal"
+  },
+  {
+    "artist": "Gloria Lynne",
+    "album": "He Needs Me",
+    "year": 1961,
+    "category": "Jazz/Soul/Vocal"
+  },
+  {
+    "artist": "Marlena Shaw",
+    "album": "Who Is This Bitch, Anyway?",
+    "year": 1974,
+    "category": "Jazz/Soul"
+  },
+  {
+    "artist": "Marlena Shaw",
+    "album": "Acting Up",
+    "year": 1978,
+    "category": "Soul/Jazz"
+  },
+  {
+    "artist": "Esther Phillips",
+    "album": "What a Diff'rence a Day Makes",
+    "year": 1975,
+    "category": "Soul/Disco"
+  },
+  {
+    "artist": "Ruth Brown",
+    "album": "Miss Rhythm",
+    "year": 1959,
+    "category": "Soul/Jazz"
+  },
+  {
+    "artist": "Big Maybelle",
+    "album": "The Gospel Soul of Big Maybelle",
+    "year": 1968,
+    "category": "R&B/Blues"
+  },
+  {
+    "artist": "Thelma Houston",
+    "album": "Sunshower",
+    "year": 1969,
+    "category": "Gospel/Soul"
+  },
+  {
+    "artist": "Freda Payne",
+    "album": "Band of Gold",
+    "year": 1970,
+    "category": "Soul"
+  },
+  {
+    "artist": "Laura Lee",
+    "album": "Women's Love Rights",
+    "year": 1971,
+    "category": "Soul"
+  },
+  {
+    "artist": "Bettye Swann",
+    "album": "Make Me Yours",
+    "year": 1967,
+    "category": "Soul/Funk"
+  },
+  {
+    "artist": "Linda Jones",
+    "album": "Hypnotized",
+    "year": 1967,
+    "category": "Soul"
+  },
+  {
+    "artist": "Inez Foxx",
+    "album": "Mockingbird",
+    "year": 1963,
+    "category": "Soul"
+  },
+  {
+    "artist": "Giorgio Moroder",
+    "album": "From Here to Eternity",
+    "year": 1977,
+    "category": "Soul/R&B"
+  },
+  {
+    "artist": "Donna Summer",
+    "album": "I Feel Love",
+    "year": 1977,
+    "category": "Electronic/Disco"
+  },
+  {
+    "artist": "Donna Summer",
+    "album": "Bad Girls",
+    "year": 1979,
+    "category": "Electronic/Disco"
+  },
+  {
+    "artist": "Kraftwerk",
+    "album": "Trans-Europe Express",
+    "year": 1977,
+    "category": "Disco/Funk"
+  },
+  {
+    "artist": "Kraftwerk",
+    "album": "The Man-Machine",
+    "year": 1978,
+    "category": "Electronic"
+  },
+  {
+    "artist": "Kraftwerk",
+    "album": "Autobahn",
+    "year": 1974,
+    "category": "Electronic"
+  },
+  {
+    "artist": "Tangerine Dream",
+    "album": "Phaedra",
+    "year": 1974,
+    "category": "Electronic"
+  },
+  {
+    "artist": "Klaus Schulze",
+    "album": "Irrlicht",
+    "year": 1972,
+    "category": "Electronic/Ambient"
+  },
+  {
+    "artist": "Brian Eno",
+    "album": "Another Green World",
+    "year": 1975,
+    "category": "Electronic/Ambient"
+  },
+  {
+    "artist": "Brian Eno",
+    "album": "Discreet Music",
+    "year": 1975,
+    "category": "Electronic/Ambient"
+  },
+  {
+    "artist": "Cluster",
+    "album": "Zuckerzeit",
+    "year": 1974,
+    "category": "Ambient"
+  },
+  {
+    "artist": "Can",
+    "album": "Tago Mago",
+    "year": 1971,
+    "category": "Electronic/Krautrock"
+  },
+  {
+    "artist": "Can",
+    "album": "Ege Bamyasi",
+    "year": 1972,
+    "category": "Krautrock"
+  },
+  {
+    "artist": "Can",
+    "album": "Future Days",
+    "year": 1973,
+    "category": "Krautrock/Funk"
+  },
+  {
+    "artist": "Neu!",
+    "album": "Neu!",
+    "year": 1971,
+    "category": "Krautrock/Ambient"
+  },
+  {
+    "artist": "Neu!",
+    "album": "Neu! '75",
+    "year": 1975,
+    "category": "Krautrock"
+  },
+  {
+    "artist": "Faust",
+    "album": "Faust IV",
+    "year": 1973,
+    "category": "Krautrock/Punk"
+  },
+  {
+    "artist": "Amon Düül II",
+    "album": "Yeti",
+    "year": 1970,
+    "category": "Krautrock/Avant"
+  },
+  {
+    "artist": "Popol Vuh",
+    "album": "Aguirre (OST)",
+    "year": 1972,
+    "category": "Krautrock/Psych"
+  },
+  {
+    "artist": "Afrika Bambaataa & Soulsonic Force",
+    "album": "Planet Rock",
+    "year": 1982,
+    "category": "Electronic/Cinematic"
+  },
+  {
+    "artist": "Grandmaster Flash",
+    "album": "The Adventures of Grandmaster Flash on the Wheels of Steel",
+    "year": 1981,
+    "category": "Electro"
+  },
+  {
+    "artist": "Grandmaster Flash & The Furious Five",
+    "album": "The Message",
+    "year": 1982,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Sugarhill Gang",
+    "album": "Rapper's Delight",
+    "year": 1979,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Run-DMC",
+    "album": "Raising Hell",
+    "year": 1986,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "LL Cool J",
+    "album": "Radio",
+    "year": 1985,
+    "category": "Hip-Hop/Rock"
+  },
+  {
+    "artist": "Public Enemy",
+    "album": "It Takes a Nation of Millions",
+    "year": 1988,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Public Enemy",
+    "album": "Fear of a Black Planet",
+    "year": 1990,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Eric B. & Rakim",
+    "album": "Paid in Full",
+    "year": 1987,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Eric B. & Rakim",
+    "album": "Follow the Leader",
+    "year": 1988,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Big Daddy Kane",
+    "album": "Long Live the Kane",
+    "year": 1988,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Biz Markie",
+    "album": "Goin' Off",
+    "year": 1988,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "De La Soul",
+    "album": "3 Feet High and Rising",
+    "year": 1989,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "A Tribe Called Quest",
+    "album": "People's Instinctive Travels",
+    "year": 1990,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "A Tribe Called Quest",
+    "album": "The Low End Theory",
+    "year": 1991,
+    "category": "Hip-Hop/Jazz Rap"
+  },
+  {
+    "artist": "Gang Starr",
+    "album": "Step in the Arena",
+    "year": 1991,
+    "category": "Hip-Hop/Jazz Rap"
+  },
+  {
+    "artist": "Gang Starr",
+    "album": "Daily Operation",
+    "year": 1992,
+    "category": "Hip-Hop/Jazz Rap"
+  },
+  {
+    "artist": "Pete Rock & CL Smooth",
+    "album": "Mecca and the Soul Brother",
+    "year": 1992,
+    "category": "Hip-Hop/Jazz Rap"
+  },
+  {
+    "artist": "Nas",
+    "album": "Illmatic",
+    "year": 1994,
+    "category": "Hip-Hop/Jazz Rap"
+  },
+  {
+    "artist": "Wu-Tang Clan",
+    "album": "Enter the Wu-Tang",
+    "year": 1993,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Dr. Dre",
+    "album": "The Chronic",
+    "year": 1992,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Snoop Dogg",
+    "album": "Doggystyle",
+    "year": 1993,
+    "category": "Hip-Hop/G-Funk"
+  },
+  {
+    "artist": "Jungle Brothers",
+    "album": "Done by the Forces of Nature",
+    "year": 1989,
+    "category": "Hip-Hop/G-Funk"
+  },
+  {
+    "artist": "Digable Planets",
+    "album": "Reachin'",
+    "year": 1993,
+    "category": "Hip-Hop/Afrocentrism"
+  },
+  {
+    "artist": "Guru",
+    "album": "Jazzmatazz Vol. 1",
+    "year": 1993,
+    "category": "Hip-Hop/Jazz Rap"
+  },
+  {
+    "artist": "Black Moon",
+    "album": "Enta da Stage",
+    "year": 1993,
+    "category": "Jazz Rap"
+  },
+  {
+    "artist": "Showbiz & AG",
+    "album": "Runaway Slave",
+    "year": 1992,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Lord Finesse",
+    "album": "Funky Technician",
+    "year": 1990,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Brand Nubian",
+    "album": "One for All",
+    "year": 1990,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Main Source",
+    "album": "Breaking Atoms",
+    "year": 1991,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Marley Marl",
+    "album": "In Control Vol. 1",
+    "year": 1988,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "The 45 King",
+    "album": "The 45 King Presents the Lost Breakbeats",
+    "year": 1990,
+    "category": "Hip-Hop/Production"
+  },
+  {
+    "artist": "Ultramagnetic MCs",
+    "album": "Critical Beatdown",
+    "year": 1988,
+    "category": "Hip-Hop/Breaks"
+  },
+  {
+    "artist": "EPMD",
+    "album": "Strictly Business",
+    "year": 1988,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Boogie Down Productions",
+    "album": "Criminal Minded",
+    "year": 1987,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Mantronix",
+    "album": "Mantronix: The Album",
+    "year": 1985,
+    "category": "Hip-Hop"
+  },
+  {
+    "artist": "Cybotron",
+    "album": "Enter",
+    "year": 1983,
+    "category": "Electronic Hip-Hop"
+  },
+  {
+    "artist": "Model 500",
+    "album": "No UFO's",
+    "year": 1985,
+    "category": "Electro/Electronic"
+  },
+  {
+    "artist": "Derrick May",
+    "album": "Strings of Life",
+    "year": 1987,
+    "category": "Electro/Techno"
+  },
+  {
+    "artist": "Larry Heard",
+    "album": "Can You Feel It",
+    "year": 1986,
+    "category": "Detroit Techno"
+  },
+  {
+    "artist": "Jamie Principle & Frankie Knuckles",
+    "album": "Your Love",
+    "year": 1986,
+    "category": "Chicago House"
+  },
+  {
+    "artist": "Ten City",
+    "album": "Foundation",
+    "year": 1989,
+    "category": "Chicago House"
+  },
+  {
+    "artist": "Marshall Jefferson",
+    "album": "Move Your Body",
+    "year": 1986,
+    "category": "Chicago House/Soul"
+  },
+  {
+    "artist": "Todd Terry",
+    "album": "A Day in the Life of Todd Terry",
+    "year": 1990,
+    "category": "Chicago House"
+  },
+  {
+    "artist": "Masters At Work",
+    "album": "To Be in Love",
+    "year": 1991,
+    "category": "House/Hip-Hop"
+  }
+]

@@ -11,7 +11,6 @@ import { getCachedSearchResult, cacheSearchResult, getCachedVideoDetailsBatch, c
 import { getRandomSampleFromDatabase, getDatabaseSampleCount } from "./database-samples"
 import { fetchWithKeyRotation, fetchWithKeyRoundRobin, getFirstYouTubeApiKey } from "./youtube-keys"
 import { getRandomCrateDiggerQuery } from "./crate-digger-list"
-import { scrapeYouTubeSearch } from "./youtube-scraper"
 
 const YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/search"
 
@@ -320,6 +319,7 @@ export function extractMetadata(query: string, title?: string, description?: str
   
   // Genre detection - check query first, then description/tags
   const genrePatterns = [
+    /japanese|city pop|j-pop|japanese jazz|japanese funk|japanese soul/i,
     /bossa nova|brazilian/i,
     /jazz/i,
     /funk/i,
@@ -333,13 +333,15 @@ export function extractMetadata(query: string, title?: string, description?: str
     /reggae/i,
     /latin/i,
   ]
-  
+
   let genre: string | undefined
   for (const pattern of genrePatterns) {
     const match = allText.match(pattern)
     if (match) {
       const matched = match[0].toLowerCase()
-      if (matched.includes("bossa") || matched.includes("brazilian")) {
+      if (matched.includes("japanese") || matched.includes("city pop") || matched.includes("j-pop")) {
+        genre = "japanese"
+      } else if (matched.includes("bossa") || matched.includes("brazilian")) {
         genre = "bossa nova"
       } else if (matched.includes("prog") || matched.includes("progressive")) {
         genre = "prog"
@@ -756,10 +758,10 @@ async function getChannelReputation(youtubeChannelId: string, channelName: strin
 }
 
 /**
- * Hard filter: Remove obvious bad matches before scoring
- * Returns true if video should be rejected immediately
+ * Hard filter: Remove obvious bad matches (live, cover, etc.) before scoring.
+ * Returns true if video should be rejected immediately. Exported for scraper-only path.
  */
-function shouldHardFilter(
+export function shouldHardFilter(
   title: string,
   channelTitle: string,
   description?: string
@@ -1075,6 +1077,7 @@ async function fetchSearchPage(
       console.log("[Search] Scraper: pagination not supported, using first page only")
     }
     console.log(`[Search] Scraping YouTube (no Search API quota) for: ${query.substring(0, 80)}...`)
+    const { scrapeYouTubeSearch } = await import("./youtube-scraper")
     const { items } = await scrapeYouTubeSearch(query, {
       timeoutMs: 25000,
       headless: true,
@@ -1160,7 +1163,7 @@ export interface PageStats {
 
 /**
  * When USE_YOUTUBE_SCRAPER is true: process scraped items without calling the YouTube API.
- * Only filters by excluded IDs; no description/duration/tags (parse bad videos after).
+ * Applies same live/cover/performance hard filter as API path (title, channel, description when present).
  * Returns same shape as processVideoItems so callers work unchanged.
  */
 function processVideoItemsScraperOnly(
@@ -1168,9 +1171,20 @@ function processVideoItemsScraperOnly(
   excludedVideoIds: string[]
 ): { results: any[]; hadCandidates: boolean } {
   const excludedSet = excludedVideoIds.length > 0 ? new Set(excludedVideoIds) : null
-  const candidateVideos = excludedSet
+  let candidateVideos = excludedSet
     ? rawItems.filter((v: { id: { videoId: string } }) => !excludedSet.has(v.id.videoId))
     : rawItems
+  // Apply same live/cover/performance hard filter as API search path
+  candidateVideos = candidateVideos.filter((video: any) => {
+    const title = video.snippet?.title ?? ""
+    const channelTitle = video.snippet?.channelTitle ?? ""
+    const description = video.description ?? ""
+    if (shouldHardFilter(title, channelTitle, description)) {
+      console.log(`[Search] Scraper hard filtered: ${title}`)
+      return false
+    }
+    return true
+  })
   if (candidateVideos.length === 0) {
     return { results: [], hadCandidates: false }
   }

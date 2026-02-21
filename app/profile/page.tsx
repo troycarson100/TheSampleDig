@@ -232,7 +232,7 @@ export default function ProfilePage() {
                   className="profile-key-select"
                   aria-label="Filter by key"
                 >
-                  <option value="">Any key</option>
+                  <option value="">ANY KEY</option>
                   {keyOptions.map((k) => (
                     <option key={k} value={k}>{k}</option>
                   ))}
