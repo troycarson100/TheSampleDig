@@ -125,7 +125,7 @@ export async function scrapeYouTubeVideoDetails(
         }
         if (!parsed) {
           const html = document.documentElement.innerHTML
-          const match = html.match(/ytInitialPlayerResponse\s*=\s*(\{.+?\});\s*(?:var\s|<\/script)/s)
+          const match = html.match(/ytInitialPlayerResponse\s*=\s*(\{[\s\S]+?\});\s*(?:var\s|<\/script)/)
           if (match) {
             try {
               parsed = JSON.parse(match[1])
