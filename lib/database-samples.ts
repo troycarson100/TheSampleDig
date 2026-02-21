@@ -23,7 +23,7 @@ async function getRandomSampleJapanese(
   const excludeCondition =
     excludeIds.length === 0
       ? Prisma.sql`true`
-      : Prisma.sql`s.youtube_id NOT IN (${Prisma.join(excludeIds.map((id) => Prisma.sql`${id}`), Prisma.sql`, `)})`
+      : Prisma.sql`s.youtube_id NOT IN (${Prisma.join(excludeIds.map((id) => Prisma.sql`${id}`), ", ")})`
   // Use Prisma.raw for regex so pattern is inlined (constant, no injection); parameterized regex can break in some drivers
   const japaneseMatch = Prisma.raw(
     `(s.genre ILIKE 'japanese' OR s.tags ILIKE '%japanese%' OR s.title ~ '${JAPANESE_TITLE_REGEX_LITERAL.replace(/'/g, "''")}' OR s.channel ~ '${JAPANESE_TITLE_REGEX_LITERAL.replace(/'/g, "''")}')`
@@ -34,14 +34,14 @@ async function getRandomSampleJapanese(
     drumBreakOnly && DRUM_BREAK_TITLE_PHRASES.length > 0
       ? Prisma.sql`AND (${Prisma.join(
           DRUM_BREAK_TITLE_PHRASES.map((p) => Prisma.sql`s.title ILIKE ${"%" + p + "%"}`),
-          Prisma.sql` OR `
+          " OR "
         )})`
       : Prisma.empty
   const royaltyCondition =
     royaltyFreeOnly && ROYALTY_FREE_TITLE_PHRASES.length > 0
       ? Prisma.sql`AND (${Prisma.join(
           ROYALTY_FREE_TITLE_PHRASES.map((p) => Prisma.sql`s.title ILIKE ${"%" + p + "%"}`),
-          Prisma.sql` OR `
+          " OR "
         )})`
       : Prisma.empty
 
