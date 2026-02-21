@@ -21,14 +21,39 @@ export async function GET() {
       }),
     ])
 
-    const genres = genreRows
+    // Dedupe by lowercase so "Jazz" and "jazz" become one option; prefer canonical casing.
+    const seenLower = new Set<string>()
+    const canonicalGenres = ["japanese"]
+    const fromDb = genreRows
       .map((r) => r.genre)
       .filter((g): g is string => g != null && g.trim() !== "")
-      .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
+    const genres: string[] = []
+    for (const g of canonicalGenres) {
+      if (!seenLower.has(g.toLowerCase())) {
+        seenLower.add(g.toLowerCase())
+        genres.push(g)
+      }
+    }
+    for (const g of fromDb) {
+      const key = g.toLowerCase()
+      if (!seenLower.has(key)) {
+        seenLower.add(key)
+        genres.push(g)
+      }
+    }
+    genres.sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
 
-    const eras = eraRows
+    const eraList = eraRows
       .map((r) => r.era)
       .filter((e): e is string => e != null && e.trim() !== "")
+    const erasSeen = new Set<string>()
+    const eras = eraList
+      .filter((e) => {
+        const key = e.toLowerCase()
+        if (erasSeen.has(key)) return false
+        erasSeen.add(key)
+        return true
+      })
       .sort((a, b) => a.localeCompare(b, "en", { sensitivity: "base" }))
 
     return NextResponse.json({ genres, eras })
