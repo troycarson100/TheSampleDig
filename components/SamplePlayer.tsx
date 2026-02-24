@@ -523,42 +523,6 @@ function SamplePlayer({
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
   }, [chopModeEnabled, isMobile, clearRecordedLoop])
 
-  // Cmd/Ctrl+Space while chop mode is active pauses video and loop together
-  useEffect(() => {
-    if (!chopModeEnabled || isMobile) return
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement | null
-      if (!target) return
-      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return
-      if (e.code !== "Space" || (!e.metaKey && !e.ctrlKey)) return
-
-      e.preventDefault()
-      e.stopPropagation()
-
-      const adapter = adapterRef.current
-      const state = adapter?.getPlayerState?.()
-      const isVideoPlaying = state === 1
-
-      // Only act as a pause: if either video or loop are running, stop them
-      if (isVideoPlaying || isPlayingLoop) {
-        if (adapter?.pause) {
-          try {
-            adapter.pause()
-          } catch {
-            // ignore pause errors
-          }
-        }
-        if (isPlayingLoop) {
-          stopLoopPlayback()
-        }
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown, { capture: true })
-    return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
-  }, [chopModeEnabled, isMobile, isPlayingLoop, stopLoopPlayback])
-
   const startLoopPlayback = useCallback((
     events: RecordedChopEvent[],
     startMs?: number,
@@ -634,6 +598,65 @@ function SamplePlayer({
     playbackRescheduleRef.current = rescheduleCurrentIteration
     runLoop(0)
   }, [])
+
+  // Shift+Space while chop mode is active toggles video+loop playback (pause/play)
+  useEffect(() => {
+    if (!chopModeEnabled || isMobile) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (!target) return
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return
+      // Only act on Shift+Space with no other modifiers
+      if (e.code !== "Space" || !e.shiftKey || e.metaKey || e.ctrlKey || e.altKey) return
+
+      e.preventDefault()
+      e.stopPropagation()
+
+      const adapter = adapterRef.current
+      const state = adapter?.getPlayerState?.()
+      const isVideoPlaying = state === 1
+
+      const hasLoop = recordedSequence.length > 0
+
+      // If video or loop are running, treat as pause
+      if (isVideoPlaying || isPlayingLoop) {
+        if (adapter?.pause) {
+          try {
+            adapter.pause()
+          } catch {
+            // ignore pause errors
+          }
+        }
+        if (isPlayingLoop) {
+          stopLoopPlayback()
+        }
+        return
+      }
+
+      // Otherwise, if we have a loop, start loop playback
+      if (hasLoop) {
+        const totalMs =
+          recordingFullLengthMs ||
+          recordingFullLengthRef.current ||
+          Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
+        startLoopPlayback(recordedSequence, loopStartMs, loopEndMs || totalMs)
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true })
+    return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
+  }, [
+    chopModeEnabled,
+    isMobile,
+    isPlayingLoop,
+    stopLoopPlayback,
+    recordedSequence,
+    loopStartMs,
+    loopEndMs,
+    recordingFullLengthMs,
+    startLoopPlayback,
+  ])
 
   const stopRecordAndStartPlayback = useCallback(
     (quantizeSnap?: { bpm: number; division: GridDivision; swingPct: number; enabled: boolean }) => {

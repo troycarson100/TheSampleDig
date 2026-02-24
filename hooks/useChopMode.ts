@@ -244,7 +244,7 @@ export function useChopMode(
       if (target.tagName === "INPUT" || target.tagName === "TEXTAREA") return
 
       const key = e.key.toUpperCase()
-      const noModifiers = !e.metaKey && !e.ctrlKey && !e.altKey
+      const noModifiers = !e.metaKey && !e.ctrlKey && !e.altKey && !e.shiftKey
       if (key === "R" && noModifiers && onRKey) {
         e.preventDefault()
         e.stopPropagation()
