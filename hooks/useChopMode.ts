@@ -252,7 +252,8 @@ export function useChopMode(
         return
       }
 
-      if (e.code === "Space") {
+      // Plain Space (no modifiers) = chop / stop-record
+      if (e.code === "Space" && noModifiers) {
         e.preventDefault()
         e.stopPropagation()
         if (isRecording && onSpaceWhenRecording) {

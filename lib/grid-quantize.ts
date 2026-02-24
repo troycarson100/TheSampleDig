@@ -1,4 +1,19 @@
-export type GridDivision = "1/4" | "1/8" | "1/16" | "1/8t" | "1/16t" | "1/8d"
+export type GridDivision =
+  | "1/1"
+  | "1/1t"
+  | "1/1d"
+  | "1/2"
+  | "1/2t"
+  | "1/2d"
+  | "1/4"
+  | "1/4t"
+  | "1/4d"
+  | "1/8"
+  | "1/8t"
+  | "1/8d"
+  | "1/16"
+  | "1/16t"
+  | "1/16d"
 
 export interface SnapOptions {
   /**
@@ -14,33 +29,24 @@ export function barMs(bpm: number): number {
   return (60000 / bpm) * 4
 }
 
-function stepCountForDivision(division: GridDivision): number {
-  switch (division) {
-    case "1/4":
-      return 4
-    case "1/8":
-      return 8
-    case "1/16":
-      return 16
-    case "1/8t":
-      return 12 // 8th-note triplets: 3 per beat * 4 beats
-    case "1/16t":
-      return 24 // 16th-note triplets: 6 per beat * 4 beats
-    case "1/8d":
-      return 6 // dotted 1/8: 1.5 * 1/8 → 2 per 3 beats; treat as 6 per bar
-    default:
-      return 16
-  }
-}
-
 function stepMsForDivision(bpm: number, division: GridDivision): number {
   const bar = barMs(bpm)
-  const steps = stepCountForDivision(division)
-  if (division === "1/8d") {
-    // Dotted 1/8: 1.5 * 1/8 note = 3/16 of bar
-    return (bar * 3) / 16
+  // Parse "1/N", optional suffix "t" (triplet) or "d" (dotted)
+  const match = division.match(/^1\/(\d+)([td])?$/)
+  if (!match) return bar / 16
+  const denom = Number(match[1])
+  if (!Number.isFinite(denom) || denom <= 0) return bar / 16
+  const suffix = match[2] as "t" | "d" | undefined
+  const base = bar / denom
+  if (suffix === "t") {
+    // Triplet: 2/3 of the base note length
+    return base * (2 / 3)
   }
-  return bar / steps
+  if (suffix === "d") {
+    // Dotted: 3/2 of the base note length
+    return base * 1.5
+  }
+  return base
 }
 
 /**

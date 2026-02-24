@@ -457,7 +457,7 @@ function SamplePlayer({
   const loopLengthMsRef = useRef(0)
   const metronomeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const [quantizeEnabled, setQuantizeEnabled] = useState(true)
-  const [quantizeDivision, setQuantizeDivision] = useState<GridDivision>("1/16")
+  const [quantizeDivision, setQuantizeDivision] = useState<GridDivision>("1/4")
   const [quantizeSwingPct] = useState(50)
 
   useEffect(() => {
@@ -470,6 +470,14 @@ function SamplePlayer({
     playbackBoundsRef.current = null
     playbackRescheduleRef.current = null
     lastScheduledSeqRef.current = null
+    const adapter = adapterRef.current
+    if (adapter?.pause) {
+      try {
+        adapter.pause()
+      } catch {
+        // ignore pause errors
+      }
+    }
     setIsPlayingLoop(false)
     setPlaybackPositionMs(0)
   }, [])
@@ -514,6 +522,42 @@ function SamplePlayer({
     window.addEventListener("keydown", handleKeyDown, { capture: true })
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
   }, [chopModeEnabled, isMobile, clearRecordedLoop])
+
+  // Cmd/Ctrl+Space while chop mode is active pauses video and loop together
+  useEffect(() => {
+    if (!chopModeEnabled || isMobile) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (!target) return
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return
+      if (e.code !== "Space" || (!e.metaKey && !e.ctrlKey)) return
+
+      e.preventDefault()
+      e.stopPropagation()
+
+      const adapter = adapterRef.current
+      const state = adapter?.getPlayerState?.()
+      const isVideoPlaying = state === 1
+
+      // Only act as a pause: if either video or loop are running, stop them
+      if (isVideoPlaying || isPlayingLoop) {
+        if (adapter?.pause) {
+          try {
+            adapter.pause()
+          } catch {
+            // ignore pause errors
+          }
+        }
+        if (isPlayingLoop) {
+          stopLoopPlayback()
+        }
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true })
+    return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
+  }, [chopModeEnabled, isMobile, isPlayingLoop, stopLoopPlayback])
 
   const startLoopPlayback = useCallback((
     events: RecordedChopEvent[],
@@ -651,7 +695,17 @@ function SamplePlayer({
       return
     }
     if (recordPhase !== "idle") return
-    // If a loop is playing or exists, clear it so we record a fresh loop
+    // If a loop is already loaded, save it to the saved-loops list first, then clear and start fresh
+    if (recordedSequence.length > 0 && youtubeId) {
+      const totalMs = recordingFullLengthMs || recordingFullLengthRef.current || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
+      saveLoop(youtubeId, {
+        sequence: recordedSequence,
+        loopStartMs,
+        loopEndMs: loopEndMs || totalMs,
+        fullLengthMs: recordingFullLengthMs || totalMs,
+      })
+      setSavedLoopsList(getSavedLoops(youtubeId))
+    }
     clearRecordedLoop()
     // Pause video; recording starts on first chop key press
     const adapter = adapterRef.current
@@ -671,7 +725,7 @@ function SamplePlayer({
         playMetronomeBeep()
       }, intervalMs)
     }
-  }, [recordPhase, stopRecordAndStartPlayback, effectiveBpm, metronomeDuringRecording, clearRecordedLoop, quantizeEnabled, quantizeDivision, quantizeSwingPct])
+  }, [recordPhase, stopRecordAndStartPlayback, effectiveBpm, metronomeDuringRecording, clearRecordedLoop, quantizeEnabled, quantizeDivision, quantizeSwingPct, recordedSequence, loopStartMs, loopEndMs, recordingFullLengthMs, youtubeId])
 
   const onSpaceWhenRecording = useCallback(() => {
     if (recordPhase === "recording") {
@@ -788,21 +842,26 @@ function SamplePlayer({
   const handleQuantizeDivisionChange = useCallback(
     (nextDivision: GridDivision) => {
       setQuantizeDivision(nextDivision)
-      const bpmForGrid = effectiveBpm ?? null
-      if (!quantizeEnabled || !bpmForGrid || bpmForGrid <= 0) return
-      setRecordedSequence((prev) => {
-        if (!prev.length) return prev
-        const snapped = prev
-          .map((ev) => ({
-            ...ev,
-            timeMs: snapToGrid(ev.timeMs, bpmForGrid, nextDivision, quantizeSwingPct, { originMs: loopStartMs }),
-          }))
-          .sort((a, b) => a.timeMs - b.timeMs)
-        return snapped
-      })
     },
-    [effectiveBpm, quantizeEnabled, quantizeSwingPct, loopStartMs]
+    []
   )
+
+  // When BPM or division change while quantize is enabled, re-snap existing loop chops to the new grid
+  useEffect(() => {
+    const bpmForGrid = effectiveBpm ?? null
+    if (!quantizeEnabled || !bpmForGrid || bpmForGrid <= 0) return
+    if (recordedSequence.length === 0) return
+    setRecordedSequence((prev) => {
+      if (!prev.length) return prev
+      const snapped = prev
+        .map((ev) => ({
+          ...ev,
+          timeMs: snapToGrid(ev.timeMs, bpmForGrid, quantizeDivision, quantizeSwingPct, { originMs: loopStartMs }),
+        }))
+        .sort((a, b) => a.timeMs - b.timeMs)
+      return snapped
+    })
+  }, [effectiveBpm, quantizeEnabled, quantizeDivision, quantizeSwingPct, loopStartMs, recordedSequence.length])
 
   // When loop start/end change while playing, restart playback with new bounds (only when not dragging)
   useEffect(() => {
@@ -1228,8 +1287,14 @@ function SamplePlayer({
                   const adapter = adapterRef.current
                   if (!adapter) return
                   const state = adapter.getPlayerState?.()
-                  if (state === 2) adapter.play()
-                  else if (adapter.pause) adapter.pause()
+                  if (state === 2) {
+                    adapter.play()
+                  } else if (adapter.pause) {
+                    adapter.pause()
+                    if (isPlayingLoop) {
+                      stopLoopPlayback()
+                    }
+                  }
                 }}
               />
             )}
@@ -1597,12 +1662,21 @@ function SamplePlayer({
                   aria-label="Quantize division"
                   title="Quantize grid division"
                 >
+                  <option value="1/1">1/1</option>
+                  <option value="1/1t">1/1t</option>
+                  <option value="1/1d">1/1·</option>
+                  <option value="1/2">1/2</option>
+                  <option value="1/2t">1/2t</option>
+                  <option value="1/2d">1/2·</option>
                   <option value="1/4">1/4</option>
+                  <option value="1/4t">1/4t</option>
+                  <option value="1/4d">1/4·</option>
                   <option value="1/8">1/8</option>
-                  <option value="1/16">1/16</option>
                   <option value="1/8t">1/8t</option>
-                  <option value="1/16t">1/16t</option>
                   <option value="1/8d">1/8·</option>
+                  <option value="1/16">1/16</option>
+                  <option value="1/16t">1/16t</option>
+                  <option value="1/16d">1/16·</option>
                 </select>
               )}
               <button
