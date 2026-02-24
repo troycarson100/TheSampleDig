@@ -26,8 +26,8 @@ interface SamplePlayerProps {
   startTime?: number
   duration?: number // Video duration in seconds
   isSaved?: boolean
-  /** Called when user toggles save. When saving (not unsaving), opts.chops and opts.loop are stored. */
-  onSaveToggle?: (opts?: { chops?: Chop[]; loop?: SavedLoopData }) => void
+  /** Called when user toggles save. When saving (not unsaving), opts.chops, opts.loop, and opts.bpm are stored. */
+  onSaveToggle?: (opts?: { chops?: Chop[]; loop?: SavedLoopData; bpm?: number }) => void
   showHeart?: boolean
   /** Restore saved chops when loading a saved sample. */
   initialChops?: Chop[] | null
@@ -35,6 +35,10 @@ interface SamplePlayerProps {
   initialLoop?: SavedLoopData | null
   /** When sample is saved, called (debounced) when chops or loop change so parent can persist them. */
   onSavedChopsChange?: (chops: Chop[], loop?: SavedLoopData | null) => void
+  /** When sample is saved, called (debounced) when user changes BPM so parent can persist it. */
+  onSavedBpmChange?: (bpm: number | null) => void
+  /** Restore saved BPM override when loading a saved sample. */
+  initialBpmOverride?: number | null
   /** DB Sample id – required for saving notes when isSaved. */
   sampleId?: string | null
   /** Restore saved notes when loading a saved sample. */
@@ -191,6 +195,8 @@ function SamplePlayer({
   initialChops,
   initialLoop,
   onSavedChopsChange,
+  onSavedBpmChange,
+  initialBpmOverride,
   sampleId,
   initialNotes,
 }: SamplePlayerProps) {
@@ -201,7 +207,7 @@ function SamplePlayer({
   const adapterRef = useRef<YouTubePlayerAdapter | null>(null)
   const [chopModeEnabled, setChopModeEnabled] = useState(true)
   const [isMobile, setIsMobile] = useState(false)
-  const [tapTempoEnabled, setTapTempoEnabled] = useState(false)
+  const [tapTempoEnabled, setTapTempoEnabled] = useState(true)
   const [tapTimes, setTapTimes] = useState<number[]>([])
   const [tapBpm, setTapBpm] = useState<number | null>(null)
   const [tapButtonFlash, setTapButtonFlash] = useState(false)
@@ -252,6 +258,11 @@ function SamplePlayer({
   useEffect(() => {
     setNotes(initialNotes ?? "")
   }, [youtubeId, initialNotes])
+
+  // Sync BPM override when loading a saved sample (e.g. from My Samples)
+  useEffect(() => {
+    setBpmOverride(initialBpmOverride ?? null)
+  }, [youtubeId, initialBpmOverride])
 
   const saveNotes = useCallback(
     (value: string) => {
@@ -424,11 +435,16 @@ function SamplePlayer({
   type RecordPhase = "idle" | "countin" | "recording"
   const [recordPhase, setRecordPhase] = useState<RecordPhase>("idle")
   const [recordedSequence, setRecordedSequence] = useState<RecordedChopEvent[]>([])
+  const playbackEventsRef = useRef<RecordedChopEvent[]>([])
   const recordStartTimeRef = useRef(0)
   const recordStopTimeRef = useRef(0)
   const recordEventsRef = useRef<RecordedChopEvent[]>([])
   const playbackTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([])
   const playChopByKeyRef = useRef<(key: string) => void>(() => {})
+  /** Reschedule current loop iteration with latest chop positions (real-time drag). */
+  const playbackRescheduleRef = useRef<(() => void) | null>(null)
+  /** Last sequence we scheduled; only reschedule when sequence actually changed. */
+  const lastScheduledSeqRef = useRef<string | null>(null)
   const [isPlayingLoop, setIsPlayingLoop] = useState(false)
   const [clearLoopFlash, setClearLoopFlash] = useState(false)
   const [spaceBarFlash, setSpaceBarFlash] = useState(false)
@@ -444,10 +460,16 @@ function SamplePlayer({
   const [quantizeDivision, setQuantizeDivision] = useState<GridDivision>("1/16")
   const [quantizeSwingPct] = useState(50)
 
+  useEffect(() => {
+    playbackEventsRef.current = recordedSequence
+  }, [recordedSequence])
+
   const stopLoopPlayback = useCallback(() => {
     playbackTimeoutsRef.current.forEach((t) => clearTimeout(t))
     playbackTimeoutsRef.current = []
     playbackBoundsRef.current = null
+    playbackRescheduleRef.current = null
+    lastScheduledSeqRef.current = null
     setIsPlayingLoop(false)
     setPlaybackPositionMs(0)
   }, [])
@@ -462,6 +484,36 @@ function SamplePlayer({
     setClearLoopFlash(true)
     setTimeout(() => setClearLoopFlash(false), 280)
   }, [stopLoopPlayback])
+
+  // Keyboard shortcuts in chop mode: Q toggles quantize, X clears recorded loop (same as clear-loop button).
+  useEffect(() => {
+    if (!chopModeEnabled || isMobile) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const target = e.target as HTMLElement | null
+      if (!target) return
+      if (target.tagName === "INPUT" || target.tagName === "TEXTAREA" || target.isContentEditable) return
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+
+      const key = e.key.toLowerCase()
+
+      if (key === "q") {
+        e.preventDefault()
+        e.stopPropagation()
+        setQuantizeEnabled((prev) => !prev)
+        return
+      }
+
+      if (key === "x") {
+        e.preventDefault()
+        e.stopPropagation()
+        clearRecordedLoop()
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true })
+    return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
+  }, [chopModeEnabled, isMobile, clearRecordedLoop])
 
   const startLoopPlayback = useCallback((
     events: RecordedChopEvent[],
@@ -478,17 +530,14 @@ function SamplePlayer({
     const minSpanMs = 20
     const clampedStart = Math.max(0, Math.min(s, e - minSpanMs))
     const clampedEnd = Math.min(totalMs, Math.max(e, clampedStart + minSpanMs))
-    const filtered = events
-      .filter((ev) => ev.timeMs >= clampedStart && ev.timeMs <= clampedEnd)
-      .map((ev) => ({ ...ev, timeMs: ev.timeMs - clampedStart }))
-      .sort((a, b) => a.timeMs - b.timeMs)
     const loopLengthMs = clampedEnd - clampedStart
-    if (filtered.length === 0) return
+    if (loopLengthMs <= 0) return
     playbackTimeoutsRef.current.forEach((t) => clearTimeout(t))
     playbackTimeoutsRef.current = []
     const baseTime = performance.now()
     loopStartTimeRef.current = baseTime
     loopLengthMsRef.current = loopLengthMs
+    lastScheduledSeqRef.current = JSON.stringify(events.map((ev) => ({ k: ev.key, t: ev.timeMs })))
     setIsPlayingLoop(true)
     const play = playChopByKeyRef.current
     const runLoop = (iteration: number) => {
@@ -497,7 +546,14 @@ function SamplePlayer({
       const now = performance.now()
       const iterationStart = baseTime + iteration * loopLengthMs
       const delayToNext = iterationStart + loopLengthMs - now
-      filtered.forEach((ev) => {
+      const sourceEvents = (playbackEventsRef.current.length ? playbackEventsRef.current : events)
+        .filter((ev) => ev.timeMs >= clampedStart && ev.timeMs <= clampedEnd)
+        .map((ev) => ({ ...ev, timeMs: ev.timeMs - clampedStart }))
+        .sort((a, b) => a.timeMs - b.timeMs)
+      lastScheduledSeqRef.current = JSON.stringify(
+        (playbackEventsRef.current.length ? playbackEventsRef.current : events).map((ev) => ({ k: ev.key, t: ev.timeMs }))
+      )
+      sourceEvents.forEach((ev) => {
         const delay = iterationStart + ev.timeMs - now
         const t = setTimeout(() => play(ev.key), Math.max(0, delay))
         playbackTimeoutsRef.current.push(t)
@@ -507,6 +563,31 @@ function SamplePlayer({
         playbackTimeoutsRef.current.push(loopT)
       }
     }
+    const rescheduleCurrentIteration = () => {
+      const now = performance.now()
+      const iteration = Math.floor((now - baseTime) / loopLengthMs)
+      const iterationStart = baseTime + iteration * loopLengthMs
+      const phaseInLoopMs = now - iterationStart
+      playbackTimeoutsRef.current.forEach((t) => clearTimeout(t))
+      playbackTimeoutsRef.current = []
+      const sourceEvents = (playbackEventsRef.current.length ? playbackEventsRef.current : events)
+        .filter((ev) => ev.timeMs >= clampedStart && ev.timeMs <= clampedEnd)
+        .map((ev) => ({ ...ev, timeMs: ev.timeMs - clampedStart }))
+        .sort((a, b) => a.timeMs - b.timeMs)
+      sourceEvents
+        .filter((ev) => ev.timeMs > phaseInLoopMs)
+        .forEach((ev) => {
+          const delay = iterationStart + ev.timeMs - now
+          const t = setTimeout(() => play(ev.key), Math.max(0, delay))
+          playbackTimeoutsRef.current.push(t)
+        })
+      const delayToNext = iterationStart + loopLengthMs - now
+      if (delayToNext > 0) {
+        const loopT = setTimeout(() => runLoop(iteration + 1), delayToNext)
+        playbackTimeoutsRef.current.push(loopT)
+      }
+    }
+    playbackRescheduleRef.current = rescheduleCurrentIteration
     runLoop(0)
   }, [])
 
@@ -684,24 +765,46 @@ function SamplePlayer({
     }
   }, [draggingLoopEdge, recordedSequence.length, recordingFullLengthMs])
 
-  const updateRecordedEventTime = useCallback((stateIndex: number, timeMs: number, sortAfter: boolean) => {
-    setRecordedSequence((prev) => {
-      const next = [...prev]
-      if (stateIndex < 0 || stateIndex >= next.length) return prev
-      let snapped = timeMs
-      const bpmForGrid = effectiveBpm ?? 60
-      if (quantizeEnabled && bpmForGrid > 0) {
-        snapped = snapToGrid(timeMs, bpmForGrid, quantizeDivision, quantizeSwingPct, {
-          originMs: loopStartMs,
-        })
-      }
-      next[stateIndex] = { ...next[stateIndex], timeMs: snapped }
-      return sortAfter ? next.sort((a, b) => a.timeMs - b.timeMs) : next
-    })
-    if (sortAfter) setDraggingRecordedIndex(null)
-  }, [effectiveBpm, quantizeEnabled, quantizeDivision, quantizeSwingPct, loopStartMs])
+  const updateRecordedEventTime = useCallback(
+    (stateIndex: number, timeMs: number, snapAndSortAfter: boolean) => {
+      setRecordedSequence((prev) => {
+        const next = [...prev]
+        if (stateIndex < 0 || stateIndex >= next.length) return prev
+        const bpmForGrid = effectiveBpm ?? 60
+        const snapped =
+          snapAndSortAfter && quantizeEnabled && bpmForGrid > 0
+            ? snapToGrid(timeMs, bpmForGrid, quantizeDivision, quantizeSwingPct, {
+                originMs: loopStartMs,
+              })
+            : timeMs
+        next[stateIndex] = { ...next[stateIndex], timeMs: snapped }
+        return snapAndSortAfter ? next.sort((a, b) => a.timeMs - b.timeMs) : next
+      })
+      if (snapAndSortAfter) setDraggingRecordedIndex(null)
+    },
+    [effectiveBpm, quantizeEnabled, quantizeDivision, quantizeSwingPct, loopStartMs]
+  )
 
-  // When loop start/end change while playing, restart playback with new bounds (only when not dragging, so playback stays smooth during drag)
+  const handleQuantizeDivisionChange = useCallback(
+    (nextDivision: GridDivision) => {
+      setQuantizeDivision(nextDivision)
+      const bpmForGrid = effectiveBpm ?? null
+      if (!quantizeEnabled || !bpmForGrid || bpmForGrid <= 0) return
+      setRecordedSequence((prev) => {
+        if (!prev.length) return prev
+        const snapped = prev
+          .map((ev) => ({
+            ...ev,
+            timeMs: snapToGrid(ev.timeMs, bpmForGrid, nextDivision, quantizeSwingPct, { originMs: loopStartMs }),
+          }))
+          .sort((a, b) => a.timeMs - b.timeMs)
+        return snapped
+      })
+    },
+    [effectiveBpm, quantizeEnabled, quantizeSwingPct, loopStartMs]
+  )
+
+  // When loop start/end change while playing, restart playback with new bounds (only when not dragging)
   useEffect(() => {
     if (!isPlayingLoop || recordedSequence.length === 0 || draggingLoopEdge !== null || draggingRecordedIndex !== null) return
     const fullMs = recordingFullLengthMs || recordingFullLengthRef.current || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
@@ -713,6 +816,15 @@ function SamplePlayer({
       startLoopPlayback(recordedSequence, requestedStart, requestedEnd)
     }
   }, [isPlayingLoop, loopStartMs, loopEndMs, draggingLoopEdge, draggingRecordedIndex, recordedSequence, recordingFullLengthMs, startLoopPlayback, stopLoopPlayback])
+
+  // Real-time: when chop positions change during playback, reschedule the current iteration so new positions apply immediately
+  useEffect(() => {
+    if (!isPlayingLoop || recordedSequence.length === 0 || !playbackRescheduleRef.current) return
+    const seqSig = JSON.stringify(recordedSequence.map((e) => ({ k: e.key, t: e.timeMs })))
+    if (seqSig === lastScheduledSeqRef.current) return
+    lastScheduledSeqRef.current = seqSig
+    playbackRescheduleRef.current()
+  }, [isPlayingLoop, recordedSequence])
 
   useEffect(() => {
     return () => {
@@ -834,7 +946,17 @@ function SamplePlayer({
     }, SAVED_CHOPS_DEBOUNCE_MS)
     return () => clearTimeout(t)
   }, [isSaved, chops, recordedSequence, loopStartMs, loopEndMs, recordingFullLengthMs, onSavedChopsChange])
-  
+
+  // Auto-save BPM override when sample is saved and user changes BPM (debounced)
+  const SAVED_BPM_DEBOUNCE_MS = 600
+  useEffect(() => {
+    if (!isSaved || !onSavedBpmChange) return
+    const t = setTimeout(() => {
+      onSavedBpmChange(bpmOverride)
+    }, SAVED_BPM_DEBOUNCE_MS)
+    return () => clearTimeout(t)
+  }, [isSaved, bpmOverride, onSavedBpmChange])
+
   // Use a ref to store the initial start time and never change it for this video
   // This prevents the iframe src from changing after initial load
   const startTimeRef = useRef<number | null>(null)
@@ -1138,6 +1260,7 @@ function SamplePlayer({
                         fullLengthMs: recordingFullLengthMs || undefined,
                       }
                     : undefined,
+                  bpm: effectiveBpm ?? undefined,
                 })
               }}
               size="md"
@@ -1170,22 +1293,26 @@ function SamplePlayer({
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
         <div>
           <h3 className="track-title text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>{title}</h3>
-          {(genre || era || effectiveBpm != null || musicalKey) && (
+          {(
             <div className="flex gap-2 flex-wrap items-stretch">
               {genre && <span className="tag-genre meta-tag-box inline-flex items-center min-h-[32px] h-8 px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--rust)", borderColor: "var(--rust)" }}>{genre}</span>}
               {era && <span className="tag-era meta-tag-box inline-flex items-center min-h-[32px] h-8 px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--olive)", borderColor: "var(--olive)" }}>{era}</span>}
-              {effectiveBpm != null && (
-                <div
-                  className="meta-tag-box relative inline-flex items-center min-h-[32px] rounded-xl border select-none gap-0"
-                  style={{
-                    ...META_BOX_STYLE,
-                    padding: 0,
-                  }}
-                >
+              {(() => {
+                const hasBpm = effectiveBpm != null
+                const bpmColor = hasBpm ? META_BOX_STYLE.color : "rgba(74, 55, 40, 0.4)"
+                return (
+                  <div
+                    className="meta-tag-box relative inline-flex items-center min-h-[32px] rounded-xl border select-none gap-0"
+                    style={{
+                      ...META_BOX_STYLE,
+                      padding: 0,
+                      opacity: hasBpm ? 1 : 0.55,
+                    }}
+                  >
                   <button
                     type="button"
                     className="pl-2 p-1.5 hover:opacity-70 transition-opacity"
-                    style={{ color: META_BOX_STYLE.color }}
+                    style={{ color: bpmColor }}
                     aria-label="Decrease BPM"
                     onMouseDown={(e) => {
                       e.preventDefault()
@@ -1201,7 +1328,7 @@ function SamplePlayer({
                   </button>
                   <div
                     className="flex items-center justify-center gap-0.5 py-2 px-1.5 min-w-[3.5rem] cursor-ew-resize font-mono"
-                    style={{ color: META_BOX_STYLE.color }}
+                    style={{ color: bpmColor }}
                     title={isBpmOverridden ? "Double-click to reset to original BPM" : undefined}
                     onDoubleClick={(e) => {
                       e.preventDefault()
@@ -1213,7 +1340,7 @@ function SamplePlayer({
                         }
                       } else {
                         setBpmEditing(true)
-                        setBpmEditInput(String(effectiveBpm))
+                        setBpmEditInput(effectiveBpm != null ? String(effectiveBpm) : "")
                       }
                     }}
                     onMouseDown={handleBpmDragStart}
@@ -1224,7 +1351,7 @@ function SamplePlayer({
                         min={TAP_BPM_MIN}
                         max={TAP_BPM_MAX}
                         className="w-full bg-transparent border-none text-center focus:outline-none focus:ring-0 p-0 font-mono"
-                        style={{ color: META_BOX_STYLE.color }}
+                        style={{ color: bpmColor }}
                         value={bpmEditInput}
                         onChange={(e) => setBpmEditInput(e.target.value)}
                         onBlur={() => {
@@ -1257,8 +1384,8 @@ function SamplePlayer({
                     ) : (
                       <>
                         <span className="inline-flex items-center gap-0.5">
-                          <span>{effectiveBpm}</span>
-                          {isBpmOverridden && (
+                          <span>{hasBpm ? effectiveBpm : "—"}</span>
+                          {hasBpm && isBpmOverridden && (
                             <span
                               className="w-1 h-1 rounded-full shrink-0 opacity-70"
                               style={{ backgroundColor: "currentColor" }}
@@ -1273,7 +1400,7 @@ function SamplePlayer({
                   <button
                     type="button"
                     className="p-1.5 hover:opacity-70 transition-opacity"
-                    style={{ color: META_BOX_STYLE.color }}
+                    style={{ color: bpmColor }}
                     aria-label="Increase BPM"
                     onMouseDown={(e) => {
                       e.preventDefault()
@@ -1287,8 +1414,9 @@ function SamplePlayer({
                       <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z" />
                     </svg>
                   </button>
-                </div>
-              )}
+                  </div>
+                )
+              })()}
               {musicalKey && (
                 <span className="meta-tag-box inline-flex items-center h-8 min-h-[32px] gap-2 rounded-xl border box-border" style={{ ...META_BOX_STYLE, height: 32, lineHeight: 1, boxSizing: "border-box" }}>
                   <EighthNoteIcon className="shrink-0" />
@@ -1463,7 +1591,7 @@ function SamplePlayer({
               {quantizeEnabled && (
                 <select
                   value={quantizeDivision}
-                  onChange={(e) => setQuantizeDivision(e.target.value as typeof quantizeDivision)}
+                  onChange={(e) => handleQuantizeDivisionChange(e.target.value as GridDivision)}
                   className="text-xs rounded-full border px-2 py-1 bg-[var(--muted-light)]"
                   style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
                   aria-label="Quantize division"
@@ -1629,7 +1757,7 @@ function SamplePlayer({
                                 .sort((a, b) => a.ev.timeMs - b.ev.timeMs)
                                 .map(({ ev, stateIndex }) => (
                                   <div
-                                    key={`s-${ev.key}-${ev.timeMs}-${stateIndex}`}
+                                    key={`s-${stateIndex}`}
                                     className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1.5 min-w-[4px] h-5 rounded-px cursor-grab active:cursor-grabbing touch-none z-[3] select-none"
                                     style={{
                                       left: `${(ev.timeMs / totalLengthMs) * 100}%`,

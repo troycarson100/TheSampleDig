@@ -70,6 +70,8 @@ interface Sample {
   chops?: Chop[]
   loop?: SavedLoopData | null
   notes?: string | null
+  /** User-overridden BPM (from saved notes); overrides bpm when set. */
+  bpmOverride?: number | null
 }
 
 const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
@@ -478,6 +480,7 @@ export default function DigPage() {
                 thumbnailUrl: currentSample.thumbnailUrl,
                 chops: opts?.chops,
                 loop: opts?.loop,
+                bpm: opts?.bpm,
               }
         ),
       })
@@ -522,6 +525,22 @@ export default function DigPage() {
       if (res.ok) window.dispatchEvent(new CustomEvent("samplesUpdated"))
     } catch (e) {
       console.warn("[Dig] Failed to auto-save chops/loop:", e)
+    }
+  }, [])
+
+  // Auto-save BPM override when sample is saved and user changes BPM (debounced in SamplePlayer)
+  const handleSavedBpmChange = useCallback(async (bpm: number | null) => {
+    const currentSample = sampleRef.current
+    if (!currentSample?.id) return
+    try {
+      const res = await fetch("/api/samples/update-chops", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sampleId: currentSample.id, bpm }),
+      })
+      if (res.ok) window.dispatchEvent(new CustomEvent("samplesUpdated"))
+    } catch (e) {
+      console.warn("[Dig] Failed to auto-save BPM:", e)
     }
   }, [])
 
@@ -709,7 +728,9 @@ export default function DigPage() {
                   initialLoop={sample.loop}
                   sampleId={sample.id}
                   initialNotes={sample.notes}
+                  initialBpmOverride={sample.bpmOverride}
                   onSavedChopsChange={session ? handleSavedChopsChange : undefined}
+                  onSavedBpmChange={session ? handleSavedBpmChange : undefined}
                   onVideoError={() => {
                     if (sample?.youtubeId) {
                       addSeenVideo(sample.youtubeId)
@@ -755,6 +776,7 @@ export default function DigPage() {
                       chops: savedSample.chops,
                       loop: savedSample.loop,
                       notes: savedSample.notes,
+                      bpmOverride: savedSample.bpmOverride,
                     })
                     setIsSaved(true)
                     // Add to seen list to prevent it from showing again when rolling dice

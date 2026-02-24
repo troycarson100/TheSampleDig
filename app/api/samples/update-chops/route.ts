@@ -10,7 +10,7 @@ export async function PATCH(request: Request) {
     }
 
     const body = await request.json()
-    const { sampleId, chops, loop: loopFromBody } = body
+    const { sampleId, chops, loop: loopFromBody, bpm: bpmFromBody } = body
     if (!sampleId) {
       return NextResponse.json({ error: "sampleId is required" }, { status: 400 })
     }
@@ -55,8 +55,9 @@ export async function PATCH(request: Request) {
         }
       : null
 
-    // Merge chops + loop + userNote: preserve userNote when updating chops/loop
+    // Merge chops + loop + userNote + bpmOverride: preserve when not provided
     let keptUserNote: string | undefined
+    let keptBpmOverride: number | null | undefined
     let existingChops: unknown[] = []
     let existingLoop: unknown = null
     try {
@@ -65,10 +66,11 @@ export async function PATCH(request: Request) {
         if (Array.isArray(parsed)) {
           existingChops = parsed
         } else if (parsed && typeof parsed === "object") {
-          const obj = parsed as { chops?: unknown[]; loop?: unknown; userNote?: string }
+          const obj = parsed as { chops?: unknown[]; loop?: unknown; userNote?: string; bpmOverride?: number | null }
           if (Array.isArray(obj.chops)) existingChops = obj.chops
           if (obj.loop != null) existingLoop = obj.loop
           if (typeof obj.userNote === "string") keptUserNote = obj.userNote
+          if (obj.bpmOverride !== undefined) keptBpmOverride = obj.bpmOverride
         }
       }
     } catch {
@@ -79,8 +81,10 @@ export async function PATCH(request: Request) {
     const base: Record<string, unknown> = { chops: newChops }
     if (keptLoop != null) base.loop = keptLoop
     if (keptUserNote !== undefined) base.userNote = keptUserNote
+    if (bpmFromBody !== undefined) base.bpmOverride = bpmFromBody
+    else if (keptBpmOverride !== undefined) base.bpmOverride = keptBpmOverride
     const notesValue =
-      newChops.length > 0 || keptLoop != null || keptUserNote != null
+      newChops.length > 0 || keptLoop != null || keptUserNote != null || base.bpmOverride !== undefined
         ? JSON.stringify(base)
         : null
 

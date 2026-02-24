@@ -32,17 +32,19 @@ export async function GET() {
       let chops: unknown = undefined
       let loop: unknown = undefined
       let notes: string | undefined = undefined
+      let bpmOverride: number | null | undefined
       if (us.notes) {
         try {
           const parsed = JSON.parse(us.notes) as unknown
           if (Array.isArray(parsed) && parsed.length > 0) {
             chops = parsed
           } else if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-            const obj = parsed as { chops?: unknown; loop?: unknown; userNote?: string }
+            const obj = parsed as { chops?: unknown; loop?: unknown; userNote?: string; bpmOverride?: number | null }
             if (Array.isArray(obj.chops) && obj.chops.length > 0) chops = obj.chops
             if (obj.loop && typeof obj.loop === "object" && Array.isArray((obj.loop as { sequence?: unknown }).sequence))
               loop = obj.loop
             if (typeof obj.userNote === "string") notes = obj.userNote
+            if (obj.bpmOverride !== undefined) bpmOverride = obj.bpmOverride
           }
         } catch {
           // notes was not valid JSON, ignore
@@ -64,6 +66,7 @@ export async function GET() {
         chops,
         loop,
         notes,
+        bpmOverride: bpmOverride ?? undefined,
         savedAt: us.createdAt,
       }
     })

@@ -22,7 +22,7 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { sampleId: inputSampleId, startTime, youtubeId, chops, loop } = body
+    const { sampleId: inputSampleId, startTime, youtubeId, chops, loop, bpm: bpmOverride } = body
 
     console.log(`[Save] Request: sampleId=${inputSampleId}, youtubeId=${youtubeId}, userId=${session.user.id}`)
 
@@ -89,11 +89,14 @@ export async function POST(request: Request) {
             fullLengthMs: loop.fullLengthMs != null && !Number.isNaN(Number(loop.fullLengthMs)) ? Number(loop.fullLengthMs) : undefined,
           }
         : null
+    const hasBpmOverride = bpmOverride != null && Number.isFinite(Number(bpmOverride))
     const notesObj =
-      loopData || chopsData
-        ? loopData
-          ? { chops: chopsData ?? [], loop: loopData }
-          : chopsData
+      loopData || chopsData || hasBpmOverride
+        ? {
+            chops: chopsData ?? [],
+            ...(loopData ? { loop: loopData } : {}),
+            ...(hasBpmOverride ? { bpmOverride: Number(bpmOverride) } : {}),
+          }
         : null
     const notesValue = notesObj ? JSON.stringify(notesObj) : null
     const startTimeNum = startTime != null ? parseInt(String(startTime), 10) : null
