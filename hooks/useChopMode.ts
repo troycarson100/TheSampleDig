@@ -1,6 +1,8 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef } from "react"
+import type { GridDivision } from "@/lib/grid-quantize"
+import { snapToGrid } from "@/lib/grid-quantize"
 
 export const CHOP_KEYS = ["A", "W", "S", "E", "D", "F", "T", "G", "Y", "H", "U", "J", "K", "O", "L"] as const
 
@@ -72,13 +74,21 @@ export interface UseChopModeRecordOptions {
   onAddChop?: () => void
 }
 
+export interface UseChopModeQuantizeOptions {
+  enabled: boolean
+  bpm: number | null | undefined
+  division: GridDivision
+  swingPct: number
+}
+
 export function useChopMode(
   playerRef: React.RefObject<YouTubePlayerAdapter | null>,
   enabled: boolean,
   videoId?: string | null,
   initialChops?: Chop[] | null,
   onAfterChopPlay?: () => void,
-  recordOptions?: UseChopModeRecordOptions
+  recordOptions?: UseChopModeRecordOptions,
+  quantizeOptions?: UseChopModeQuantizeOptions
 ): {
   chops: Chop[]
   clearChops: () => void
@@ -97,6 +107,10 @@ export function useChopMode(
     onRKey,
     onAddChop,
   } = recordOptions ?? {}
+  const quantizeEnabled = !!quantizeOptions?.enabled && !!quantizeOptions?.bpm && quantizeOptions.bpm > 0
+  const quantizeBpm = quantizeOptions?.bpm ?? null
+  const quantizeDivision = quantizeOptions?.division ?? "1/16"
+  const quantizeSwing = quantizeOptions?.swingPct ?? 50
   const [chops, setChops] = useState<Chop[]>([])
   const [pressedKey, setPressedKey] = useState<string | null>(null)
   const lastSpaceRef = useRef(0)
@@ -125,17 +139,22 @@ export function useChopMode(
     if (chops.length >= CHOP_KEYS.length) return
     const adapter = playerRef.current
     if (!adapter) return
-    const time = adapter.getCurrentTime()
+    let time = adapter.getCurrentTime()
     if (time < 0) return
     const now = Date.now()
     if (now - lastSpaceRef.current < SPACE_DEBOUNCE_MS) return
     lastSpaceRef.current = now
 
+    if (quantizeEnabled && quantizeBpm) {
+      const snappedMs = snapToGrid(time * 1000, quantizeBpm, quantizeDivision, quantizeSwing)
+      time = Math.max(0, snappedMs / 1000)
+    }
+
     const key = CHOP_KEYS[chops.length]
     const color = KEY_COLORS[key] ?? "#666"
     setChops((prev) => [...prev, { key, time, color, index: prev.length }])
     onAddChop?.()
-  }, [chops.length, playerRef, onAddChop])
+  }, [chops.length, playerRef, onAddChop, quantizeEnabled, quantizeBpm, quantizeDivision, quantizeSwing])
 
   const setPressedKeyBriefly = useCallback((key: string) => {
     if (pressedKeyTimeoutRef.current) clearTimeout(pressedKeyTimeoutRef.current)

@@ -1,7 +1,9 @@
 "use client"
 
-import { useRef, useCallback } from "react"
+import { useRef, useCallback, useMemo } from "react"
 import type { Chop } from "@/hooks/useChopMode"
+import type { GridDivision } from "@/lib/grid-quantize"
+import { snapToGrid, getGridLinePositionsMs } from "@/lib/grid-quantize"
 
 interface ChopTimelineMarkersProps {
   chops: Chop[]
@@ -13,6 +15,10 @@ interface ChopTimelineMarkersProps {
   onUpdateChopTime: (key: string, time: number) => void
   onRemoveChop: (key: string) => void
   pressedKey: string | null
+  quantizeEnabled?: boolean
+  quantizeBpm?: number | null
+  quantizeDivision?: GridDivision
+  quantizeSwingPct?: number
 }
 
 export default function ChopTimelineMarkers({
@@ -23,6 +29,10 @@ export default function ChopTimelineMarkers({
   onUpdateChopTime,
   onRemoveChop,
   pressedKey,
+  quantizeEnabled = false,
+  quantizeBpm,
+  quantizeDivision = "1/16",
+  quantizeSwingPct = 50,
 }: ChopTimelineMarkersProps) {
   const barRef = useRef<HTMLDivElement>(null)
   const draggingKeyRef = useRef<string | null>(null)
@@ -65,18 +75,32 @@ export default function ChopTimelineMarkers({
   const handlePointerUp = useCallback(
     (e: React.PointerEvent, key: string) => {
       if (draggingKeyRef.current === key) {
-        const time = getTimeFromClientX(e.clientX)
+        let time = getTimeFromClientX(e.clientX)
+        if (quantizeEnabled && quantizeBpm && quantizeBpm > 0) {
+          const snappedMs = snapToGrid(time * 1000, quantizeBpm, quantizeDivision, quantizeSwingPct)
+          time = Math.max(0, snappedMs / 1000)
+        }
         onUpdateChopTime(key, time)
         draggingKeyRef.current = null
       }
       ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
     },
-    [getTimeFromClientX, onUpdateChopTime]
+    [getTimeFromClientX, onUpdateChopTime, quantizeEnabled, quantizeBpm, quantizeDivision, quantizeSwingPct]
   )
 
   if (duration <= 0) return null
 
   const playheadPercent = Math.max(0, Math.min(100, (currentTime / duration) * 100))
+
+  const gridLines = useMemo(() => {
+    if (!quantizeBpm || quantizeBpm <= 0) return []
+    const lengthMs = duration * 1000
+    const positions = getGridLinePositionsMs(lengthMs, quantizeBpm, quantizeDivision)
+    return positions.map(({ positionMs, isBar }) => ({
+      percent: (positionMs / lengthMs) * 100,
+      isBar,
+    }))
+  }, [quantizeBpm, duration, quantizeDivision])
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60)
@@ -143,6 +167,21 @@ export default function ChopTimelineMarkers({
         style={{ background: "rgba(255,255,255,0.2)" }}
         onPointerDown={handleTrackPointerDown}
       >
+        {/* Quantize grid lines (subdivision light; bar lines darker and taller) */}
+        {gridLines.map(({ percent, isBar }, i) => (
+          <div
+            key={`grid-${i}`}
+            className="absolute top-1/2 pointer-events-none z-0"
+            style={{
+              left: `${percent}%`,
+              width: isBar ? 2 : 1,
+              height: isBar ? "1.25rem" : "0.75rem",
+              transform: "translate(-50%, -50%)",
+              background: isBar ? "rgba(60,60,60,0.85)" : "rgba(128,128,128,0.35)",
+            }}
+            aria-hidden
+          />
+        ))}
         <div
           className="absolute inset-y-0 left-0 transition-[width] duration-150 rounded-l-sm pointer-events-none"
           style={{ width: `${playheadPercent}%`, background: "#b91c1c" }}
@@ -168,7 +207,11 @@ export default function ChopTimelineMarkers({
             onPointerUp={(e) => handlePointerUp(e, chop.key)}
             onPointerLeave={(e) => {
               if (draggingKeyRef.current === chop.key) {
-                const time = getTimeFromClientX(e.clientX)
+                let time = getTimeFromClientX(e.clientX)
+                if (quantizeEnabled && quantizeBpm && quantizeBpm > 0) {
+                  const snappedMs = snapToGrid(time * 1000, quantizeBpm, quantizeDivision, quantizeSwingPct)
+                  time = Math.max(0, snappedMs / 1000)
+                }
                 onUpdateChopTime(chop.key, time)
                 draggingKeyRef.current = null
               }
@@ -192,10 +235,10 @@ export default function ChopTimelineMarkers({
           </div>
         )
       })}
-        {/* Draggable playhead thumb (after markers so it stays on top) */}
+        {/* Draggable playhead thumb (after markers so it stays on top); kept small to avoid obscuring chop indicators */}
         <div
-          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-2 h-4 rounded-sm bg-white border border-red-800 shadow cursor-ew-resize touch-none select-none z-10"
-          style={{ left: `${playheadPercent}%` }}
+          className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 w-1 h-3 rounded-[2px] bg-white border border-red-800 shadow cursor-ew-resize touch-none select-none z-10"
+          style={{ left: `${playheadPercent}%`, borderWidth: 1 }}
           onPointerDown={handlePlayheadPointerDown}
           onPointerMove={handlePlayheadPointerMove}
           onPointerUp={handlePlayheadPointerUp}

@@ -5,7 +5,9 @@ import { useEffect, useRef, useMemo, memo, useState, useCallback } from "react"
 import HeartToggle from "./HeartToggle"
 import ChopPads, { CHOP_KEYBOARD_WIDTH_REM } from "./ChopPads"
 import ChopTimelineMarkers from "./ChopTimelineMarkers"
-import { useChopMode } from "@/hooks/useChopMode"
+import { useChopMode, type UseChopModeQuantizeOptions } from "@/hooks/useChopMode"
+import type { GridDivision } from "@/lib/grid-quantize"
+import { snapToGrid, snapLoopEndToBar, getGridLinePositionsMs } from "@/lib/grid-quantize"
 import { loadYouTubeIframeAPI, createAdapterFromIframe } from "@/lib/youtube-player-adapter"
 import { KEY_COLORS, type YouTubePlayerAdapter, type Chop, type RecordedChopEvent, type SavedLoopData } from "@/hooks/useChopMode"
 import { playMetronomeBeep } from "@/lib/audio/metronome"
@@ -438,6 +440,9 @@ function SamplePlayer({
   const loopStartTimeRef = useRef(0)
   const loopLengthMsRef = useRef(0)
   const metronomeIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const [quantizeEnabled, setQuantizeEnabled] = useState(true)
+  const [quantizeDivision, setQuantizeDivision] = useState<GridDivision>("1/16")
+  const [quantizeSwingPct] = useState(50)
 
   const stopLoopPlayback = useCallback(() => {
     playbackTimeoutsRef.current.forEach((t) => clearTimeout(t))
@@ -505,29 +510,43 @@ function SamplePlayer({
     runLoop(0)
   }, [])
 
-  const stopRecordAndStartPlayback = useCallback(() => {
-    if (metronomeIntervalRef.current) {
-      clearInterval(metronomeIntervalRef.current)
-      metronomeIntervalRef.current = null
-    }
-    setRecordPhase("idle")
-    setLiveRecordedEvents([])
-    setRecordingElapsedMs(0)
-    const events = [...recordEventsRef.current]
-    setRecordedSequence(events)
-    recordEventsRef.current = []
-    const lastEventMs = events.length ? Math.max(...events.map((e) => e.timeMs)) : 0
-    const stopTime = recordStopTimeRef.current || performance.now()
-    const elapsedMs = recordStartTimeRef.current
-      ? Math.max(0, stopTime - recordStartTimeRef.current)
-      : 0
-    const totalMs = Math.max(lastEventMs + 50, elapsedMs)
-    recordingFullLengthRef.current = totalMs
-    setLoopStartMs(0)
-    setLoopEndMs(totalMs)
-    setRecordingFullLengthMs(totalMs)
-    if (events.length > 0) startLoopPlayback(events, 0, totalMs)
-  }, [startLoopPlayback])
+  const stopRecordAndStartPlayback = useCallback(
+    (quantizeSnap?: { bpm: number; division: GridDivision; swingPct: number; enabled: boolean }) => {
+      if (metronomeIntervalRef.current) {
+        clearInterval(metronomeIntervalRef.current)
+        metronomeIntervalRef.current = null
+      }
+      setRecordPhase("idle")
+      setLiveRecordedEvents([])
+      setRecordingElapsedMs(0)
+      let events = [...recordEventsRef.current]
+      recordEventsRef.current = []
+      let lastEventMs = events.length ? Math.max(...events.map((e) => e.timeMs)) : 0
+      const stopTime = recordStopTimeRef.current || performance.now()
+      const elapsedMs = recordStartTimeRef.current
+        ? Math.max(0, stopTime - recordStartTimeRef.current)
+        : 0
+      let totalMs = Math.max(lastEventMs + 50, elapsedMs)
+
+      if (quantizeSnap?.enabled && quantizeSnap.bpm > 0) {
+        const { bpm, division, swingPct } = quantizeSnap
+        events = events.map((ev) => ({
+          ...ev,
+          timeMs: snapToGrid(ev.timeMs, bpm, division, swingPct, { originMs: 0 }),
+        }))
+        totalMs = snapLoopEndToBar(totalMs, 0, bpm)
+        lastEventMs = events.length ? Math.max(...events.map((e) => e.timeMs)) : 0
+      }
+
+      setRecordedSequence(events)
+      recordingFullLengthRef.current = totalMs
+      setLoopStartMs(0)
+      setLoopEndMs(totalMs)
+      setRecordingFullLengthMs(totalMs)
+      if (events.length > 0) startLoopPlayback(events, 0, totalMs)
+    },
+    [startLoopPlayback]
+  )
 
   const onRecordPad = useCallback((key: string, timeMs: number) => {
     const ev = { key, timeMs }
@@ -538,7 +557,16 @@ function SamplePlayer({
   const onRKey = useCallback(() => {
     if (recordPhase === "recording") {
       recordStopTimeRef.current = performance.now()
-      stopRecordAndStartPlayback()
+      stopRecordAndStartPlayback(
+        quantizeEnabled && (effectiveBpm ?? 0) > 0
+          ? {
+              bpm: effectiveBpm ?? 60,
+              division: quantizeDivision,
+              swingPct: quantizeSwingPct,
+              enabled: true,
+            }
+          : undefined
+      )
       return
     }
     if (recordPhase !== "idle") return
@@ -562,14 +590,23 @@ function SamplePlayer({
         playMetronomeBeep()
       }, intervalMs)
     }
-  }, [recordPhase, stopRecordAndStartPlayback, effectiveBpm, metronomeDuringRecording, clearRecordedLoop])
+  }, [recordPhase, stopRecordAndStartPlayback, effectiveBpm, metronomeDuringRecording, clearRecordedLoop, quantizeEnabled, quantizeDivision, quantizeSwingPct])
 
   const onSpaceWhenRecording = useCallback(() => {
     if (recordPhase === "recording") {
       recordStopTimeRef.current = performance.now()
-      stopRecordAndStartPlayback()
+      stopRecordAndStartPlayback(
+        quantizeEnabled && (effectiveBpm ?? 0) > 0
+          ? {
+              bpm: effectiveBpm ?? 60,
+              division: quantizeDivision,
+              swingPct: quantizeSwingPct,
+              enabled: true,
+            }
+          : undefined
+      )
     }
-  }, [recordPhase, stopRecordAndStartPlayback])
+  }, [recordPhase, stopRecordAndStartPlayback, quantizeEnabled, effectiveBpm, quantizeDivision, quantizeSwingPct])
 
   // When user turns off metronome during recording, stop the beeps immediately
   useEffect(() => {
@@ -618,13 +655,24 @@ function SamplePlayer({
       const rect = bar.getBoundingClientRect()
       const x = e.clientX - rect.left
       const pct = Math.max(0, Math.min(1, x / rect.width))
-      const ms = Math.round(pct * totalMs)
+      let ms = Math.round(pct * totalMs)
       const { start, end } = loopBoundsRef.current
       const maxEnd = end || totalMs
       if (draggingLoopEdge === "start") {
-        setLoopStartMs(Math.max(0, Math.min(ms, maxEnd - minSpanMs)))
+        ms = Math.max(0, Math.min(ms, maxEnd - minSpanMs))
+        if (quantizeEnabled && (effectiveBpm ?? 0) > 0) {
+          const bpmForGrid = effectiveBpm ?? 60
+          ms = snapToGrid(ms, bpmForGrid, quantizeDivision, quantizeSwingPct, { originMs: 0 })
+        }
+        setLoopStartMs(ms)
       } else {
-        setLoopEndMs(Math.min(totalMs, Math.max(ms, start + minSpanMs)))
+        ms = Math.min(totalMs, Math.max(ms, start + minSpanMs))
+        if (quantizeEnabled && (effectiveBpm ?? 0) > 0) {
+          const bpmForGrid = effectiveBpm ?? 60
+          const snappedEnd = snapLoopEndToBar(ms, start, bpmForGrid)
+          ms = Math.min(totalMs, Math.max(snappedEnd, start + minSpanMs))
+        }
+        setLoopEndMs(ms)
       }
     }
     const onUp = () => setDraggingLoopEdge(null)
@@ -640,11 +688,18 @@ function SamplePlayer({
     setRecordedSequence((prev) => {
       const next = [...prev]
       if (stateIndex < 0 || stateIndex >= next.length) return prev
-      next[stateIndex] = { ...next[stateIndex], timeMs }
+      let snapped = timeMs
+      const bpmForGrid = effectiveBpm ?? 60
+      if (quantizeEnabled && bpmForGrid > 0) {
+        snapped = snapToGrid(timeMs, bpmForGrid, quantizeDivision, quantizeSwingPct, {
+          originMs: loopStartMs,
+        })
+      }
+      next[stateIndex] = { ...next[stateIndex], timeMs: snapped }
       return sortAfter ? next.sort((a, b) => a.timeMs - b.timeMs) : next
     })
     if (sortAfter) setDraggingRecordedIndex(null)
-  }, [])
+  }, [effectiveBpm, quantizeEnabled, quantizeDivision, quantizeSwingPct, loopStartMs])
 
   // When loop start/end change while playing, restart playback with new bounds (only when not dragging, so playback stays smooth during drag)
   useEffect(() => {
@@ -696,6 +751,13 @@ function SamplePlayer({
     }
   }, [])
 
+  const quantizeOptions: UseChopModeQuantizeOptions | undefined = {
+    enabled: false,
+    bpm: effectiveBpm ?? 60,
+    division: quantizeDivision,
+    swingPct: quantizeSwingPct,
+  }
+
   const { chops, clearChops, removeChop, addChop, slotsFull, onPadKeyPress, updateChopTime, pressedKey } = useChopMode(
     adapterRef,
     chopModeEnabled,
@@ -711,7 +773,8 @@ function SamplePlayer({
           onRKey,
           onAddChop: onAddChopFlash,
         }
-      : undefined
+      : undefined,
+    quantizeOptions
   )
 
   playChopByKeyRef.current = onPadKeyPress
@@ -1095,6 +1158,10 @@ function SamplePlayer({
             onUpdateChopTime={updateChopTime}
             onRemoveChop={removeChop}
             pressedKey={pressedKey}
+            quantizeEnabled={false}
+            quantizeBpm={null}
+            quantizeDivision={quantizeDivision}
+            quantizeSwingPct={quantizeSwingPct}
           />
         )}
       </div>
@@ -1381,6 +1448,37 @@ function SamplePlayer({
             <div className="flex items-center gap-3 flex-wrap">
               <button
                 type="button"
+                onClick={() => setQuantizeEnabled((v) => !v)}
+                className="chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90"
+                style={{
+                  borderColor: "var(--border)",
+                  background: quantizeEnabled ? "var(--primary)" : "var(--muted-light)",
+                  color: quantizeEnabled ? "#fff" : "var(--muted)",
+                }}
+                aria-label="Toggle quantize grid"
+                title="Toggle grid quantize for chops and loop"
+              >
+                <span className="text-xs font-bold">Q</span>
+              </button>
+              {quantizeEnabled && (
+                <select
+                  value={quantizeDivision}
+                  onChange={(e) => setQuantizeDivision(e.target.value as typeof quantizeDivision)}
+                  className="text-xs rounded-full border px-2 py-1 bg-[var(--muted-light)]"
+                  style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+                  aria-label="Quantize division"
+                  title="Quantize grid division"
+                >
+                  <option value="1/4">1/4</option>
+                  <option value="1/8">1/8</option>
+                  <option value="1/16">1/16</option>
+                  <option value="1/8t">1/8t</option>
+                  <option value="1/16t">1/16t</option>
+                  <option value="1/8d">1/8·</option>
+                </select>
+              )}
+              <button
+                type="button"
                 onClick={onRKey}
                 className="chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90"
                 style={{
@@ -1463,8 +1561,32 @@ function SamplePlayer({
                     const pct = Math.max(0, Math.min(1, (clientX - rect.left) / rect.width))
                     return Math.round(pct * totalLengthMs)
                   }
+                  const loopGridLines =
+                    (effectiveBpm ?? 0) > 0 && totalLengthMs > 0
+                      ? getGridLinePositionsMs(totalLengthMs, effectiveBpm ?? 60, quantizeDivision).map(
+                          ({ positionMs, isBar }) => ({
+                            percent: (positionMs / totalLengthMs) * 100,
+                            isBar,
+                          })
+                        )
+                      : []
                   return (
                     <div className="relative w-full h-full rounded-sm overflow-visible">
+                      {/* Grid: first of every N (e.g. 1/8 → every 8th) is taller + thicker/darker */}
+                      {loopGridLines.map(({ percent, isBar }, i) => (
+                        <div
+                          key={`loop-grid-${i}`}
+                          className="absolute top-1/2 pointer-events-none z-0"
+                          style={{
+                            left: `${percent}%`,
+                            width: isBar ? 2 : 1,
+                            height: isBar ? "1.25rem" : "0.75rem",
+                            transform: "translate(-50%, -50%)",
+                            background: isBar ? "rgba(80,80,80,0.75)" : "rgba(128,128,128,0.4)",
+                          }}
+                          aria-hidden
+                        />
+                      ))}
                       {/* Darker overlay for region left of loop start (not playing) */}
                       {hasLoopRange && startPct > 0 && (
                         <div
