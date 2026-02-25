@@ -174,6 +174,12 @@ export default function DigPage() {
     if (samplePacks) setEraFilter("")
   }, [samplePacks])
 
+  // Ping activity so "active users" sees you (runs once when logged in)
+  useEffect(() => {
+    if (status !== "authenticated" || !session?.user) return
+    fetch("/api/activity/ping", { credentials: "include" }).catch(() => {})
+  }, [status, session?.user])
+
   // Fetch genre/era options from API (only show genres/eras that have samples in DB)
   useEffect(() => {
     let cancelled = false

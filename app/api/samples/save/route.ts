@@ -121,6 +121,10 @@ export async function POST(request: Request) {
       throw insertError
     }
 
+    // Record activity for analytics (await so serverless runs it before response)
+    const { recordUserActivity } = await import("@/lib/record-user-activity")
+    await recordUserActivity(session.user.id, "save_sample", { sampleId })
+
     console.log("[Save] Success!")
     return NextResponse.json({ success: true, sampleId })
   } catch (error: any) {

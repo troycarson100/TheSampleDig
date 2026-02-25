@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server"
+import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { recordUserActivity } from "@/lib/record-user-activity"
 
 /**
  * GET /api/samples/filters
@@ -8,6 +10,12 @@ import { prisma } from "@/lib/db"
  */
 export async function GET() {
   try {
+    // Record "on site" activity when logged in (filters is called on every dig page load)
+    const session = await auth()
+    if (session?.user?.id) {
+      await recordUserActivity(session.user.id, "heartbeat")
+    }
+
     const [genreRows, eraRows] = await Promise.all([
       prisma.sample.groupBy({
         by: ["genre"],

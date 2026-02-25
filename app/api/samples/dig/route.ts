@@ -51,10 +51,14 @@ export async function GET(request: Request) {
       const { auth } = await import("@/lib/auth")
       const session = await auth()
       userId = session?.user?.id
+      if (userId) {
+        const { recordUserActivity } = await import("@/lib/record-user-activity")
+        await recordUserActivity(userId, "heartbeat")
+      }
     } catch (error) {
       // Ignore auth errors
     }
-    
+
     let video
     try {
       console.log(`[Dig] Calling findRandomSample with ${excludedVideoIds.length} exclusions${genre ? `, genre=${genre}` : ""}${era ? `, era=${era}` : ""}${drumBreak ? ", drumBreak=true" : ""}${samplePacks ? ", samplePacks=true" : ""}...`)

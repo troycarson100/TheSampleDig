@@ -11,15 +11,16 @@ datasource db {
 }
 
 model User {
-  id                String        @id @default(cuid())
-  email             String        @unique
-  passwordHash      String        @map("password_hash")
-  name              String?
-  stripeCustomerId              String?    @map("stripe_customer_id")
-  subscriptionStatus            String?    @map("subscription_status")
-  subscriptionCurrentPeriodEnd  DateTime?  @map("subscription_current_period_end")
-  createdAt                     DateTime   @default(now()) @map("created_at")
-  savedSamples                  UserSample[]
+  id                           String        @id @default(cuid())
+  email                        String        @unique
+  passwordHash                 String        @map("password_hash")
+  name                         String?
+  stripeCustomerId             String?       @map("stripe_customer_id")
+  subscriptionStatus           String?       @map("subscription_status")
+  subscriptionCurrentPeriodEnd DateTime?     @map("subscription_current_period_end")
+  createdAt                    DateTime      @default(now()) @map("created_at")
+  savedSamples                 UserSample[]
+  events                       UserEvent[]
 
   @@map("users")
 }
@@ -111,4 +112,17 @@ model PrelaunchSignup {
   createdAt DateTime @default(now()) @map("created_at")
 
   @@map("prelaunch_signups")
+}
+
+model UserEvent {
+  id        String   @id @default(cuid())
+  userId    String   @map("user_id")
+  type      String
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@map("user_events")
 }

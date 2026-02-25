@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
+import { recordUserActivity } from "@/lib/record-user-activity"
 
 export async function GET() {
   try {
@@ -11,6 +12,9 @@ export async function GET() {
         { status: 401 }
       )
     }
+
+    // Record activity for "active users" (throttled); await so serverless runs it before response
+    await recordUserActivity(session.user.id, "heartbeat")
 
     // Lazy load prisma
     const { prisma } = await import("@/lib/db")
