@@ -27,7 +27,9 @@ export async function recordUserActivity(
       data: {
         userId,
         type,
-        metadata: metadata ?? undefined,
+        // Prisma Json type is strict; cast JSON-serializable object for create
+        metadata:
+          metadata == null ? undefined : (JSON.parse(JSON.stringify(metadata)) as never),
       },
     })
   } catch (e) {
