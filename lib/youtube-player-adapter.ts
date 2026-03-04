@@ -22,7 +22,7 @@ declare global {
     YT?: {
       Player: new (
         element: HTMLElement,
-        options: { events?: { onReady?: (e: { target: YTPlayerInstance }) => void } }
+        options: { events?: { onReady?: (e: { target: YTPlayerInstance }) => void; onError?: () => void } }
       ) => void
     }
     onYouTubeIframeAPIReady?: () => void
