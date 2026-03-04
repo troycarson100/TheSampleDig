@@ -1112,6 +1112,14 @@ function SamplePlayer({
     }
   }, [youtubeId, clearRecordedLoop])
 
+  const videoUnavailableReportedRef = useRef<string | null>(null)
+  const reportVideoUnavailable = useCallback(() => {
+    if (!onVideoError || !youtubeId) return
+    if (videoUnavailableReportedRef.current === youtubeId) return
+    videoUnavailableReportedRef.current = youtubeId
+    onVideoError()
+  }, [onVideoError, youtubeId])
+
   // YouTube IFrame API: create player adapter only after iframe has loaded so getCurrentTime() returns real time
   const validYoutubeIdForAdapter = youtubeId && String(youtubeId).length === 11
   useEffect(() => {
@@ -1232,20 +1240,12 @@ function SamplePlayer({
 
   // If we have an invalid YouTube ID (e.g. DB id passed by mistake), ask for next sample once
   const invalidIdReportedRef = useRef<string | null>(null)
-  const videoUnavailableReportedRef = useRef<string | null>(null)
   useEffect(() => {
     if (!validYoutubeId && onVideoError && youtubeId && invalidIdReportedRef.current !== youtubeId) {
       invalidIdReportedRef.current = youtubeId
       onVideoError()
     }
   }, [validYoutubeId, onVideoError, youtubeId])
-
-  const reportVideoUnavailable = useCallback(() => {
-    if (!onVideoError || !youtubeId) return
-    if (videoUnavailableReportedRef.current === youtubeId) return
-    videoUnavailableReportedRef.current = youtubeId
-    onVideoError()
-  }, [onVideoError, youtubeId])
 
   // Validate iframe src start parameter only when we're not explicitly starting at 0 (drum break)
   useEffect(() => {
