@@ -94,6 +94,7 @@ export function useChopMode(
   clearChops: () => void
   removeChop: (key: string) => void
   addChop: () => void
+  swapChops: (keyA: string, keyB: string) => void
   slotsFull: boolean
   onPadKeyPress: (key: string) => void
   updateChopTime: (key: string, time: number) => void
@@ -135,8 +136,24 @@ export function useChopMode(
     )
   }, [])
 
+  /** Swap the key assignments of two chops. Letters stay in place; we keep each chop's color so colors visually swap pads. */
+  const swapChops = useCallback((keyA: string, keyB: string) => {
+    if (keyA === keyB) return
+    setChops((prev) => {
+      const hasA = prev.some((c) => c.key === keyA)
+      const hasB = prev.some((c) => c.key === keyB)
+      if (!hasA || !hasB) return prev
+      return prev
+        .map((c) => {
+          if (c.key === keyA) return { ...c, key: keyB }
+          if (c.key === keyB) return { ...c, key: keyA }
+          return c
+        })
+        .map((c, i) => ({ ...c, index: i }))
+    })
+  }, [])
+
   const addChop = useCallback(() => {
-    if (chops.length >= CHOP_KEYS.length) return
     const adapter = playerRef.current
     if (!adapter) return
     let time = adapter.getCurrentTime()
@@ -150,11 +167,15 @@ export function useChopMode(
       time = Math.max(0, snappedMs / 1000)
     }
 
-    const key = CHOP_KEYS[chops.length]
-    const color = KEY_COLORS[key] ?? "#666"
-    setChops((prev) => [...prev, { key, time, color, index: prev.length }])
+    setChops((prev) => {
+      const usedKeys = new Set(prev.map((c) => c.key))
+      const key = CHOP_KEYS.find((k) => !usedKeys.has(k))
+      if (!key) return prev
+      const color = KEY_COLORS[key] ?? "#666"
+      return [...prev, { key, time, color, index: prev.length }]
+    })
     onAddChop?.()
-  }, [chops.length, playerRef, onAddChop, quantizeEnabled, quantizeBpm, quantizeDivision, quantizeSwing])
+  }, [playerRef, onAddChop, quantizeEnabled, quantizeBpm, quantizeDivision, quantizeSwing])
 
   const setPressedKeyBriefly = useCallback((key: string) => {
     if (pressedKeyTimeoutRef.current) clearTimeout(pressedKeyTimeoutRef.current)
@@ -287,5 +308,5 @@ export function useChopMode(
 
   const slotsFull = chops.length >= CHOP_KEYS.length
 
-  return { chops, clearChops, removeChop, addChop, slotsFull, onPadKeyPress, updateChopTime, pressedKey }
+  return { chops, clearChops, removeChop, addChop, swapChops, slotsFull, onPadKeyPress, updateChopTime, pressedKey }
 }

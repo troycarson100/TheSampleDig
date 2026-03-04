@@ -10,6 +10,7 @@ import AutoplayToggle from "@/components/AutoplayToggle"
 import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import SiteNav from "@/components/SiteNav"
 import GenreSelect from "@/components/GenreSelect"
+import DigHowToPopover from "@/components/DigHowToPopover"
 // import BeatsPanel from "@/components/BeatsPanel" // Beat loop section commented out for now
 
 /** Label maps for display; used for both static fallback and dynamic options from API */
@@ -692,14 +693,17 @@ export default function DigPage() {
                   ariaLabel="Filter samples by genre"
                   className="min-w-[140px]"
                 />
-                <div className={samplePacks ? "opacity-50 pointer-events-none" : ""} title={samplePacks ? "Era filter disabled — sample packs are mostly from 1990s onward" : undefined}>
-                  <GenreSelect
-                    value={eraFilter}
-                    onChange={setEraFilter}
-                    options={eraOptions}
-                    ariaLabel="Filter samples by era"
-                    className="min-w-[120px]"
-                  />
+                <div className="flex items-center gap-2">
+                  <div className={samplePacks ? "opacity-50 pointer-events-none" : ""} title={samplePacks ? "Era filter disabled — sample packs are mostly from 1990s onward" : undefined}>
+                    <GenreSelect
+                      value={eraFilter}
+                      onChange={setEraFilter}
+                      options={eraOptions}
+                      ariaLabel="Filter samples by era"
+                      className="min-w-[120px]"
+                    />
+                  </div>
+                  <DigHowToPopover />
                 </div>
               </div>
             </div>

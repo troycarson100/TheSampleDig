@@ -550,7 +550,7 @@ body.theme-vinyl::before {
 .genre-ticker .ticker-track {
   display: flex;
   gap: 0;
-  animation: tickroll 480s linear infinite;
+  animation: tickroll 720s linear infinite;
   white-space: nowrap;
 }
 .genre-ticker .ticker-track span {

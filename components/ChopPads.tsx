@@ -22,15 +22,37 @@ const TOP_LEFT_REM = [
   22.5,  /* O between K and L */
 ]
 
+const DRAG_KEY_DATA = "chop-pad-key"
+
 interface ChopPadsProps {
   chops: Chop[]
   onPadKeyPress: (key: string) => void
   onRemoveChop: (key: string) => void
+  onSwapChops: (keyA: string, keyB: string) => void
   pressedKey: string | null
 }
 
-export default function ChopPads({ chops, onPadKeyPress, onRemoveChop, pressedKey }: ChopPadsProps) {
+export default function ChopPads({ chops, onPadKeyPress, onRemoveChop, onSwapChops, pressedKey }: ChopPadsProps) {
   const chopByKey = new Map(chops.map((c) => [c.key, c]))
+
+  const handleDragStart = (e: React.DragEvent, key: string) => {
+    e.dataTransfer.setData(DRAG_KEY_DATA, key)
+    e.dataTransfer.effectAllowed = "move"
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = "move"
+  }
+
+  const handleDrop = (e: React.DragEvent, targetKey: string) => {
+    e.preventDefault()
+    const dragKey = e.dataTransfer.getData(DRAG_KEY_DATA)
+    if (!dragKey || dragKey === targetKey) return
+    if (chopByKey.has(dragKey) && chopByKey.has(targetKey)) {
+      onSwapChops(dragKey, targetKey)
+    }
+  }
 
   const pad = (key: string) => {
     const chop = chopByKey.get(key)
@@ -41,6 +63,10 @@ export default function ChopPads({ chops, onPadKeyPress, onRemoveChop, pressedKe
       <button
         key={key}
         type="button"
+        draggable={isActive}
+        onDragStart={(e) => isActive && handleDragStart(e, key)}
+        onDragOver={handleDragOver}
+        onDrop={(e) => handleDrop(e, key)}
         onClick={(e) => {
           if (e.shiftKey && chop) {
             onRemoveChop(key)
@@ -48,7 +74,7 @@ export default function ChopPads({ chops, onPadKeyPress, onRemoveChop, pressedKe
             onPadKeyPress(key)
           }
         }}
-        className={`kb-key flex h-full w-full min-h-9 min-w-9 items-center justify-center rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 border-2 ${isActive ? "has-chop" : ""}`}
+        className={`kb-key flex h-full w-full min-h-9 min-w-9 items-center justify-center rounded-xl font-semibold text-sm transition-all focus:outline-none focus:ring-2 focus:ring-offset-1 border-2 ${isActive ? "has-chop cursor-grab active:cursor-grabbing" : ""}`}
         style={
           isActive
             ? {
@@ -64,7 +90,7 @@ export default function ChopPads({ chops, onPadKeyPress, onRemoveChop, pressedKe
                 borderColor: "rgba(0,0,0,0.08)",
               }
         }
-        aria-label={isActive ? `Chop ${key} at ${chop?.time.toFixed(1)}s (shift+click to clear)` : `Key ${key} (no chop)`}
+        aria-label={isActive ? `Chop ${key} at ${chop?.time.toFixed(1)}s (shift+click to clear, drag to swap)` : `Key ${key} (no chop)`}
       >
         {key}
       </button>

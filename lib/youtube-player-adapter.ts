@@ -66,7 +66,8 @@ export function loadYouTubeIframeAPI(): Promise<void> {
 
 export function createAdapterFromIframe(
   iframe: HTMLIFrameElement | null,
-  onReady: (adapter: YouTubePlayerAdapter) => void
+  onReady: (adapter: YouTubePlayerAdapter) => void,
+  onError?: () => void
 ): () => void {
   if (!iframe || !window.YT?.Player) return () => {}
 
@@ -84,6 +85,9 @@ export function createAdapterFromIframe(
           getVolume: () => target.getVolume(),
           setVolume: (volume: number) => target.setVolume(volume),
         })
+      },
+      onError: () => {
+        onError?.()
       },
     },
   })

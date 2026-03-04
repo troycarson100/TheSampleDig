@@ -634,13 +634,19 @@ function SamplePlayer({
         return
       }
 
-      // Otherwise, if we have a loop, start loop playback
+      // Otherwise: resume — start loop playback if we have one, else play the video
       if (hasLoop) {
         const totalMs =
           recordingFullLengthMs ||
           recordingFullLengthRef.current ||
           Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
         startLoopPlayback(recordedSequence, loopStartMs, loopEndMs || totalMs)
+      } else {
+        try {
+          adapter?.play?.()
+        } catch {
+          // ignore play errors
+        }
       }
     }
 
@@ -952,7 +958,7 @@ function SamplePlayer({
     swingPct: quantizeSwingPct,
   }
 
-  const { chops, clearChops, removeChop, addChop, slotsFull, onPadKeyPress, updateChopTime, pressedKey } = useChopMode(
+  const { chops, clearChops, removeChop, addChop, swapChops, slotsFull, onPadKeyPress, updateChopTime, pressedKey } = useChopMode(
     adapterRef,
     chopModeEnabled,
     youtubeId,
@@ -1113,15 +1119,36 @@ function SamplePlayer({
     let teardown: (() => void) | undefined
     loadYouTubeIframeAPI().then(() => {
       if (!iframeRef.current) return
-      teardown = createAdapterFromIframe(iframeRef.current, (adapter) => {
-        adapterRef.current = adapter
-      })
+      teardown = createAdapterFromIframe(
+        iframeRef.current,
+        (adapter) => {
+          adapterRef.current = adapter
+        },
+        () => reportVideoUnavailable()
+      )
     })
     return () => {
       adapterRef.current = null
       teardown?.()
     }
-  }, [youtubeId, validYoutubeIdForAdapter, iframeLoaded])
+  }, [youtubeId, validYoutubeIdForAdapter, iframeLoaded, reportVideoUnavailable])
+
+  // Fallback: if player never becomes playable (duration 0, unstarted) after a delay, treat as unavailable (onError does not always fire)
+  useEffect(() => {
+    if (!onVideoError || !validYoutubeIdForAdapter || !iframeLoaded) return
+    const t = setTimeout(() => {
+      const adapter = adapterRef.current
+      if (!adapter) return
+      try {
+        const d = adapter.getDuration?.()
+        const state = adapter.getPlayerState?.()
+        if ((d == null || d === 0) && (state == null || state === -1)) {
+          reportVideoUnavailable()
+        }
+      } catch (_) {}
+    }, 5000)
+    return () => clearTimeout(t)
+  }, [youtubeId, onVideoError, validYoutubeIdForAdapter, iframeLoaded, reportVideoUnavailable])
 
   // Poll video current time and duration for timeline (when adapter is ready)
   useEffect(() => {
@@ -1205,12 +1232,20 @@ function SamplePlayer({
 
   // If we have an invalid YouTube ID (e.g. DB id passed by mistake), ask for next sample once
   const invalidIdReportedRef = useRef<string | null>(null)
+  const videoUnavailableReportedRef = useRef<string | null>(null)
   useEffect(() => {
     if (!validYoutubeId && onVideoError && youtubeId && invalidIdReportedRef.current !== youtubeId) {
       invalidIdReportedRef.current = youtubeId
       onVideoError()
     }
   }, [validYoutubeId, onVideoError, youtubeId])
+
+  const reportVideoUnavailable = useCallback(() => {
+    if (!onVideoError || !youtubeId) return
+    if (videoUnavailableReportedRef.current === youtubeId) return
+    videoUnavailableReportedRef.current = youtubeId
+    onVideoError()
+  }, [onVideoError, youtubeId])
 
   // Validate iframe src start parameter only when we're not explicitly starting at 0 (drum break)
   useEffect(() => {
@@ -1998,7 +2033,7 @@ function SamplePlayer({
                 Clear
               </button>
               <div className="flex flex-col items-center flex-1 min-w-0 w-full md:w-auto">
-                <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} onRemoveChop={removeChop} pressedKey={pressedKey} />
+                <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} onRemoveChop={removeChop} onSwapChops={swapChops} pressedKey={pressedKey} />
                 <div className="flex justify-center mt-3">
               <button
               type="button"
