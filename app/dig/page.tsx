@@ -104,6 +104,20 @@ export default function DigPage() {
   const isSavedRef = useRef(isSaved)
   const sampleRef = useRef(sample)
   const sessionRef = useRef(session)
+  /** Server-returned sample id after save; avoid setSample on save to prevent video going black */
+  const sampleIdFromSaveRef = useRef<string | null>(null)
+  const videoErrorCallbackRef = useRef<() => void>(() => {})
+  useEffect(() => {
+    videoErrorCallbackRef.current = () => {
+      const s = sampleRef.current
+      if (s?.youtubeId) addSeenVideo(s.youtubeId)
+      console.log("Video unavailable, fetching next sample...")
+      handleDig()
+    }
+  })
+  const handleVideoError = useCallback(() => {
+    videoErrorCallbackRef.current()
+  }, [])
 
   // Load sample from My Samples page (profile): open in dig and start playing
   useEffect(() => {
@@ -129,6 +143,7 @@ export default function DigPage() {
   
   useEffect(() => {
     sampleRef.current = sample
+    if (sample != null) sampleIdFromSaveRef.current = sample.id ?? null
   }, [sample])
   
   useEffect(() => {
@@ -464,7 +479,7 @@ export default function DigPage() {
       return
     }
     // Save API accepts either database sample id or youtubeId for lookup
-    const sampleId = currentSample.id
+    const sampleId = currentSample.id || sampleIdFromSaveRef.current
     const youtubeId = currentSample.youtubeId
     if (!sampleId && !youtubeId) {
       console.error("[Frontend] Sample has no id or youtubeId")
@@ -511,9 +526,9 @@ export default function DigPage() {
           addSeenVideo(currentSample.youtubeId)
           console.log(`[Save] Added ${currentSample.youtubeId} to seen list to prevent repeats`)
         }
-        // Use returned database sample id so unsave and update-chops work reliably
-        if (!currentlySaved && data.sampleId && currentSample.id !== data.sampleId) {
-          setSample((prev) => (prev ? { ...prev, id: data.sampleId } : null))
+        // Store server id in ref only — avoid setSample so player doesn't re-render (prevents video going black)
+        if (!currentlySaved && data.sampleId) {
+          sampleIdFromSaveRef.current = data.sampleId
         }
         window.dispatchEvent(new CustomEvent("samplesUpdated"))
       } else {
@@ -532,12 +547,13 @@ export default function DigPage() {
   // Auto-save chops and loop when sample is already saved and user edits (debounced in SamplePlayer)
   const handleSavedChopsChange = useCallback(async (chops: Chop[], loop?: SavedLoopData | null) => {
     const currentSample = sampleRef.current
-    if (!currentSample?.id) return
+    const effectiveSampleId = currentSample?.id ?? sampleIdFromSaveRef.current
+    if (!effectiveSampleId) return
     try {
       const res = await fetch("/api/samples/update-chops", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sampleId: currentSample.id, chops, loop: loop ?? undefined }),
+        body: JSON.stringify({ sampleId: effectiveSampleId, chops, loop: loop ?? undefined }),
       })
       if (res.ok) window.dispatchEvent(new CustomEvent("samplesUpdated"))
     } catch (e) {
@@ -769,18 +785,12 @@ export default function DigPage() {
                   showHeart={!!session}
                   initialChops={sample.chops}
                   initialLoop={sample.loop}
-                  sampleId={sample.id}
+                  sampleId={sample.id ?? sampleIdFromSaveRef.current}
                   initialNotes={sample.notes}
                   initialBpmOverride={sample.bpmOverride}
                   onSavedChopsChange={session ? handleSavedChopsChange : undefined}
                   onSavedBpmChange={session ? handleSavedBpmChange : undefined}
-                  onVideoError={() => {
-                    if (sample?.youtubeId) {
-                      addSeenVideo(sample.youtubeId)
-                    }
-                    console.log("Video unavailable, fetching next sample...")
-                    handleDig()
-                  }}
+                  onVideoError={handleVideoError}
                 />
               ) : null}
             </div>

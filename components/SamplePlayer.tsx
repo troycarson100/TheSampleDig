@@ -87,6 +87,73 @@ const META_BOX_STYLE = {
   textTransform: "uppercase" as const,
 } as const
 
+/** Memoized iframe + overlay so saving (isSaved change) does not re-render this and black the video */
+interface PlayerVideoCoreProps {
+  youtubeId: string
+  title: string
+  chopModeEnabled: boolean
+  isMobile: boolean
+  onVideoError?: () => void
+  onIframeLoad: () => void
+  onOverlayClick: (e: React.MouseEvent) => void
+  iframeRef: React.RefObject<HTMLIFrameElement | null>
+  iframeSrcRef: React.MutableRefObject<string | null>
+  chopOverlayRef: React.RefObject<HTMLDivElement | null>
+  showPlaceholder: boolean
+}
+const PlayerVideoCore = memo(function PlayerVideoCore({
+  youtubeId,
+  title,
+  chopModeEnabled,
+  isMobile,
+  onVideoError,
+  onIframeLoad,
+  onOverlayClick,
+  iframeRef,
+  iframeSrcRef,
+  chopOverlayRef,
+  showPlaceholder,
+}: PlayerVideoCoreProps) {
+  if (showPlaceholder) {
+    return (
+      <div className="w-full h-full flex items-center justify-center rounded-lg" style={{ background: "var(--muted-light)", color: "var(--muted)" }}>
+        <p>Invalid video ID — loading next sample...</p>
+      </div>
+    )
+  }
+  return (
+    <>
+      <iframe
+        key={youtubeId}
+        ref={(el) => {
+          ;(iframeRef as React.MutableRefObject<HTMLIFrameElement | null>).current = el
+          if (el && iframeSrcRef.current && (!el.src || !el.src.includes(youtubeId))) {
+            el.src = iframeSrcRef.current
+          }
+        }}
+        width="100%"
+        height="100%"
+        title={title}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+        className="w-full h-full"
+        style={{ pointerEvents: chopModeEnabled ? "none" : "auto" }}
+        onLoad={onIframeLoad}
+        onError={() => onVideoError?.()}
+      />
+      {chopModeEnabled && !isMobile && (
+        <div
+          ref={chopOverlayRef}
+          tabIndex={0}
+          className="absolute inset-0 z-[5] cursor-pointer focus:outline-none"
+          aria-label="Video area: click to play or pause; use Space and letter keys for chops"
+          onClick={onOverlayClick}
+        />
+      )}
+    </>
+  )
+})
+
 /**
  * Generate a random start time that's good for sampling
  * Avoids intro (first 15 seconds) and outro (last 20 seconds minimum)
@@ -223,6 +290,7 @@ function SamplePlayer({
   const [draggingRecordedIndex, setDraggingRecordedIndex] = useState<number | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
   const [videoCurrentTime, setVideoCurrentTime] = useState(0)
+  const overlayStateRef = useRef({ isPlayingLoop: false, stopLoopPlayback: () => {} })
   const [videoDurationFromPlayer, setVideoDurationFromPlayer] = useState(0)
   const chopKeysFocusTrapRef = useRef<HTMLDivElement>(null)
   const chopOverlayRef = useRef<HTMLDivElement>(null)
@@ -492,6 +560,24 @@ function SamplePlayer({
     setClearLoopFlash(true)
     setTimeout(() => setClearLoopFlash(false), 280)
   }, [stopLoopPlayback])
+
+  useEffect(() => {
+    overlayStateRef.current = { isPlayingLoop, stopLoopPlayback }
+  }, [isPlayingLoop, stopLoopPlayback])
+
+  const handleOverlayClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    const adapter = adapterRef.current
+    if (!adapter) return
+    const state = adapter.getPlayerState?.()
+    if (state === 2) {
+      adapter.play()
+    } else if (adapter.pause) {
+      adapter.pause()
+      if (overlayStateRef.current.isPlayingLoop) overlayStateRef.current.stopLoopPlayback()
+    }
+  }, [])
 
   // Keyboard shortcuts in chop mode: Q toggles quantize, X clears recorded loop (same as clear-loop button).
   useEffect(() => {
@@ -1295,34 +1381,11 @@ function SamplePlayer({
     }
   }, [iframeSrc, duration, isExplicitStartAtZero])
   
-  // CRITICAL: Use useEffect to ensure iframe src never changes after mount
-  // This prevents React from updating the src attribute even if component re-renders
-  useEffect(() => {
-    const iframe = iframeRef.current
-    if (iframe && iframeSrcRef.current) {
-      // Lock the src - if it changed (shouldn't happen), restore it
-      if (iframe.src !== iframeSrcRef.current && iframe.src.includes(youtubeId)) {
-        // Only restore if youtubeId matches (prevents updating wrong video)
-        iframe.src = iframeSrcRef.current
-      }
-    }
-  }, [youtubeId, iframeSrc]) // Only run when youtubeId changes, not on every render
+  // When youtubeId changes we already set iframeSrcRef; ref callback will set iframe.src when it mounts. Do not overwrite src here when URL only differs by params (would reload video).
+  // (No effect body needed - ref callback and initial render handle src.)
   
-  // Additional safety: prevent src updates on any re-render
-  useEffect(() => {
-    const iframe = iframeRef.current
-    if (iframe && iframeSrcRef.current && isInitializedRef.current) {
-      // If src changed after initialization, restore it
-      // This catches any React updates that might have changed the src
-      if (iframe.src !== iframeSrcRef.current) {
-        const currentSrc = iframe.src
-        // Only restore if the current src is for the same video
-        if (currentSrc.includes(youtubeId)) {
-          iframe.src = iframeSrcRef.current
-        }
-      }
-    }
-  }) // Run on every render to catch any src changes
+  // Do NOT overwrite iframe.src on every re-render: YouTube may change the URL (params), and resetting it reloads the video (black screen on save).
+  // Only the ref callback sets src when the iframe is empty or shows a different video.
 
   const effectiveTimelineDuration = (duration != null && duration > 0) ? duration : videoDurationFromPlayer
 
@@ -1331,68 +1394,19 @@ function SamplePlayer({
   return (
     <div className="w-full min-w-0">
       <div className="player-wrap aspect-video w-full max-w-full rounded-lg overflow-hidden bg-black relative">
-        {validYoutubeId && iframeSrc ? (
-          <>
-            {/* Iframe - only re-renders when youtubeId changes due to key prop */}
-            {/* BPM/key updates will NOT cause this iframe to reload */}
-            <iframe
-              key={youtubeId} // Force React to recreate iframe when YouTube ID changes - prevents audio glitches
-              ref={(el) => {
-                iframeRef.current = el
-                // CRITICAL: Lock the src directly on the DOM element to prevent React from updating it
-                if (el && iframeSrcRef.current) {
-                  // Only set src if it's different (prevents reloads)
-                  if (el.src !== iframeSrcRef.current) {
-                    el.src = iframeSrcRef.current
-                  }
-                }
-              }}
-              width="100%"
-              height="100%"
-              src={iframeSrc}
-              title={title}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="w-full h-full"
-              style={{ pointerEvents: chopModeEnabled ? "none" : "auto" }}
-              onLoad={() => setIframeLoaded(true)}
-              onError={() => {
-                // If iframe fails to load, trigger error callback
-                if (onVideoError) {
-                  onVideoError()
-                }
-              }}
-            />
-            {/* When Chop Mode is on, overlay keeps focus so Space and chop keys work; click toggles play/pause via API */}
-            {chopModeEnabled && !isMobile && (
-              <div
-                ref={chopOverlayRef}
-                tabIndex={0}
-                className="absolute inset-0 z-[5] cursor-pointer focus:outline-none"
-                aria-label="Video area: click to play or pause; use Space and letter keys for chops"
-                onClick={(e) => {
-                  e.preventDefault()
-                  e.stopPropagation()
-                  const adapter = adapterRef.current
-                  if (!adapter) return
-                  const state = adapter.getPlayerState?.()
-                  if (state === 2) {
-                    adapter.play()
-                  } else if (adapter.pause) {
-                    adapter.pause()
-                    if (isPlayingLoop) {
-                      stopLoopPlayback()
-                    }
-                  }
-                }}
-              />
-            )}
-          </>
-        ) : (
-          <div className="w-full h-full flex items-center justify-center rounded-lg" style={{ background: "var(--muted-light)", color: "var(--muted)" }}>
-            <p>Invalid video ID — loading next sample...</p>
-          </div>
-        )}
+        <PlayerVideoCore
+          youtubeId={youtubeId}
+          title={title}
+          chopModeEnabled={chopModeEnabled}
+          isMobile={isMobile}
+          onVideoError={onVideoError}
+          onIframeLoad={() => setIframeLoaded(true)}
+          onOverlayClick={handleOverlayClick}
+          iframeRef={iframeRef}
+          iframeSrcRef={iframeSrcRef}
+          chopOverlayRef={chopOverlayRef}
+          showPlaceholder={!(validYoutubeId && iframeSrc)}
+        />
         {/* Heart toggle - perfect circle: fixed equal width/height so it stays round */}
         {showHeart && onSaveToggle && (
           <div className={`heart-btn absolute top-4 right-4 z-20 pointer-events-auto flex items-center justify-center w-11 h-11 rounded-full shadow-md ${isSaved ? "saved" : ""}`}>
@@ -2224,12 +2238,6 @@ export default memo(SamplePlayer, (prevProps, nextProps) => {
     prevProps.initialNotes === nextProps.initialNotes &&
     prevProps.onSavedChopsChange === nextProps.onSavedChopsChange
   )
-  
-  // onSaveToggle comparison - use reference equality
   const callbackEqual = prevProps.onSaveToggle === nextProps.onSaveToggle
-  
-  // Return true if props are equal (no re-render needed)
-  // bpm, key, analysisStatus, and isSaved changes won't trigger iframe re-render
-  // Only youtubeId, autoplay, startTime, duration, initialChops changes will trigger iframe/player update
   return iframePropsEqual && displayMetadataEqual && otherPropsEqual && callbackEqual
 })
