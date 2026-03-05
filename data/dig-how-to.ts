@@ -39,7 +39,8 @@ export const DIG_HOW_TO_SECTIONS: HowToSection[] = [
       "With Chop Mode on, press Space to drop chop points on the timeline as the video plays.",
       "Each chop is mapped to a key (A, S, D, …). Press a key to jump the video to that chop and play from there.",
       "Drag the markers on the red timeline bar to move chops; Shift+click a marker to remove it. Drag a chop key onto another to swap them (letters stay in place; colors swap).",
-      "Drag the playhead (small white bar) on the timeline to seek.",
+      "Drag the playhead (white line) on the timeline to seek, or click anywhere on the timeline to jump there.",
+      "On the timeline: pinch, or Cmd+scroll (Mac) / Ctrl+scroll to zoom in/out. When zoomed, drag or use two-finger horizontal scroll to pan left/right; a quick click (without dragging) still seeks to that spot.",
     ],
   },
   {

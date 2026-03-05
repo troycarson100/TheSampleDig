@@ -302,7 +302,7 @@ function SamplePlayer({
   }, [notesOpen])
 
   const onAfterChopPlay = useCallback(() => {
-    chopKeysFocusTrapRef.current?.focus()
+    chopKeysFocusTrapRef.current?.focus({ preventScroll: true })
   }, [])
 
   // BPM/key come from DB only (metadata backfill). We do not use yt-dlp/analyzer on dig.
@@ -428,7 +428,7 @@ function SamplePlayer({
   // When Chop Mode is on, focus the video overlay so Space and chop keys work without clicking out
   useEffect(() => {
     if (chopModeEnabled) {
-      chopOverlayRef.current?.focus()
+      chopOverlayRef.current?.focus({ preventScroll: true })
     }
   }, [chopModeEnabled])
 
@@ -1695,7 +1695,7 @@ function SamplePlayer({
       {/* Chop Mode: focus trap so chop keys (A–L) work after playing from iframe; clicking this area refocuses the page */}
       <div
         className="mt-4 flex flex-col gap-3"
-        onMouseDown={() => chopKeysFocusTrapRef.current?.focus()}
+        onMouseDown={() => chopKeysFocusTrapRef.current?.focus({ preventScroll: true })}
       >
         <div
           ref={chopKeysFocusTrapRef}
