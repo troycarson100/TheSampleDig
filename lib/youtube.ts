@@ -370,6 +370,9 @@ export function extractMetadata(query: string, title?: string, description?: str
     else if (yearNum >= 1970 && yearNum < 1980) era = "1970s"
     else if (yearNum >= 1980 && yearNum < 1990) era = "1980s"
     else if (yearNum >= 1990 && yearNum < 2000) era = "1990s"
+    else if (yearNum >= 2000 && yearNum < 2010) era = "2000s"
+    else if (yearNum >= 2010 && yearNum < 2020) era = "2010s"
+    else if (yearNum >= 2020 && yearNum < 2030) era = "2020s"
   }
 
   // Label detection - famous jazz/soul labels

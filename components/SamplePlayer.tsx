@@ -664,6 +664,37 @@ function SamplePlayer({
     startLoopPlayback,
   ])
 
+  // Left/Right arrow keys: seek 10s back or forward
+  const SEEK_JUMP_SECONDS = 10
+  useEffect(() => {
+    if (isMobile) return
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code !== "ArrowLeft" && e.code !== "ArrowRight") return
+      const target = e.target as HTMLElement | null
+      if (target?.tagName === "INPUT" || target?.tagName === "TEXTAREA" || target?.isContentEditable) return
+
+      const adapter = adapterRef.current
+      if (!adapter?.seekTo) return
+
+      try {
+        const current = adapter.getCurrentTime?.()
+        const duration = adapter.getDuration?.()
+        if (typeof current !== "number" || current < 0) return
+        const maxTime = typeof duration === "number" && duration > 0 ? duration : 1e9
+        const next = e.code === "ArrowLeft"
+          ? Math.max(0, current - SEEK_JUMP_SECONDS)
+          : Math.min(maxTime, current + SEEK_JUMP_SECONDS)
+        adapter.seekTo(next)
+        e.preventDefault()
+        e.stopPropagation()
+      } catch (_) {}
+    }
+
+    window.addEventListener("keydown", handleKeyDown, { capture: true })
+    return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
+  }, [isMobile])
+
   const stopRecordAndStartPlayback = useCallback(
     (quantizeSnap?: { bpm: number; division: GridDivision; swingPct: number; enabled: boolean }) => {
       if (metronomeIntervalRef.current) {
@@ -2034,7 +2065,7 @@ function SamplePlayer({
               </button>
               <div className="flex flex-col items-center flex-1 min-w-0 w-full md:w-auto">
                 <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} onRemoveChop={removeChop} onSwapChops={swapChops} pressedKey={pressedKey} />
-                <div className="flex justify-center mt-3">
+                <div className="flex flex-col items-center justify-center mt-3 gap-1">
               <button
               type="button"
               onClick={() => !slotsFull && addChop()}
@@ -2058,6 +2089,9 @@ function SamplePlayer({
               >
                 <span className="font-semibold text-sm">Chop (Space Bar)</span>
               </button>
+              <span className="text-[10px] font-medium uppercase tracking-wider toggle-label" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace", marginTop: 10 }}>
+                SHIFT+SPACE = PLAY/PAUSE
+              </span>
                 </div>
               </div>
             </div>

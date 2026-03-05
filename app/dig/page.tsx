@@ -35,13 +35,16 @@ const GENRE_LABELS: Record<string, string> = {
   world: "World",
 }
 
-const ERA_LABELS: Record<string, string> = {
-  "1950s": "50s",
-  "1960s": "60s",
-  "1970s": "70s",
-  "1980s": "80s",
-  "1990s": "90s",
-}
+/** Era filter options: by decade (value matches DB era e.g. "1960s") */
+const ERA_DECADES: { value: string; label: string }[] = [
+  { value: "", label: "Any era" },
+  { value: "1950s", label: "1950s" },
+  { value: "1960s", label: "1960s" },
+  { value: "1970s", label: "1970s" },
+  { value: "1980s", label: "1980s" },
+  { value: "1990s", label: "1990s" },
+  { value: "2000s", label: "2000s" },
+]
 
 function toLabel(value: string, labels: Record<string, string>): string {
   if (!value) return value
@@ -86,15 +89,14 @@ export default function DigPage() {
   const [isSaved, setIsSaved] = useState(false)
   const [autoplay, setAutoplay] = useState(true)
   const [drumBreak, setDrumBreak] = useState(false)
+  const [randomStartTime, setRandomStartTime] = useState(true)
   const [samplePacks, setSamplePacks] = useState(false)
   const [genreFilter, setGenreFilter] = useState("")
   const [eraFilter, setEraFilter] = useState("")
   const [genreOptions, setGenreOptions] = useState<{ value: string; label: string }[]>(() => [
     { value: "", label: "Any genre" },
   ])
-  const [eraOptions, setEraOptions] = useState<{ value: string; label: string }[]>(() => [
-    { value: "", label: "Any era" },
-  ])
+  const [eraOptions] = useState<{ value: string; label: string }[]>(() => ERA_DECADES)
   const [filtersLoaded, setFiltersLoaded] = useState(false)
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
@@ -159,6 +161,17 @@ export default function DigPage() {
     localStorage.setItem("digDrumBreak", drumBreak.toString())
   }, [drumBreak])
 
+  // Load random start time preference from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem("digRandomStartTime")
+    if (saved !== null) setRandomStartTime(saved === "true")
+  }, [])
+
+  // Save random start time preference to localStorage
+  useEffect(() => {
+    localStorage.setItem("digRandomStartTime", randomStartTime.toString())
+  }, [randomStartTime])
+
   // Load Sample Packs preference from localStorage; clear era when loading (sample packs mostly post-1990)
   useEffect(() => {
     const saved = localStorage.getItem("digSamplePacks") ?? localStorage.getItem("digRoyaltyFree")
@@ -194,10 +207,7 @@ export default function DigPage() {
           { value: "", label: "Any genre" },
           ...genres.map((g) => ({ value: g, label: toLabel(g, GENRE_LABELS) })),
         ])
-        setEraOptions([
-          { value: "", label: "Any era" },
-          ...eras.map((e) => ({ value: e, label: toLabel(e, ERA_LABELS) })),
-        ])
+        // Era options are fixed decades (ERA_DECADES), not from API
         setFiltersLoaded(true)
       })
       .catch(() => setFiltersLoaded(true))
@@ -315,12 +325,12 @@ export default function DigPage() {
       }
       
       const data = responseData
-      // Drum Break mode: always start at 0:00. Otherwise smart start (avoid intro/outro).
+      // Drum Break: start at 0:00. Random Start Time off: start at 0:00. Otherwise smart start (avoid intro/outro).
       const END_BUFFER = 25
       let finalStartTime: number
-      if (drumBreak) {
+      if (drumBreak || !randomStartTime) {
         finalStartTime = 0
-        console.log(`[Dig] Drum Break mode: start at 0:00`)
+        console.log(`[Dig] Start at 0:00 (drumBreak=${drumBreak}, randomStartTime=${randomStartTime})`)
       } else if (data.duration && data.duration > 0) {
         finalStartTime = Math.max(15, Math.min(Math.floor(data.duration * 0.3), data.duration - END_BUFFER))
         if (finalStartTime > data.duration - END_BUFFER) {
@@ -637,8 +647,9 @@ export default function DigPage() {
           <div className="flex-1 min-w-0 dig-col lg:min-w-0 w-full max-w-4xl">
             <div className="player-area-card w-full">
             {/* Controls */}
-            <div className="controls-bar w-full">
-              <div className="flex flex-wrap items-center justify-center gap-4 w-full">
+            <div className="controls-bar w-full flex flex-col items-center gap-3">
+              {/* Line 1: Back / Dice */}
+              <div className="flex items-center justify-center gap-3 w-full">
                 {previousSample && (
                   <button
                     onClick={handleGoBack}
@@ -651,11 +662,14 @@ export default function DigPage() {
                   </button>
                 )}
                 <DiceButton onClick={onRollClick} loading={loading} breathing bounce={!sample} />
+              </div>
+              {/* Line 2: 3 toggles */}
+              <div className="flex flex-wrap items-center justify-center gap-2 w-full">
                 <AutoplayToggle enabled={autoplay} onChange={setAutoplay} />
                 <button
                   type="button"
                   onClick={() => setDrumBreak((d) => !d)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full transition"
+                  className="flex items-center gap-2 px-2 py-2 rounded-full transition"
                   style={{ background: "transparent", color: "var(--foreground)" }}
                   aria-label="Toggle drum break mode"
                 >
@@ -666,6 +680,22 @@ export default function DigPage() {
                   </div>
                   <span className="toggle-label text-sm font-medium">
                     Drum Break
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setRandomStartTime((r) => !r)}
+                  className="flex items-center gap-2 px-2 py-2 rounded-full transition"
+                  style={{ background: "transparent", color: "var(--foreground)" }}
+                  aria-label="Toggle random start time (off = start at 0:00)"
+                >
+                  <div className={`toggle-track relative w-12 h-6 rounded-full transition-colors ${randomStartTime ? "opacity-100 checked" : "opacity-50"}`} style={{ background: randomStartTime ? "var(--primary)" : "var(--muted)" }}>
+                    <div
+                      className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${randomStartTime ? "translate-x-6" : "translate-x-0"}`}
+                    />
+                  </div>
+                  <span className="toggle-label text-sm font-medium">
+                    Random Start Time
                   </span>
                 </button>
                 {/* Sample Packs toggle - commented out for now
@@ -686,6 +716,9 @@ export default function DigPage() {
                   </span>
                 </button>
                 */}
+              </div>
+              {/* Line 3: Dropdowns + Info */}
+              <div className="flex flex-wrap items-center justify-center gap-2 w-full">
                 <GenreSelect
                   value={genreFilter}
                   onChange={setGenreFilter}
@@ -703,8 +736,8 @@ export default function DigPage() {
                       className="min-w-[120px]"
                     />
                   </div>
-                  <DigHowToPopover />
                 </div>
+                <DigHowToPopover />
               </div>
             </div>
 

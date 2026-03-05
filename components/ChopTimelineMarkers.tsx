@@ -1,9 +1,12 @@
 "use client"
 
-import { useRef, useCallback, useMemo } from "react"
+import { useRef, useCallback, useMemo, useState } from "react"
 import type { Chop } from "@/hooks/useChopMode"
 import type { GridDivision } from "@/lib/grid-quantize"
 import { snapToGrid, getGridLinePositionsMs } from "@/lib/grid-quantize"
+
+const SEEK_THROTTLE_MS = 80
+const CHOP_UPDATE_THROTTLE_MS = 16
 
 interface ChopTimelineMarkersProps {
   chops: Chop[]
@@ -37,6 +40,11 @@ export default function ChopTimelineMarkers({
   const barRef = useRef<HTMLDivElement>(null)
   const draggingKeyRef = useRef<string | null>(null)
   const draggingPlayheadRef = useRef<boolean>(false)
+  const lastSeekAtRef = useRef<number>(0)
+  const lastChopUpdateAtRef = useRef<number>(0)
+  const [playheadDragTime, setPlayheadDragTime] = useState<number | null>(null)
+  /** During chop drag, show marker at this time so it follows cursor without waiting for parent state */
+  const [chopDragPreview, setChopDragPreview] = useState<{ key: string; time: number } | null>(null)
 
   const getTimeFromClientX = useCallback(
     (clientX: number): number => {
@@ -58,16 +66,23 @@ export default function ChopTimelineMarkers({
         return
       }
       draggingKeyRef.current = key
+      const chop = chops.find((c) => c.key === key)
+      if (chop) setChopDragPreview({ key, time: chop.time })
       ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
     },
-    [onRemoveChop]
+    [onRemoveChop, chops]
   )
 
   const handlePointerMove = useCallback(
     (e: React.PointerEvent, key: string) => {
       if (draggingKeyRef.current !== key) return
       const time = getTimeFromClientX(e.clientX)
-      onUpdateChopTime(key, time)
+      setChopDragPreview((prev) => (prev?.key === key ? { key, time } : prev))
+      const now = performance.now()
+      if (now - lastChopUpdateAtRef.current >= CHOP_UPDATE_THROTTLE_MS) {
+        lastChopUpdateAtRef.current = now
+        onUpdateChopTime(key, time)
+      }
     },
     [getTimeFromClientX, onUpdateChopTime]
   )
@@ -81,6 +96,7 @@ export default function ChopTimelineMarkers({
           time = Math.max(0, snappedMs / 1000)
         }
         onUpdateChopTime(key, time)
+        setChopDragPreview(null)
         draggingKeyRef.current = null
       }
       ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
@@ -90,7 +106,8 @@ export default function ChopTimelineMarkers({
 
   if (duration <= 0) return null
 
-  const playheadPercent = Math.max(0, Math.min(100, (currentTime / duration) * 100))
+  const playheadTime = playheadDragTime ?? currentTime
+  const playheadPercent = Math.max(0, Math.min(100, (playheadTime / duration) * 100))
 
   const gridLines = useMemo(() => {
     if (!quantizeBpm || quantizeBpm <= 0) return []
@@ -123,16 +140,24 @@ export default function ChopTimelineMarkers({
       e.preventDefault()
       e.stopPropagation()
       draggingPlayheadRef.current = true
+      const time = getTimeFromClientX(e.clientX)
+      setPlayheadDragTime(time)
+      lastSeekAtRef.current = 0
       ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
     },
-    []
+    [getTimeFromClientX]
   )
 
   const handlePlayheadPointerMove = useCallback(
     (e: React.PointerEvent) => {
       if (!draggingPlayheadRef.current) return
       const time = getTimeFromClientX(e.clientX)
-      onSeek?.(time)
+      setPlayheadDragTime(time)
+      const now = performance.now()
+      if (now - lastSeekAtRef.current >= SEEK_THROTTLE_MS) {
+        lastSeekAtRef.current = now
+        onSeek?.(time)
+      }
     },
     [getTimeFromClientX, onSeek]
   )
@@ -142,6 +167,7 @@ export default function ChopTimelineMarkers({
       if (draggingPlayheadRef.current) {
         const time = getTimeFromClientX(e.clientX)
         onSeek?.(time)
+        setPlayheadDragTime(null)
         draggingPlayheadRef.current = false
       }
       ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
@@ -183,11 +209,12 @@ export default function ChopTimelineMarkers({
           />
         ))}
         <div
-          className="absolute inset-y-0 left-0 transition-[width] duration-150 rounded-l-sm pointer-events-none"
+          className={`absolute inset-y-0 left-0 rounded-l-sm pointer-events-none ${playheadDragTime == null ? "transition-[width] duration-150" : ""}`}
           style={{ width: `${playheadPercent}%`, background: "#b91c1c" }}
         />
         {chops.map((chop) => {
-        const percent = Math.max(0, Math.min(100, (chop.time / duration) * 100))
+        const timeForPosition = chopDragPreview?.key === chop.key ? chopDragPreview.time : chop.time
+        const percent = Math.max(0, Math.min(100, (timeForPosition / duration) * 100))
         const isPressed = pressedKey === chop.key
         return (
           <div
@@ -213,6 +240,7 @@ export default function ChopTimelineMarkers({
                   time = Math.max(0, snappedMs / 1000)
                 }
                 onUpdateChopTime(chop.key, time)
+                setChopDragPreview(null)
                 draggingKeyRef.current = null
               }
             }}
@@ -246,6 +274,7 @@ export default function ChopTimelineMarkers({
             if (draggingPlayheadRef.current) {
               const time = getTimeFromClientX(e.clientX)
               onSeek?.(time)
+              setPlayheadDragTime(null)
               draggingPlayheadRef.current = false
             }
             ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
@@ -254,9 +283,9 @@ export default function ChopTimelineMarkers({
           aria-label="Playhead: drag to seek"
         />
       </div>
-      {/* Time display: current / total */}
+      {/* Time display: current / total (use playheadTime so it updates during drag) */}
       <div className="flex items-center justify-between px-2 py-0.5 text-white text-xs font-medium bg-black/60 rounded-b-[6px]">
-        <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
+        <span>{formatTime(playheadTime)} / {formatTime(duration)}</span>
       </div>
     </div>
   )
