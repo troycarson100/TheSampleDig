@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { signIn } from "next-auth/react"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import Link from "next/link"
 
 export default function LoginPage() {
@@ -11,6 +11,11 @@ export default function LoginPage() {
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  const registered = searchParams.get("registered") === "true"
+  const reset = searchParams.get("reset") === "true"
+  const unverified = searchParams.get("unverified") === "true"
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -25,12 +30,22 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setError("Invalid email or password")
+        const check = await fetch("/api/auth/check-unverified", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email, password }),
+        }).then((r) => r.json()).catch(() => ({ unverified: false }))
+
+        if (check.unverified) {
+          setError("Please verify your email before logging in. Check your inbox — and your spam folder if you don't see it.")
+        } else {
+          setError("Invalid email or password")
+        }
       } else {
         router.push("/dig")
         router.refresh()
       }
-    } catch (err) {
+    } catch {
       setError("An error occurred. Please try again.")
     } finally {
       setLoading(false)
@@ -42,6 +57,24 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8">
         <h1 className="text-2xl font-semibold text-center mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>Sample Roll</h1>
         <h2 className="text-lg font-medium text-center mb-6" style={{ color: "var(--muted)" }}>Login</h2>
+
+        {registered && (
+          <div className="mb-4 p-3 rounded-xl text-sm border" style={{ background: "rgba(22,163,74,0.08)", borderColor: "rgba(22,163,74,0.3)", color: "#166534" }}>
+            Account created! Check your email to verify your account before logging in.{" "}
+            <span style={{ color: "#166534", opacity: 0.8 }}>If you don&apos;t see it, check your spam folder.</span>
+          </div>
+        )}
+        {reset && (
+          <div className="mb-4 p-3 rounded-xl text-sm border" style={{ background: "rgba(22,163,74,0.08)", borderColor: "rgba(22,163,74,0.3)", color: "#166534" }}>
+            Password updated successfully. You can now log in.
+          </div>
+        )}
+        {unverified && (
+          <div className="mb-4 p-3 rounded-xl text-sm border" style={{ background: "rgba(234,179,8,0.1)", borderColor: "rgba(234,179,8,0.4)", color: "#854d0e" }}>
+            Please verify your email before logging in. Check your inbox for the confirmation link — and your spam folder if you don&apos;t see it.
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <div className="p-3 rounded-xl text-sm border" style={{ background: "rgba(185,28,28,0.08)", borderColor: "rgba(185,28,28,0.3)", color: "#b91c1c" }}>{error}</div>
@@ -59,7 +92,12 @@ export default function LoginPage() {
             />
           </div>
           <div>
-            <label htmlFor="password" className="block text-sm font-medium mb-2" style={{ color: "var(--foreground)" }}>Password</label>
+            <div className="flex items-center justify-between mb-2">
+              <label htmlFor="password" className="block text-sm font-medium" style={{ color: "var(--foreground)" }}>Password</label>
+              <Link href="/forgot-password" className="text-sm hover:underline" style={{ color: "var(--muted)" }}>
+                Forgot password?
+              </Link>
+            </div>
             <input
               id="password"
               type="password"
@@ -80,7 +118,7 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="mt-6 text-center text-sm" style={{ color: "var(--muted)" }}>
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="font-medium hover:underline" style={{ color: "var(--foreground)" }}>Register</Link>
         </p>
       </div>

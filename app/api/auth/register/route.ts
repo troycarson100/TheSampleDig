@@ -1,55 +1,48 @@
-import { NextResponse } from "next/server"
+import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
+import crypto from "crypto"
+import { prisma } from "@/lib/db"
+import { sendVerificationEmail } from "@/lib/email"
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { email, password, name } = await request.json()
+    const { email, password, name } = await req.json()
 
     if (!email || !password) {
-      return NextResponse.json(
-        { error: "Email and password are required" },
-        { status: 400 }
-      )
+      return NextResponse.json({ error: "Email and password are required." }, { status: 400 })
     }
 
-    // Lazy load prisma to avoid errors if database is not available
-    const { prisma } = await import("@/lib/db")
-
-    // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
-      where: { email }
-    })
-
-    if (existingUser) {
-      return NextResponse.json(
-        { error: "User already exists" },
-        { status: 400 }
-      )
+    if (password.length < 6) {
+      return NextResponse.json({ error: "Password must be at least 6 characters." }, { status: 400 })
     }
 
-    // Hash password
-    const passwordHash = await bcrypt.hash(password, 10)
+    const normalizedEmail = String(email).trim().toLowerCase()
 
-    // Create user
-    const user = await prisma.user.create({
+    const existing = await prisma.user.findFirst({ where: { email: { equals: normalizedEmail, mode: "insensitive" } } })
+    if (existing) {
+      return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 })
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12)
+
+    const rawToken = crypto.randomBytes(32).toString("hex")
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+
+    await prisma.user.create({
       data: {
-        email,
+        email: normalizedEmail,
         passwordHash,
-        name: name || null,
-      }
+        name: name ? String(name).trim() || null : null,
+        emailVerificationToken: rawToken,
+        emailVerificationExpires: expires,
+      },
     })
 
-    return NextResponse.json({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-    })
-  } catch (error: any) {
-    console.error("Error registering user:", error)
-    const errorMessage = error?.message || "Failed to register user"
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    )
+    await sendVerificationEmail(normalizedEmail, rawToken)
+
+    return NextResponse.json({ message: "Account created. Please check your email to verify your account." }, { status: 201 })
+  } catch (error) {
+    console.error("Registration error:", error)
+    return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 })
   }
 }
