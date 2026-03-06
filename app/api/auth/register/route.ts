@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import crypto from "crypto"
 import { prisma } from "@/lib/db"
-import { sendVerificationEmail } from "@/lib/email"
+import { isEmailConfigured, sendVerificationEmail } from "@/lib/email"
 
 export async function POST(req: NextRequest) {
   try {
@@ -28,19 +28,55 @@ export async function POST(req: NextRequest) {
     const rawToken = crypto.randomBytes(32).toString("hex")
     const expires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
-    await prisma.user.create({
+    const emailAvailable = isEmailConfigured()
+
+    const user = await prisma.user.create({
       data: {
         email: normalizedEmail,
         passwordHash,
         name: name ? String(name).trim() || null : null,
-        emailVerificationToken: rawToken,
-        emailVerificationExpires: expires,
+        emailVerified: emailAvailable ? null : new Date(),
+        emailVerificationToken: emailAvailable ? rawToken : null,
+        emailVerificationExpires: emailAvailable ? expires : null,
       },
     })
 
-    await sendVerificationEmail(normalizedEmail, rawToken)
+    if (!emailAvailable) {
+      console.warn("[auth/register] SMTP not configured. Auto-verifying new account:", normalizedEmail)
+      return NextResponse.json(
+        {
+          message: "Account created. Email verification is temporarily unavailable, so you can log in now.",
+          needsVerification: false,
+        },
+        { status: 201 }
+      )
+    }
 
-    return NextResponse.json({ message: "Account created. Please check your email to verify your account." }, { status: 201 })
+    try {
+      await sendVerificationEmail(normalizedEmail, rawToken)
+    } catch (emailError) {
+      console.error("[auth/register] Verification email failed; auto-verifying account:", emailError)
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          emailVerified: new Date(),
+          emailVerificationToken: null,
+          emailVerificationExpires: null,
+        },
+      })
+      return NextResponse.json(
+        {
+          message: "Account created. Email verification is temporarily unavailable, so you can log in now.",
+          needsVerification: false,
+        },
+        { status: 201 }
+      )
+    }
+
+    return NextResponse.json(
+      { message: "Account created. Please check your email to verify your account.", needsVerification: true },
+      { status: 201 }
+    )
   } catch (error) {
     console.error("Registration error:", error)
     return NextResponse.json({ error: "Something went wrong. Please try again." }, { status: 500 })

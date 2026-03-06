@@ -1,22 +1,64 @@
 import nodemailer from "nodemailer"
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 587,
-  secure: process.env.SMTP_SECURE === "true",
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS,
-  },
-})
-
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"
 const FROM = `Sample Roll <${process.env.SMTP_FROM || process.env.SMTP_USER}>`
+
+const SMTP_HOST = process.env.SMTP_HOST?.trim()
+const SMTP_PORT = Number(process.env.SMTP_PORT) || 587
+const SMTP_USER = process.env.SMTP_USER?.trim()
+const SMTP_PASS = process.env.SMTP_PASS
+const SMTP_SECURE = process.env.SMTP_SECURE
+
+export function isEmailConfigured() {
+  return Boolean(SMTP_HOST && SMTP_USER && SMTP_PASS)
+}
+
+function getSecureCandidates() {
+  if (SMTP_SECURE === "true") return [true, false]
+  if (SMTP_SECURE === "false") return [false, true]
+  return SMTP_PORT === 465 ? [true, false] : [false, true]
+}
+
+function createTransporter(secure: boolean) {
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure,
+    auth: {
+      user: SMTP_USER,
+      pass: SMTP_PASS,
+    },
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 10000,
+  })
+}
+
+async function sendMailWithFallback(mail: nodemailer.SendMailOptions) {
+  if (!isEmailConfigured()) {
+    throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS.")
+  }
+
+  let lastError: unknown = null
+
+  for (const secure of getSecureCandidates()) {
+    try {
+      const transporter = createTransporter(secure)
+      await transporter.sendMail(mail)
+      return
+    } catch (error) {
+      lastError = error
+      console.error(`[email] send failed with secure=${String(secure)}:`, error)
+    }
+  }
+
+  throw lastError instanceof Error ? lastError : new Error("Failed to send email.")
+}
 
 export async function sendVerificationEmail(email: string, token: string) {
   const url = `${APP_URL}/verify-email?token=${token}`
 
-  await transporter.sendMail({
+  await sendMailWithFallback({
     from: FROM,
     to: email,
     subject: "Confirm your Sample Roll account",
@@ -43,7 +85,7 @@ export async function sendVerificationEmail(email: string, token: string) {
 export async function sendPasswordResetEmail(email: string, token: string) {
   const url = `${APP_URL}/reset-password?token=${token}`
 
-  await transporter.sendMail({
+  await sendMailWithFallback({
     from: FROM,
     to: email,
     subject: "Reset your Sample Roll password",

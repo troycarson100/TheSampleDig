@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import { prisma } from "@/lib/db"
-import { sendPasswordResetEmail } from "@/lib/email"
+import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/email"
 
 export async function POST(req: NextRequest) {
   try {
@@ -35,7 +35,17 @@ export async function POST(req: NextRequest) {
       },
     })
 
-    await sendPasswordResetEmail(user.email, rawToken)
+    if (!isEmailConfigured()) {
+      console.error("[auth/forgot-password] SMTP not configured. Reset email not sent for:", normalizedEmail)
+      return genericResponse
+    }
+
+    try {
+      await sendPasswordResetEmail(user.email, rawToken)
+    } catch (emailError) {
+      console.error("[auth/forgot-password] Reset email failed:", emailError)
+      return genericResponse
+    }
 
     return genericResponse
   } catch (error) {

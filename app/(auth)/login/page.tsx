@@ -14,6 +14,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
 
   const registered = searchParams.get("registered") === "true"
+  const needsVerification = searchParams.get("needsVerification") !== "false"
   const reset = searchParams.get("reset") === "true"
   const unverified = searchParams.get("unverified") === "true"
 
@@ -60,8 +61,16 @@ export default function LoginPage() {
 
         {registered && (
           <div className="mb-4 p-3 rounded-xl text-sm border" style={{ background: "rgba(22,163,74,0.08)", borderColor: "rgba(22,163,74,0.3)", color: "#166534" }}>
-            Account created! Check your email to verify your account before logging in.{" "}
-            <span style={{ color: "#166534", opacity: 0.8 }}>If you don&apos;t see it, check your spam folder.</span>
+            {needsVerification ? (
+              <>
+                Account created! Check your email to verify your account before logging in.{" "}
+                <span style={{ color: "#166534", opacity: 0.8 }}>If you don&apos;t see it, check your spam folder.</span>
+              </>
+            ) : (
+              <>
+                Account created! Email verification is temporarily unavailable, so you can log in now.
+              </>
+            )}
           </div>
         )}
         {reset && (

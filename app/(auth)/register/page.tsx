@@ -39,8 +39,8 @@ export default function RegisterPage() {
         return
       }
 
-      // Redirect to login after successful registration
-      router.push("/login?registered=true")
+      const needsVerification = data.needsVerification !== false
+      router.push(`/login?registered=true&needsVerification=${needsVerification ? "true" : "false"}`)
     } catch (err) {
       setError("An error occurred. Please try again.")
     } finally {
