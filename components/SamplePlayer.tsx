@@ -287,6 +287,7 @@ function SamplePlayer({
   const [recordingFullLengthMs, setRecordingFullLengthMs] = useState(0)
   const recordingFullLengthRef = useRef(0)
   const [draggingLoopEdge, setDraggingLoopEdge] = useState<"start" | "end" | null>(null)
+  const [chopVolume, setChopVolume] = useState(100)
   const [draggingRecordedIndex, setDraggingRecordedIndex] = useState<number | null>(null)
   const [iframeLoaded, setIframeLoaded] = useState(false)
   const [videoCurrentTime, setVideoCurrentTime] = useState(0)
@@ -1389,6 +1390,12 @@ function SamplePlayer({
 
   const effectiveTimelineDuration = (duration != null && duration > 0) ? duration : videoDurationFromPlayer
 
+  const handleChopVolumeChange = useCallback((vol: number) => {
+    setChopVolume(vol)
+    const adapter = adapterRef.current
+    if (adapter?.setVolume) adapter.setVolume(vol)
+  }, [])
+
   // Separate the iframe from the heart toggle to prevent re-renders
   // The iframe will only re-render when youtubeId changes, not when isSaved changes
   return (
@@ -1453,6 +1460,8 @@ function SamplePlayer({
             quantizeBpm={null}
             quantizeDivision={quantizeDivision}
             quantizeSwingPct={quantizeSwingPct}
+            volume={chopVolume}
+            onVolumeChange={handleChopVolumeChange}
           />
         )}
       </div>

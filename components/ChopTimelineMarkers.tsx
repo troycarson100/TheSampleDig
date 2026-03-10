@@ -25,6 +25,9 @@ interface ChopTimelineMarkersProps {
   quantizeBpm?: number | null
   quantizeDivision?: GridDivision
   quantizeSwingPct?: number
+  /** Volume 0–100 for the video player (shown since YouTube controls are hidden in chop mode) */
+  volume?: number
+  onVolumeChange?: (volume: number) => void
 }
 
 export default function ChopTimelineMarkers({
@@ -39,6 +42,8 @@ export default function ChopTimelineMarkers({
   quantizeBpm,
   quantizeDivision = "1/16",
   quantizeSwingPct = 50,
+  volume = 100,
+  onVolumeChange,
 }: ChopTimelineMarkersProps) {
   const barRef = useRef<HTMLDivElement>(null)
   const draggingKeyRef = useRef<string | null>(null)
@@ -433,9 +438,43 @@ export default function ChopTimelineMarkers({
           })}
         </div>
       </div>
-      {/* Time display: current / total (use playheadTime so it updates during drag) */}
-      <div className="flex items-center justify-between px-2 py-0.5 text-white text-xs font-medium bg-black/60 rounded-b-[6px]">
+      {/* Time display + volume slider */}
+      <div className="flex flex-1 items-center justify-between px-2 text-white text-xs font-medium bg-black/60 rounded-b-[6px]">
         <span>{formatTime(playheadTime)} / {formatTime(duration)}</span>
+        {onVolumeChange && (
+          <div
+            className="flex items-center gap-1.5 pointer-events-auto"
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 20 20"
+              fill="currentColor"
+              className="w-3 h-3 shrink-0 opacity-80"
+              aria-hidden
+            >
+              {volume === 0 ? (
+                <path d="M9.25 3.75a.75.75 0 0 0-1.28-.53L4.22 7H2.5A1.5 1.5 0 0 0 1 8.5v3A1.5 1.5 0 0 0 2.5 13h1.72l3.75 3.78a.75.75 0 0 0 1.28-.53V3.75ZM13.03 7.47a.75.75 0 0 1 1.06 0l1.44 1.44 1.44-1.44a.75.75 0 1 1 1.06 1.06L16.59 10l1.44 1.44a.75.75 0 1 1-1.06 1.06L15.53 11.1l-1.44 1.44a.75.75 0 1 1-1.06-1.06L14.47 10l-1.44-1.44a.75.75 0 0 1 0-1.06Z" />
+              ) : volume < 50 ? (
+                <path d="M9.25 3.75a.75.75 0 0 0-1.28-.53L4.22 7H2.5A1.5 1.5 0 0 0 1 8.5v3A1.5 1.5 0 0 0 2.5 13h1.72l3.75 3.78a.75.75 0 0 0 1.28-.53V3.75ZM12.5 10a2.5 2.5 0 0 0-1.5-2.3v4.6A2.5 2.5 0 0 0 12.5 10Z" />
+              ) : (
+                <path d="M9.25 3.75a.75.75 0 0 0-1.28-.53L4.22 7H2.5A1.5 1.5 0 0 0 1 8.5v3A1.5 1.5 0 0 0 2.5 13h1.72l3.75 3.78a.75.75 0 0 0 1.28-.53V3.75ZM12.5 10a2.5 2.5 0 0 0-1.5-2.3v4.6A2.5 2.5 0 0 0 12.5 10ZM15 10a5 5 0 0 0-3-4.58v9.16A5 5 0 0 0 15 10Z" />
+              )}
+            </svg>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              step={1}
+              value={volume}
+              onChange={(e) => onVolumeChange(Number(e.target.value))}
+              aria-label="Volume"
+              className="chop-volume-slider"
+              style={{ width: 72 }}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
