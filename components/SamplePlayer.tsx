@@ -272,7 +272,11 @@ function SamplePlayer({
   const youtubeIdRef = useRef<string | null>(null)
   const isInitializedRef = useRef(false)
   const adapterRef = useRef<YouTubePlayerAdapter | null>(null)
-  const [chopModeEnabled, setChopModeEnabled] = useState(true)
+  const [chopModeEnabled, setChopModeEnabled] = useState(() => {
+    if (typeof window === "undefined") return true
+    const saved = localStorage.getItem("digChopModeEnabled")
+    return saved == null ? true : saved === "true"
+  })
   const [isMobile, setIsMobile] = useState(false)
   const [tapTempoEnabled, setTapTempoEnabled] = useState(true)
   const [tapTimes, setTapTimes] = useState<number[]>([])
@@ -312,6 +316,11 @@ function SamplePlayer({
     mql.addEventListener("change", handler)
     return () => mql.removeEventListener("change", handler)
   }, [])
+  
+  // Persist chop mode preference so it survives dice-roll remounts
+  useEffect(() => {
+    localStorage.setItem("digChopModeEnabled", chopModeEnabled ? "true" : "false")
+  }, [chopModeEnabled])
   const bpmArrowIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const bpmArrowDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const bpmDragStartRef = useRef<{ startX: number; startBpm: number } | null>(null)
