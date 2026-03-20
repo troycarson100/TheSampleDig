@@ -73,6 +73,25 @@ function NoteIcon({ className }: { className?: string }) {
   )
 }
 
+/** Copy icon for copy-link button */
+function CopyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+    </svg>
+  )
+}
+
+/** Check icon for copied state */
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.25" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  )
+}
+
 /* Match HTML .tag: 3px radius, brown text, light border */
 const META_BOX_STYLE = {
   background: "rgba(74, 55, 40, 0.04)",
@@ -329,7 +348,9 @@ function SamplePlayer({
   const bpmDragLastRenderedRef = useRef<number | null>(null)
   const [notesOpen, setNotesOpen] = useState(false)
   const [notes, setNotes] = useState(initialNotes ?? "")
+  const [copyLinkCopied, setCopyLinkCopied] = useState(false)
   const notesSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const copyLinkResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const notesContainerRef = useRef<HTMLDivElement>(null)
 
   // Sync notes when loading a different saved sample
@@ -367,6 +388,22 @@ function SamplePlayer({
     [saveNotes]
   )
 
+  const handleCopyVideoLink = useCallback(async () => {
+    if (!youtubeId || String(youtubeId).length !== 11) return
+    const link = `https://www.youtube.com/watch?v=${youtubeId}`
+    try {
+      await navigator.clipboard.writeText(link)
+      setCopyLinkCopied(true)
+      if (copyLinkResetTimeoutRef.current) clearTimeout(copyLinkResetTimeoutRef.current)
+      copyLinkResetTimeoutRef.current = setTimeout(() => {
+        setCopyLinkCopied(false)
+        copyLinkResetTimeoutRef.current = null
+      }, 1200)
+    } catch (err) {
+      console.warn("[CopyLink] Clipboard write failed:", err)
+    }
+  }, [youtubeId])
+
   // Click outside to close notes dropdown
   useEffect(() => {
     if (!notesOpen) return
@@ -378,6 +415,15 @@ function SamplePlayer({
     document.addEventListener("mousedown", handleClick)
     return () => document.removeEventListener("mousedown", handleClick)
   }, [notesOpen])
+
+  useEffect(() => {
+    return () => {
+      if (copyLinkResetTimeoutRef.current) {
+        clearTimeout(copyLinkResetTimeoutRef.current)
+        copyLinkResetTimeoutRef.current = null
+      }
+    }
+  }, [])
 
   const onAfterChopPlay = useCallback(() => {
     chopKeysFocusTrapRef.current?.focus({ preventScroll: true })
@@ -1610,46 +1656,70 @@ function SamplePlayer({
                 </span>
               )}
               {showHeart && (
-                <div className="relative" ref={notesContainerRef}>
+                <div className="inline-flex items-stretch gap-2">
+                  <div className="relative" ref={notesContainerRef}>
+                    <button
+                      type="button"
+                      onClick={() => setNotesOpen((o) => !o)}
+                      className="meta-tag-box inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg border box-border hover:opacity-80 transition-opacity"
+                      style={{
+                        ...META_BOX_STYLE,
+                        background: "rgba(255, 255, 255, 0.92)",
+                        padding: "0 12px",
+                        lineHeight: 1,
+                        boxSizing: "border-box",
+                      }}
+                      aria-expanded={notesOpen}
+                      aria-label="Notes"
+                      title="Add notes about this sample"
+                    >
+                      <NoteIcon className="shrink-0" />
+                      <span>Notes</span>
+                    </button>
+                    {notesOpen && (
+                      <div
+                        className="absolute left-0 top-full mt-1 z-50 rounded-xl border p-3 min-w-[240px] max-w-[320px]"
+                        style={{
+                          background: "var(--warm)",
+                          borderColor: "rgba(74, 55, 40, 0.2)",
+                          boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+                        }}
+                      >
+                        <textarea
+                          value={notes}
+                          onChange={handleNotesChange}
+                          onKeyDown={(e) => e.stopPropagation()}
+                          placeholder={isSaved ? "Add a note about this sample..." : "Save the sample first to add notes"}
+                          disabled={!isSaved}
+                          rows={3}
+                          className="w-full resize-none rounded-lg border bg-white/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                          style={{ borderColor: "rgba(74, 55, 40, 0.2)", color: "var(--brown)" }}
+                        />
+                      </div>
+                    )}
+                  </div>
                   <button
                     type="button"
-                    onClick={() => setNotesOpen((o) => !o)}
-                    className="meta-tag-box inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg border box-border hover:opacity-80 transition-opacity"
+                    onClick={handleCopyVideoLink}
+                    className="meta-tag-box relative inline-flex items-center justify-center min-h-[32px] h-8 w-8 rounded-lg border box-border hover:opacity-80 transition-[opacity,transform] duration-200"
                     style={{
                       ...META_BOX_STYLE,
                       background: "rgba(255, 255, 255, 0.92)",
-                      padding: "0 12px",
+                      padding: 0,
                       lineHeight: 1,
                       boxSizing: "border-box",
                     }}
-                    aria-expanded={notesOpen}
-                    aria-label="Notes"
-                    title="Add notes about this sample"
+                    aria-label={copyLinkCopied ? "Copied YouTube link" : "Copy YouTube link"}
+                    title={copyLinkCopied ? "Copied!" : "Copy YouTube link"}
                   >
-                    <NoteIcon className="shrink-0" />
-                    <span>Notes</span>
-                  </button>
-                  {notesOpen && (
-                    <div
-                      className="absolute left-0 top-full mt-1 z-50 rounded-xl border p-3 min-w-[240px] max-w-[320px]"
-                      style={{
-                        background: "var(--warm)",
-                        borderColor: "rgba(74, 55, 40, 0.2)",
-                        boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
-                      }}
+                    <span
+                      key={copyLinkCopied ? "check" : "copy"}
+                      className="inline-flex items-center justify-center w-4 h-4 transition-all duration-200"
+                      style={{ opacity: 1, transform: "scale(1)" }}
                     >
-                      <textarea
-                        value={notes}
-                        onChange={handleNotesChange}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        placeholder={isSaved ? "Add a note about this sample..." : "Save the sample first to add notes"}
-                        disabled={!isSaved}
-                        rows={3}
-                        className="w-full resize-none rounded-lg border bg-white/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed"
-                        style={{ borderColor: "rgba(74, 55, 40, 0.2)", color: "var(--brown)" }}
-                      />
-                    </div>
-                  )}
+                      {copyLinkCopied ? <CheckIcon /> : <CopyIcon />}
+                    </span>
+                  </button>
                 </div>
               )}
             </div>
