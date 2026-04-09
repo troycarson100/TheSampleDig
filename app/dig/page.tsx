@@ -6,11 +6,10 @@ import { useSession } from "next-auth/react"
 import SamplePlayer from "@/components/SamplePlayer"
 import type { SavedLoopData } from "@/hooks/useChopMode"
 import DiceButton from "@/components/DiceButton"
-import AutoplayToggle from "@/components/AutoplayToggle"
 import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import SiteNav from "@/components/SiteNav"
-import GenreSelect from "@/components/GenreSelect"
 import DigHowToPopover from "@/components/DigHowToPopover"
+import DigFilterPanel from "@/components/DigFilterPanel"
 // import BeatsPanel from "@/components/BeatsPanel" // Beat loop section commented out for now
 
 /** Label maps for display; used for both static fallback and dynamic options from API */
@@ -100,6 +99,7 @@ export default function DigPage() {
   const [filtersLoaded, setFiltersLoaded] = useState(false)
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  const [showFilters, setShowFilters] = useState(false)
   const [hasClickedDice, setHasClickedDice] = useState(false)
   const isSavedRef = useRef(isSaved)
   const sampleRef = useRef(sample)
@@ -289,10 +289,6 @@ export default function DigPage() {
 
   const onRollClick = () => {
     setHasClickedDice(true)
-    if (status === "unauthenticated") {
-      setShowAuthModal(true)
-      return
-    }
     handleDig()
   }
 
@@ -465,13 +461,20 @@ export default function DigPage() {
     }
   }
 
+  const handleResetFilters = () => {
+    setGenreFilter("")
+    setEraFilter("")
+    setDrumBreak(false)
+    setRandomStartTime(true)
+  }
+
   // Memoize the save toggle handler to prevent unnecessary re-renders
   // Use refs to keep callback completely stable - no dependencies
   const handleSaveToggle = useCallback(async (opts?: { chops?: Chop[]; loop?: SavedLoopData | null; bpm?: number }) => {
     const currentSample = sampleRef.current
     const currentSession = sessionRef.current
     if (!currentSession) {
-      alert("Please log in to save samples.")
+      setShowAuthModal(true)
       return
     }
     if (!currentSample) {
@@ -613,7 +616,7 @@ export default function DigPage() {
               </button>
             </div>
             <p className="text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
-              Create an account or log in to roll the dice and save samples.
+              Create a free account to save samples, access your crate, and more.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 mt-2">
               <Link
@@ -664,7 +667,7 @@ export default function DigPage() {
             <div className="player-area-card w-full">
             {/* Controls */}
             <div className="controls-bar w-full flex flex-col items-center gap-3">
-              {/* Line 1: Back / Dice */}
+              {/* Back / Dice / Filters row */}
               <div className="flex items-center justify-center gap-3 w-full">
                 {previousSample && (
                   <button
@@ -678,81 +681,25 @@ export default function DigPage() {
                   </button>
                 )}
                 <DiceButton onClick={onRollClick} loading={loading} breathing bounce={!sample} />
-              </div>
-              {/* Line 2: 3 toggles */}
-              <div className="flex flex-wrap items-center justify-center gap-2 w-full">
-                <AutoplayToggle enabled={autoplay} onChange={setAutoplay} />
-                <button
-                  type="button"
-                  onClick={() => setDrumBreak((d) => !d)}
-                  className="flex items-center gap-2 px-2 py-2 rounded-full transition"
-                  style={{ background: "transparent", color: "var(--foreground)" }}
-                  aria-label="Toggle drum break mode"
-                >
-                  <div className={`toggle-track relative w-12 h-6 rounded-full transition-colors ${drumBreak ? "opacity-100 checked" : "opacity-50"}`} style={{ background: drumBreak ? "var(--primary)" : "var(--muted)" }}>
-                    <div
-                      className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${drumBreak ? "translate-x-6" : "translate-x-0"}`}
-                    />
-                  </div>
-                  <span className="toggle-label text-sm font-medium">
-                    Drum Break
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setRandomStartTime((r) => !r)}
-                  className="flex items-center gap-2 px-2 py-2 rounded-full transition"
-                  style={{ background: "transparent", color: "var(--foreground)" }}
-                  aria-label="Toggle random start time (off = start at 0:00)"
-                >
-                  <div className={`toggle-track relative w-12 h-6 rounded-full transition-colors ${randomStartTime ? "opacity-100 checked" : "opacity-50"}`} style={{ background: randomStartTime ? "var(--primary)" : "var(--muted)" }}>
-                    <div
-                      className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${randomStartTime ? "translate-x-6" : "translate-x-0"}`}
-                    />
-                  </div>
-                  <span className="toggle-label text-sm font-medium">
-                    Random Start Time
-                  </span>
-                </button>
-                {/* Sample Packs toggle - commented out for now
-                <button
-                  type="button"
-                  onClick={() => setSamplePacks((r) => !r)}
-                  className="flex items-center gap-2 px-4 py-2 rounded-full transition"
-                  style={{ background: "transparent", color: "var(--foreground)" }}
-                  aria-label="Toggle sample packs mode"
-                >
-                  <div className={`toggle-track relative w-12 h-6 rounded-full transition-colors ${samplePacks ? "opacity-100 checked" : "opacity-50"}`} style={{ background: samplePacks ? "var(--primary)" : "var(--muted)" }}>
-                    <div
-                      className={`absolute top-1 left-1 w-4 h-4 rounded-full transition-transform bg-white shadow-sm ${samplePacks ? "translate-x-6" : "translate-x-0"}`}
-                    />
-                  </div>
-                  <span className="toggle-label text-sm font-medium">
-                    Sample Packs
-                  </span>
-                </button>
-                */}
-              </div>
-              {/* Line 3: Dropdowns + Info */}
-              <div className="flex flex-wrap items-center justify-center gap-2 w-full">
-                <GenreSelect
-                  value={genreFilter}
-                  onChange={setGenreFilter}
-                  options={genreOptions}
-                  ariaLabel="Filter samples by genre"
-                  className="min-w-[140px]"
+                <DigFilterPanel
+                  open={showFilters}
+                  onOpen={() => setShowFilters(true)}
+                  onClose={() => setShowFilters(false)}
+                  autoplay={autoplay}
+                  onAutoplayChange={setAutoplay}
+                  drumBreak={drumBreak}
+                  onDrumBreakChange={setDrumBreak}
+                  randomStartTime={randomStartTime}
+                  onRandomStartTimeChange={setRandomStartTime}
+                  genreFilter={genreFilter}
+                  onGenreChange={setGenreFilter}
+                  genreOptions={genreOptions}
+                  eraFilter={eraFilter}
+                  onEraChange={setEraFilter}
+                  eraOptions={eraOptions}
+                  samplePacks={samplePacks}
+                  onReset={handleResetFilters}
                 />
-                <div className="flex items-center gap-2">
-                  <div className={samplePacks ? "opacity-50 pointer-events-none" : ""} title={samplePacks ? "Era filter disabled — sample packs are mostly from 1990s onward" : undefined}>
-                    <GenreSelect
-                      value={eraFilter}
-                      onChange={setEraFilter}
-                      options={eraOptions}
-                      ariaLabel="Filter samples by era"
-                      className="min-w-[120px]"
-                    />
-                  </div>
-                </div>
                 <DigHowToPopover />
               </div>
             </div>
@@ -853,6 +800,7 @@ export default function DigPage() {
               <a href="/dig" className="hover:text-[var(--foreground)] transition">Dig</a>
               <a href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</a>
               <a href="/blog" className="hover:text-[var(--foreground)] transition">Blog</a>
+              <a href="/about" className="hover:text-[var(--foreground)] transition">About</a>
               <a href="/login" className="hover:text-[var(--foreground)] transition">Login</a>
             </div>
           </div>
