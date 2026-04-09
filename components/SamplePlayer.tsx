@@ -156,7 +156,7 @@ const PlayerVideoCore = memo(function PlayerVideoCore({
         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
         allowFullScreen
         className="w-full h-full"
-        style={{ pointerEvents: chopModeEnabled ? "none" : "auto" }}
+        style={{ pointerEvents: "auto" }}
         onLoad={onIframeLoad}
         onError={() => onVideoError?.()}
       />
@@ -164,7 +164,8 @@ const PlayerVideoCore = memo(function PlayerVideoCore({
         <div
           ref={chopOverlayRef}
           tabIndex={0}
-          className="absolute inset-0 z-[5] cursor-pointer focus:outline-none"
+          className="absolute inset-x-0 top-0 z-[5] cursor-pointer focus:outline-none"
+          style={{ bottom: "48px" }}
           aria-label="Video area: click to play or pause; use Space and letter keys for chops"
           onClick={onOverlayClick}
         />
@@ -1331,23 +1332,41 @@ function SamplePlayer({
     return () => clearTimeout(t)
   }, [youtubeId, onVideoError, validYoutubeIdForAdapter, iframeLoaded, reportVideoUnavailable])
 
-  // Poll video current time and duration for timeline (when adapter is ready)
+  // Poll video current time and duration for timeline via rAF.
+  // Reads position every frame (~16ms) so seeks snap visually within 1-2 frames.
+  // Throttles setState to ~10fps during normal playback to avoid excessive re-renders,
+  // but forces an immediate update when a seek is detected (time jump > 0.75s).
   useEffect(() => {
     if (!validYoutubeIdForAdapter || !iframeLoaded) return
-    const tick = () => {
+    let rafId: number
+    let lastStateUpdateMs = 0
+    let lastReportedTime = -1
+    const STATE_THROTTLE_MS = 100 // max 10 React re-renders/sec during playback
+    const SEEK_THRESHOLD_S = 0.75  // jump larger than this → treat as seek → update immediately
+
+    const tick = (now: number) => {
       const adapter = adapterRef.current
       if (adapter) {
         try {
           const t = adapter.getCurrentTime()
-          if (typeof t === "number" && t >= 0) setVideoCurrentTime(t)
+          if (typeof t === "number" && t >= 0) {
+            const isSeeked = lastReportedTime >= 0 && Math.abs(t - lastReportedTime) > SEEK_THRESHOLD_S
+            const throttleElapsed = now - lastStateUpdateMs >= STATE_THROTTLE_MS
+            if (isSeeked || throttleElapsed) {
+              setVideoCurrentTime(t)
+              lastReportedTime = t
+              lastStateUpdateMs = now
+            }
+          }
           const d = adapter.getDuration?.()
           if (typeof d === "number" && d > 0) setVideoDurationFromPlayer(d)
         } catch (_) {}
       }
+      rafId = requestAnimationFrame(tick)
     }
-    tick()
-    const id = setInterval(tick, 500)
-    return () => clearInterval(id)
+
+    rafId = requestAnimationFrame(tick)
+    return () => cancelAnimationFrame(rafId)
   }, [validYoutubeIdForAdapter, iframeLoaded])
 
   // Check if video is available via our API endpoint
