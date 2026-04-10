@@ -60,9 +60,12 @@ export async function POST() {
     const baseUrl = appBaseUrl().replace(/\/$/, "")
     const returnUrl = `${baseUrl}/settings`
 
+    const portalConfigId = process.env.STRIPE_BILLING_PORTAL_CONFIGURATION_ID?.trim()
+    // If unset, Stripe uses your dashboard “Default” portal configuration (bpc_…).
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: user.stripeCustomerId,
       return_url: returnUrl,
+      ...(portalConfigId ? { configuration: portalConfigId } : {}),
     })
 
     if (!portalSession.url) {
