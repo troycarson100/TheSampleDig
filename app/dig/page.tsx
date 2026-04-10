@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
+import Script from "next/script"
 import { useSession } from "next-auth/react"
 import SamplePlayer from "@/components/SamplePlayer"
 import type { SavedLoopData } from "@/hooks/useChopMode"
@@ -12,6 +13,8 @@ import DigFilterPanel from "@/components/DigFilterPanel"
 import { recordHistory, clearHistory } from "@/lib/dig-history"
 import type { HistoryItem } from "@/lib/dig-history"
 import FeatureGateModal from "@/components/FeatureGateModal"
+import { DigAdSenseUnit } from "@/components/DigAdSenseUnit"
+import { ADSENSE_DIG_FOOTER_SLOT, ADSENSE_DIG_SIDEBAR_SLOT } from "@/lib/adsense-dig"
 // import BeatsPanel from "@/components/BeatsPanel" // Beat loop section commented out for now
 
 /** Label maps for display; used for both static fallback and dynamic options from API */
@@ -111,6 +114,7 @@ export default function DigPage() {
   /** Server-returned sample id after save; avoid setSample on save to prevent video going black */
   const sampleIdFromSaveRef = useRef<string | null>(null)
   const videoErrorCallbackRef = useRef<() => void>(() => {})
+
   useEffect(() => {
     videoErrorCallbackRef.current = () => {
       const s = sampleRef.current
@@ -645,6 +649,12 @@ export default function DigPage() {
 
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
+      <Script
+        id="adsense-dig-loader"
+        strategy="afterInteractive"
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7744671172843728"
+        crossOrigin="anonymous"
+      />
       <header className="site-header w-full">
         <SiteNav />
       </header>
@@ -672,14 +682,18 @@ export default function DigPage() {
           })()}
         </div>
       </div>
-      <div className="dig-page-wrap">
+
+      <div
+        className="dig-page-wrap"
+        style={{ paddingBottom: "max(6rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)))" }}
+      >
         <div className="dig-app-grid flex flex-col md:grid md:grid-cols-[1fr_280px] dig-lg:grid-cols-[1fr_340px] gap-3 md:gap-6 items-start">
           <div className="max-md:flex-none md:flex-1 min-w-0 dig-col lg:min-w-0 w-full max-w-4xl">
             <div className="player-area-card w-full">
             {/* Controls */}
             <div className="controls-bar w-full flex flex-col items-center gap-3">
-              {/* Back / Dice / Filters row */}
-              <div className="flex items-center justify-center gap-3 w-full">
+              {/* Back / Dice / Filters */}
+              <div className="flex items-center justify-center gap-3 w-full flex-wrap">
                 {previousSample && (
                   <button
                     onClick={handleGoBack}
@@ -714,6 +728,9 @@ export default function DigPage() {
                      NEXT_PUBLIC_REQUIRE_PRO_SUBSCRIPTION off makes everyone “Pro” here and hides the upsell. */
                   isPro={session?.user?.isPro === true}
                 />
+              </div>
+              {/* How-to: on md+ it lives next to Chop Mode in SamplePlayer; show here on small screens only */}
+              <div className="flex md:hidden w-full justify-end min-h-[40px] items-center">
                 <DigHowToPopover />
               </div>
             </div>
@@ -765,8 +782,9 @@ export default function DigPage() {
             </div>
           </div>
 
-          <div className="samples-panel md:sticky md:top-[102px] md:self-start shrink-0 md:h-[calc(100vh-114px)] flex flex-col min-h-0 w-full md:w-auto">
-              <div className="sidebar-dark flex flex-col min-h-0 overflow-hidden rounded-lg">
+          {/* 214px = header/ticker offset (114) + fixed bottom ad strip (~100) so crate + sidebar ad fit above the bar */}
+          <div className="samples-panel md:sticky md:top-[102px] md:self-start shrink-0 md:h-[calc(100dvh-214px)] md:max-h-[calc(100dvh-214px)] flex flex-col gap-2 min-h-0 w-full md:w-auto">
+              <div className="sidebar-dark flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg">
                 <SavedSamplesSidebar
                   sessionDigHistory={sessionDigHistory}
                   onSessionDigHistoryClear={clearSessionDigHistory}
@@ -812,6 +830,9 @@ export default function DigPage() {
                   currentSampleId={sample?.id}
                 />
               </div>
+              <div className="w-full shrink-0">
+                <DigAdSenseUnit variant="sidebar" adSlot={ADSENSE_DIG_SIDEBAR_SLOT} />
+              </div>
             </div>
 
           </div>
@@ -827,10 +848,25 @@ export default function DigPage() {
               <a href="/profile" className="hover:text-[var(--foreground)] transition">My Crate</a>
               <a href="/blog" className="hover:text-[var(--foreground)] transition">Blog</a>
               <a href="/about" className="hover:text-[var(--foreground)] transition">About</a>
-              <a href="/login" className="hover:text-[var(--foreground)] transition">Login</a>
+              <a href="/login" className="hover:text-[var(--foreground)] transition">Sign in</a>
             </div>
           </div>
         </footer>
+      </div>
+
+      <div
+        className="fixed bottom-0 left-0 right-0 z-40 border-t shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"
+        style={{
+          background: "var(--background)",
+          borderColor: "var(--border)",
+          paddingBottom: "env(safe-area-inset-bottom, 0px)",
+        }}
+        role="complementary"
+        aria-label="Advertisement"
+      >
+        <div className="max-w-4xl mx-auto px-3 sm:px-4 pt-1 pb-1">
+          <DigAdSenseUnit variant="footer" adSlot={ADSENSE_DIG_FOOTER_SLOT} />
+        </div>
       </div>
     </div>
   )
