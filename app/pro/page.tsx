@@ -1,143 +1,53 @@
 "use client"
 
-import { useState } from "react"
-import { useSession } from "next-auth/react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import SiteNav from "@/components/SiteNav"
-
-const PRO_FEATURES = [
-  { title: "Save samples", description: "Heart and save any sample to your library. Never lose a find." },
-  { title: "My Samples", description: "Your saved samples in one place. Organize, filter by genre or key." },
-  { title: "Sample chopping", description: "Chop Mode: mark hit points, trigger chops with pads, build loops." },
-  { title: "BPM & key detection", description: "Auto BPM and musical key. Tap tempo, drag to adjust, sync your workflow." },
-  { title: "Drum Break mode", description: "Dig filter for drum breaks. Start at the break every time." },
-  { title: "Stem Splitter", description: "Separate vocals, drums, bass, melody. Split further into kick, snare, cymbals, and more." },
-]
+import TryProOfferingBlock from "@/components/pro/TryProOfferingBlock"
 
 export default function ProPage() {
-  const { data: session, status } = useSession()
-  const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState("")
-
-  const handleSubscribe = async () => {
-    if (!session?.user?.id) {
-      router.push("/login?callbackUrl=/pro")
-      return
-    }
-    setError("")
-    setLoading(true)
-    try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" })
-      const data = await res.json()
-      if (!res.ok) {
-        setError(data.error || "Could not start checkout")
-        return
-      }
-      if (data.url) {
-        window.location.href = data.url
-        return
-      }
-      setError("No checkout URL returned")
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Something went wrong")
-    } finally {
-      setLoading(false)
-    }
-  }
-
   const success = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("success") === "1"
   const canceled = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("canceled") === "1"
 
   return (
-    <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
-      <header className="site-header w-full">
+    <div
+      className="min-h-screen theme-vinyl flex flex-col"
+      style={{ background: "var(--ink)", color: "var(--cream)" }}
+    >
+      <header className="site-header w-full shrink-0">
         <SiteNav />
       </header>
-      {/* pt-14 (56px) clears fixed .site-header — same pattern as blog/profile */}
-      <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-14 py-10 sm:py-14">
-        <h1 className="text-3xl sm:text-4xl font-bold text-center mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>
-          Sample Roll Pro
-        </h1>
-        <p className="text-lg text-center mb-4" style={{ color: "var(--muted)" }}>
-          Unlock the full toolkit for digging and sampling.
-        </p>
-        <p className="text-sm text-center max-w-xl mx-auto mb-10 leading-relaxed" style={{ color: "var(--muted)" }}>
-          Start with a <strong style={{ color: "var(--foreground)" }}>7-day free trial</strong>. We ask for a card at checkout so your membership can continue seamlessly at{" "}
-          <strong style={{ color: "var(--foreground)" }}>$5.99/month</strong> after the trial unless you cancel.
-        </p>
-
+      <div className="w-full max-w-[960px] mx-auto flex-1 px-3 sm:px-5 pt-14 pb-10 sm:pb-14">
         {success && (
-          <div className="mb-6 p-4 rounded-xl border text-center" style={{ background: "rgba(34,197,94,0.08)", borderColor: "rgba(34,197,94,0.3)", color: "#15803d" }}>
+          <div
+            className="mb-6 p-4 rounded-xl border text-center text-sm"
+            style={{
+              background: "rgba(34, 197, 94, 0.1)",
+              borderColor: "rgba(74, 222, 128, 0.35)",
+              color: "#bbf7d0",
+            }}
+          >
             Thanks for subscribing. You now have full Pro access. Refresh the page if you don’t see it yet.
           </div>
         )}
         {canceled && (
-          <div className="mb-6 p-4 rounded-xl border text-center" style={{ background: "var(--muted-light)", borderColor: "var(--border)", color: "var(--muted)" }}>
+          <div
+            className="mb-6 p-4 rounded-xl border text-center text-sm"
+            style={{
+              background: "rgba(240, 235, 225, 0.06)",
+              borderColor: "rgba(240, 235, 225, 0.12)",
+              color: "rgba(240, 235, 225, 0.65)",
+            }}
+          >
             Checkout was canceled. You can subscribe anytime below.
           </div>
         )}
 
-        <div className="rounded-2xl p-6 sm:p-8 mb-10" style={{ background: "#F6F0E9" }}>
-          <ul className="space-y-5 mb-10">
-            {PRO_FEATURES.map((f) => (
-              <li key={f.title}>
-                <h3 className="font-semibold text-base mb-1" style={{ color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
-                  {f.title}
-                </h3>
-                <p className="text-sm" style={{ color: "var(--muted)" }}>{f.description}</p>
-              </li>
-            ))}
-          </ul>
+        <TryProOfferingBlock headingTag="h1" headingId="pro-page-title" />
 
-          <div className="text-center">
-            <p className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
-              $5.99<span className="text-lg font-normal" style={{ color: "var(--muted)" }}>/month</span>
-            </p>
-            <p className="text-sm mb-2" style={{ color: "var(--muted)" }}>7-day free trial, then billed monthly. Cancel anytime before the trial ends to avoid charges.</p>
-            <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>Card required at signup for seamless continuation after your trial.</p>
-            {status === "loading" ? (
-              <p className="text-sm" style={{ color: "var(--muted)" }}>Loading…</p>
-            ) : !session ? (
-              <div className="flex flex-col sm:flex-row gap-3 justify-center">
-                <Link
-                  href="/login?callbackUrl=/pro"
-                  className="inline-flex justify-center items-center px-6 py-3 rounded-[var(--radius-button)] font-medium transition"
-                  style={{ background: "var(--primary)", color: "var(--primary-foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
-                >
-                  Sign in to subscribe
-                </Link>
-                <Link
-                  href="/register?callbackUrl=/pro"
-                  className="inline-flex justify-center items-center px-6 py-3 rounded-[var(--radius-button)] font-medium border transition"
-                  style={{ borderColor: "var(--border)", color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
-                >
-                  Create account
-                </Link>
-              </div>
-            ) : session.user?.isPro ? (
-              <p className="text-sm" style={{ color: "var(--muted)" }}>You have Pro access.</p>
-            ) : (
-              <>
-                {error && (
-                  <p className="text-sm mb-3" style={{ color: "#b91c1c" }}>{error}</p>
-                )}
-                <button
-                  type="button"
-                  onClick={handleSubscribe}
-                  disabled={loading}
-                  className="pro-gradient-btn pro-gradient-btn--lg inline-flex justify-center items-center px-8 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {loading ? "Redirecting to checkout…" : "Try Pro Free"}
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-
-        <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
-          <Link href="/dig" className="hover:underline" style={{ color: "var(--foreground)" }}>Back to Dig</Link>
+        <p className="text-center text-sm mt-10" style={{ color: "rgba(240, 235, 225, 0.45)" }}>
+          <Link href="/dig" className="hover:underline transition" style={{ color: "rgba(240, 235, 225, 0.85)" }}>
+            Back to Dig
+          </Link>
         </p>
       </div>
     </div>

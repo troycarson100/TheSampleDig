@@ -2,13 +2,13 @@
 
 import { useState, useRef, useEffect, useCallback, type CSSProperties } from "react"
 import { createPortal } from "react-dom"
-import Link from "next/link"
 import {
   getPlaylists,
   createPlaylist,
   addYoutubeToPlaylist,
   type UserPlaylist,
 } from "@/lib/user-playlists"
+import { useGoProModal } from "@/components/GoProModalContext"
 
 type Props = {
   userId: string
@@ -27,6 +27,7 @@ export default function CrateTrackActionsMenu({
   removeLabel,
   onRemove,
 }: Props) {
+  const { openProModal } = useGoProModal()
   const [open, setOpen] = useState(false)
   const [view, setView] = useState<"main" | "playlists" | "pro">("main")
   const [playlists, setPlaylists] = useState<UserPlaylist[]>([])
@@ -131,25 +132,50 @@ export default function CrateTrackActionsMenu({
   const menu = open ? (
     <div ref={panelRef} className="theme-vinyl" style={panelStyle} role="menu">
       {view === "main" && (
-        <div className="py-1.5">
+        <div className={isPro ? "py-1.5" : "p-2"}>
           <button
             type="button"
             role="menuitem"
-            className="w-full text-left px-3 py-2.5 text-sm flex items-center gap-2 transition hover:bg-white/5"
-            style={{ color: "#f5f0e8" }}
+            className={
+              isPro
+                ? "w-full text-left px-3 py-2.5 text-sm flex items-center gap-2 transition hover:bg-white/5"
+                : "sample-notes-pro-gate theme-vinyl w-full text-left rounded-lg px-3 py-2.5 text-sm flex items-center gap-2 justify-between transition hover:opacity-95 border-0 cursor-pointer"
+            }
+            style={
+              isPro
+                ? { color: "#f5f0e8" }
+                : {
+                    color: "#fff",
+                    fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
+                    fontSize: "9px",
+                    fontWeight: 600,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                  }
+            }
             onClick={handleAddToPlaylistClick}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 opacity-80" aria-hidden>
-              <line x1="8" y1="6" x2="21" y2="6" />
-              <line x1="8" y1="12" x2="21" y2="12" />
-              <line x1="8" y1="18" x2="21" y2="18" />
-              <line x1="3" y1="6" x2="3.01" y2="6" />
-              <line x1="3" y1="12" x2="3.01" y2="12" />
-              <line x1="3" y1="18" x2="3.01" y2="18" />
-              <path d="M17 14v6M14 17h6" />
-            </svg>
-            Add to playlist
-            {!isPro && <span className="pro-gradient-pill text-white ml-auto shrink-0">Pro</span>}
+            <span className="flex items-center gap-2 min-w-0">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className={`shrink-0 ${isPro ? "opacity-80" : "sample-notes-pro-gate__icon opacity-95"}`} aria-hidden>
+                <line x1="8" y1="6" x2="21" y2="6" />
+                <line x1="8" y1="12" x2="21" y2="12" />
+                <line x1="8" y1="18" x2="21" y2="18" />
+                <line x1="3" y1="6" x2="3.01" y2="6" />
+                <line x1="3" y1="12" x2="3.01" y2="12" />
+                <line x1="3" y1="18" x2="3.01" y2="18" />
+                <path d="M17 14v6M14 17h6" />
+              </svg>
+              <span className={isPro ? "" : "truncate"}>Add to playlist</span>
+            </span>
+            {!isPro && (
+              <span className="pro-locked-filter-row__pill--cta shrink-0 inline-flex items-center gap-1">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                PRO
+              </span>
+            )}
           </button>
           <button
             type="button"
@@ -171,13 +197,16 @@ export default function CrateTrackActionsMenu({
           <p className="text-sm mb-3" style={{ color: "rgba(245,240,232,0.85)" }}>
             Playlists are a <strong>Pro</strong> feature. Upgrade to organize tracks into custom lists.
           </p>
-          <Link
-            href="/pro"
-            className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--rounded text-center text-sm font-semibold no-underline"
-            onClick={() => setOpen(false)}
+          <button
+            type="button"
+            className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--rounded text-center text-sm font-semibold border-0 cursor-pointer w-full"
+            onClick={() => {
+              setOpen(false)
+              openProModal()
+            }}
           >
-            Try Pro Free
-          </Link>
+            TRY PRO FREE
+          </button>
           <button
             type="button"
             className="w-full mt-2 text-xs py-2 opacity-60 hover:opacity-100"

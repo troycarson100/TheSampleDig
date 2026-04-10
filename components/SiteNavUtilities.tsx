@@ -2,6 +2,8 @@
 
 import Link from "next/link"
 import { useEffect, useRef, useState } from "react"
+import { useSession } from "next-auth/react"
+import { useGoProModal } from "@/components/GoProModalContext"
 
 function IconShieldCheck({ className }: { className?: string }) {
   return (
@@ -68,6 +70,9 @@ const iconBtnClass =
 export function SiteSettingsMenu() {
   const [open, setOpen] = useState(false)
   const rootRef = useRef<HTMLDivElement>(null)
+  const { openProModal } = useGoProModal()
+  const { data: session } = useSession()
+  const isProSubscriber = session?.user?.isPro === true
 
   useEffect(() => {
     if (!open) return
@@ -111,19 +116,50 @@ export function SiteSettingsMenu() {
           role="menu"
           aria-label="Site links"
         >
-          {SITE_SETTINGS_MENU_ITEMS.map(({ href, label, Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              role="menuitem"
-              className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
-              style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
-              onClick={() => setOpen(false)}
-            >
-              <Icon className="shrink-0 opacity-85" />
-              <span>{label}</span>
-            </Link>
-          ))}
+          {SITE_SETTINGS_MENU_ITEMS.map(({ href, label, Icon }) =>
+            href === "/pro" ? (
+              isProSubscriber ? (
+                <Link
+                  key={href}
+                  href="/pro"
+                  role="menuitem"
+                  className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
+                  style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon className="shrink-0 opacity-85" />
+                  <span>{label}</span>
+                </Link>
+              ) : (
+                <button
+                  key={href}
+                  type="button"
+                  role="menuitem"
+                  className="flex w-full items-center gap-3 px-3.5 py-2.5 text-[13px] text-left transition-colors hover:bg-white/6 border-0 cursor-pointer"
+                  style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", background: "transparent" }}
+                  onClick={() => {
+                    setOpen(false)
+                    openProModal()
+                  }}
+                >
+                  <Icon className="shrink-0 opacity-85" />
+                  <span>{label}</span>
+                </button>
+              )
+            ) : (
+              <Link
+                key={href}
+                href={href}
+                role="menuitem"
+                className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
+                style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
+                onClick={() => setOpen(false)}
+              >
+                <Icon className="shrink-0 opacity-85" />
+                <span>{label}</span>
+              </Link>
+            )
+          )}
         </div>
       ) : null}
     </div>

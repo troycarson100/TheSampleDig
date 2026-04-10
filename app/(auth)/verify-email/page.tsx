@@ -33,7 +33,7 @@ export default function VerifyEmailPage() {
           setMessage(data.error)
         } else {
           setStatus("success")
-          setMessage(data.message || "Email verified successfully. You can now log in.")
+          setMessage(data.message || "Email verified successfully. You can now sign in.")
         }
       })
       .catch(() => {
@@ -58,7 +58,7 @@ export default function VerifyEmailPage() {
               {message}
             </div>
             <Link href="/login" className="inline-block w-full py-2.5 rounded-[var(--radius-button)] font-medium text-white text-center transition" style={{ background: "var(--primary)" }}>
-              Log in
+              Sign in
             </Link>
           </div>
         )}

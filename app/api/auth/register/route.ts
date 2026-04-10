@@ -6,7 +6,10 @@ import { isEmailConfigured, sendVerificationEmail } from "@/lib/email"
 
 export async function POST(req: NextRequest) {
   try {
-    const { email, password, name } = await req.json()
+    const body = await req.json()
+    const { email, password, name } = body
+    /** Default true: matches UI checkbox default “Keep me in the loop…” */
+    const emailMarketingOptIn = body.emailMarketingOptIn !== false
 
     if (!email || !password) {
       return NextResponse.json({ error: "Email and password are required." }, { status: 400 })
@@ -35,6 +38,7 @@ export async function POST(req: NextRequest) {
         email: normalizedEmail,
         passwordHash,
         name: name ? String(name).trim() || null : null,
+        emailMarketingOptIn,
         emailVerified: emailAvailable ? null : new Date(),
         emailVerificationToken: emailAvailable ? rawToken : null,
         emailVerificationExpires: emailAvailable ? expires : null,

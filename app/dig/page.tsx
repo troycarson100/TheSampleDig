@@ -83,6 +83,17 @@ interface Sample {
 }
 
 const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
+/** After first roll or any active video, hide “Start Here” hint (persisted). */
+const DIG_START_HERE_DONE_KEY = "digStartHereDone"
+
+function readDigStartHereDone(): boolean {
+  if (typeof window === "undefined") return false
+  try {
+    return localStorage.getItem(DIG_START_HERE_DONE_KEY) === "1"
+  } catch {
+    return false
+  }
+}
 
 export default function DigPage() {
   const { data: session, status } = useSession()
@@ -107,7 +118,41 @@ export default function DigPage() {
   /** Non–Pro: in-memory only (clears on full page refresh). Pro uses localStorage via recordHistory. */
   const [sessionDigHistory, setSessionDigHistory] = useState<HistoryItem[]>([])
   const [showFilters, setShowFilters] = useState(false)
-  const [hasClickedDice, setHasClickedDice] = useState(false)
+  /** false until mount: must match SSR (always “not done”) so “Start Here” doesn’t hydrate differently from localStorage. */
+  const [digStartHereHydrated, setDigStartHereHydrated] = useState(false)
+  const [digStartHereDone, setDigStartHereDone] = useState(false)
+  /** Stripe Checkout return: show once, then strip query params from URL */
+  const [checkoutBanner, setCheckoutBanner] = useState<"success" | "canceled" | null>(null)
+
+  useEffect(() => {
+    try {
+      const q = new URLSearchParams(window.location.search)
+      if (q.get("checkout_success") === "1") setCheckoutBanner("success")
+      else if (q.get("checkout_canceled") === "1") setCheckoutBanner("canceled")
+      if (q.has("checkout_success") || q.has("checkout_canceled")) {
+        q.delete("checkout_success")
+        q.delete("checkout_canceled")
+        const rest = q.toString()
+        window.history.replaceState({}, "", `${window.location.pathname}${rest ? `?${rest}` : ""}${window.location.hash}`)
+      }
+    } catch {
+      /* ignore */
+    }
+  }, [])
+
+  useEffect(() => {
+    setDigStartHereDone(readDigStartHereDone())
+    setDigStartHereHydrated(true)
+  }, [])
+
+  const markDigStartHereDone = useCallback(() => {
+    setDigStartHereDone(true)
+    try {
+      localStorage.setItem(DIG_START_HERE_DONE_KEY, "1")
+    } catch {
+      /* ignore */
+    }
+  }, [])
   const isSavedRef = useRef(isSaved)
   const sampleRef = useRef(sample)
   const sessionRef = useRef(session)
@@ -153,6 +198,10 @@ export default function DigPage() {
     sampleRef.current = sample
     if (sample != null) sampleIdFromSaveRef.current = sample.id ?? null
   }, [sample])
+
+  useEffect(() => {
+    if (sample?.youtubeId) markDigStartHereDone()
+  }, [sample?.youtubeId, markDigStartHereDone])
   
   useEffect(() => {
     sessionRef.current = session
@@ -224,14 +273,11 @@ export default function DigPage() {
     fetch("/api/activity/ping", { credentials: "include" }).catch(() => {})
   }, [status, session?.user])
 
-  // History is client-only localStorage; clear when user is guest, free, or downgraded — never touches DB.
+  // History is client-only localStorage for Pro. Clear when logged in as non-Pro (free / downgraded).
+  // Do not clear on sign-out — Pro subscribers should keep history across sessions on this device.
   useEffect(() => {
     if (status === "loading") return
-    if (status === "unauthenticated") {
-      clearHistory()
-      return
-    }
-    if (session?.user && session.user.isPro !== true) {
+    if (status === "authenticated" && session?.user && session.user.isPro !== true) {
       clearHistory()
     }
   }, [status, session?.user?.isPro])
@@ -320,7 +366,7 @@ export default function DigPage() {
   }
 
   const onRollClick = () => {
-    setHasClickedDice(true)
+    markDigStartHereDone()
     handleDig()
   }
 
@@ -697,6 +743,30 @@ export default function DigPage() {
             : undefined
         }
       >
+        {checkoutBanner === "success" && (
+          <div
+            className="mb-4 p-4 rounded-xl border text-center text-sm w-full max-w-4xl mx-auto"
+            style={{
+              background: "rgba(34, 197, 94, 0.1)",
+              borderColor: "rgba(74, 222, 128, 0.35)",
+              color: "#bbf7d0",
+            }}
+          >
+            Thanks for subscribing. You now have full Pro access. Refresh if perks don&apos;t show yet.
+          </div>
+        )}
+        {checkoutBanner === "canceled" && (
+          <div
+            className="mb-4 p-4 rounded-xl border text-center text-sm w-full max-w-4xl mx-auto"
+            style={{
+              background: "rgba(240, 235, 225, 0.06)",
+              borderColor: "rgba(240, 235, 225, 0.12)",
+              color: "rgba(240, 235, 225, 0.65)",
+            }}
+          >
+            Checkout was canceled. You can subscribe anytime from Try Pro.
+          </div>
+        )}
         <div className="dig-app-grid flex flex-col md:grid md:grid-cols-[1fr_280px] dig-lg:grid-cols-[1fr_340px] gap-3 md:gap-6 items-start">
           <div className="max-md:flex-none md:flex-1 min-w-0 dig-col lg:min-w-0 w-full max-w-4xl">
             <div className="player-area-card w-full">
@@ -715,7 +785,20 @@ export default function DigPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
                   </button>
                 )}
-                <DiceButton onClick={onRollClick} loading={loading} breathing bounce={!sample} />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  {digStartHereHydrated && !sample && !digStartHereDone ? (
+                    <span
+                      className="select-none text-[10px] sm:text-[11px] font-bold uppercase tracking-[0.12em] shrink-0"
+                      style={{
+                        color: "var(--rust)",
+                        fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace",
+                      }}
+                    >
+                      Start Here →
+                    </span>
+                  ) : null}
+                  <DiceButton onClick={onRollClick} loading={loading} breathing bounce={!sample} />
+                </div>
                 <DigFilterPanel
                   open={showFilters}
                   onOpen={() => setShowFilters(true)}

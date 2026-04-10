@@ -1,4 +1,6 @@
 import Link from "next/link"
+import SettingsMarketingPreference from "@/components/SettingsMarketingPreference"
+import SettingsPricingNavButton from "@/components/SettingsPricingNavButton"
 
 export const metadata = {
   title: "Settings - Sample Roll",
@@ -30,18 +32,14 @@ export default function SettingsPage() {
           Account, billing, and legal links.
         </p>
         <nav className="flex flex-col gap-3" aria-label="Settings sections">
+          <SettingsMarketingPreference />
           <Link href="/profile" className={linkClass} style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
             <span style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>My Crate & profile</span>
             <span aria-hidden className="text-lg opacity-50">
               →
             </span>
           </Link>
-          <Link href="/pro" className={linkClass} style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
-            <span style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Pricing & Pro</span>
-            <span aria-hidden className="text-lg opacity-50">
-              →
-            </span>
-          </Link>
+          <SettingsPricingNavButton />
           <Link href="/alerts" className={linkClass} style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
             <span style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Alerts & updates</span>
             <span aria-hidden className="text-lg opacity-50">

@@ -4,13 +4,14 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
 
-/** Terms document: served from public/SampleRoll_Terms_and_Conditions.pdf */
-const TERMS_URL = "/SampleRoll_Terms_and_Conditions.pdf"
+/** In-site terms page (same content family as optional PDF in /public). */
+const TERMS_HREF = "/terms"
 
 export default function RegisterPage() {
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [name, setName] = useState("")
+  const [marketingOptIn, setMarketingOptIn] = useState(true)
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
@@ -29,7 +30,7 @@ export default function RegisterPage() {
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, name }),
+        body: JSON.stringify({ email, password, name, emailMarketingOptIn: marketingOptIn }),
       })
 
       const data = await response.json()
@@ -71,6 +72,20 @@ export default function RegisterPage() {
           </div>
           <div className="flex items-start gap-3">
             <input
+              id="marketingOptIn"
+              type="checkbox"
+              checked={marketingOptIn}
+              onChange={(e) => setMarketingOptIn(e.target.checked)}
+              className="mt-1 rounded border shrink-0"
+              style={{ accentColor: "var(--primary)" }}
+              aria-describedby="marketing-desc"
+            />
+            <label id="marketing-desc" htmlFor="marketingOptIn" className="text-sm cursor-pointer" style={{ color: "var(--foreground)" }}>
+              Keep me in the loop with occasional email updates
+            </label>
+          </div>
+          <div className="flex items-start gap-3">
+            <input
               id="agreeToTerms"
               type="checkbox"
               checked={agreeToTerms}
@@ -81,9 +96,9 @@ export default function RegisterPage() {
             />
             <label id="terms-desc" htmlFor="agreeToTerms" className="text-sm cursor-pointer" style={{ color: "var(--foreground)" }}>
               I agree to the{" "}
-              <a href={TERMS_URL} target="_blank" rel="noopener noreferrer" className="font-medium underline hover:no-underline" style={{ color: "var(--primary)" }}>
+              <Link href={TERMS_HREF} target="_blank" rel="noopener noreferrer" className="font-medium underline hover:no-underline" style={{ color: "var(--primary)" }}>
                 Terms and Conditions
-              </a>
+              </Link>
             </label>
           </div>
           <button type="submit" disabled={loading || !agreeToTerms} className="w-full py-2.5 rounded-[var(--radius-button)] font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed" style={{ background: "var(--primary)" }}>
@@ -92,7 +107,7 @@ export default function RegisterPage() {
         </form>
         <p className="mt-6 text-center text-sm" style={{ color: "var(--muted)" }}>
           Already have an account?{" "}
-          <Link href="/login" className="font-medium hover:underline" style={{ color: "var(--foreground)" }}>Login</Link>
+          <Link href="/login" className="font-medium hover:underline" style={{ color: "var(--foreground)" }}>Sign in</Link>
         </p>
       </div>
     </div>

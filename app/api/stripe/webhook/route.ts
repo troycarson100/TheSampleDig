@@ -82,14 +82,14 @@ export async function POST(request: Request) {
           console.warn("[Stripe webhook] subscription event missing userId in metadata")
           break
         }
+        // Persist Stripe statuses that still grant access; everything else → canceled (was incorrectly mapping trialing → canceled).
+        const raw = subscription.status
         const status =
           event.type === "customer.subscription.deleted"
             ? "canceled"
-            : subscription.status === "active"
-              ? "active"
-              : subscription.status === "past_due"
-                ? "past_due"
-                : "canceled"
+            : raw === "active" || raw === "trialing" || raw === "past_due" || raw === "paused"
+              ? raw
+              : "canceled"
         const periodEnd = subscription.current_period_end
           ? new Date(subscription.current_period_end * 1000)
           : null

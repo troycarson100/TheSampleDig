@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useRef, useCallback, type CSSProperties } from "react"
 import { createPortal } from "react-dom"
 import Link from "next/link"
+import { useGoProModal } from "@/components/GoProModalContext"
 import { useSession } from "next-auth/react"
 import HeartToggle from "./HeartToggle"
 import CrateTrackActionsMenu from "./CrateTrackActionsMenu"
@@ -67,6 +68,8 @@ function PlaylistFilterDropdown({
   onSelectPlaylist,
   onDeletePlaylist,
   isPro,
+  guestSignupHref,
+  onProUpgrade,
 }: {
   open: boolean
   onClose: () => void
@@ -76,7 +79,11 @@ function PlaylistFilterDropdown({
   onSelectAll: () => void
   onSelectPlaylist: (id: string) => void
   onDeletePlaylist: (id: string) => void
+  /** True when user has Pro subscription (session); not useIsPro() soft gate */
   isPro: boolean
+  guestSignupHref: string
+  /** Logged-in non-Pro: opens Pro modal. Guests use `guestSignupHref`. */
+  onProUpgrade?: () => void
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -155,11 +162,82 @@ function PlaylistFilterDropdown({
         All saved samples
       </button>
       {!isPro && (
-        <div className="px-3 py-2 flex items-center gap-2" style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}>
-          <span className="text-[10px] uppercase tracking-wider" style={{ color: "rgba(245,240,232,0.45)" }}>
-            Playlists
-          </span>
-          <span className="pro-gradient-pill text-white">Pro</span>
+        <div className="p-2 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          {onProUpgrade ? (
+            <button
+              type="button"
+              className="sample-notes-pro-gate theme-vinyl flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2.5 transition hover:opacity-95 border-0 cursor-pointer text-left"
+              style={{
+                fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
+                fontSize: "9px",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#fff",
+                boxSizing: "border-box",
+                background: "transparent",
+              }}
+              onClick={() => {
+                onProUpgrade()
+                onClose()
+              }}
+            >
+              <span className="flex items-center gap-2 min-w-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 opacity-95" aria-hidden>
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                  <path d="M17 14v6M14 17h6" />
+                </svg>
+                <span className="truncate">Add playlist</span>
+              </span>
+              <span className="pro-locked-filter-row__pill--cta shrink-0 inline-flex items-center gap-1">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                PRO
+              </span>
+            </button>
+          ) : (
+            <Link
+              href={guestSignupHref}
+              className="sample-notes-pro-gate theme-vinyl flex items-center justify-between gap-2 w-full rounded-lg px-3 py-2.5 no-underline transition hover:opacity-95"
+              style={{
+                fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
+                fontSize: "9px",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "#fff",
+                boxSizing: "border-box",
+              }}
+              onClick={onClose}
+            >
+              <span className="flex items-center gap-2 min-w-0">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="shrink-0 opacity-95" aria-hidden>
+                  <line x1="8" y1="6" x2="21" y2="6" />
+                  <line x1="8" y1="12" x2="21" y2="12" />
+                  <line x1="8" y1="18" x2="21" y2="18" />
+                  <line x1="3" y1="6" x2="3.01" y2="6" />
+                  <line x1="3" y1="12" x2="3.01" y2="12" />
+                  <line x1="3" y1="18" x2="3.01" y2="18" />
+                  <path d="M17 14v6M14 17h6" />
+                </svg>
+                <span className="truncate">Add playlist</span>
+              </span>
+              <span className="pro-locked-filter-row__pill--cta shrink-0 inline-flex items-center gap-1">
+                <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                PRO
+              </span>
+            </Link>
+          )}
         </div>
       )}
       {isPro &&
@@ -464,6 +542,7 @@ export default function SavedSamplesSidebar({
   onSessionDigHistoryRemoveItem,
 }: SavedSamplesSidebarProps) {
   const { data: session, status } = useSession()
+  const { openProModal } = useGoProModal()
   const isPro = useIsPro()
   /** Real subscription — History list uses this, not the env-based UI bypass in useIsPro. */
   const hasProSubscription = session?.user?.isPro === true
@@ -586,7 +665,9 @@ export default function SavedSamplesSidebar({
           if (userId) deletePlaylist(userId, id)
           if (activePlaylistId === id) setActivePlaylistId(null)
         }}
-        isPro={isPro}
+        isPro={hasProSubscription}
+        guestSignupHref="/register"
+        onProUpgrade={session ? () => openProModal() : undefined}
       />
 
       {/* My Crate: locked for guests */}
@@ -621,7 +702,7 @@ export default function SavedSamplesSidebar({
               className="w-full py-2 rounded-lg text-center no-underline border transition hover:opacity-80"
               style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.55)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase" }}
             >
-              Log in
+              Sign in
             </Link>
           </div>
         </div>
@@ -639,12 +720,13 @@ export default function SavedSamplesSidebar({
           >
             Session only — list clears when you refresh. Pro saves up to 1,000 tracks across visits.
           </p>
-            <Link
-              href="/pro"
-            className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--lg pro-gradient-btn--rounded text-center no-underline font-bold"
-          >
-            Try Pro Free
-          </Link>
+            <button
+              type="button"
+              className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--lg pro-gradient-btn--rounded text-center font-bold border-0 cursor-pointer w-full"
+              onClick={() => openProModal()}
+            >
+              TRY PRO FREE
+            </button>
         </div>
       )}
 
@@ -753,7 +835,7 @@ export default function SavedSamplesSidebar({
                         <CrateTrackActionsMenu
                           userId={userId}
                           youtubeId={sample.youtubeId}
-                          isPro={isPro}
+                          isPro={hasProSubscription}
                           removeLabel={activePlaylistId ? "Remove from playlist" : "Remove from crate"}
                           onRemove={() => {
                             if (activePlaylistId && userId) {

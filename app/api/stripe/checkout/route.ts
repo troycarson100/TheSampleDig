@@ -21,16 +21,28 @@ export async function POST() {
 
     const stripe = new Stripe(secret)
     const baseUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-    const successUrl = `${baseUrl}/pro?success=1`
-    const cancelUrl = `${baseUrl}/pro?canceled=1`
+    const successUrl = `${baseUrl}/dig?checkout_success=1`
+    const cancelUrl = `${baseUrl}/dig?checkout_canceled=1`
 
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { stripeCustomerId: true },
     })
 
-    const customerId = user?.stripeCustomerId ?? undefined
-    const customerEmail = customerId ? undefined : session.user.email
+    // Accounts V2: Checkout in test mode requires an existing Customer; `customer_email` alone is rejected.
+    // Always attach a Customer id (create + persist when missing).
+    let customerId = user?.stripeCustomerId ?? null
+    if (!customerId) {
+      const customer = await stripe.customers.create({
+        email: session.user.email ?? undefined,
+        metadata: { userId: session.user.id },
+      })
+      customerId = customer.id
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { stripeCustomerId: customerId },
+      })
+    }
 
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
@@ -39,7 +51,6 @@ export async function POST() {
       success_url: successUrl,
       cancel_url: cancelUrl,
       customer: customerId,
-      customer_email: customerEmail,
       client_reference_id: session.user.id,
       metadata: { userId: session.user.id },
       subscription_data: {

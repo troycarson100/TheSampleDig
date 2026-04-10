@@ -355,8 +355,6 @@ export default function DigFilterPanel({
                   Playback
                 </p>
                 <div className="divide-y" style={{ borderColor: "var(--border)" }}>
-                  <FilterToggleRow label="Auto-Play" checked={autoplay} onChange={onAutoplayChange} />
-                  <FilterToggleRow label="Random Start Time" checked={randomStartTime} onChange={onRandomStartTimeChange} />
                   {isPro ? (
                     <FilterToggleRow label="Drum Break" checked={drumBreak} onChange={onDrumBreakChange} />
                   ) : (
@@ -369,6 +367,8 @@ export default function DigFilterPanel({
                       }}
                     />
                   )}
+                  <FilterToggleRow label="Auto-Play" checked={autoplay} onChange={onAutoplayChange} />
+                  <FilterToggleRow label="Random Start Time" checked={randomStartTime} onChange={onRandomStartTimeChange} />
                 </div>
               </div>
 

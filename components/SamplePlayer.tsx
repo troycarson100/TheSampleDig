@@ -13,6 +13,7 @@ import { KEY_COLORS, type YouTubePlayerAdapter, type Chop, type RecordedChopEven
 import { playMetronomeBeep } from "@/lib/audio/metronome"
 import { getSavedLoops, saveLoop, deleteSavedLoop, type SavedLoopEntry } from "@/lib/saved-loops-storage"
 import FeatureGateModal from "@/components/FeatureGateModal"
+import DigHowToPopover from "@/components/DigHowToPopover"
 
 interface SamplePlayerProps {
   youtubeId: string
@@ -1702,12 +1703,13 @@ function SamplePlayer({
                       }}
                       className={
                         !isPro
-                          ? "sample-notes-pro-gate inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg box-border transition hover:opacity-95 cursor-pointer"
+                          ? "sample-notes-pro-gate inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 box-border transition hover:opacity-95 cursor-pointer"
                           : "meta-tag-box inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg border box-border hover:opacity-80 transition-opacity"
                       }
                       style={
                         !isPro
                           ? {
+                              borderRadius: META_BOX_STYLE.borderRadius,
                               padding: "0 12px",
                               lineHeight: 1,
                               boxSizing: "border-box",
@@ -1870,46 +1872,52 @@ function SamplePlayer({
           className="sr-only"
           aria-label="Focus for chop keys"
         />
-        <div className="chop-row flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-8">
+        <div className="chop-row flex w-full flex-col !items-stretch gap-3 md:gap-5">
           {!isMobile && (
           <>
-          <label className="flex items-center gap-2 cursor-pointer shrink-0">
-            <span className="flex items-center gap-1.5 text-sm font-medium toggle-label" style={{ color: "var(--foreground)" }}>
-              Chop Mode
-              {!isPro && (
-                <span className="pro-gradient-pill text-white">
-                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-                  PRO
-                </span>
-              )}
-            </span>
-            <button
-              type="button"
-              role="switch"
-              aria-checked={isPro ? chopModeEnabled : false}
-              onClick={() => {
-                if (!isPro) { openProGate("Chop Mode"); return }
-                setChopModeEnabled((v) => !v)
-              }}
-              className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1${!isPro ? " pro-chop-toggle-pro" : ""}`}
-              style={
-                !isPro
-                  ? {}
-                  : {
-                      background: chopModeEnabled ? "var(--primary)" : "var(--muted-light)",
-                      opacity: 1,
-                    }
-              }
-              title={isPro ? undefined : "Upgrade to Pro to use Chop Mode"}
-            >
-              <span
-                className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
-                style={{ transform: isPro && chopModeEnabled ? "translateX(1.25rem)" : "translateX(0)" }}
-              />
-            </button>
-          </label>
+          {/* Top bar: Chop Mode top-left, how-to top-right with inset from container edge */}
+          <div className="flex w-full min-w-0 flex-row items-center justify-between gap-3">
+            <label className="flex min-w-0 shrink items-center gap-2 cursor-pointer">
+              <span className="flex items-center gap-1.5 text-sm font-medium toggle-label" style={{ color: "var(--foreground)" }}>
+                Chop Mode
+                {!isPro && (
+                  <span className="pro-gradient-pill text-white">
+                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                    PRO
+                  </span>
+                )}
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={isPro ? chopModeEnabled : false}
+                onClick={() => {
+                  if (!isPro) { openProGate("Chop Mode"); return }
+                  setChopModeEnabled((v) => !v)
+                }}
+                className={`relative w-11 h-6 shrink-0 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1${!isPro ? " pro-chop-toggle-pro" : ""}`}
+                style={
+                  !isPro
+                    ? {}
+                    : {
+                        background: chopModeEnabled ? "var(--primary)" : "var(--muted-light)",
+                        opacity: 1,
+                      }
+                }
+                title={isPro ? undefined : "Upgrade to Pro to use Chop Mode"}
+              >
+                <span
+                  className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
+                  style={{ transform: isPro && chopModeEnabled ? "translateX(1.25rem)" : "translateX(0)" }}
+                />
+              </button>
+            </label>
+            <div className="hidden shrink-0 items-center md:flex md:pr-3">
+              <DigHowToPopover />
+            </div>
+          </div>
           {chopModeEnabled && (
-            <div className="flex items-center gap-3 flex-wrap">
+            <div className="flex w-full flex-wrap items-center justify-center gap-3 pt-3 md:pt-4">
               <button
                 type="button"
                 onClick={() => setQuantizeEnabled((v) => !v)}
@@ -1997,8 +2005,8 @@ function SamplePlayer({
               {/* Mini timeline: grey bar with colored ticks; draggable start/end edges; playhead */}
               <div
                 ref={loopBarRef}
-                className="chop-scrubber flex items-center flex-1 min-w-[200px] max-w-[420px] h-3 rounded-sm select-none overflow-visible"
-                style={{ background: "var(--muted-light)" }}
+                className="chop-scrubber flex flex-none items-center w-full min-w-[200px] max-w-[420px] h-3 rounded-sm select-none overflow-visible"
+                style={{ background: "var(--muted-light)", flex: "none" }}
                 aria-label="Recorded sequence"
               >
                 {(() => {
@@ -2236,16 +2244,16 @@ function SamplePlayer({
         </div>
         {chopModeEnabled && !isMobile && (
           <div className="chop-keyboard">
-            <div className="flex flex-col md:flex-row md:items-start gap-3 md:gap-4">
+            <div className="mx-auto flex w-full max-w-full flex-col items-center gap-3 md:flex-row md:items-start md:justify-center md:gap-4">
               <button
                 type="button"
                 onClick={clearChops}
-                className="chop-btn shrink-0 self-start text-sm font-medium px-3 py-1.5 rounded-lg border transition hover:opacity-80"
+                className="chop-btn shrink-0 self-center text-sm font-medium px-3 py-1.5 rounded-lg border transition hover:opacity-80 md:self-start"
                 style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
               >
                 Clear
               </button>
-              <div className="flex flex-col items-center flex-1 min-w-0 w-full md:w-auto">
+              <div className="flex w-full min-w-0 flex-col items-center md:w-auto">
                 <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} onRemoveChop={removeChop} onSwapChops={swapChops} pressedKey={pressedKey} />
                 <div className="flex flex-col items-center justify-center mt-3 gap-1">
               <button

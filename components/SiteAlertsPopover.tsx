@@ -143,7 +143,7 @@ export default function SiteAlertsPopover() {
 
   return (
     <>
-      <div className="relative shrink-0 hidden md:block">
+      <div className="relative shrink-0">
         <button
           ref={buttonRef}
           type="button"

@@ -5,6 +5,7 @@
 
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db"
+import { DRUM_BREAK_TITLE_PHRASES } from "@/lib/drum-break-title-match"
 import { YouTubeVideo } from "@/types/sample"
 
 /** PostgreSQL regex: at least one character in Hiragana, Katakana, or CJK Unified Ideographs (common Kanji). Inlined in SQL to avoid parameter encoding issues. */
@@ -81,17 +82,6 @@ async function getRandomSampleJapanese(
     duration: row.duration_seconds ?? undefined,
   }
 }
-
-/** Title phrases that suggest a drum-break or breakbeat video (case-insensitive match) */
-const DRUM_BREAK_TITLE_PHRASES = [
-  "drum break",
-  "breakbeat",
-  "break beat",
-  "break loop",
-  "drum solo",
-  "break sample",
-  "drum sample",
-]
 
 /** Title phrases for Sample Packs mode: royalty-free or sample pack videos (case-insensitive) */
 const ROYALTY_FREE_TITLE_PHRASES = [

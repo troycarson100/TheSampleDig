@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import Link from "next/link"
+import { useGoProModal } from "@/components/GoProModalContext"
 
 export type GateType = "signup" | "pro"
 
@@ -19,7 +20,7 @@ const PRO_FEATURES = [
   "Sample Notes",
   "History (up to 1,000 tracks)",
   "Playlists",
-  "No ads",
+  "No ads*",
 ]
 
 const FREE_FEATURES = [
@@ -47,6 +48,7 @@ function CheckIcon() {
 
 export default function FeatureGateModal({ open, type, featureName, onClose }: FeatureGateModalProps) {
   const [mounted, setMounted] = useState(false)
+  const { openProModal } = useGoProModal()
   useEffect(() => setMounted(true), [])
 
   if (!open) return null
@@ -129,6 +131,15 @@ export default function FeatureGateModal({ open, type, featureName, onClose }: F
             ))}
           </ul>
 
+          {!isSignup && (
+            <p
+              className="text-xs leading-snug -mt-1"
+              style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+            >
+              *Does not include YouTube advertisements
+            </p>
+          )}
+
           {/* CTAs */}
           {isSignup ? (
             <div className="flex flex-col gap-2.5 mt-1">
@@ -146,18 +157,21 @@ export default function FeatureGateModal({ open, type, featureName, onClose }: F
                 style={{ borderColor: "var(--border)", color: "var(--foreground)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "11px", letterSpacing: "0.1em", textTransform: "uppercase" }}
                 onClick={onClose}
               >
-                Log in
+                Sign in
               </Link>
             </div>
           ) : (
             <div className="flex flex-col gap-2.5 mt-1">
-              <Link
-                href="/pro"
-                className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--lg w-full text-center no-underline"
-                onClick={onClose}
+              <button
+                type="button"
+                className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--lg w-full text-center cursor-pointer border-0 font-inherit"
+                onClick={() => {
+                  onClose()
+                  openProModal()
+                }}
               >
-                Try Pro Free
-              </Link>
+                TRY PRO FREE
+              </button>
               <button
                 type="button"
                 onClick={onClose}

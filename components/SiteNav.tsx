@@ -8,8 +8,8 @@ import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import FeatureGateModal from "@/components/FeatureGateModal"
 import SiteAlertsPopover from "@/components/SiteAlertsPopover"
-import { SiteSettingsMenu, SITE_SETTINGS_MENU_ITEMS } from "@/components/SiteNavUtilities"
-import { OPEN_ALERTS_EVENT } from "@/lib/dismissed-alerts"
+import { SiteSettingsMenu } from "@/components/SiteNavUtilities"
+import { useGoProModal } from "@/components/GoProModalContext"
 
 const navLinkBase = "nav-tab-link relative flex items-center h-full px-5 py-0 border-none bg-transparent cursor-pointer transition-colors"
 
@@ -42,6 +42,8 @@ const MOBILE_MENU_DRAWER_Z = 10001
 
 export default function SiteNav() {
   const { data: session } = useSession()
+  const hideTryProCta = session?.user?.isPro === true
+  const { openProModal } = useGoProModal()
   const [menuOpen, setMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [crateSignupOpen, setCrateSignupOpen] = useState(false)
@@ -137,33 +139,35 @@ export default function SiteNav() {
             </button>
           )}
         </div>
-        {/* Right: alerts + settings menu + Support + Sign out / Sign In (desktop; mobile utilities in drawer) */}
-        <div className="flex items-center justify-end shrink-0 gap-1 sm:gap-2">
-          {/* Alerts mount always (mobile opens via drawer + custom event); bell visible md+ only */}
+        {/* Right: alerts + settings + Try Pro + Sign out / Sign In (bell & gear on mobile too) */}
+        <div className="flex items-center justify-end shrink-0 gap-0.5 sm:gap-2">
           <SiteAlertsPopover />
-          <div className="hidden md:flex items-center gap-0.5">
-            <SiteSettingsMenu />
-          </div>
-          <a
-            href="https://www.paypal.com/donate/?hosted_button_id=34ZVX9VFAZ3JC"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="support-btn"
-            aria-label="Support us (opens in new tab)"
-          >
-            <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden>
-              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
-            </svg>
-            Support Us
-          </a>
-          {session ? (
+          <SiteSettingsMenu />
+          {!hideTryProCta ? (
             <button
               type="button"
-              onClick={() => signOut({ callbackUrl: signOutCallbackUrl })}
-              className="sign-out-btn cursor-pointer hidden md:inline-flex"
+              className="support-btn cursor-pointer border-0 bg-transparent"
+              aria-label="Try Sample Roll Pro"
+              onClick={() => openProModal()}
             >
-              Sign out
+              Try Pro
             </button>
+          ) : null}
+          {session ? (
+            <div className="hidden md:flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => signOut({ callbackUrl: signOutCallbackUrl })}
+                className="sign-out-btn cursor-pointer"
+              >
+                Sign out
+              </button>
+              {hideTryProCta ? (
+                <span className="pro-gradient-pill pro-gradient-pill--nav" aria-label="Pro member">
+                  PRO
+                </span>
+              ) : null}
+            </div>
           ) : (
             <Link href="/login" className="sign-in-btn hidden md:inline-flex">
               Sign In
@@ -254,46 +258,42 @@ export default function SiteNav() {
               </button>
             )}
           </div>
-          <div className="mt-6 pt-4 border-t border-[rgba(201,147,58,0.08)] w-full">
-            <p className="text-[9px] uppercase tracking-widest mb-2 px-0" style={{ color: "rgba(245,240,232,0.45)", fontFamily: "var(--font-ibm-mono), monospace" }}>
-              Updates & legal
-            </p>
-            <button
-              type="button"
-              className={`${navLinkBase} nav-drawer-link inline-block py-2.5 !h-auto !px-0 w-full text-left`}
-              style={navLinkStyle}
-              onClick={() => {
-                closeMenu()
-                window.dispatchEvent(new Event(OPEN_ALERTS_EVENT))
-              }}
-            >
-              Alerts & updates
-            </button>
-            {SITE_SETTINGS_MENU_ITEMS.map(({ href, label }) => (
-              <Link
-                key={href}
-                href={href}
-                className={`${navLinkBase} nav-drawer-link inline-block py-2.5 !h-auto !px-0 w-full text-left ${pathname === href ? navLinkActive : ""}`}
-                style={navLinkStyle}
-                onClick={closeMenu}
-                aria-current={pathname === href ? "page" : undefined}
-              >
-                {label}
-              </Link>
-            ))}
-          </div>
-          <div className="mt-8 pt-6 border-t border-[rgba(201,147,58,0.08)]">
-            {session ? (
+          {!hideTryProCta ? (
+            <div className="mt-6 flex flex-col gap-3">
               <button
                 type="button"
+                className="support-btn w-full justify-center cursor-pointer border-0 bg-transparent"
+                aria-label="Try Sample Roll Pro"
                 onClick={() => {
                   closeMenu()
-                  signOut({ callbackUrl: signOutCallbackUrl })
+                  openProModal()
                 }}
-                className="sign-out-btn w-full flex justify-center"
               >
-                Sign out
+                Try Pro
               </button>
+            </div>
+          ) : null}
+          <div className="mt-8 pt-6 border-t border-[rgba(201,147,58,0.08)]">
+            {session ? (
+              <div className="flex flex-col items-stretch gap-3">
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      closeMenu()
+                      signOut({ callbackUrl: signOutCallbackUrl })
+                    }}
+                    className="sign-out-btn flex justify-center"
+                  >
+                    Sign out
+                  </button>
+                  {hideTryProCta ? (
+                    <span className="pro-gradient-pill pro-gradient-pill--nav" aria-label="Pro member">
+                      PRO
+                    </span>
+                  ) : null}
+                </div>
+              </div>
             ) : (
               <Link href="/login" className="sign-in-btn block text-center" onClick={closeMenu}>
                 Sign In

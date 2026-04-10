@@ -3,6 +3,7 @@
 import { usePathname } from "next/navigation"
 import SessionProvider from "@/components/SessionProvider"
 import ConditionalFooter from "@/components/ConditionalFooter"
+import { GoProModalProvider } from "@/components/GoProModalContext"
 
 export default function RootBody({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -17,10 +18,12 @@ export default function RootBody({ children }: { children: React.ReactNode }) {
   }
   return (
     <SessionProvider>
-      <div className="flex flex-col min-h-screen">
-        {children}
-        <ConditionalFooter />
-      </div>
+      <GoProModalProvider>
+        <div className="flex flex-col min-h-screen">
+          {children}
+          <ConditionalFooter />
+        </div>
+      </GoProModalProvider>
     </SessionProvider>
   )
 }

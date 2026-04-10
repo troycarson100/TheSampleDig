@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import Link from "next/link"
+import TryProOfferingBlock from "@/components/pro/TryProOfferingBlock"
 import styles from "./prelaunch.module.css"
 
 const ROTATING_WORDS = ["SIMPLIFIED", "EASY", "FREE"]
@@ -380,81 +381,9 @@ export default function PrelaunchContent() {
         </div>
       </section>
 
-      <section className={styles.preview}>
-        <div className={styles.featuresIn}>
-          <div className={`${styles.featuresHead} ${styles.reveal}`}>
-            <div className={styles.secEy}>What You&apos;ll Get</div>
-            <h2 className={styles.secH}>
-              Built for the <em>obsessed</em>
-            </h2>
-          </div>
-          <div className={styles.featGrid}>
-            <div className={`${styles.featCard} ${styles.reveal}`}>
-              <div className={styles.featIcon}>⚄</div>
-              <div className={styles.featTitle}>The Infinite Dig</div>
-              <div className={styles.featDesc}>
-                Roll the dice and land on rare grooves you&apos;ve never heard. YouTube
-                becomes your limitless crate — filtered by genre, era, BPM and key.
-              </div>
-            </div>
-            {/* Stem Splitter card commented out (site free; no stem-splitting). Re-enable with stem-splitter page if adding back. */}
-            {/* <div className={`${styles.featCard} ${styles.reveal} ${styles.d1}`}>
-              <div className={styles.featIcon}>⊗</div>
-              <div className={styles.featTitle}>Stem Splitter</div>
-              <div className={styles.featDesc}>
-                AI-powered separation pulls up to 13 individual instruments from any track.
-                Isolate the drums. Flip a vocal. Sample just the keys.
-              </div>
-            </div> */}
-            <div className={`${styles.featCard} ${styles.reveal} ${styles.d2}`}>
-              <div className={styles.featIcon}>♥</div>
-              <div className={styles.featTitle}>Your Personal Crate</div>
-              <div className={styles.featDesc}>
-                Save every sample you love. Auto-tagged by BPM, key, genre and era. Build a
-                library of gold you&apos;ll never lose — export to any DAW.
-              </div>
-            </div>
-            <div className={`${styles.featCard} ${styles.reveal} ${styles.d3}`}>
-              <div className={styles.featIcon}>♪</div>
-              <div className={styles.featTitle}>Chop Mode</div>
-              <div className={styles.featDesc}>
-                Map samples to your keyboard and chop in real time. Tap tempo, metronome
-                overlay, and drum break mode for the serious producer.
-              </div>
-            </div>
-            <div className={`${styles.featCard} ${styles.reveal} ${styles.d4}`}>
-              <div className={styles.featIcon}>◎</div>
-              <div className={styles.featTitle}>BPM & Key Detection</div>
-              <div className={styles.featDesc}>
-                Every track is automatically analysed. Know the tempo and musical key
-                before you even start chopping. Match samples perfectly.
-              </div>
-            </div>
-            <div className={`${styles.featCard} ${styles.reveal} ${styles.d5}`}>
-              <div className={styles.featIcon}>⟐</div>
-              <div className={styles.featTitle}>20+ Genre Filters</div>
-              <div className={styles.featDesc}>
-                Jazz, soul, funk, disco, bossa nova, rare groove, afrobeat, psych, Latin,
-                breaks — dial into exactly the sound you&apos;re hunting for.
-              </div>
-            </div>
-            <div className={`${styles.featCard} ${styles.reveal} ${styles.d6}`}>
-              <div className={styles.featIcon}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                  <polyline points="14 2 14 8 20 8" />
-                  <line x1="16" y1="13" x2="8" y2="13" />
-                  <line x1="16" y1="17" x2="8" y2="17" />
-                  <line x1="10" y1="9" x2="8" y2="9" />
-                </svg>
-              </div>
-              <div className={styles.featTitle}>Notes</div>
-              <div className={styles.featDesc}>
-                Add private notes to any sample — source, chops, ideas. Your notes stay with
-                the save so you never lose the story behind the dig.
-              </div>
-            </div>
-          </div>
+      <section className={styles.preview} aria-labelledby="about-try-pro-title">
+        <div className="w-full max-w-[960px] mx-auto px-2 sm:px-4">
+          <TryProOfferingBlock headingTag="h2" headingId="about-try-pro-title" />
         </div>
       </section>
 
@@ -511,13 +440,7 @@ export default function PrelaunchContent() {
             <Link href="/privacy">Privacy Policy</Link>
           </li>
           <li>
-            <a
-              href="/SampleRoll_Terms_and_Conditions.pdf"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Terms and Conditions
-            </a>
+            <Link href="/terms">Terms and Conditions</Link>
           </li>
           <li>
             <a href="mailto:hello@sampleroll.com">Contact</a>

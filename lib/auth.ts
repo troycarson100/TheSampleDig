@@ -18,17 +18,46 @@ function parseDevProEmails(): Set<string> {
   )
 }
 
-async function resolveIsPro(userId: string, email: string): Promise<boolean> {
+async function refreshUserTokenFields(
+  userId: string,
+  email: string
+): Promise<{ isPro: boolean; emailMarketingOptIn: boolean }> {
   const normalized = email.trim().toLowerCase()
-  if (process.env.NODE_ENV === "development" && parseDevProEmails().has(normalized)) {
-    return true
-  }
   const prisma = await getPrisma()
-  const row = await prisma.user.findUnique({
-    where: { id: userId },
-    select: { subscriptionStatus: true },
-  })
-  return row?.subscriptionStatus === "active"
+  let subscriptionStatus: string | null | undefined
+  let emailMarketingOptIn: boolean | undefined
+
+  try {
+    const row = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionStatus: true, emailMarketingOptIn: true },
+    })
+    subscriptionStatus = row?.subscriptionStatus
+    emailMarketingOptIn = row?.emailMarketingOptIn
+  } catch {
+    // DB not migrated yet (missing email_marketing_opt_in) — still allow sessions
+    const row = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionStatus: true },
+    })
+    subscriptionStatus = row?.subscriptionStatus
+    emailMarketingOptIn = true
+  }
+
+  /** Match Stripe subscription statuses that should unlock Pro (incl. trial and grace). */
+  const isPro =
+    subscriptionStatus === "active" ||
+    subscriptionStatus === "trialing" ||
+    subscriptionStatus === "past_due" ||
+    subscriptionStatus === "paused"
+  let isProResolved = isPro
+  if (process.env.NODE_ENV === "development" && parseDevProEmails().has(normalized)) {
+    isProResolved = true
+  }
+  return {
+    isPro: isProResolved,
+    emailMarketingOptIn: emailMarketingOptIn ?? true,
+  }
 }
 
 export const authOptions = {
@@ -47,8 +76,16 @@ export const authOptions = {
         try {
           const prisma = await getPrisma()
           const email = String(credentials.email).trim().toLowerCase()
+          // Explicit select so login works even if optional columns (e.g. email_marketing_opt_in) are missing before migrate.
           const user = await prisma.user.findFirst({
-            where: { email: { equals: email, mode: "insensitive" } }
+            where: { email: { equals: email, mode: "insensitive" } },
+            select: {
+              id: true,
+              email: true,
+              passwordHash: true,
+              emailVerified: true,
+              name: true,
+            },
           })
 
           if (!user) {
@@ -97,7 +134,9 @@ export const authOptions = {
       // Refresh Pro status on every request so JWT matches DB (subscription changes, first load after deploy).
       const uid = token.id != null ? String(token.id) : token.sub != null ? String(token.sub) : ""
       if (uid) {
-        token.isPro = await resolveIsPro(uid, String(token.email ?? ""))
+        const fields = await refreshUserTokenFields(uid, String(token.email ?? ""))
+        token.isPro = fields.isPro
+        token.emailMarketingOptIn = fields.emailMarketingOptIn
       }
       return token
     },
@@ -106,6 +145,7 @@ export const authOptions = {
       if (session.user) {
         session.user.id = token.id
         session.user.isPro = token.isPro === true
+        session.user.emailMarketingOptIn = token.emailMarketingOptIn !== false
       }
       return session
     },

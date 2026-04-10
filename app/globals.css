@@ -593,6 +593,19 @@ body.theme-vinyl::before {
   animation: support-btn-heart-pulse 2s ease-in-out infinite;
 }
 
+/* Nav: full pill next to Sign out — same gradient as Try Pro / .support-btn */
+.theme-vinyl .pro-gradient-pill--nav {
+  position: relative;
+  border-radius: 9999px;
+  padding: 5px 13px;
+  font-size: 8px;
+  letter-spacing: 0.14em;
+  z-index: 1;
+}
+.theme-vinyl .pro-gradient-pill--nav::after {
+  border-radius: 9999px;
+}
+
 /* Locked Drum Break (and similar) row — gradient frame + glow pulse */
 .theme-vinyl .pro-locked-filter-row {
   display: flex;

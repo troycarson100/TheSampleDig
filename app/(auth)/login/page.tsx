@@ -57,7 +57,7 @@ export default function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "var(--background)" }}>
       <div className="w-full max-w-md p-8">
         <h1 className="text-2xl font-semibold text-center mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>Sample Roll</h1>
-        <h2 className="text-lg font-medium text-center mb-6" style={{ color: "var(--muted)" }}>Login</h2>
+        <h2 className="text-lg font-medium text-center mb-6" style={{ color: "var(--muted)" }}>Sign in</h2>
 
         {registered && (
           <div className="mb-4 p-3 rounded-xl text-sm border" style={{ background: "rgba(22,163,74,0.08)", borderColor: "rgba(22,163,74,0.3)", color: "#166534" }}>
@@ -68,14 +68,14 @@ export default function LoginPage() {
               </>
             ) : (
               <>
-                Account created! Email verification is temporarily unavailable, so you can log in now.
+                Account created! Email verification is temporarily unavailable, so you can sign in now.
               </>
             )}
           </div>
         )}
         {reset && (
           <div className="mb-4 p-3 rounded-xl text-sm border" style={{ background: "rgba(22,163,74,0.08)", borderColor: "rgba(22,163,74,0.3)", color: "#166534" }}>
-            Password updated successfully. You can now log in.
+            Password updated successfully. You can now sign in.
           </div>
         )}
         {unverified && (
@@ -123,7 +123,7 @@ export default function LoginPage() {
             className="w-full py-2.5 rounded-[var(--radius-button)] font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "var(--primary)" }}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
         <p className="mt-6 text-center text-sm" style={{ color: "var(--muted)" }}>

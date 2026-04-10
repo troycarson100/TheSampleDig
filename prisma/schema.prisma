@@ -24,6 +24,8 @@ model User {
   emailVerificationExpires     DateTime?     @map("email_verification_expires")
   passwordResetToken           String?       @unique @map("password_reset_token")
   passwordResetExpires         DateTime?     @map("password_reset_expires")
+  // Marketing / newsletter opt-in (Mailchimp exports). Default true at signup when checkbox left on.
+  emailMarketingOptIn          Boolean       @default(true) @map("email_marketing_opt_in")
   savedSamples                 UserSample[]
   events                       UserEvent[]
 

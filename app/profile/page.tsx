@@ -1,13 +1,15 @@
 "use client"
 
-import { useState, useEffect, useMemo } from "react"
+import { useState, useEffect, useMemo, useCallback } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import HeartToggle from "@/components/HeartToggle"
 import SiteNav from "@/components/SiteNav"
-import GenreSelect from "@/components/GenreSelect"
-import TempoRangeSlider from "@/components/TempoRangeSlider"
+import CrateFilterPanel from "@/components/CrateFilterPanel"
+import { titleLooksLikeDrumBreak } from "@/lib/drum-break-title-match"
+import { getPlaylists } from "@/lib/user-playlists"
+import type { UserPlaylist } from "@/lib/user-playlists"
 
 const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
 
@@ -30,7 +32,7 @@ interface SavedSample {
   notes?: string | null
 }
 
-type FilterType = "genre" | "key" | "tempo"
+type FilterType = "genre" | "key" | "tempo" | "drumBreak" | "playlist"
 
 export default function ProfilePage() {
   const { data: session, status } = useSession()
@@ -42,6 +44,28 @@ export default function ProfilePage() {
   const [genreFilter, setGenreFilter] = useState<string | null>(null)
   const [keyFilter, setKeyFilter] = useState<string | null>(null)
   const [tempoRange, setTempoRange] = useState<[number, number]>([20, 300])
+  const [drumBreakOnly, setDrumBreakOnly] = useState(false)
+  const [playlistFilterId, setPlaylistFilterId] = useState<string | null>(null)
+  const [playlists, setPlaylists] = useState<UserPlaylist[]>([])
+  const [filtersOpen, setFiltersOpen] = useState(false)
+
+  const userId = session?.user?.id ?? ""
+
+  const refreshPlaylists = useCallback(() => {
+    if (userId) setPlaylists(getPlaylists(userId))
+  }, [userId])
+
+  useEffect(() => {
+    refreshPlaylists()
+    window.addEventListener("userPlaylistsUpdated", refreshPlaylists)
+    return () => window.removeEventListener("userPlaylistsUpdated", refreshPlaylists)
+  }, [refreshPlaylists])
+
+  useEffect(() => {
+    if (playlistFilterId && !playlists.some((p) => p.id === playlistFilterId)) {
+      setPlaylistFilterId(null)
+    }
+  }, [playlists, playlistFilterId])
 
   useEffect(() => {
     if (session) {
@@ -101,11 +125,15 @@ export default function ProfilePage() {
     [samples]
   )
 
-  // Filter samples by search (title, bpm, key, genre), dropdown filters, and tempo range
+  // Filter samples by search (title, bpm, key, genre), dropdown filters, tempo range, and optional playlist
   const filteredSamples = useMemo(() => {
     const q = searchQuery.trim().toLowerCase()
     const [tempoMin, tempoMax] = tempoRange
+    const playlistYoutubeIds =
+      playlistFilterId != null ? playlists.find((p) => p.id === playlistFilterId)?.youtubeIds : null
+
     return samples.filter((s) => {
+      if (playlistYoutubeIds != null && !playlistYoutubeIds.includes(s.youtubeId)) return false
       if (q) {
         const titleMatch = s.title?.toLowerCase().includes(q)
         const genreMatch = s.genre?.toLowerCase().includes(q)
@@ -116,14 +144,29 @@ export default function ProfilePage() {
       if (genreFilter != null && genreFilter !== "" && s.genre !== genreFilter) return false
       if (keyFilter != null && keyFilter !== "" && s.key !== keyFilter) return false
       if (s.bpm != null && (s.bpm < tempoMin || s.bpm > tempoMax)) return false
+      if (drumBreakOnly && !titleLooksLikeDrumBreak(s.title)) return false
       return true
     })
-  }, [samples, searchQuery, genreFilter, keyFilter, tempoRange])
+  }, [samples, searchQuery, genreFilter, keyFilter, tempoRange, drumBreakOnly, playlistFilterId, playlists])
 
   const clearFilter = (type: FilterType) => {
     if (type === "genre") setGenreFilter(null)
     if (type === "key") setKeyFilter(null)
     if (type === "tempo") setTempoRange([20, 300])
+    if (type === "drumBreak") setDrumBreakOnly(false)
+    if (type === "playlist") setPlaylistFilterId(null)
+  }
+
+  const resetModalFilters = useCallback(() => {
+    setGenreFilter(null)
+    setKeyFilter(null)
+    setTempoRange([20, 300])
+    setDrumBreakOnly(false)
+  }, [])
+
+  const resetAllCrateFilters = () => {
+    resetModalFilters()
+    setPlaylistFilterId(null)
   }
 
   const hasActiveFilters =
@@ -131,7 +174,12 @@ export default function ProfilePage() {
     genreFilter != null ||
     keyFilter != null ||
     tempoRange[0] !== 20 ||
-    tempoRange[1] !== 300
+    tempoRange[1] !== 300 ||
+    drumBreakOnly ||
+    playlistFilterId != null
+
+  const playlistFilterName =
+    playlistFilterId != null ? playlists.find((p) => p.id === playlistFilterId)?.name ?? null : null
 
   const openInDig = (s: SavedSample) => {
     try {
@@ -184,11 +232,11 @@ export default function ProfilePage() {
           <div className="flex flex-col items-center justify-center text-center py-16 px-4">
             <h1 className="profile-title uppercase mb-2">My Crate</h1>
             <p className="profile-count mb-6" style={{ color: "var(--muted)" }}>
-              Sign up for free to save samples. Log in to see your saved samples.
+              Sign up for free to save samples. Sign in to see your saved samples.
             </p>
             <div className="flex flex-wrap items-center justify-center gap-3">
               <Link href="/register" className="btn-primary inline-block no-underline">Register</Link>
-              <Link href="/login" className="inline-block no-underline py-2.5 px-5 rounded-lg border font-medium" style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>Login</Link>
+              <Link href="/login" className="inline-block no-underline py-2.5 px-5 rounded-lg border font-medium" style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>Sign in</Link>
             </div>
           </div>
         </div>
@@ -210,39 +258,50 @@ export default function ProfilePage() {
           {samples.length > 0 && (
             <>
               <div className="profile-filter-bar">
-                <input
-                  type="search"
-                  placeholder="Search by title, BPM, key or genre..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  aria-label="Search samples by title, BPM, key or genre"
-                />
-                <span className="filter-label">Genre</span>
-                <GenreSelect
-                  value={genreFilter ?? ""}
-                  onChange={(v) => setGenreFilter(v === "" ? null : v)}
-                  options={genreOptionsForSelect}
-                  ariaLabel="Filter by genre"
-                  className="min-w-[120px]"
-                />
-                <span className="filter-label">Key</span>
-                <select
-                  value={keyFilter ?? ""}
-                  onChange={(e) => setKeyFilter(e.target.value ? e.target.value : null)}
-                  className="profile-key-select"
-                  aria-label="Filter by key"
-                >
-                  <option value="">ANY KEY</option>
-                  {keyOptions.map((k) => (
-                    <option key={k} value={k}>{k}</option>
-                  ))}
-                </select>
-                <span className="filter-label">Tempo</span>
-                <TempoRangeSlider
-                  value={tempoRange}
-                  onChange={setTempoRange}
-                  className="min-w-[180px]"
-                />
+                <div className="flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
+                  <div className="flex flex-wrap items-center gap-3 min-w-0">
+                    <input
+                      type="search"
+                      placeholder="Search by title, BPM, key or genre..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      aria-label="Search samples by title, BPM, key or genre"
+                    />
+                    <CrateFilterPanel
+                      open={filtersOpen}
+                      onOpen={() => setFiltersOpen(true)}
+                      onClose={() => setFiltersOpen(false)}
+                      genreFilter={genreFilter}
+                      onGenreChange={setGenreFilter}
+                      genreOptions={genreOptionsForSelect}
+                      keyFilter={keyFilter}
+                      onKeyChange={setKeyFilter}
+                      keyOptions={keyOptions}
+                      drumBreakOnly={drumBreakOnly}
+                      onDrumBreakChange={setDrumBreakOnly}
+                      tempoRange={tempoRange}
+                      onTempoRangeChange={setTempoRange}
+                      isPro={session?.user?.isPro === true}
+                      onReset={resetModalFilters}
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 sm:ml-auto">
+                    <span className="filter-label whitespace-nowrap">Playlist</span>
+                    <select
+                      value={playlistFilterId ?? ""}
+                      onChange={(e) => setPlaylistFilterId(e.target.value ? e.target.value : null)}
+                      className="profile-key-select min-w-[12rem] max-w-[20rem]"
+                      aria-label="Filter by playlist"
+                    >
+                      <option value="">All saved samples</option>
+                      {playlists.map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.name} ({p.youtubeIds.length})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
               </div>
               {hasActiveFilters && (
                 <div className="flex flex-wrap items-center gap-2 profile-active-filters">
@@ -279,6 +338,22 @@ export default function ProfilePage() {
                       </button>
                     </span>
                   )}
+                  {drumBreakOnly && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm" style={{ background: "var(--muted-light)", color: "var(--brown)" }}>
+                      Drum breaks
+                      <button type="button" onClick={() => clearFilter("drumBreak")} className="rounded-full p-0.5 hover:opacity-70 transition" aria-label="Remove drum break filter">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </span>
+                  )}
+                  {playlistFilterId != null && playlistFilterName != null && (
+                    <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm max-w-[220px]" style={{ background: "var(--muted-light)", color: "var(--brown)" }}>
+                      <span className="truncate">Playlist: {playlistFilterName}</span>
+                      <button type="button" onClick={() => clearFilter("playlist")} className="rounded-full p-0.5 hover:opacity-70 transition shrink-0" aria-label="Remove playlist filter">
+                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                      </button>
+                    </span>
+                  )}
                   <span>Showing {filteredSamples.length} of {samples.length} samples</span>
                 </div>
               )}
@@ -297,7 +372,16 @@ export default function ProfilePage() {
           ) : filteredSamples.length === 0 ? (
             <div className="text-center py-12">
               <p className="profile-count mb-4">No samples match your filters.</p>
-              <button type="button" onClick={() => { setSearchQuery(""); setGenreFilter(null); setKeyFilter(null); setTempoRange([20, 300]) }} className="btn-primary">Clear filters</button>
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchQuery("")
+                  resetAllCrateFilters()
+                }}
+                className="btn-primary"
+              >
+                Clear filters
+              </button>
             </div>
           ) : (
           <div className="pb-8">
@@ -357,7 +441,7 @@ export default function ProfilePage() {
               <Link href="/dig" className="hover:text-[var(--foreground)] transition">Dig</Link>
               <Link href="/profile" className="hover:text-[var(--foreground)] transition">My Crate</Link>
               <Link href="/blog" className="hover:text-[var(--foreground)] transition">Blog</Link>
-              <Link href="/login" className="hover:text-[var(--foreground)] transition">Login</Link>
+              <Link href="/login" className="hover:text-[var(--foreground)] transition">Sign in</Link>
             </div>
           </div>
         </footer>

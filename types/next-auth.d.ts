@@ -7,6 +7,8 @@ declare module "next-auth" {
       email: string
       name?: string | null
       isPro?: boolean
+      /** Mirrors users.email_marketing_opt_in */
+      emailMarketingOptIn?: boolean
     }
   }
 
@@ -22,5 +24,6 @@ declare module "next-auth/jwt" {
     id: string
     email?: string
     isPro?: boolean
+    emailMarketingOptIn?: boolean
   }
 }
