@@ -811,6 +811,17 @@ body.theme-vinyl::before {
   gap: 0;
   animation: tickroll 720s linear infinite;
   white-space: nowrap;
+  /* Compositor layer — smoother timing on mobile Safari vs. main-thread-ish paints */
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Phones / touch-primary devices: long linear animations often feel much slower than on
+   desktop (iOS throttles or staggers very long cycles; DevTools mobile width ≠ same). */
+@media (hover: none) and (pointer: coarse) {
+  .genre-ticker .ticker-track {
+    animation-duration: 240s;
+  }
 }
 .genre-ticker .ticker-track span {
   display: inline-flex;
