@@ -84,7 +84,7 @@ export default function SiteNav() {
     <>
       <FeatureGateModal open={crateSignupOpen} type="signup" onClose={() => setCrateSignupOpen(false)} />
       <nav className="flex items-center justify-between w-full h-full gap-4">
-        {/* Left: hamburger on mobile; logo (dice + brand + BETA) always */}
+        {/* Left: hamburger on mobile; logo always */}
         <div className="flex items-center gap-2 min-w-0">
           <button
             ref={hamburgerRef}
@@ -103,14 +103,13 @@ export default function SiteNav() {
           </button>
           <Link href="/dig" className="flex items-center gap-2 no-underline shrink-0" aria-label="Sample Roll – Home">
             <Image
-              src="/SampleRoll-logo-white-long.svg"
+              src="/SampleRoll-text.svg"
               alt="Sample Roll"
-              width={160}
-              height={26}
+              width={1384}
+              height={279}
               className="h-6 w-auto object-contain"
               priority
             />
-            <span className="nav-beta shrink-0">BETA</span>
           </Link>
         </div>
         {/* Center: tabs */}
