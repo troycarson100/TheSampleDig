@@ -52,12 +52,11 @@ export default function ProPage() {
 
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
-      <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
-        <div className="max-w-6xl mx-auto px-3 sm:px-4">
-          <SiteNav />
-        </div>
+      <header className="site-header w-full">
+        <SiteNav />
       </header>
-      <div className="max-w-3xl mx-auto px-3 sm:px-4 py-10 sm:py-14">
+      {/* pt-14 (56px) clears fixed .site-header — same pattern as blog/profile */}
+      <div className="max-w-3xl mx-auto px-3 sm:px-4 pt-14 py-10 sm:py-14">
         <h1 className="text-3xl sm:text-4xl font-bold text-center mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>
           Sample Roll Pro
         </h1>
@@ -107,7 +106,7 @@ export default function ProPage() {
                   className="inline-flex justify-center items-center px-6 py-3 rounded-[var(--radius-button)] font-medium transition"
                   style={{ background: "var(--primary)", color: "var(--primary-foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
                 >
-                  Log in to subscribe
+                  Sign in to subscribe
                 </Link>
                 <Link
                   href="/register?callbackUrl=/pro"

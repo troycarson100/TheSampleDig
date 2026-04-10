@@ -7,6 +7,9 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
 import FeatureGateModal from "@/components/FeatureGateModal"
+import SiteAlertsPopover from "@/components/SiteAlertsPopover"
+import { SiteSettingsMenu, SITE_SETTINGS_MENU_ITEMS } from "@/components/SiteNavUtilities"
+import { OPEN_ALERTS_EVENT } from "@/lib/dismissed-alerts"
 
 const navLinkBase = "nav-tab-link relative flex items-center h-full px-5 py-0 border-none bg-transparent cursor-pointer transition-colors"
 
@@ -134,8 +137,13 @@ export default function SiteNav() {
             </button>
           )}
         </div>
-        {/* Right: Support (always) + Sign out / Sign In (desktop only; mobile has them in drawer) */}
-        <div className="flex items-center justify-end shrink-0 gap-2">
+        {/* Right: alerts + settings menu + Support + Sign out / Sign In (desktop; mobile utilities in drawer) */}
+        <div className="flex items-center justify-end shrink-0 gap-1 sm:gap-2">
+          {/* Alerts mount always (mobile opens via drawer + custom event); bell visible md+ only */}
+          <SiteAlertsPopover />
+          <div className="hidden md:flex items-center gap-0.5">
+            <SiteSettingsMenu />
+          </div>
           <a
             href="https://www.paypal.com/donate/?hosted_button_id=34ZVX9VFAZ3JC"
             target="_blank"
@@ -245,6 +253,34 @@ export default function SiteNav() {
                 My Crate
               </button>
             )}
+          </div>
+          <div className="mt-6 pt-4 border-t border-[rgba(201,147,58,0.08)] w-full">
+            <p className="text-[9px] uppercase tracking-widest mb-2 px-0" style={{ color: "rgba(245,240,232,0.45)", fontFamily: "var(--font-ibm-mono), monospace" }}>
+              Updates & legal
+            </p>
+            <button
+              type="button"
+              className={`${navLinkBase} nav-drawer-link inline-block py-2.5 !h-auto !px-0 w-full text-left`}
+              style={navLinkStyle}
+              onClick={() => {
+                closeMenu()
+                window.dispatchEvent(new Event(OPEN_ALERTS_EVENT))
+              }}
+            >
+              Alerts & updates
+            </button>
+            {SITE_SETTINGS_MENU_ITEMS.map(({ href, label }) => (
+              <Link
+                key={href}
+                href={href}
+                className={`${navLinkBase} nav-drawer-link inline-block py-2.5 !h-auto !px-0 w-full text-left ${pathname === href ? navLinkActive : ""}`}
+                style={navLinkStyle}
+                onClick={closeMenu}
+                aria-current={pathname === href ? "page" : undefined}
+              >
+                {label}
+              </Link>
+            ))}
           </div>
           <div className="mt-8 pt-6 border-t border-[rgba(201,147,58,0.08)]">
             {session ? (
