@@ -4,6 +4,7 @@ import Link from "next/link"
 import SiteNav from "@/components/SiteNav"
 import SettingsMarketingPreference from "@/components/SettingsMarketingPreference"
 import SettingsPricingNavButton from "@/components/SettingsPricingNavButton"
+import SettingsSubscriptionManage from "@/components/SettingsSubscriptionManage"
 
 const linkClass =
   "flex items-center justify-between gap-3 rounded-lg border px-4 py-3 no-underline transition hover:opacity-90"
@@ -24,6 +25,7 @@ export default function SettingsPageBody() {
         </p>
         <nav className="flex flex-col gap-3" aria-label="Settings sections">
           <SettingsMarketingPreference />
+          <SettingsSubscriptionManage />
           <Link href="/profile" className={linkClass} style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
             <span style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>My Crate & profile</span>
             <span aria-hidden className="text-lg opacity-50">
