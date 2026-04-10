@@ -129,7 +129,7 @@ export default function CrateTrackActionsMenu({
   }
 
   const menu = open ? (
-    <div ref={panelRef} style={panelStyle} role="menu">
+    <div ref={panelRef} className="theme-vinyl" style={panelStyle} role="menu">
       {view === "main" && (
         <div className="py-1.5">
           <button
@@ -149,7 +149,7 @@ export default function CrateTrackActionsMenu({
               <path d="M17 14v6M14 17h6" />
             </svg>
             Add to playlist
-            {!isPro && <span className="text-[10px] opacity-50 ml-auto">Pro</span>}
+            {!isPro && <span className="pro-gradient-pill text-white ml-auto shrink-0">Pro</span>}
           </button>
           <button
             type="button"
@@ -173,11 +173,10 @@ export default function CrateTrackActionsMenu({
           </p>
           <Link
             href="/pro"
-            className="block text-center py-2.5 rounded-lg text-sm font-semibold no-underline transition hover:opacity-90"
-            style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
+            className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--rounded text-center text-sm font-semibold no-underline"
             onClick={() => setOpen(false)}
           >
-            View Pro
+            Try Pro Free
           </Link>
           <button
             type="button"

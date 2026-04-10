@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import Link from "next/link"
 import { useSession } from "next-auth/react"
 import SamplePlayer from "@/components/SamplePlayer"
 import type { SavedLoopData } from "@/hooks/useChopMode"
@@ -10,8 +9,10 @@ import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import SiteNav from "@/components/SiteNav"
 import DigHowToPopover from "@/components/DigHowToPopover"
 import DigFilterPanel from "@/components/DigFilterPanel"
-import { recordHistory } from "@/lib/dig-history"
+import { recordHistory, clearHistory } from "@/lib/dig-history"
 import type { HistoryItem } from "@/lib/dig-history"
+import FeatureGateModal from "@/components/FeatureGateModal"
+import { useIsPro } from "@/hooks/useIsPro"
 // import BeatsPanel from "@/components/BeatsPanel" // Beat loop section commented out for now
 
 /** Label maps for display; used for both static fallback and dynamic options from API */
@@ -83,6 +84,7 @@ const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
 
 export default function DigPage() {
   const { data: session, status } = useSession()
+  const isPro = useIsPro()
   const [sample, setSample] = useState<Sample | null>(null)
   const [previousSample, setPreviousSample] = useState<Sample | null>(null)
   const [loading, setLoading] = useState(false)
@@ -101,6 +103,8 @@ export default function DigPage() {
   const [filtersLoaded, setFiltersLoaded] = useState(false)
   const [sampleLoadTime, setSampleLoadTime] = useState<number | null>(null)
   const [showAuthModal, setShowAuthModal] = useState(false)
+  /** Non–Pro: in-memory only (clears on full page refresh). Pro uses localStorage via recordHistory. */
+  const [sessionDigHistory, setSessionDigHistory] = useState<HistoryItem[]>([])
   const [showFilters, setShowFilters] = useState(false)
   const [hasClickedDice, setHasClickedDice] = useState(false)
   const isSavedRef = useRef(isSaved)
@@ -210,6 +214,23 @@ export default function DigPage() {
     if (status !== "authenticated" || !session?.user) return
     fetch("/api/activity/ping", { credentials: "include" }).catch(() => {})
   }, [status, session?.user])
+
+  // History is client-only localStorage; clear when user is guest, free, or downgraded — never touches DB.
+  useEffect(() => {
+    if (status === "loading") return
+    if (status === "unauthenticated") {
+      clearHistory()
+      return
+    }
+    if (session?.user && session.user.isPro !== true) {
+      clearHistory()
+    }
+  }, [status, session?.user?.isPro])
+
+  // Drop ephemeral history once account is Pro (persisted list lives in localStorage).
+  useEffect(() => {
+    if (session?.user?.isPro === true) setSessionDigHistory([])
+  }, [session?.user?.isPro])
 
   // Fetch genre/era options from API (only show genres/eras that have samples in DB)
   useEffect(() => {
@@ -386,15 +407,33 @@ export default function DigPage() {
       }
       console.log('Sample loaded:', newSample)
       setSample(newSample)
-      recordHistory({
-        youtubeId: newSample.youtubeId,
-        title: newSample.title,
-        channel: newSample.channel,
-        thumbnailUrl: newSample.thumbnailUrl,
-        genre: newSample.genre,
-        bpm: newSample.bpm,
-        key: newSample.key,
-      })
+      // Use ref so async dig completes with correct session (Pro history is subscription-based, not UI bypass).
+      if (sessionRef.current?.user?.isPro === true) {
+        recordHistory({
+          youtubeId: newSample.youtubeId,
+          title: newSample.title,
+          channel: newSample.channel,
+          thumbnailUrl: newSample.thumbnailUrl,
+          genre: newSample.genre,
+          bpm: newSample.bpm,
+          key: newSample.key,
+        })
+      } else {
+        setSessionDigHistory((prev) => {
+          const item: HistoryItem = {
+            youtubeId: newSample.youtubeId,
+            title: newSample.title,
+            channel: newSample.channel,
+            thumbnailUrl: newSample.thumbnailUrl,
+            genre: newSample.genre,
+            bpm: newSample.bpm,
+            key: newSample.key,
+            viewedAt: Date.now(),
+          }
+          const filtered = prev.filter((h) => h.youtubeId !== item.youtubeId)
+          return [item, ...filtered].slice(0, 1000)
+        })
+      }
 
       // Check if sample is already saved (only if logged in)
       if (data.id && status === "authenticated") {
@@ -478,6 +517,14 @@ export default function DigPage() {
     setDrumBreak(false)
     setRandomStartTime(true)
   }
+
+  const clearSessionDigHistory = useCallback(() => {
+    setSessionDigHistory([])
+  }, [])
+
+  const removeSessionDigHistoryItem = useCallback((youtubeId: string) => {
+    setSessionDigHistory((prev) => prev.filter((h) => h.youtubeId !== youtubeId))
+  }, [])
 
   // Memoize the save toggle handler to prevent unnecessary re-renders
   // Use refs to keep callback completely stable - no dependencies
@@ -597,59 +644,7 @@ export default function DigPage() {
         <SiteNav />
       </header>
 
-      {/* Sign up / login modal when guest clicks roll */}
-      {showAuthModal && (
-        <div
-          className="fixed inset-0 z-[700] flex items-center justify-center p-4"
-          style={{ background: "rgba(0,0,0,0.5)" }}
-          onClick={() => setShowAuthModal(false)}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="auth-modal-title"
-        >
-          <div
-            className="rounded-xl shadow-xl max-w-md w-full p-6 flex flex-col gap-4"
-            style={{ background: "var(--background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between gap-4">
-              <h2 id="auth-modal-title" className="text-xl font-semibold" style={{ fontFamily: "var(--font-halant), Georgia, serif" }}>
-                Sign up for free
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowAuthModal(false)}
-                className="shrink-0 w-9 h-9 rounded-lg flex items-center justify-center transition hover:opacity-70"
-                style={{ background: "var(--muted-light)" }}
-                aria-label="Close"
-              >
-                <svg className="w-5 h-5" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-              </button>
-            </div>
-            <p className="text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
-              Create a free account to save samples, access your crate, and more.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 mt-2">
-              <Link
-                href="/register"
-                className="flex-1 text-center py-3 px-4 rounded-lg font-medium no-underline transition"
-                style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
-                onClick={() => setShowAuthModal(false)}
-              >
-                Register
-              </Link>
-              <Link
-                href="/login"
-                className="flex-1 text-center py-3 px-4 rounded-lg font-medium no-underline border transition"
-                style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-                onClick={() => setShowAuthModal(false)}
-              >
-                Login
-              </Link>
-            </div>
-          </div>
-        </div>
-      )}
+      <FeatureGateModal open={showAuthModal} type="signup" onClose={() => setShowAuthModal(false)} />
 
       <div className="genre-ticker">
         <div className="ticker-track" aria-hidden>
@@ -710,6 +705,7 @@ export default function DigPage() {
                   eraOptions={eraOptions}
                   samplePacks={samplePacks}
                   onReset={handleResetFilters}
+                  isPro={isPro}
                 />
                 <DigHowToPopover />
               </div>
@@ -740,7 +736,8 @@ export default function DigPage() {
                   duration={sample.duration}
                   isSaved={isSaved}
                   onSaveToggle={handleSaveToggle}
-                  showHeart={!!session}
+                  showHeart={true}
+                  isPro={isPro}
                   initialChops={sample.chops}
                   initialLoop={sample.loop}
                   sampleId={sample.id ?? sampleIdFromSaveRef.current}
@@ -761,10 +758,12 @@ export default function DigPage() {
             </div>
           </div>
 
-          {session && (
-            <div className="samples-panel md:sticky md:top-[102px] md:self-start shrink-0 md:h-[calc(100vh-114px)] flex flex-col min-h-0 w-full md:w-auto">
+          <div className="samples-panel md:sticky md:top-[102px] md:self-start shrink-0 md:h-[calc(100vh-114px)] flex flex-col min-h-0 w-full md:w-auto">
               <div className="sidebar-dark flex flex-col min-h-0 overflow-hidden rounded-lg">
                 <SavedSamplesSidebar
+                  sessionDigHistory={sessionDigHistory}
+                  onSessionDigHistoryClear={clearSessionDigHistory}
+                  onSessionDigHistoryRemoveItem={removeSessionDigHistoryItem}
                   onSampleClick={(savedSample) => {
                     if (sample) setPreviousSample(sample)
                     setSample({
@@ -807,7 +806,6 @@ export default function DigPage() {
                 />
               </div>
             </div>
-          )}
 
           </div>
 

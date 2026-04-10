@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo, useRef, useCallback, type CSSProperties } from "react"
 import { createPortal } from "react-dom"
+import Link from "next/link"
 import { useSession } from "next-auth/react"
 import HeartToggle from "./HeartToggle"
 import CrateTrackActionsMenu from "./CrateTrackActionsMenu"
@@ -39,6 +40,10 @@ interface SavedSamplesSidebarProps {
   onSampleClick?: (sample: SavedSample) => void
   onHistoryItemClick?: (item: HistoryItem) => void
   currentSampleId?: string
+  /** In-memory session history for non–Pro users (clears on full page refresh). Pro users use localStorage instead. */
+  sessionDigHistory?: HistoryItem[]
+  onSessionDigHistoryClear?: () => void
+  onSessionDigHistoryRemoveItem?: (youtubeId: string) => void
 }
 
 type Tab = "crate" | "history"
@@ -135,7 +140,7 @@ function PlaylistFilterDropdown({
   }
 
   return createPortal(
-    <div ref={panelRef} style={style} role="listbox" aria-label="Filter by playlist">
+    <div ref={panelRef} className="theme-vinyl" style={style} role="listbox" aria-label="Filter by playlist">
       <button
         type="button"
         role="option"
@@ -150,8 +155,11 @@ function PlaylistFilterDropdown({
         All saved samples
       </button>
       {!isPro && (
-        <div className="px-3 py-2 text-[10px] uppercase tracking-wider" style={{ color: "rgba(245,240,232,0.4)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}>
-          Playlists — Pro
+        <div className="px-3 py-2 flex items-center gap-2" style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}>
+          <span className="text-[10px] uppercase tracking-wider" style={{ color: "rgba(245,240,232,0.45)" }}>
+            Playlists
+          </span>
+          <span className="pro-gradient-pill text-white">Pro</span>
         </div>
       )}
       {isPro &&
@@ -209,80 +217,98 @@ function TabBar({
   onPlaylistChevronClick: () => void
   playlistDropdownOpen: boolean
 }) {
+  const tabStyle = (isActive: boolean): CSSProperties => ({
+    fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
+    fontSize: "9px",
+    fontWeight: 700,
+    letterSpacing: "0.15em",
+    textTransform: "uppercase",
+    color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
+    background: "transparent",
+    border: "none",
+    cursor: "pointer",
+  })
+
+  const crateActive = active === "crate"
+  const historyActive = active === "history"
+  const badge = crateCount > 0 ? crateCount : null
+
   return (
     <div
       className="flex items-stretch border-b shrink-0"
       style={{ borderColor: "rgba(255,255,255,0.08)" }}
+      role="tablist"
     >
-      {(["crate", "history"] as Tab[]).map((tab) => {
-        const isActive = active === tab
-        const label = tab === "crate" ? "My Crate" : "History"
-        const badge = tab === "crate" && crateCount > 0 ? crateCount : null
-        return (
-          <button
-            key={tab}
-            type="button"
-            onClick={() => onSelect(tab)}
-            className="flex-1 flex items-center justify-center gap-1 py-4 text-center transition-colors relative"
-            style={{
-              fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
-              fontSize: "9px",
-              fontWeight: 700,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
-              background: "transparent",
-              border: "none",
-              cursor: "pointer",
-            }}
-          >
-            <span className="inline-flex items-center gap-0.5">
-              {label}
-              {tab === "crate" && (
-                <button
-                  ref={playlistChevronRef}
-                  type="button"
-                  className="p-0.5 rounded hover:bg-white/10 transition inline-flex"
-                  style={{ color: playlistDropdownOpen ? "var(--rust-l)" : "rgba(255,255,255,0.45)" }}
-                  aria-label="Playlists"
-                  aria-expanded={playlistDropdownOpen}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onPlaylistChevronClick()
-                  }}
-                >
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
-                    <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
-                  </svg>
-                </button>
-              )}
+      {/* My Crate: label + badge in one button; playlist chevron is a sibling (valid HTML — no nested buttons). */}
+      <div className="flex-1 flex items-stretch min-w-0 relative">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={crateActive}
+          onClick={() => onSelect("crate")}
+          className="flex-1 flex items-center justify-center gap-1 py-4 text-center transition-colors min-w-0"
+          style={tabStyle(crateActive)}
+        >
+          <span className="inline-flex items-center gap-0.5">My Crate</span>
+          {badge !== null && (
+            <span
+              className="inline-flex items-center justify-center rounded-full tabular-nums"
+              style={{
+                minWidth: 16,
+                height: 16,
+                padding: "0 4px",
+                fontSize: "8px",
+                fontWeight: 700,
+                background: crateActive ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.07)",
+                color: crateActive ? "#fff" : "rgba(255,255,255,0.4)",
+              }}
+            >
+              {badge}
             </span>
-            {badge !== null && (
-              <span
-                className="inline-flex items-center justify-center rounded-full tabular-nums"
-                style={{
-                  minWidth: 16,
-                  height: 16,
-                  padding: "0 4px",
-                  fontSize: "8px",
-                  fontWeight: 700,
-                  background: isActive ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.07)",
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
-                }}
-              >
-                {badge}
-              </span>
-            )}
-            {isActive && (
-              <span
-                className="absolute bottom-0 left-4 right-4 rounded-t-sm"
-                style={{ height: 2, background: "var(--rust)" }}
-                aria-hidden
-              />
-            )}
-          </button>
-        )
-      })}
+          )}
+        </button>
+        <button
+          ref={playlistChevronRef}
+          type="button"
+          className="shrink-0 px-1.5 flex items-center self-stretch hover:bg-white/10 transition"
+          style={{ color: playlistDropdownOpen ? "var(--rust-l)" : "rgba(255,255,255,0.45)" }}
+          aria-label="Playlists"
+          aria-expanded={playlistDropdownOpen}
+          onClick={(e) => {
+            e.stopPropagation()
+            onPlaylistChevronClick()
+          }}
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+            <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+          </svg>
+        </button>
+        {crateActive && (
+          <span
+            className="pointer-events-none absolute bottom-0 left-2 right-2 rounded-t-sm"
+            style={{ height: 2, background: "var(--rust)" }}
+            aria-hidden
+          />
+        )}
+      </div>
+
+      <button
+        type="button"
+        role="tab"
+        aria-selected={historyActive}
+        onClick={() => onSelect("history")}
+        className="flex-1 flex items-center justify-center gap-1 py-4 text-center transition-colors relative"
+        style={tabStyle(historyActive)}
+      >
+        <span>History</span>
+        {historyActive && (
+          <span
+            className="absolute bottom-0 left-4 right-4 rounded-t-sm"
+            style={{ height: 2, background: "var(--rust)" }}
+            aria-hidden
+          />
+        )}
+      </button>
     </div>
   )
 }
@@ -291,26 +317,37 @@ function HistoryList({
   onItemClick,
   userId,
   isPro,
+  ephemeralItems,
+  onEphemeralClear,
+  onEphemeralRemoveItem,
 }: {
   onItemClick?: (item: HistoryItem) => void
   userId: string
   isPro: boolean
+  /** When set (including `[]`), list is driven by parent state — session-only until refresh for non-Pro. */
+  ephemeralItems?: HistoryItem[]
+  onEphemeralClear?: () => void
+  onEphemeralRemoveItem?: (youtubeId: string) => void
 }) {
-  const [items, setItems] = useState<HistoryItem[]>([])
+  const isEphemeral = ephemeralItems !== undefined
+  const [persistedItems, setPersistedItems] = useState<HistoryItem[]>([])
   const [, setTick] = useState(0)
 
-  const load = () => setItems(getHistory())
+  const loadPersisted = () => setPersistedItems(getHistory())
 
   useEffect(() => {
-    load()
-    window.addEventListener("digHistoryUpdated", load)
-    return () => window.removeEventListener("digHistoryUpdated", load)
-  }, [])
+    if (isEphemeral) return
+    loadPersisted()
+    window.addEventListener("digHistoryUpdated", loadPersisted)
+    return () => window.removeEventListener("digHistoryUpdated", loadPersisted)
+  }, [isEphemeral])
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 60_000)
     return () => clearInterval(id)
   }, [])
+
+  const items = isEphemeral ? ephemeralItems : persistedItems
 
   if (items.length === 0) {
     return (
@@ -337,7 +374,14 @@ function HistoryList({
         </span>
         <button
           type="button"
-          onClick={() => { clearHistory(); setItems([]) }}
+          onClick={() => {
+            if (isEphemeral) {
+              onEphemeralClear?.()
+            } else {
+              clearHistory()
+              setPersistedItems([])
+            }
+          }}
           className="transition hover:opacity-80"
           style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", background: "none", border: "none", cursor: "pointer" }}
         >
@@ -393,7 +437,10 @@ function HistoryList({
                     youtubeId={item.youtubeId}
                     isPro={isPro}
                     removeLabel="Remove from history"
-                    onRemove={() => removeHistoryItem(item.youtubeId)}
+                    onRemove={() => {
+                      if (isEphemeral) onEphemeralRemoveItem?.(item.youtubeId)
+                      else removeHistoryItem(item.youtubeId)
+                    }}
                   />
                 </div>
               </div>
@@ -412,12 +459,35 @@ export default function SavedSamplesSidebar({
   onSampleClick,
   onHistoryItemClick,
   currentSampleId,
+  sessionDigHistory,
+  onSessionDigHistoryClear,
+  onSessionDigHistoryRemoveItem,
 }: SavedSamplesSidebarProps) {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const isPro = useIsPro()
+  /** Real subscription — History list uses this, not the env-based UI bypass in useIsPro. */
+  const hasProSubscription = session?.user?.isPro === true
   const userId = session?.user?.id ?? ""
 
-  const [activeTab, setActiveTab] = useState<Tab>("crate")
+  /** Guests default to History; logged-in users default to My Crate (set once session is known). */
+  const [activeTab, setActiveTab] = useState<Tab>("history")
+  const tabAuthRef = useRef<boolean | null>(null)
+
+  useEffect(() => {
+    if (status === "loading") return
+    const authed = status === "authenticated" && !!session?.user
+    if (tabAuthRef.current === null) {
+      tabAuthRef.current = authed
+      setActiveTab(authed ? "crate" : "history")
+      return
+    }
+    if (tabAuthRef.current === true && !authed) {
+      setActiveTab("history")
+    } else if (tabAuthRef.current === false && authed) {
+      setActiveTab("crate")
+    }
+    tabAuthRef.current = authed
+  }, [status, session?.user])
   const [samples, setSamples] = useState<SavedSample[]>([])
   const [loading, setLoading] = useState(true)
   const [playlists, setPlaylists] = useState<UserPlaylist[]>([])
@@ -488,8 +558,6 @@ export default function SavedSamplesSidebar({
     return playlists.find((p) => p.id === activePlaylistId)?.name ?? null
   }, [activePlaylistId, playlists])
 
-  if (!session) return null
-
   const crateCount = samples.length
 
   return (
@@ -521,7 +589,66 @@ export default function SavedSamplesSidebar({
         isPro={isPro}
       />
 
-      {activeTab === "crate" && activePlaylistId && activePlaylistName && (
+      {/* My Crate: locked for guests */}
+      {activeTab === "crate" && !session && (
+        <div className="flex-1 flex flex-col items-center justify-center px-5 py-10 text-center gap-4">
+          <div
+            className="w-12 h-12 rounded-full flex items-center justify-center"
+            style={{ background: "rgba(184,92,56,0.12)", color: "var(--rust)" }}
+          >
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </div>
+          <div className="flex flex-col gap-1">
+            <p style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif", fontSize: "12px", fontWeight: 600, color: "rgba(255,255,255,0.85)" }}>
+              Save your discoveries
+            </p>
+            <p style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", letterSpacing: "0.08em", color: "rgba(255,255,255,0.35)", lineHeight: 1.6 }}>
+              Create a free account to heart tracks and build your crate.
+            </p>
+          </div>
+          <div className="flex flex-col gap-2 w-full">
+            <Link
+              href="/register"
+              className="w-full py-2.5 rounded-lg text-center no-underline transition hover:opacity-90"
+              style={{ background: "var(--rust)", color: "#fff", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700 }}
+            >
+              Create free account
+            </Link>
+            <Link
+              href="/login"
+              className="w-full py-2 rounded-lg text-center no-underline border transition hover:opacity-80"
+              style={{ borderColor: "rgba(255,255,255,0.1)", color: "rgba(255,255,255,0.55)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase" }}
+            >
+              Log in
+            </Link>
+          </div>
+        </div>
+      )}
+
+      {/* Non-Pro: session-only history (clears on refresh); Pro: persisted in localStorage */}
+      {activeTab === "history" && !hasProSubscription && (
+        <div
+          className="shrink-0 px-4 py-3 border-b"
+          style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.25)" }}
+        >
+          <p
+            className="text-center leading-relaxed mb-2"
+            style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", letterSpacing: "0.06em", color: "rgba(245,240,232,0.55)" }}
+          >
+            Session only — list clears when you refresh. Pro saves up to 1,000 tracks across visits.
+          </p>
+            <Link
+              href="/pro"
+            className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--lg pro-gradient-btn--rounded text-center no-underline font-bold"
+          >
+            Try Pro Free
+          </Link>
+        </div>
+      )}
+
+      {activeTab === "crate" && session && activePlaylistId && activePlaylistName && (
         <div
           className="flex items-center justify-between px-4 py-2 shrink-0 border-b"
           style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.2)" }}
@@ -544,7 +671,7 @@ export default function SavedSamplesSidebar({
         </div>
       )}
 
-      {activeTab === "crate" && (
+      {activeTab === "crate" && session && (
         <>
           {loading ? (
             <div className="flex-1 px-5 pt-5">
@@ -650,7 +777,18 @@ export default function SavedSamplesSidebar({
       )}
 
       {activeTab === "history" && (
-        <HistoryList onItemClick={onHistoryItemClick} userId={userId} isPro={isPro} />
+        <HistoryList
+          onItemClick={onHistoryItemClick}
+          userId={userId}
+          isPro={isPro}
+          {...(hasProSubscription
+            ? {}
+            : {
+                ephemeralItems: sessionDigHistory ?? [],
+                onEphemeralClear: onSessionDigHistoryClear,
+                onEphemeralRemoveItem: onSessionDigHistoryRemoveItem,
+              })}
+        />
       )}
     </div>
   )

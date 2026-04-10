@@ -44,6 +44,7 @@ export async function POST() {
       metadata: { userId: session.user.id },
       subscription_data: {
         metadata: { userId: session.user.id },
+        trial_period_days: 7,
       },
     })
 

@@ -1,5 +1,5 @@
 const HISTORY_KEY = "sampleroll_dig_history"
-const MAX_HISTORY = 50
+const MAX_HISTORY = 1000
 
 export interface HistoryItem {
   youtubeId: string

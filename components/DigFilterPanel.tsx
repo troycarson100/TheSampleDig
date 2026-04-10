@@ -1,7 +1,8 @@
 "use client"
 
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { GenreOption } from "@/components/GenreSelect"
+import FeatureGateModal from "@/components/FeatureGateModal"
 
 export interface DigFilterPanelProps {
   open: boolean
@@ -23,6 +24,39 @@ export interface DigFilterPanelProps {
   eraOptions: GenreOption[]
   samplePacks: boolean
   onReset: () => void
+  /** When false, Drum Break is locked to Pro upgrade */
+  isPro?: boolean
+}
+
+function ProLockIcon() {
+  return (
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
+
+function LockedFilterRow({ label, onGate }: { label: string; onGate: () => void }) {
+  return (
+    <button type="button" onClick={onGate} className="pro-locked-filter-row">
+      <span className="relative z-[1] flex items-center gap-2 min-w-0 flex-wrap">
+        <span
+          className="font-medium uppercase tracking-wider truncate"
+          style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "10px", letterSpacing: "0.12em", color: "rgba(245,240,232,0.95)" }}
+        >
+          {label}
+        </span>
+        <span className="pro-gradient-pill shrink-0 text-white">
+          <ProLockIcon />
+          PRO
+        </span>
+      </span>
+      <div className="pro-gradient-toggle-fake shrink-0 z-[1]" aria-hidden>
+        <div className="pro-gradient-toggle-fake-knob" />
+      </div>
+    </button>
+  )
 }
 
 function FilterToggleRow({
@@ -148,8 +182,10 @@ export default function DigFilterPanel({
   eraOptions,
   samplePacks,
   onReset,
+  isPro = true,
 }: DigFilterPanelProps) {
   const panelRef = useRef<HTMLDivElement>(null)
+  const [drumBreakGateOpen, setDrumBreakGateOpen] = useState(false)
   const activeCount = countActiveFilters({ genreFilter, eraFilter, drumBreak, randomStartTime })
 
   // Close on Escape
@@ -169,6 +205,12 @@ export default function DigFilterPanel({
 
   return (
     <>
+      <FeatureGateModal
+        open={drumBreakGateOpen}
+        type="pro"
+        featureName="Drum Break Filter"
+        onClose={() => setDrumBreakGateOpen(false)}
+      />
       {/* Trigger button */}
       <button
         type="button"
@@ -285,7 +327,11 @@ export default function DigFilterPanel({
                 </p>
                 <div className="divide-y" style={{ borderColor: "var(--border)" }}>
                   <FilterToggleRow label="Auto-Play" checked={autoplay} onChange={onAutoplayChange} />
-                  <FilterToggleRow label="Drum Break" checked={drumBreak} onChange={onDrumBreakChange} />
+                  {isPro ? (
+                    <FilterToggleRow label="Drum Break" checked={drumBreak} onChange={onDrumBreakChange} />
+                  ) : (
+                    <LockedFilterRow label="Drum Break" onGate={() => setDrumBreakGateOpen(true)} />
+                  )}
                   <FilterToggleRow label="Random Start Time" checked={randomStartTime} onChange={onRandomStartTimeChange} />
                 </div>
               </div>

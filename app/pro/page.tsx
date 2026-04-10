@@ -51,7 +51,7 @@ export default function ProPage() {
   const canceled = typeof window !== "undefined" && new URLSearchParams(window.location.search).get("canceled") === "1"
 
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
+    <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
       <header className="w-full py-2" style={{ background: "#F6F0E8" }}>
         <div className="max-w-6xl mx-auto px-3 sm:px-4">
           <SiteNav />
@@ -61,8 +61,12 @@ export default function ProPage() {
         <h1 className="text-3xl sm:text-4xl font-bold text-center mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>
           Sample Roll Pro
         </h1>
-        <p className="text-lg text-center mb-10" style={{ color: "var(--muted)" }}>
+        <p className="text-lg text-center mb-4" style={{ color: "var(--muted)" }}>
           Unlock the full toolkit for digging and sampling.
+        </p>
+        <p className="text-sm text-center max-w-xl mx-auto mb-10 leading-relaxed" style={{ color: "var(--muted)" }}>
+          Start with a <strong style={{ color: "var(--foreground)" }}>7-day free trial</strong>. We ask for a card at checkout so your membership can continue seamlessly at{" "}
+          <strong style={{ color: "var(--foreground)" }}>$5.99/month</strong> after the trial unless you cancel.
         </p>
 
         {success && (
@@ -89,8 +93,11 @@ export default function ProPage() {
           </ul>
 
           <div className="text-center">
-            <p className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>$10<span className="text-lg font-normal" style={{ color: "var(--muted)" }}>/month</span></p>
-            <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>Cancel anytime. Full access to all Pro features.</p>
+            <p className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
+              $5.99<span className="text-lg font-normal" style={{ color: "var(--muted)" }}>/month</span>
+            </p>
+            <p className="text-sm mb-2" style={{ color: "var(--muted)" }}>7-day free trial, then billed monthly. Cancel anytime before the trial ends to avoid charges.</p>
+            <p className="text-sm mb-6" style={{ color: "var(--muted)" }}>Card required at signup for seamless continuation after your trial.</p>
             {status === "loading" ? (
               <p className="text-sm" style={{ color: "var(--muted)" }}>Loading…</p>
             ) : !session ? (
@@ -121,10 +128,9 @@ export default function ProPage() {
                   type="button"
                   onClick={handleSubscribe}
                   disabled={loading}
-                  className="inline-flex justify-center items-center px-8 py-3 rounded-[var(--radius-button)] font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ background: "var(--primary)", color: "var(--primary-foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                  className="pro-gradient-btn pro-gradient-btn--lg inline-flex justify-center items-center px-8 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Redirecting to checkout…" : "Subscribe for $10/month"}
+                  {loading ? "Redirecting to checkout…" : "Try Pro Free"}
                 </button>
               </>
             )}

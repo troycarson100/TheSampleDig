@@ -12,6 +12,7 @@ import { loadYouTubeIframeAPI, createAdapterFromIframe } from "@/lib/youtube-pla
 import { KEY_COLORS, type YouTubePlayerAdapter, type Chop, type RecordedChopEvent, type SavedLoopData } from "@/hooks/useChopMode"
 import { playMetronomeBeep } from "@/lib/audio/metronome"
 import { getSavedLoops, saveLoop, deleteSavedLoop, type SavedLoopEntry } from "@/lib/saved-loops-storage"
+import FeatureGateModal from "@/components/FeatureGateModal"
 
 interface SamplePlayerProps {
   youtubeId: string
@@ -44,6 +45,8 @@ interface SamplePlayerProps {
   /** Restore saved notes when loading a saved sample. */
   initialNotes?: string | null
   onVideoError?: () => void // Callback when video is unavailable
+  /** When false, Chop Mode and Notes are locked behind a Pro upgrade prompt */
+  isPro?: boolean
 }
 
 const TAP_MAX_TAPS = 8
@@ -286,7 +289,15 @@ function SamplePlayer({
   initialBpmOverride,
   sampleId,
   initialNotes,
+  isPro = true,
 }: SamplePlayerProps) {
+  const [proGateOpen, setProGateOpen] = useState(false)
+  const [proGateFeature, setProGateFeature] = useState("this feature")
+
+  function openProGate(feature: string) {
+    setProGateFeature(feature)
+    setProGateOpen(true)
+  }
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const tapResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const youtubeIdRef = useRef<string | null>(null)
@@ -1474,6 +1485,12 @@ function SamplePlayer({
   // The iframe will only re-render when youtubeId changes, not when isSaved changes
   return (
     <div className="w-full min-w-0">
+      <FeatureGateModal
+        open={proGateOpen}
+        type="pro"
+        featureName={proGateFeature}
+        onClose={() => setProGateOpen(false)}
+      />
       <div className="player-wrap aspect-video w-full max-w-full rounded-lg overflow-hidden bg-black relative">
         <PlayerVideoCore
           youtubeId={youtubeId}
@@ -1679,21 +1696,30 @@ function SamplePlayer({
                   <div className="relative" ref={notesContainerRef}>
                     <button
                       type="button"
-                      onClick={() => setNotesOpen((o) => !o)}
-                      className="meta-tag-box inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg border box-border hover:opacity-80 transition-opacity"
+                      onClick={() => {
+                        if (!isPro) { openProGate("Sample Notes"); return }
+                        setNotesOpen((o) => !o)
+                      }}
+                      className={`meta-tag-box inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg border box-border hover:opacity-80 transition-opacity${!isPro ? " meta-pro-gradient-ring" : ""}`}
                       style={{
                         ...META_BOX_STYLE,
                         background: "rgba(255, 255, 255, 0.92)",
                         padding: "0 12px",
                         lineHeight: 1,
                         boxSizing: "border-box",
+                        ...(!isPro ? { border: "2px solid transparent" as const } : {}),
                       }}
-                      aria-expanded={notesOpen}
+                      aria-expanded={isPro ? notesOpen : false}
                       aria-label="Notes"
-                      title="Add notes about this sample"
+                      title={isPro ? "Add notes about this sample" : "Upgrade to Pro to add notes"}
                     >
                       <NoteIcon className="shrink-0" />
                       <span>Notes</span>
+                      {!isPro && (
+                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ color: "var(--rust)", marginLeft: 1 }}>
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                      )}
                     </button>
                     {notesOpen && (
                       <div
@@ -1828,20 +1854,37 @@ function SamplePlayer({
           {!isMobile && (
           <>
           <label className="flex items-center gap-2 cursor-pointer shrink-0">
-            <span className="text-sm font-medium toggle-label" style={{ color: "var(--foreground)" }}>Chop Mode</span>
+            <span className="flex items-center gap-1.5 text-sm font-medium toggle-label" style={{ color: "var(--foreground)" }}>
+              Chop Mode
+              {!isPro && (
+                <span className="pro-gradient-pill text-white">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
+                  PRO
+                </span>
+              )}
+            </span>
             <button
               type="button"
               role="switch"
-              aria-checked={chopModeEnabled}
-              onClick={() => setChopModeEnabled((v) => !v)}
-              className="relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
-              style={{
-                background: chopModeEnabled ? "var(--primary)" : "var(--muted-light)",
+              aria-checked={isPro ? chopModeEnabled : false}
+              onClick={() => {
+                if (!isPro) { openProGate("Chop Mode"); return }
+                setChopModeEnabled((v) => !v)
               }}
+              className={`relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1${!isPro ? " pro-chop-toggle-pro" : ""}`}
+              style={
+                !isPro
+                  ? {}
+                  : {
+                      background: chopModeEnabled ? "var(--primary)" : "var(--muted-light)",
+                      opacity: 1,
+                    }
+              }
+              title={isPro ? undefined : "Upgrade to Pro to use Chop Mode"}
             >
               <span
                 className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
-                style={{ transform: chopModeEnabled ? "translateX(1.25rem)" : "translateX(0)" }}
+                style={{ transform: isPro && chopModeEnabled ? "translateX(1.25rem)" : "translateX(0)" }}
               />
             </button>
           </label>

@@ -7,6 +7,30 @@ async function getPrisma() {
   return prisma
 }
 
+/** Comma-separated emails that are treated as Pro on localhost only (NODE_ENV=development). Never used in production. */
+function parseDevProEmails(): Set<string> {
+  const raw = process.env.DEV_PRO_EMAILS ?? ""
+  return new Set(
+    raw
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+  )
+}
+
+async function resolveIsPro(userId: string, email: string): Promise<boolean> {
+  const normalized = email.trim().toLowerCase()
+  if (process.env.NODE_ENV === "development" && parseDevProEmails().has(normalized)) {
+    return true
+  }
+  const prisma = await getPrisma()
+  const row = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { subscriptionStatus: true },
+  })
+  return row?.subscriptionStatus === "active"
+}
+
 export const authOptions = {
   providers: [
     CredentialsProvider({
@@ -68,6 +92,8 @@ export const authOptions = {
     async jwt({ token, user }: { token: any; user?: any }) {
       if (user) {
         token.id = user.id
+        token.email = user.email
+        token.isPro = await resolveIsPro(String(user.id), String(user.email ?? ""))
       }
       return token
     },
@@ -75,6 +101,7 @@ export const authOptions = {
     async session({ session, token }: { session: any; token: any }) {
       if (session.user) {
         session.user.id = token.id
+        session.user.isPro = token.isPro === true
       }
       return session
     },

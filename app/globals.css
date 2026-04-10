@@ -477,9 +477,13 @@ body.theme-vinyl::before {
   border-color: rgba(240, 235, 225, 0.5);
 }
 
-.theme-vinyl .support-btn {
+/* Copper → amber CTA (Support Us + Pro upsells): gradient, shine sweep, lift */
+.theme-vinyl .support-btn,
+.theme-vinyl a.pro-gradient-btn,
+.theme-vinyl button.pro-gradient-btn {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 7px;
   font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
   font-size: 9px;
@@ -488,39 +492,46 @@ body.theme-vinyl::before {
   text-transform: uppercase;
   text-decoration: none;
   color: white;
-  background: linear-gradient(135deg, #B85C38 0%, #C9933A 100%);
+  background: linear-gradient(90deg, #A6633C 0%, #D9A040 100%);
   padding: 9px 18px;
   border-radius: 3px;
   position: relative;
   overflow: hidden;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 12px rgba(184, 92, 56, 0.25);
+  box-shadow: 0 2px 12px rgba(166, 99, 60, 0.3);
+  border: none;
 }
-.theme-vinyl .support-btn::after {
+.theme-vinyl .support-btn::after,
+.theme-vinyl .pro-gradient-btn::after {
   content: '';
   position: absolute;
   top: 0;
   left: -100%;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
   transition: left 0.5s ease;
+  pointer-events: none;
 }
-.theme-vinyl .support-btn:hover::after {
+.theme-vinyl .support-btn:hover::after,
+.theme-vinyl .pro-gradient-btn:hover::after {
   left: 100%;
 }
-.theme-vinyl .support-btn:hover {
-  box-shadow: 0 4px 20px rgba(184, 92, 56, 0.4), 0 0 12px rgba(201, 147, 58, 0.2);
+.theme-vinyl .support-btn:hover,
+.theme-vinyl .pro-gradient-btn:hover {
+  box-shadow: 0 4px 20px rgba(166, 99, 60, 0.45), 0 0 14px rgba(217, 160, 64, 0.25);
   transform: translateY(-1px);
 }
-.theme-vinyl .support-btn:active {
+.theme-vinyl .support-btn:active,
+.theme-vinyl .pro-gradient-btn:active {
   transform: translateY(0);
-  box-shadow: 0 2px 8px rgba(184, 92, 56, 0.2);
+  box-shadow: 0 2px 8px rgba(166, 99, 60, 0.25);
 }
-.theme-vinyl .support-btn:focus-visible {
+.theme-vinyl .support-btn:focus-visible,
+.theme-vinyl .pro-gradient-btn:focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px rgba(240, 235, 225, 0.4);
+  box-shadow: 0 0 0 2px rgba(240, 235, 225, 0.45);
 }
 .theme-vinyl .support-btn svg {
   width: 12px;
@@ -528,6 +539,145 @@ body.theme-vinyl::before {
   flex-shrink: 0;
   animation: support-btn-heart-pulse 2s ease-in-out infinite;
 }
+.theme-vinyl .support-btn > *,
+.theme-vinyl .pro-gradient-btn > * {
+  position: relative;
+  z-index: 1;
+}
+/* Wider Pro CTAs (modals, sidebar) */
+.theme-vinyl .pro-gradient-btn.pro-gradient-btn--block {
+  width: 100%;
+}
+.theme-vinyl .pro-gradient-btn.pro-gradient-btn--lg {
+  padding: 12px 20px;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  border-radius: 12px;
+}
+.theme-vinyl .pro-gradient-btn.pro-gradient-btn--rounded {
+  border-radius: 8px;
+}
+
+/* Small “PRO” / lock badges on toggles & meta */
+.theme-vinyl .pro-gradient-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  color: #fff;
+  background: linear-gradient(90deg, #A6633C 0%, #D9A040 100%);
+  box-shadow: 0 1px 8px rgba(166, 99, 60, 0.35);
+  position: relative;
+  overflow: hidden;
+}
+.theme-vinyl .pro-gradient-pill::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+  animation: pro-pill-shimmer 2.8s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes pro-pill-shimmer {
+  0%, 100% { opacity: 0.35; transform: translateX(-40%); }
+  50% { opacity: 0.9; transform: translateX(40%); }
+}
+.theme-vinyl .pro-gradient-pill svg {
+  flex-shrink: 0;
+  animation: support-btn-heart-pulse 2s ease-in-out infinite;
+}
+
+/* Locked Drum Break (and similar) row — gradient frame + glow pulse */
+.theme-vinyl .pro-locked-filter-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(217, 160, 64, 0.45);
+  background: linear-gradient(135deg, rgba(166, 99, 60, 0.14) 0%, rgba(217, 160, 64, 0.1) 100%);
+  color: var(--foreground);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+  animation: pro-locked-row-glow 3.2s ease-in-out infinite;
+}
+.theme-vinyl .pro-locked-filter-row::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 0%, rgba(255, 255, 255, 0.07) 50%, transparent 100%);
+  animation: pro-locked-row-sweep 3s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes pro-locked-row-glow {
+  0%, 100% { box-shadow: 0 2px 14px rgba(166, 99, 60, 0.18); }
+  50% { box-shadow: 0 4px 22px rgba(217, 160, 64, 0.28); }
+}
+@keyframes pro-locked-row-sweep {
+  0%, 100% { opacity: 0.4; transform: translateX(-15%); }
+  50% { opacity: 1; transform: translateX(15%); }
+}
+.theme-vinyl .pro-locked-filter-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 24px rgba(166, 99, 60, 0.3);
+}
+.theme-vinyl .pro-locked-filter-row:hover::before {
+  opacity: 1;
+}
+.theme-vinyl .pro-gradient-toggle-fake {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  padding: 2px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, #A6633C 0%, #D9A040 100%);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  position: relative;
+  z-index: 1;
+}
+.theme-vinyl .pro-gradient-toggle-fake-knob {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+/* Chop Mode switch when Pro-gated (matches Drum Break energy) */
+.theme-vinyl button.pro-chop-toggle-pro {
+  background: linear-gradient(90deg, #A6633C, #D9A040) !important;
+  opacity: 1 !important;
+  box-shadow: 0 2px 14px rgba(166, 99, 60, 0.35);
+  animation: pro-locked-row-glow 3.2s ease-in-out infinite;
+}
+
+/* Notes / meta row: gradient ring when Pro-gated */
+.theme-vinyl .meta-pro-gradient-ring {
+  border: 2px solid transparent !important;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(255, 252, 248, 0.98)) padding-box,
+    linear-gradient(90deg, #A6633C, #D9A040) border-box !important;
+  box-shadow: 0 2px 12px rgba(166, 99, 60, 0.2);
+  animation: pro-meta-ring-pulse 3s ease-in-out infinite;
+}
+@keyframes pro-meta-ring-pulse {
+  0%, 100% { box-shadow: 0 2px 10px rgba(166, 99, 60, 0.15); }
+  50% { box-shadow: 0 3px 16px rgba(217, 160, 64, 0.28); }
+}
+
 @keyframes support-btn-heart-pulse {
   0%, 100% { transform: scale(1); }
   50% { transform: scale(1.15); }
@@ -819,7 +969,22 @@ body.theme-vinyl::before {
 .theme-vinyl [class*="tag"]:hover { background: rgba(74, 55, 40, 0.08); color: var(--dark); }
 
 /* ─── Chop mode (redesign: warm, connects to keyboard) ─────────────── */
-.theme-vinyl .chop-row,
+/* flex-col + align-items:center centers the row horizontally — use start until lg row layout */
+.theme-vinyl .chop-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 22px;
+  background: var(--warm);
+  border-top: 1px solid rgba(74, 55, 40, 0.1);
+  border-bottom: 1px solid rgba(74, 55, 40, 0.1);
+  border-radius: 0;
+}
+@media (min-width: 1024px) {
+  .theme-vinyl .chop-row {
+    align-items: center;
+  }
+}
 .theme-vinyl [class*="chop-bar"] {
   display: flex;
   align-items: center;
