@@ -1,5 +1,7 @@
 "use client"
 
+import { useEffect, useState } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 
 export type GateType = "signup" | "pro"
@@ -44,6 +46,9 @@ function CheckIcon() {
 }
 
 export default function FeatureGateModal({ open, type, featureName, onClose }: FeatureGateModalProps) {
+  const [mounted, setMounted] = useState(false)
+  useEffect(() => setMounted(true), [])
+
   if (!open) return null
 
   const isSignup = type === "signup"
@@ -58,9 +63,9 @@ export default function FeatureGateModal({ open, type, featureName, onClose }: F
 
   const features = isSignup ? FREE_FEATURES : PRO_FEATURES
 
-  return (
+  const overlay = (
     <div
-      className="fixed inset-0 z-[800] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[10050] flex items-center justify-center p-4 sm:p-6 overflow-y-auto"
       style={{ background: "rgba(0,0,0,0.55)" }}
       onClick={(e) => { if (e.target === e.currentTarget) onClose() }}
       role="dialog"
@@ -68,13 +73,10 @@ export default function FeatureGateModal({ open, type, featureName, onClose }: F
       aria-labelledby="gate-modal-title"
     >
       <div
-        className="theme-vinyl relative w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden"
+        className="theme-vinyl relative w-full max-w-sm rounded-2xl shadow-2xl flex flex-col overflow-hidden my-auto"
         style={{ background: "var(--background)", border: "1px solid var(--border)", color: "var(--foreground)" }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Top accent bar */}
-        <div className="h-1 w-full" style={{ background: "var(--rust)" }} />
-
         <div className="p-6 flex flex-col gap-5">
           {/* Header */}
           <div className="flex items-start justify-between gap-3">
@@ -170,4 +172,7 @@ export default function FeatureGateModal({ open, type, featureName, onClose }: F
       </div>
     </div>
   )
+
+  if (!mounted) return null
+  return createPortal(overlay, document.body)
 }

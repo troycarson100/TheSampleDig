@@ -633,6 +633,102 @@ body.theme-vinyl::before {
 .theme-vinyl .pro-locked-filter-row:hover::before {
   opacity: 1;
 }
+
+/* Drum Break locked row: full Pro CTA gradient (matches Try Pro Free / pro-gradient-btn) */
+.theme-vinyl .pro-locked-filter-row--pro-cta {
+  padding: 12px 12px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
+  box-shadow:
+    0 2px 12px rgba(166, 99, 60, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  animation: pro-cta-row-shine 2.8s ease-in-out infinite;
+}
+.theme-vinyl .pro-locked-filter-row--pro-cta::before {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.18) 45%,
+    transparent 90%
+  );
+  animation: pro-locked-row-sweep 2.5s ease-in-out infinite;
+}
+@keyframes pro-cta-row-shine {
+  0%,
+  100% {
+    box-shadow:
+      0 2px 14px rgba(166, 99, 60, 0.4),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  50% {
+    box-shadow:
+      0 4px 22px rgba(217, 160, 64, 0.45),
+      0 0 20px rgba(217, 160, 64, 0.2),
+      inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  }
+}
+.theme-vinyl .pro-locked-filter-row--pro-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+.theme-vinyl .pro-locked-filter-row__label--cta {
+  color: #fff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.15);
+}
+.theme-vinyl .pro-locked-filter-row__pill--cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-family: var(--font-ibm-mono), 'IBM Plex Mono', monospace;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.12);
+}
+
+/* Sample player — Notes button when Pro-gated (matches Drum Break / Pro CTA gradient) */
+.theme-vinyl .sample-notes-pro-gate {
+  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
+  border: none;
+  color: #fff;
+  box-shadow:
+    0 2px 10px rgba(166, 99, 60, 0.35),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+.theme-vinyl .sample-notes-pro-gate:hover {
+  filter: brightness(1.04);
+  box-shadow:
+    0 3px 14px rgba(166, 99, 60, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
+}
+.theme-vinyl .sample-notes-pro-gate .sample-notes-pro-gate__icon {
+  color: #fff;
+}
+.theme-vinyl .pro-gradient-toggle-fake--on-cta {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  padding: 2px;
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.12);
+  position: relative;
+  z-index: 1;
+}
+.theme-vinyl .pro-gradient-toggle-fake--on-cta .pro-gradient-toggle-fake-knob {
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
 .theme-vinyl .pro-gradient-toggle-fake {
   display: flex;
   align-items: center;
@@ -740,6 +836,12 @@ body.theme-vinyl::before {
 .theme-vinyl .dig-app-grid {
   align-items: stretch;
   min-height: calc(100vh - 90px);
+}
+@media (max-width: 767px) {
+  .theme-vinyl .dig-app-grid {
+    /* Stack column layout: don’t force full viewport height — was stretching the player column (flex-1) and pushing My Crate / History to the bottom */
+    min-height: 0;
+  }
 }
 .theme-vinyl .dig-col,
 .theme-vinyl [class*="main-col"] {

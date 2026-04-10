@@ -6,8 +6,30 @@ import Link from "next/link"
 import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { useSession, signOut } from "next-auth/react"
+import FeatureGateModal from "@/components/FeatureGateModal"
 
 const navLinkBase = "nav-tab-link relative flex items-center h-full px-5 py-0 border-none bg-transparent cursor-pointer transition-colors"
+
+function NavCrateLockIcon() {
+  return (
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="shrink-0"
+      style={{ color: "rgba(140, 135, 128, 0.95)" }}
+      aria-hidden
+    >
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
 const navLinkActive = "nav-link-active"
 const navLinkStyle = { fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }
 
@@ -19,6 +41,7 @@ export default function SiteNav() {
   const { data: session } = useSession()
   const [menuOpen, setMenuOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [crateSignupOpen, setCrateSignupOpen] = useState(false)
   const pathname = usePathname()
   const hamburgerRef = useRef<HTMLButtonElement>(null)
   const closeBtnRef = useRef<HTMLButtonElement>(null)
@@ -54,6 +77,7 @@ export default function SiteNav() {
 
   return (
     <>
+      <FeatureGateModal open={crateSignupOpen} type="signup" onClose={() => setCrateSignupOpen(false)} />
       <nav className="flex items-center justify-between w-full h-full gap-4">
         {/* Left: hamburger on mobile; logo (dice + brand + BETA) always */}
         <div className="flex items-center gap-2 min-w-0">
@@ -93,10 +117,21 @@ export default function SiteNav() {
           {/* <Link href="/stem-splitter" className={`${navLinkBase} ${isActive("/stem-splitter") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/stem-splitter" ? "page" : undefined}>
             Stem Splitter
           </Link> */}
-          {session && (
+          {session ? (
             <Link href="/profile" className={`${navLinkBase} ${isActive("/profile") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/profile" ? "page" : undefined}>
               My Crate
             </Link>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setCrateSignupOpen(true)}
+              className={`${navLinkBase} gap-1.5`}
+              style={navLinkStyle}
+              aria-label="My Crate — sign in to open your crate"
+            >
+              <NavCrateLockIcon />
+              My Crate
+            </button>
           )}
         </div>
         {/* Right: Support (always) + Sign out / Sign In (desktop only; mobile has them in drawer) */}
@@ -185,7 +220,7 @@ export default function SiteNav() {
             >
               Dig
             </Link>
-            {session && (
+            {session ? (
               <Link
                 href="/profile"
                 className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/profile" ? navLinkActive : ""}`}
@@ -195,6 +230,20 @@ export default function SiteNav() {
               >
                 My Crate
               </Link>
+            ) : (
+              <button
+                type="button"
+                className={`${navLinkBase} nav-drawer-link inline-flex items-center gap-2 py-3 !h-auto !px-0`}
+                style={navLinkStyle}
+                onClick={() => {
+                  closeMenu()
+                  setCrateSignupOpen(true)
+                }}
+                aria-label="My Crate — sign in to open your crate"
+              >
+                <NavCrateLockIcon />
+                My Crate
+              </button>
             )}
           </div>
           <div className="mt-8 pt-6 border-t border-[rgba(201,147,58,0.08)]">

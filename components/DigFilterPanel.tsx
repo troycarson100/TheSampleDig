@@ -24,7 +24,7 @@ export interface DigFilterPanelProps {
   eraOptions: GenreOption[]
   samplePacks: boolean
   onReset: () => void
-  /** When false, Drum Break is locked to Pro upgrade */
+  /** When false, Drum Break is locked (gradient + Pro modal). Use session subscription: `session?.user?.isPro === true`, not useIsPro() soft gate. */
   isPro?: boolean
 }
 
@@ -37,22 +37,51 @@ function ProLockIcon() {
   )
 }
 
-function LockedFilterRow({ label, onGate }: { label: string; onGate: () => void }) {
+function LockedFilterRow({
+  label,
+  onGate,
+  variant = "default",
+}: {
+  label: string
+  onGate: () => void
+  /** Full copper→amber CTA gradient (matches Pro / Try Pro Free buttons). */
+  variant?: "default" | "proCta"
+}) {
+  const rowClass =
+    variant === "proCta"
+      ? "pro-locked-filter-row pro-locked-filter-row--pro-cta"
+      : "pro-locked-filter-row"
+
   return (
-    <button type="button" onClick={onGate} className="pro-locked-filter-row">
+    <button
+      type="button"
+      onClick={onGate}
+      className={rowClass}
+      aria-label={`${label}: Pro feature. Opens upgrade.`}
+    >
       <span className="relative z-[1] flex items-center gap-2 min-w-0 flex-wrap">
         <span
-          className="font-medium uppercase tracking-wider truncate"
-          style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "10px", letterSpacing: "0.12em", color: "rgba(245,240,232,0.95)" }}
+          className={`font-medium uppercase tracking-wider truncate ${variant === "proCta" ? "pro-locked-filter-row__label--cta" : ""}`}
+          style={{
+            fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
+            fontSize: "10px",
+            letterSpacing: "0.12em",
+            color: variant === "proCta" ? undefined : "rgba(245,240,232,0.95)",
+          }}
         >
           {label}
         </span>
-        <span className="pro-gradient-pill shrink-0 text-white">
+        <span
+          className={`shrink-0 text-white ${variant === "proCta" ? "pro-locked-filter-row__pill--cta" : "pro-gradient-pill"}`}
+        >
           <ProLockIcon />
           PRO
         </span>
       </span>
-      <div className="pro-gradient-toggle-fake shrink-0 z-[1]" aria-hidden>
+      <div
+        className={`shrink-0 z-[1] ${variant === "proCta" ? "pro-gradient-toggle-fake--on-cta" : "pro-gradient-toggle-fake"}`}
+        aria-hidden
+      >
         <div className="pro-gradient-toggle-fake-knob" />
       </div>
     </button>
@@ -327,12 +356,19 @@ export default function DigFilterPanel({
                 </p>
                 <div className="divide-y" style={{ borderColor: "var(--border)" }}>
                   <FilterToggleRow label="Auto-Play" checked={autoplay} onChange={onAutoplayChange} />
+                  <FilterToggleRow label="Random Start Time" checked={randomStartTime} onChange={onRandomStartTimeChange} />
                   {isPro ? (
                     <FilterToggleRow label="Drum Break" checked={drumBreak} onChange={onDrumBreakChange} />
                   ) : (
-                    <LockedFilterRow label="Drum Break" onGate={() => setDrumBreakGateOpen(true)} />
+                    <LockedFilterRow
+                      label="Drum Break"
+                      variant="proCta"
+                      onGate={() => {
+                        onClose()
+                        setDrumBreakGateOpen(true)
+                      }}
+                    />
                   )}
-                  <FilterToggleRow label="Random Start Time" checked={randomStartTime} onChange={onRandomStartTimeChange} />
                 </div>
               </div>
 

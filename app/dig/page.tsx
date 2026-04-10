@@ -12,7 +12,6 @@ import DigFilterPanel from "@/components/DigFilterPanel"
 import { recordHistory, clearHistory } from "@/lib/dig-history"
 import type { HistoryItem } from "@/lib/dig-history"
 import FeatureGateModal from "@/components/FeatureGateModal"
-import { useIsPro } from "@/hooks/useIsPro"
 // import BeatsPanel from "@/components/BeatsPanel" // Beat loop section commented out for now
 
 /** Label maps for display; used for both static fallback and dynamic options from API */
@@ -84,7 +83,6 @@ const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
 
 export default function DigPage() {
   const { data: session, status } = useSession()
-  const isPro = useIsPro()
   const [sample, setSample] = useState<Sample | null>(null)
   const [previousSample, setPreviousSample] = useState<Sample | null>(null)
   const [loading, setLoading] = useState(false)
@@ -181,6 +179,13 @@ export default function DigPage() {
   useEffect(() => {
     localStorage.setItem("digDrumBreak", drumBreak.toString())
   }, [drumBreak])
+
+  // Drum Break is Pro-only; clear if session is not Pro (avoids stale localStorage + API param)
+  useEffect(() => {
+    if (status === "loading") return
+    const eligible = session?.user?.isPro === true
+    if (!eligible && drumBreak) setDrumBreak(false)
+  }, [status, session?.user?.isPro, drumBreak])
 
   // Load random start time preference from localStorage
   useEffect(() => {
@@ -668,8 +673,8 @@ export default function DigPage() {
         </div>
       </div>
       <div className="dig-page-wrap">
-        <div className="dig-app-grid flex flex-col md:grid md:grid-cols-[1fr_280px] dig-lg:grid-cols-[1fr_340px] gap-6 items-start">
-          <div className="flex-1 min-w-0 dig-col lg:min-w-0 w-full max-w-4xl">
+        <div className="dig-app-grid flex flex-col md:grid md:grid-cols-[1fr_280px] dig-lg:grid-cols-[1fr_340px] gap-3 md:gap-6 items-start">
+          <div className="max-md:flex-none md:flex-1 min-w-0 dig-col lg:min-w-0 w-full max-w-4xl">
             <div className="player-area-card w-full">
             {/* Controls */}
             <div className="controls-bar w-full flex flex-col items-center gap-3">
@@ -705,7 +710,9 @@ export default function DigPage() {
                   eraOptions={eraOptions}
                   samplePacks={samplePacks}
                   onReset={handleResetFilters}
-                  isPro={isPro}
+                  /* Drum Break lock + gradient use session Pro, not useIsPro() — otherwise
+                     NEXT_PUBLIC_REQUIRE_PRO_SUBSCRIPTION off makes everyone “Pro” here and hides the upsell. */
+                  isPro={session?.user?.isPro === true}
                 />
                 <DigHowToPopover />
               </div>
@@ -737,7 +744,7 @@ export default function DigPage() {
                   isSaved={isSaved}
                   onSaveToggle={handleSaveToggle}
                   showHeart={true}
-                  isPro={isPro}
+                  isPro={session?.user?.isPro === true}
                   initialChops={sample.chops}
                   initialLoop={sample.loop}
                   sampleId={sample.id ?? sampleIdFromSaveRef.current}

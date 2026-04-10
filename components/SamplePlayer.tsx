@@ -1700,25 +1700,45 @@ function SamplePlayer({
                         if (!isPro) { openProGate("Sample Notes"); return }
                         setNotesOpen((o) => !o)
                       }}
-                      className={`meta-tag-box inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg border box-border hover:opacity-80 transition-opacity${!isPro ? " meta-pro-gradient-ring" : ""}`}
-                      style={{
-                        ...META_BOX_STYLE,
-                        background: "rgba(255, 255, 255, 0.92)",
-                        padding: "0 12px",
-                        lineHeight: 1,
-                        boxSizing: "border-box",
-                        ...(!isPro ? { border: "2px solid transparent" as const } : {}),
-                      }}
+                      className={
+                        !isPro
+                          ? "sample-notes-pro-gate inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg box-border transition hover:opacity-95 cursor-pointer"
+                          : "meta-tag-box inline-flex items-center min-h-[32px] h-8 gap-1.5 px-3 py-0 rounded-lg border box-border hover:opacity-80 transition-opacity"
+                      }
+                      style={
+                        !isPro
+                          ? {
+                              padding: "0 12px",
+                              lineHeight: 1,
+                              boxSizing: "border-box",
+                              fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace",
+                              fontSize: "9px",
+                              fontWeight: 500,
+                              letterSpacing: "0.12em",
+                              textTransform: "uppercase",
+                            }
+                          : {
+                              ...META_BOX_STYLE,
+                              background: "rgba(255, 255, 255, 0.92)",
+                              padding: "0 12px",
+                              lineHeight: 1,
+                              boxSizing: "border-box",
+                            }
+                      }
                       aria-expanded={isPro ? notesOpen : false}
                       aria-label="Notes"
                       title={isPro ? "Add notes about this sample" : "Upgrade to Pro to add notes"}
                     >
-                      <NoteIcon className="shrink-0" />
+                      <NoteIcon className={`shrink-0 ${!isPro ? "sample-notes-pro-gate__icon" : ""}`} />
                       <span>Notes</span>
                       {!isPro && (
-                        <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden style={{ color: "var(--rust)", marginLeft: 1 }}>
-                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                        </svg>
+                        <span className="pro-locked-filter-row__pill--cta shrink-0 inline-flex items-center gap-1">
+                          <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                          </svg>
+                          PRO
+                        </span>
                       )}
                     </button>
                     {notesOpen && (
