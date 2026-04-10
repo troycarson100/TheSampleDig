@@ -13,10 +13,12 @@ interface GenreSelectProps {
   options: GenreOption[]
   ariaLabel?: string
   className?: string
+  /** When true, dropdown is inert (e.g. era filter disabled in sample packs mode). */
+  disabled?: boolean
 }
 
 export default function GenreSelect(props: GenreSelectProps) {
-  const { value, onChange, options, ariaLabel = "Filter samples by genre", className = "" } = props
+  const { value, onChange, options, ariaLabel = "Filter samples by genre", className = "", disabled = false } = props
   const [open, setOpen] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   const selected = options.find((o) => o.value === value) ?? options[0]
@@ -30,11 +32,16 @@ export default function GenreSelect(props: GenreSelectProps) {
     return () => document.removeEventListener("mousedown", handle)
   }, [open])
 
+  useEffect(() => {
+    if (disabled) setOpen(false)
+  }, [disabled])
+
   return (
-    <div ref={containerRef} className={"relative " + className}>
+    <div ref={containerRef} className={"relative " + className} style={{ opacity: disabled ? 0.45 : 1, pointerEvents: disabled ? "none" : "auto" }}>
       <button
         type="button"
-        className="genre-select w-full min-w-[140px] rounded border flex items-center justify-between gap-2 text-left"
+        disabled={disabled}
+        className="genre-select w-full min-w-[140px] rounded border flex items-center justify-between gap-2 text-left disabled:cursor-not-allowed"
         style={{
           fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
           fontSize: "9px",
@@ -46,11 +53,11 @@ export default function GenreSelect(props: GenreSelectProps) {
           color: "var(--brown)",
           padding: "10px 32px 10px 14px",
         }}
-        onClick={() => setOpen((o) => !o)}
-        onBlur={() => setOpen(false)}
+        onClick={() => !disabled && setOpen((o) => !o)}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-label={ariaLabel}
+        aria-disabled={disabled}
       >
         <span>{selected?.label ?? "Any genre"}</span>
         <span className="pointer-events-none shrink-0" style={{ color: "var(--brown)" }}>
@@ -59,14 +66,14 @@ export default function GenreSelect(props: GenreSelectProps) {
           </svg>
         </span>
       </button>
-      {open && (
+      {open && !disabled && (
         <ul
           role="listbox"
-          className="absolute left-0 top-full z-[600] mt-1 min-w-[140px] max-h-[min(320px,70vh)] overflow-y-auto rounded-md py-1 shadow-lg"
+          className="absolute left-0 top-full z-[800] mt-1 min-w-[140px] max-h-[min(320px,70vh)] overflow-y-auto rounded-md py-1 shadow-lg"
           style={{
             background: "rgba(14, 12, 10, 0.98)",
             border: "1px solid rgba(240, 235, 225, 0.08)",
-            color: "#fff",
+            color: "#ffffff",
           }}
         >
           {options.map((opt) => {
@@ -84,6 +91,7 @@ export default function GenreSelect(props: GenreSelectProps) {
                   letterSpacing: "0.14em",
                   textTransform: "uppercase",
                   lineHeight: 1,
+                  color: "#ffffff",
                   background: isSelected ? "rgba(240, 235, 225, 0.12)" : "transparent",
                 }}
                 onMouseEnter={(e) => {
@@ -105,7 +113,9 @@ export default function GenreSelect(props: GenreSelectProps) {
                     </svg>
                   )}
                 </span>
-                <span className="flex-1 flex items-center justify-start leading-[1] h-full" style={{ lineHeight: 1 }}>{opt.label}</span>
+                <span className="flex-1 flex items-center justify-start leading-[1] h-full" style={{ lineHeight: 1, color: "#ffffff" }}>
+                  {opt.label}
+                </span>
               </li>
             )
           })}

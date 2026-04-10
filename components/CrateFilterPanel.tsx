@@ -123,51 +123,6 @@ function FilterToggleRow({
   )
 }
 
-function NativeSelect({
-  value,
-  onChange,
-  options,
-  ariaLabel,
-}: {
-  value: string
-  onChange: (v: string) => void
-  options: GenreOption[]
-  ariaLabel: string
-}) {
-  return (
-    <div className="relative w-full">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        aria-label={ariaLabel}
-        className="w-full appearance-none rounded-md py-2.5 pl-4 pr-9 text-sm border transition"
-        style={{
-          fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
-          fontSize: "10px",
-          letterSpacing: "0.12em",
-          textTransform: "uppercase",
-          fontWeight: 500,
-          background: "rgba(240, 235, 225, 0.06)",
-          border: "1px solid rgba(240, 235, 225, 0.12)",
-          color: "var(--foreground)",
-          cursor: "pointer",
-        }}
-      >
-        {options.map((opt) => (
-          <option key={opt.value || "any"} value={opt.value} style={{ background: "#1a1209" }}>
-            {opt.label}
-          </option>
-        ))}
-      </select>
-      <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2" style={{ color: "var(--muted)" }}>
-        <svg width="10" height="6" viewBox="0 0 10 6" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-          <path d="M1 1l4 4 4-4" />
-        </svg>
-      </span>
-    </div>
-  )
-}
-
 function countActiveCrateFilters(props: {
   genreFilter: string | null
   keyFilter: string | null
@@ -375,11 +330,12 @@ export default function CrateFilterPanel({
                 >
                   Key
                 </p>
-                <NativeSelect
+                <GenreSelect
                   value={keyFilter ?? ""}
                   onChange={(v) => onKeyChange(v === "" ? null : v)}
                   options={keySelectOptions}
                   ariaLabel="Filter by key"
+                  className="w-full"
                 />
               </div>
 
