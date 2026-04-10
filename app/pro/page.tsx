@@ -23,7 +23,7 @@ export default function ProPage() {
             style={{
               background: "rgba(34, 197, 94, 0.1)",
               borderColor: "rgba(74, 222, 128, 0.35)",
-              color: "#bbf7d0",
+              color: "#0a0a0a",
             }}
           >
             Thanks for subscribing. You now have full Pro access. Refresh the page if you don’t see it yet.
