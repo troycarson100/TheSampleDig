@@ -1,4 +1,4 @@
-import Link from "next/link"
+import SiteNav from "@/components/SiteNav"
 
 export const metadata = {
   title: "Privacy Policy - Sample Roll",
@@ -7,19 +7,12 @@ export const metadata = {
 
 export default function PrivacyPage() {
   return (
-    <div className="min-h-screen" style={{ background: "var(--background)" }}>
-      <header className="w-full py-2 border-b" style={{ background: "#F6F0E8", borderColor: "var(--border)" }}>
-        <div className="max-w-6xl mx-auto px-3 sm:px-4">
-          <Link
-            href="/dig"
-            className="text-[15px] font-medium hover:underline"
-            style={{ color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
-          >
-            ← Sample Roll
-          </Link>
-        </div>
+    <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
+      <header className="site-header w-full">
+        <SiteNav />
       </header>
-      <main className="max-w-2xl mx-auto px-3 sm:px-4 py-8">
+      {/* Fixed .site-header is 56px (globals.css); offset main so content isn’t covered */}
+      <main className="max-w-2xl mx-auto px-3 sm:px-4 mt-[56px] pb-8 pt-6">
         <h1 className="text-2xl font-bold mb-6" style={{ color: "var(--foreground)" }}>
           Privacy Policy
         </h1>
