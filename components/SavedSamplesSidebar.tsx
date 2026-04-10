@@ -10,6 +10,7 @@ import CrateTrackActionsMenu from "./CrateTrackActionsMenu"
 import { getHistory, clearHistory, timeAgo, removeHistoryItem, type HistoryItem } from "@/lib/dig-history"
 import {
   getPlaylists,
+  createPlaylist,
   deletePlaylist,
   pruneYoutubeFromAllPlaylists,
   removeYoutubeFromPlaylist,
@@ -68,6 +69,7 @@ function PlaylistFilterDropdown({
   onSelectPlaylist,
   onDeletePlaylist,
   isPro,
+  userId,
   guestSignupHref,
   onProUpgrade,
 }: {
@@ -81,12 +83,15 @@ function PlaylistFilterDropdown({
   onDeletePlaylist: (id: string) => void
   /** True when user has Pro subscription (session); not useIsPro() soft gate */
   isPro: boolean
+  /** Required for Pro “new playlist” create (localStorage key). */
+  userId: string
   guestSignupHref: string
   /** Logged-in non-Pro: opens Pro modal. Guests use `guestSignupHref`. */
   onProUpgrade?: () => void
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ top: 0, left: 0 })
+  const [newPlaylistName, setNewPlaylistName] = useState("")
 
   const position = useCallback(() => {
     const r = anchorRef.current?.getBoundingClientRect()
@@ -129,6 +134,10 @@ function PlaylistFilterDropdown({
     return () => window.removeEventListener("keydown", onKey)
   }, [open, onClose])
 
+  useEffect(() => {
+    if (!open) setNewPlaylistName("")
+  }, [open])
+
   if (!open || typeof document === "undefined") return null
 
   const style: CSSProperties = {
@@ -161,6 +170,58 @@ function PlaylistFilterDropdown({
       >
         All saved samples
       </button>
+      {isPro && userId ? (
+        <div className="p-2 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+          <p
+            className="px-1 pb-2"
+            style={{
+              fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
+              fontSize: "8px",
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "rgba(245,240,232,0.45)",
+            }}
+          >
+            New playlist
+          </p>
+          <div
+            className="flex rounded-full overflow-hidden border"
+            style={{ borderColor: "rgba(240,235,225,0.15)", background: "rgba(0,0,0,0.25)" }}
+          >
+            <input
+              type="text"
+              placeholder="Name"
+              value={newPlaylistName}
+              onChange={(e) => setNewPlaylistName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== "Enter") return
+                const pl = createPlaylist(userId, newPlaylistName)
+                if (pl) {
+                  setNewPlaylistName("")
+                  onClose()
+                }
+              }}
+              className="flex-1 min-w-0 bg-transparent px-3 py-2 text-sm outline-none placeholder:italic"
+              style={{ color: "#f5f0e8" }}
+            />
+            <button
+              type="button"
+              className="shrink-0 px-3 py-2 text-lg leading-none transition hover:bg-white/10"
+              style={{ borderLeft: "1px solid rgba(240,235,225,0.12)" }}
+              aria-label="Create playlist"
+              onClick={() => {
+                const pl = createPlaylist(userId, newPlaylistName)
+                if (pl) {
+                  setNewPlaylistName("")
+                  onClose()
+                }
+              }}
+            >
+              +
+            </button>
+          </div>
+        </div>
+      ) : null}
       {!isPro && (
         <div className="p-2 border-b" style={{ borderColor: "rgba(255,255,255,0.06)" }}>
           {onProUpgrade ? (
@@ -666,6 +727,7 @@ export default function SavedSamplesSidebar({
           if (activePlaylistId === id) setActivePlaylistId(null)
         }}
         isPro={hasProSubscription}
+        userId={userId}
         guestSignupHref="/register"
         onProUpgrade={session ? () => openProModal() : undefined}
       />

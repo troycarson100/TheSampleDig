@@ -22,8 +22,10 @@ export default function TryProOfferingBlock({
 
   const handleSubscribe = async () => {
     if (!session?.user?.id) {
-      const back = pathname && pathname.startsWith("/") ? pathname : "/pro"
-      router.push(`/login?callbackUrl=${encodeURIComponent(back)}`)
+      const base = pathname && pathname.startsWith("/") ? pathname : "/pro"
+      const join = base.includes("?") ? "&" : "?"
+      const next = `${base}${join}tryPro=1`
+      router.push(`/login?callbackUrl=${encodeURIComponent(next)}`)
       return
     }
     setError("")

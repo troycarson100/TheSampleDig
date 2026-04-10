@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation"
 import SessionProvider from "@/components/SessionProvider"
 import ConditionalFooter from "@/components/ConditionalFooter"
 import { GoProModalProvider } from "@/components/GoProModalContext"
+import TryProCheckoutResume from "@/components/TryProCheckoutResume"
 
 export default function RootBody({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -19,6 +20,7 @@ export default function RootBody({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
       <GoProModalProvider>
+        <TryProCheckoutResume />
         <div className="flex flex-col min-h-screen">
           {children}
           <ConditionalFooter />

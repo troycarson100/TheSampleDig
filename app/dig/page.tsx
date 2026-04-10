@@ -10,7 +10,7 @@ import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import SiteNav from "@/components/SiteNav"
 import DigHowToPopover from "@/components/DigHowToPopover"
 import DigFilterPanel from "@/components/DigFilterPanel"
-import { recordHistory, clearHistory } from "@/lib/dig-history"
+import { recordHistory, clearHistory, removeHistoryItem } from "@/lib/dig-history"
 import type { HistoryItem } from "@/lib/dig-history"
 import FeatureGateModal from "@/components/FeatureGateModal"
 import { DigAdSenseUnit } from "@/components/DigAdSenseUnit"
@@ -163,7 +163,12 @@ export default function DigPage() {
   useEffect(() => {
     videoErrorCallbackRef.current = () => {
       const s = sampleRef.current
-      if (s?.youtubeId) addSeenVideo(s.youtubeId)
+      if (s?.youtubeId) {
+        addSeenVideo(s.youtubeId)
+        // Sample was added to History when the roll loaded; remove if playback failed / auto-skipped
+        removeHistoryItem(s.youtubeId)
+        setSessionDigHistory((prev) => prev.filter((h) => h.youtubeId !== s.youtubeId))
+      }
       console.log("Video unavailable, fetching next sample...")
       handleDig()
     }

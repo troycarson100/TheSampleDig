@@ -40,7 +40,9 @@ export default function GoProModal({ open, onClose }: { open: boolean; onClose: 
       return
     }
     if (status !== "authenticated" || !session?.user?.id) {
-      const next = pathname || "/dig"
+      const base = pathname || "/dig"
+      const join = base.includes("?") ? "&" : "?"
+      const next = `${base}${join}tryPro=1`
       router.push(`/login?callbackUrl=${encodeURIComponent(next)}`)
       onClose()
       return

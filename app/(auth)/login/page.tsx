@@ -43,7 +43,19 @@ export default function LoginPage() {
           setError("Invalid email or password")
         }
       } else {
-        router.push("/dig")
+        const raw = searchParams.get("callbackUrl")
+        let next = "/dig"
+        if (raw) {
+          try {
+            const decoded = decodeURIComponent(raw)
+            if (decoded.startsWith("/") && !decoded.startsWith("//")) {
+              next = decoded
+            }
+          } catch {
+            /* ignore malformed callback */
+          }
+        }
+        router.push(next)
         router.refresh()
       }
     } catch {
