@@ -78,7 +78,7 @@ export const PRO_FEATURE_CARDS: { icon: ReactNode; title: string; desc: string }
   {
     icon: <IconChopMode />,
     title: "Chop Mode",
-    desc: "Map samples to your keyboard and chop in real time. Tap tempo, metronome overlay, and tools built for serious producers.",
+    desc: "Map samples to your QWERTY keyboard and chop in real time. Tap tempo, metronome overlay, and tools built for serious producers.",
   },
   {
     icon: <IconDrumBreak />,
