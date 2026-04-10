@@ -13,6 +13,9 @@ import { useSession } from "next-auth/react"
  *
  * Localhost Pro testing: set `DEV_PRO_EMAILS=you@example.com` in `.env.local`
  * (only applies when `NODE_ENV=development`; production builds ignore it).
+ *
+ * Server env `COMPLIMENTARY_PRO_EMAILS` (comma-separated) grants Pro without Stripe for those
+ * accounts — `session.user.isPro` is set in `lib/auth.ts` (restart server after changing).
  */
 const REQUIRE_PRO =
   String(process.env.NEXT_PUBLIC_REQUIRE_PRO_SUBSCRIPTION ?? "").toLowerCase() === "true"

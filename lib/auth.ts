@@ -18,6 +18,17 @@ function parseDevProEmails(): Set<string> {
   )
 }
 
+/** Comma-separated emails that always get Pro in session (no Stripe). Set `COMPLIMENTARY_PRO_EMAILS` on the server. */
+function parseComplimentaryProEmails(): Set<string> {
+  const raw = process.env.COMPLIMENTARY_PRO_EMAILS ?? ""
+  return new Set(
+    raw
+      .split(",")
+      .map((e) => e.trim().toLowerCase())
+      .filter(Boolean)
+  )
+}
+
 async function refreshUserTokenFields(
   userId: string,
   email: string
@@ -51,6 +62,9 @@ async function refreshUserTokenFields(
     subscriptionStatus === "past_due" ||
     subscriptionStatus === "paused"
   let isProResolved = isPro
+  if (parseComplimentaryProEmails().has(normalized)) {
+    isProResolved = true
+  }
   if (process.env.NODE_ENV === "development" && parseDevProEmails().has(normalized)) {
     isProResolved = true
   }
