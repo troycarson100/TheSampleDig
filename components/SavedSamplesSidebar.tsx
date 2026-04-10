@@ -1,8 +1,19 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useMemo, useRef, useCallback, type CSSProperties } from "react"
+import { createPortal } from "react-dom"
 import { useSession } from "next-auth/react"
 import HeartToggle from "./HeartToggle"
+import CrateTrackActionsMenu from "./CrateTrackActionsMenu"
+import { getHistory, clearHistory, timeAgo, removeHistoryItem, type HistoryItem } from "@/lib/dig-history"
+import {
+  getPlaylists,
+  deletePlaylist,
+  pruneYoutubeFromAllPlaylists,
+  removeYoutubeFromPlaylist,
+  type UserPlaylist,
+} from "@/lib/user-playlists"
+import { useIsPro } from "@/hooks/useIsPro"
 
 interface SavedSample {
   id: string
@@ -21,195 +32,624 @@ interface SavedSample {
   chops?: { key: string; time: number; color: string; index: number }[]
   loop?: { sequence: { key: string; timeMs: number }[]; loopStartMs: number; loopEndMs: number; fullLengthMs?: number }
   notes?: string | null
-  /** User-overridden BPM stored in notes (overrides sample.bpm when set). */
   bpmOverride?: number | null
 }
 
 interface SavedSamplesSidebarProps {
   onSampleClick?: (sample: SavedSample) => void
+  onHistoryItemClick?: (item: HistoryItem) => void
   currentSampleId?: string
 }
 
-export default function SavedSamplesSidebar({
-  onSampleClick,
-  currentSampleId,
-}: SavedSamplesSidebarProps) {
-  const { data: session } = useSession()
-  const [samples, setSamples] = useState<SavedSample[]>([])
-  const [loading, setLoading] = useState(true)
+type Tab = "crate" | "history"
+
+function formatTimestamp(seconds?: number): string {
+  if (!seconds) return ""
+  const mins = Math.floor(seconds / 60)
+  const secs = seconds % 60
+  return `${mins}:${secs.toString().padStart(2, "0")}`
+}
+
+const DROPDOWN_W = 220
+
+function PlaylistFilterDropdown({
+  open,
+  onClose,
+  anchorRef,
+  playlists,
+  activePlaylistId,
+  onSelectAll,
+  onSelectPlaylist,
+  onDeletePlaylist,
+  isPro,
+}: {
+  open: boolean
+  onClose: () => void
+  anchorRef: React.RefObject<HTMLButtonElement | null>
+  playlists: UserPlaylist[]
+  activePlaylistId: string | null
+  onSelectAll: () => void
+  onSelectPlaylist: (id: string) => void
+  onDeletePlaylist: (id: string) => void
+  isPro: boolean
+}) {
+  const panelRef = useRef<HTMLDivElement>(null)
+  const [pos, setPos] = useState({ top: 0, left: 0 })
+
+  const position = useCallback(() => {
+    const r = anchorRef.current?.getBoundingClientRect()
+    if (!r) return
+    let left = r.left
+    left = Math.max(8, Math.min(left, window.innerWidth - DROPDOWN_W - 8))
+    setPos({ top: r.bottom + 6, left })
+  }, [anchorRef])
 
   useEffect(() => {
-    if (session) {
-      fetchSavedSamples()
-    } else {
-      setSamples([])
-      setLoading(false)
+    if (!open) return
+    position()
+    const onScroll = () => position()
+    window.addEventListener("scroll", onScroll, true)
+    window.addEventListener("resize", position)
+    return () => {
+      window.removeEventListener("scroll", onScroll, true)
+      window.removeEventListener("resize", position)
     }
-  }, [session])
+  }, [open, position])
 
-  // Listen for sample updates
   useEffect(() => {
-    const handleUpdate = () => {
-      if (session) {
-        fetchSavedSamples()
-      }
+    if (!open) return
+    const onDown = (e: MouseEvent) => {
+      const t = e.target as Node
+      if (anchorRef.current?.contains(t)) return
+      if (panelRef.current?.contains(t)) return
+      onClose()
     }
-    window.addEventListener('samplesUpdated', handleUpdate)
-    return () => window.removeEventListener('samplesUpdated', handleUpdate)
-  }, [session])
+    document.addEventListener("mousedown", onDown)
+    return () => document.removeEventListener("mousedown", onDown)
+  }, [open, onClose, anchorRef])
 
-  const fetchSavedSamples = async () => {
-    try {
-      const response = await fetch("/api/samples/saved")
-      if (response.ok) {
-        const data = await response.json()
-        setSamples(data)
-      }
-    } catch (error) {
-      console.error("Error fetching saved samples:", error)
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose()
     }
+    window.addEventListener("keydown", onKey)
+    return () => window.removeEventListener("keydown", onKey)
+  }, [open, onClose])
+
+  if (!open || typeof document === "undefined") return null
+
+  const style: CSSProperties = {
+    position: "fixed",
+    top: pos.top,
+    left: pos.left,
+    width: DROPDOWN_W,
+    zIndex: 4990,
+    background: "rgba(14, 12, 10, 0.98)",
+    border: "1px solid rgba(240, 235, 225, 0.12)",
+    borderRadius: 12,
+    boxShadow: "0 12px 40px rgba(0,0,0,0.45)",
+    maxHeight: "min(320px, 70vh)",
+    overflow: "auto",
+    fontFamily: "var(--font-geist-sans), system-ui, sans-serif",
   }
 
-  const handleUnsave = async (sampleId: string) => {
-    try {
-      const response = await fetch("/api/samples/unsave", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sampleId }),
-      })
-
-      if (response.ok) {
-        setSamples(samples.filter((s) => s.id !== sampleId))
-        // Notify other components
-        window.dispatchEvent(new CustomEvent('samplesUpdated'))
-      }
-    } catch (error) {
-      console.error("Error unsaving sample:", error)
-    }
-  }
-
-  const formatTimestamp = (seconds?: number): string => {
-    if (!seconds) return ""
-    const mins = Math.floor(seconds / 60)
-    const secs = seconds % 60
-    return `${mins}:${secs.toString().padStart(2, "0")}`
-  }
-
-  if (!session) {
-    return null
-  }
-
-  const SidebarHeader = ({ count }: { count: number }) => (
-    <header className="samples-panel-header flex items-center justify-between w-full max-w-full box-border px-5 py-5">
-      <h2 className="sidebar-title uppercase text-white text-lg tracking-widest font-normal shrink-0">
-        My Samples
-      </h2>
-      <span className="sidebar-count text-[10px] tracking-wide text-white/60 shrink-0 tabular-nums">
-        {count} saved
-      </span>
-    </header>
-  )
-
-  if (loading) {
-    return (
-      <div className="h-full min-h-0 flex flex-col">
-        <SidebarHeader count={0} />
-        <div className="samples-list-inner flex-1 px-4 pb-4">
-          <div className="text-sm pt-4 text-white" style={{ fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>Loading...</div>
+  return createPortal(
+    <div ref={panelRef} style={style} role="listbox" aria-label="Filter by playlist">
+      <button
+        type="button"
+        role="option"
+        aria-selected={activePlaylistId === null}
+        className="w-full text-left px-3 py-2.5 text-sm transition hover:bg-white/5 border-b"
+        style={{ color: "#f5f0e8", borderColor: "rgba(255,255,255,0.06)" }}
+        onClick={() => {
+          onSelectAll()
+          onClose()
+        }}
+      >
+        All saved samples
+      </button>
+      {!isPro && (
+        <div className="px-3 py-2 text-[10px] uppercase tracking-wider" style={{ color: "rgba(245,240,232,0.4)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}>
+          Playlists — Pro
         </div>
-      </div>
-    )
-  }
-
-  if (samples.length === 0) {
-    return (
-      <div className="h-full min-h-0 flex flex-col">
-        <SidebarHeader count={0} />
-        <div className="samples-list-inner flex-1 px-4 pb-4">
-          <div className="text-sm text-center py-8 text-white" style={{ fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>
-            No saved samples yet
+      )}
+      {isPro &&
+        playlists.map((pl) => (
+          <div
+            key={pl.id}
+            className="flex items-center gap-1 border-b last:border-0"
+            style={{ borderColor: "rgba(255,255,255,0.06)" }}
+          >
+            <button
+              type="button"
+              role="option"
+              aria-selected={activePlaylistId === pl.id}
+              className="flex-1 min-w-0 text-left px-3 py-2.5 text-sm truncate transition hover:bg-white/5"
+              style={{ color: "#f5f0e8" }}
+              onClick={() => {
+                onSelectPlaylist(pl.id)
+                onClose()
+              }}
+            >
+              {pl.name}
+              <span className="text-[10px] tabular-nums opacity-40 ml-1">({pl.youtubeIds.length})</span>
+            </button>
+            <button
+              type="button"
+              className="shrink-0 px-2 py-2 text-xs opacity-40 hover:opacity-100 hover:text-red-300"
+              aria-label={`Delete playlist ${pl.name}`}
+              onClick={(e) => {
+                e.stopPropagation()
+                onDeletePlaylist(pl.id)
+              }}
+            >
+              ×
+            </button>
           </div>
-        </div>
+        ))}
+    </div>,
+    document.body
+  )
+}
+
+function TabBar({
+  active,
+  onSelect,
+  crateCount,
+  playlistChevronRef,
+  onPlaylistChevronClick,
+  playlistDropdownOpen,
+}: {
+  active: Tab
+  onSelect: (t: Tab) => void
+  crateCount: number
+  playlistChevronRef: React.RefObject<HTMLButtonElement | null>
+  onPlaylistChevronClick: () => void
+  playlistDropdownOpen: boolean
+}) {
+  return (
+    <div
+      className="flex items-stretch border-b shrink-0"
+      style={{ borderColor: "rgba(255,255,255,0.08)" }}
+    >
+      {(["crate", "history"] as Tab[]).map((tab) => {
+        const isActive = active === tab
+        const label = tab === "crate" ? "My Crate" : "History"
+        const badge = tab === "crate" && crateCount > 0 ? crateCount : null
+        return (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => onSelect(tab)}
+            className="flex-1 flex items-center justify-center gap-1 py-4 text-center transition-colors relative"
+            style={{
+              fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace",
+              fontSize: "9px",
+              fontWeight: 700,
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
+              background: "transparent",
+              border: "none",
+              cursor: "pointer",
+            }}
+          >
+            <span className="inline-flex items-center gap-0.5">
+              {label}
+              {tab === "crate" && isActive && (
+                <button
+                  ref={playlistChevronRef}
+                  type="button"
+                  className="p-0.5 rounded hover:bg-white/10 transition inline-flex"
+                  style={{ color: playlistDropdownOpen ? "var(--primary)" : "rgba(255,255,255,0.45)" }}
+                  aria-label="Playlists"
+                  aria-expanded={playlistDropdownOpen}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onPlaylistChevronClick()
+                  }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden>
+                    <path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" />
+                  </svg>
+                </button>
+              )}
+            </span>
+            {badge !== null && (
+              <span
+                className="inline-flex items-center justify-center rounded-full tabular-nums"
+                style={{
+                  minWidth: 16,
+                  height: 16,
+                  padding: "0 4px",
+                  fontSize: "8px",
+                  fontWeight: 700,
+                  background: isActive ? "rgba(255,255,255,0.15)" : "rgba(255,255,255,0.07)",
+                  color: isActive ? "#fff" : "rgba(255,255,255,0.4)",
+                }}
+              >
+                {badge}
+              </span>
+            )}
+            {isActive && (
+              <span
+                className="absolute bottom-0 left-4 right-4 rounded-t-full"
+                style={{ height: 2, background: "var(--primary, #fff)" }}
+              />
+            )}
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
+function HistoryList({
+  onItemClick,
+  userId,
+  isPro,
+}: {
+  onItemClick?: (item: HistoryItem) => void
+  userId: string
+  isPro: boolean
+}) {
+  const [items, setItems] = useState<HistoryItem[]>([])
+  const [, setTick] = useState(0)
+
+  const load = () => setItems(getHistory())
+
+  useEffect(() => {
+    load()
+    window.addEventListener("digHistoryUpdated", load)
+    return () => window.removeEventListener("digHistoryUpdated", load)
+  }, [])
+
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 60_000)
+    return () => clearInterval(id)
+  }, [])
+
+  if (items.length === 0) {
+    return (
+      <div className="flex-1 flex flex-col items-center justify-center py-10 px-4 text-center">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "rgba(255,255,255,0.2)", marginBottom: 10 }} aria-hidden>
+          <circle cx="12" cy="12" r="10" />
+          <polyline points="12 6 12 12 16 14" />
+        </svg>
+        <p style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "10px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>
+          No history yet
+        </p>
+        <p style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", color: "rgba(255,255,255,0.2)", marginTop: 4 }}>
+          Roll the dice to discover samples
+        </p>
       </div>
     )
   }
 
   return (
-    <div className="h-full min-h-0 flex flex-col">
-      <SidebarHeader count={samples.length} />
-      <div className="samples-list-inner flex-1 min-h-0 pl-5 pr-4 pb-4">
-        <div>
-          {samples.map((sample, index) => (
-            <div key={sample.id}>
-              <div
-                className={`sample-card group relative cursor-pointer transition-all duration-200 ${
-                  currentSampleId === sample.id ? "opacity-100" : "opacity-90 hover:opacity-100"
-                }`}
-                onClick={() => onSampleClick?.(sample)}
-              >
-                <h3 className="sample-title text-sm font-medium mb-2 line-clamp-2 text-white">
-                  {sample.title}
-                </h3>
-                <div className="sample-thumb relative aspect-video w-full rounded-xl overflow-hidden bg-black/10">
-                  <img src={sample.thumbnailUrl} alt={sample.title} className="w-full h-full object-cover" />
-                  {sample.startTime && (
-                    <div className="absolute bottom-2 right-2 bg-black/70 text-white px-2 py-1 rounded text-xs font-mono">
-                      {formatTimestamp(sample.startTime)}
-                    </div>
-                  )}
-                  <div
-                    className="absolute top-2 right-2"
-                    onClick={(e) => { e.stopPropagation(); handleUnsave(sample.id) }}
+    <div className="flex-1 min-h-0 overflow-y-auto">
+      <div className="flex items-center justify-between px-5 pt-4 pb-1">
+        <span style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", letterSpacing: "0.12em", color: "rgba(255,255,255,0.35)" }}>
+          {items.length} tracks
+        </span>
+        <button
+          type="button"
+          onClick={() => { clearHistory(); setItems([]) }}
+          className="transition hover:opacity-80"
+          style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.3)", background: "none", border: "none", cursor: "pointer" }}
+        >
+          Clear
+        </button>
+      </div>
+      <div className="pl-5 pr-4 pb-4">
+        {items.map((item, index) => (
+          <div key={`${item.youtubeId}-${item.viewedAt}`}>
+            <div className="group py-3 transition-opacity duration-150 hover:opacity-90">
+              <div className="flex gap-3 items-start">
+                <div
+                  className="relative shrink-0 rounded-md overflow-hidden bg-black/20 cursor-pointer"
+                  style={{ width: 56, height: 42 }}
+                  onClick={() => onItemClick?.(item)}
+                >
+                  <img src={item.thumbnailUrl} alt={item.title} className="w-full h-full object-cover" loading="lazy" />
+                </div>
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => onItemClick?.(item)}>
+                  <p
+                    className="text-white line-clamp-2 leading-snug mb-1"
+                    style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif", fontSize: "11px", fontWeight: 500 }}
                   >
-                    <HeartToggle isSaved={true} onToggle={() => handleUnsave(sample.id)} size="sm" className="bg-white/90 rounded-full p-1 shadow-sm" />
+                    {item.title}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {item.genre && (
+                      <span
+                        className="rounded"
+                        style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "8px", letterSpacing: "0.08em", textTransform: "uppercase", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", padding: "2px 5px" }}
+                      >
+                        {item.genre}
+                      </span>
+                    )}
+                    {item.bpm != null && (
+                      <span className="rounded font-mono" style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "8px", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", padding: "2px 5px" }}>
+                        {item.bpm} BPM
+                      </span>
+                    )}
+                    {item.key && (
+                      <span className="rounded font-mono" style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "8px", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", padding: "2px 5px" }}>
+                        {item.key}
+                      </span>
+                    )}
+                    <span style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "8px", color: "rgba(255,255,255,0.25)" }}>
+                      {timeAgo(item.viewedAt)}
+                    </span>
                   </div>
-                  {(sample.genre || sample.bpm != null || sample.key || (sample.notes != null && sample.notes.trim() !== "")) && (
-                    <div className="sample-meta absolute bottom-2 left-2 right-12 flex flex-wrap gap-1 items-center">
-                      {sample.genre && (
-                        <span className="bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-medium">
-                          {sample.genre}
-                        </span>
-                      )}
-                      {sample.bpm != null && (
-                        <span className="sample-bpm bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-mono">
-                          {sample.bpm} BPM
-                        </span>
-                      )}
-                      {sample.key && (
-                        <span className="bg-black/70 text-white px-1.5 py-0.5 rounded text-[10px] font-mono">
-                          {sample.key}
-                        </span>
-                      )}
-                      {sample.notes != null && sample.notes.trim() !== "" && (
-                        <span
-                          className="inline-flex items-center justify-center w-6 h-5 bg-black/70 text-white rounded text-[10px]"
-                          title="Has note"
-                          aria-label="Has note"
-                        >
-                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                            <polyline points="14 2 14 8 20 8" />
-                            <line x1="16" y1="13" x2="8" y2="13" />
-                            <line x1="16" y1="17" x2="8" y2="17" />
-                            <line x1="10" y1="9" x2="8" y2="9" />
-                          </svg>
-                        </span>
-                      )}
-                    </div>
-                  )}
+                </div>
+                <div className="shrink-0 flex flex-col items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                  <CrateTrackActionsMenu
+                    userId={userId}
+                    youtubeId={item.youtubeId}
+                    isPro={isPro}
+                    removeLabel="Remove from history"
+                    onRemove={() => removeHistoryItem(item.youtubeId)}
+                  />
                 </div>
               </div>
-              {index < samples.length - 1 && (
-                <div className="py-3 flex flex-col">
-                  <div className="border-t w-full" style={{ borderColor: "#393734" }} />
-                </div>
-              )}
             </div>
-          ))}
-        </div>
+            {index < items.length - 1 && (
+              <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.05)" }} />
+            )}
+          </div>
+        ))}
       </div>
+    </div>
+  )
+}
+
+export default function SavedSamplesSidebar({
+  onSampleClick,
+  onHistoryItemClick,
+  currentSampleId,
+}: SavedSamplesSidebarProps) {
+  const { data: session } = useSession()
+  const isPro = useIsPro()
+  const userId = session?.user?.id ?? ""
+
+  const [activeTab, setActiveTab] = useState<Tab>("crate")
+  const [samples, setSamples] = useState<SavedSample[]>([])
+  const [loading, setLoading] = useState(true)
+  const [playlists, setPlaylists] = useState<UserPlaylist[]>([])
+  const [activePlaylistId, setActivePlaylistId] = useState<string | null>(null)
+  const [playlistDropdownOpen, setPlaylistDropdownOpen] = useState(false)
+  const playlistChevronRef = useRef<HTMLButtonElement>(null)
+
+  const refreshPlaylists = useCallback(() => {
+    if (userId) setPlaylists(getPlaylists(userId))
+  }, [userId])
+
+  useEffect(() => {
+    refreshPlaylists()
+    window.addEventListener("userPlaylistsUpdated", refreshPlaylists)
+    return () => window.removeEventListener("userPlaylistsUpdated", refreshPlaylists)
+  }, [refreshPlaylists])
+
+  useEffect(() => {
+    if (session) fetchSavedSamples()
+    else {
+      setSamples([])
+      setLoading(false)
+    }
+  }, [session])
+
+  useEffect(() => {
+    const handle = () => {
+      if (session) fetchSavedSamples()
+    }
+    window.addEventListener("samplesUpdated", handle)
+    return () => window.removeEventListener("samplesUpdated", handle)
+  }, [session])
+
+  const fetchSavedSamples = async () => {
+    try {
+      const response = await fetch("/api/samples/saved")
+      if (response.ok) setSamples(await response.json())
+    } catch {}
+    finally {
+      setLoading(false)
+    }
+  }
+
+  const handleUnsave = async (sample: SavedSample) => {
+    try {
+      const response = await fetch("/api/samples/unsave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sampleId: sample.id }),
+      })
+      if (response.ok) {
+        if (userId) pruneYoutubeFromAllPlaylists(userId, sample.youtubeId)
+        setSamples((prev) => prev.filter((s) => s.id !== sample.id))
+        window.dispatchEvent(new CustomEvent("samplesUpdated"))
+      }
+    } catch {}
+  }
+
+  const displayedCrateSamples = useMemo(() => {
+    if (!activePlaylistId) return samples
+    const pl = playlists.find((p) => p.id === activePlaylistId)
+    if (!pl) return samples
+    return samples.filter((s) => pl.youtubeIds.includes(s.youtubeId))
+  }, [samples, activePlaylistId, playlists])
+
+  const activePlaylistName = useMemo(() => {
+    if (!activePlaylistId) return null
+    return playlists.find((p) => p.id === activePlaylistId)?.name ?? null
+  }, [activePlaylistId, playlists])
+
+  if (!session) return null
+
+  const crateCount = samples.length
+
+  return (
+    <div className="h-full min-h-0 flex flex-col">
+      <TabBar
+        active={activeTab}
+        onSelect={(t) => {
+          setActiveTab(t)
+          setPlaylistDropdownOpen(false)
+        }}
+        crateCount={crateCount}
+        playlistChevronRef={playlistChevronRef}
+        onPlaylistChevronClick={() => setPlaylistDropdownOpen((o) => !o)}
+        playlistDropdownOpen={playlistDropdownOpen}
+      />
+
+      <PlaylistFilterDropdown
+        open={playlistDropdownOpen && activeTab === "crate"}
+        onClose={() => setPlaylistDropdownOpen(false)}
+        anchorRef={playlistChevronRef}
+        playlists={playlists}
+        activePlaylistId={activePlaylistId}
+        onSelectAll={() => setActivePlaylistId(null)}
+        onSelectPlaylist={(id) => setActivePlaylistId(id)}
+        onDeletePlaylist={(id) => {
+          if (userId) deletePlaylist(userId, id)
+          if (activePlaylistId === id) setActivePlaylistId(null)
+        }}
+        isPro={isPro}
+      />
+
+      {activeTab === "crate" && activePlaylistId && activePlaylistName && (
+        <div
+          className="flex items-center justify-between px-4 py-2 shrink-0 border-b"
+          style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.2)" }}
+        >
+          <span
+            className="text-[10px] uppercase tracking-wider truncate pr-2"
+            style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", color: "rgba(245,240,232,0.75)" }}
+          >
+            {activePlaylistName}
+            <span className="opacity-50 ml-1">({displayedCrateSamples.length})</span>
+          </span>
+          <button
+            type="button"
+            className="text-[10px] uppercase shrink-0 hover:opacity-80"
+            style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", color: "rgba(245,240,232,0.45)" }}
+            onClick={() => setActivePlaylistId(null)}
+          >
+            Show all
+          </button>
+        </div>
+      )}
+
+      {activeTab === "crate" && (
+        <>
+          {loading ? (
+            <div className="flex-1 px-5 pt-5">
+              <p style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "10px", color: "rgba(255,255,255,0.4)" }}>
+                Loading...
+              </p>
+            </div>
+          ) : samples.length === 0 ? (
+            <div className="flex-1 flex flex-col items-center justify-center py-10 px-4 text-center">
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "rgba(255,255,255,0.2)", marginBottom: 10 }} aria-hidden>
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <p style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "10px", letterSpacing: "0.1em", color: "rgba(255,255,255,0.35)" }}>
+                No saved samples yet
+              </p>
+            </div>
+          ) : displayedCrateSamples.length === 0 ? (
+            <div className="flex-1 px-5 py-8 text-center">
+              <p style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "10px", color: "rgba(255,255,255,0.35)" }}>
+                No tracks in this playlist yet.
+              </p>
+            </div>
+          ) : (
+            <div className="flex-1 min-h-0 overflow-y-auto pl-5 pr-4 pb-4 pt-3">
+              {displayedCrateSamples.map((sample, index) => (
+                <div key={sample.id}>
+                  <div
+                    className={`group cursor-pointer py-3 transition-opacity duration-150 ${
+                      currentSampleId === sample.id ? "opacity-100" : "opacity-80 hover:opacity-100"
+                    }`}
+                    onClick={() => onSampleClick?.(sample)}
+                  >
+                    <div className="flex gap-3 items-start">
+                      <div className="relative shrink-0 rounded-md overflow-hidden bg-black/20" style={{ width: 56, height: 42 }}>
+                        <img src={sample.thumbnailUrl} alt={sample.title} className="w-full h-full object-cover" loading="lazy" />
+                        {sample.startTime && (
+                          <div className="absolute bottom-0 right-0 bg-black/70 text-white px-1 rounded-tl text-[8px] font-mono leading-tight py-0.5">
+                            {formatTimestamp(sample.startTime)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p
+                          className="text-white line-clamp-2 leading-snug mb-1"
+                          style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif", fontSize: "11px", fontWeight: 500 }}
+                        >
+                          {sample.title}
+                        </p>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          {sample.genre && (
+                            <span className="rounded" style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "8px", letterSpacing: "0.08em", textTransform: "uppercase", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", padding: "2px 5px" }}>
+                              {sample.genre}
+                            </span>
+                          )}
+                          {sample.bpm != null && (
+                            <span className="rounded" style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "8px", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", padding: "2px 5px" }}>
+                              {sample.bpm} BPM
+                            </span>
+                          )}
+                          {sample.key && (
+                            <span className="rounded" style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "8px", background: "rgba(255,255,255,0.08)", color: "rgba(255,255,255,0.5)", padding: "2px 5px" }}>
+                              {sample.key}
+                            </span>
+                          )}
+                          {sample.notes != null && sample.notes.trim() !== "" && (
+                            <span className="inline-flex items-center justify-center rounded" style={{ width: 18, height: 16, background: "rgba(255,255,255,0.08)" }} title="Has note" aria-label="Has note">
+                              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                                <polyline points="14 2 14 8 20 8" />
+                                <line x1="16" y1="13" x2="8" y2="13" />
+                                <line x1="16" y1="17" x2="8" y2="17" />
+                              </svg>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="shrink-0 flex flex-col items-center gap-0.5" onClick={(e) => e.stopPropagation()}>
+                        <HeartToggle isSaved={true} onToggle={() => handleUnsave(sample)} size="sm" className="opacity-70 hover:opacity-100 transition-opacity" />
+                        <CrateTrackActionsMenu
+                          userId={userId}
+                          youtubeId={sample.youtubeId}
+                          isPro={isPro}
+                          removeLabel={activePlaylistId ? "Remove from playlist" : "Remove from crate"}
+                          onRemove={() => {
+                            if (activePlaylistId && userId) {
+                              removeYoutubeFromPlaylist(userId, activePlaylistId, sample.youtubeId)
+                            } else {
+                              void handleUnsave(sample)
+                            }
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  {index < displayedCrateSamples.length - 1 && (
+                    <div className="border-t" style={{ borderColor: "rgba(255,255,255,0.05)" }} />
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {activeTab === "history" && (
+        <HistoryList onItemClick={onHistoryItemClick} userId={userId} isPro={isPro} />
+      )}
     </div>
   )
 }

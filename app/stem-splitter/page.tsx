@@ -1546,7 +1546,7 @@ export default function StemSplitterPage() {
             </div>
             <div className="flex flex-wrap gap-6 text-sm stem-page-desc">
               <a href="/dig" className="hover:underline">Dig</a>
-              <a href="/profile" className="hover:underline">My Saved Samples</a>
+              <a href="/profile" className="hover:underline">My Crate</a>
               <a href="/stem-splitter" className="hover:underline">Stem Splitter</a>
             </div>
           </div>

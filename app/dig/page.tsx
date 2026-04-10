@@ -10,6 +10,8 @@ import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import SiteNav from "@/components/SiteNav"
 import DigHowToPopover from "@/components/DigHowToPopover"
 import DigFilterPanel from "@/components/DigFilterPanel"
+import { recordHistory } from "@/lib/dig-history"
+import type { HistoryItem } from "@/lib/dig-history"
 // import BeatsPanel from "@/components/BeatsPanel" // Beat loop section commented out for now
 
 /** Label maps for display; used for both static fallback and dynamic options from API */
@@ -384,7 +386,16 @@ export default function DigPage() {
       }
       console.log('Sample loaded:', newSample)
       setSample(newSample)
-      
+      recordHistory({
+        youtubeId: newSample.youtubeId,
+        title: newSample.title,
+        channel: newSample.channel,
+        thumbnailUrl: newSample.thumbnailUrl,
+        genre: newSample.genre,
+        bpm: newSample.bpm,
+        key: newSample.key,
+      })
+
       // Check if sample is already saved (only if logged in)
       if (data.id && status === "authenticated") {
         const checkResponse = await fetch(`/api/samples/check?sampleId=${data.id}`)
@@ -755,11 +766,7 @@ export default function DigPage() {
               <div className="sidebar-dark flex flex-col min-h-0 overflow-hidden rounded-lg">
                 <SavedSamplesSidebar
                   onSampleClick={(savedSample) => {
-                    // Save current sample as previous before loading new one
-                    if (sample) {
-                      setPreviousSample(sample)
-                    }
-                    // Load the saved sample as the current sample (with saved chops and duration if any)
+                    if (sample) setPreviousSample(sample)
                     setSample({
                       id: savedSample.id,
                       youtubeId: savedSample.youtubeId,
@@ -779,8 +786,22 @@ export default function DigPage() {
                       bpmOverride: savedSample.bpmOverride,
                     })
                     setIsSaved(true)
-                    // Add to seen list to prevent it from showing again when rolling dice
                     addSeenVideo(savedSample.youtubeId)
+                  }}
+                  onHistoryItemClick={(item: HistoryItem) => {
+                    if (sample) setPreviousSample(sample)
+                    setSample({
+                      id: undefined as any,
+                      youtubeId: item.youtubeId,
+                      title: item.title,
+                      channel: item.channel,
+                      thumbnailUrl: item.thumbnailUrl,
+                      genre: item.genre,
+                      bpm: item.bpm,
+                      key: item.key,
+                    })
+                    setIsSaved(false)
+                    addSeenVideo(item.youtubeId)
                   }}
                   currentSampleId={sample?.id}
                 />
@@ -798,7 +819,7 @@ export default function DigPage() {
             </div>
             <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace" }}>
               <a href="/dig" className="hover:text-[var(--foreground)] transition">Dig</a>
-              <a href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</a>
+              <a href="/profile" className="hover:text-[var(--foreground)] transition">My Crate</a>
               <a href="/blog" className="hover:text-[var(--foreground)] transition">Blog</a>
               <a href="/about" className="hover:text-[var(--foreground)] transition">About</a>
               <a href="/login" className="hover:text-[var(--foreground)] transition">Login</a>

@@ -182,7 +182,7 @@ export default function ProfilePage() {
         </header>
         <div className="profile-page-wrap">
           <div className="flex flex-col items-center justify-center text-center py-16 px-4">
-            <h1 className="profile-title uppercase mb-2">My Samples</h1>
+            <h1 className="profile-title uppercase mb-2">My Crate</h1>
             <p className="profile-count mb-6" style={{ color: "var(--muted)" }}>
               Sign up for free to save samples. Log in to see your saved samples.
             </p>
@@ -203,7 +203,7 @@ export default function ProfilePage() {
       </header>
       <div className="profile-page-wrap">
         <div className="pt-2 pb-4">
-          <h1 className="profile-title uppercase">My Saved Samples</h1>
+          <h1 className="profile-title uppercase">My Crate</h1>
           <p className="profile-count">{samples.length} {samples.length === 1 ? "sample" : "samples"} saved</p>
         </div>
 
@@ -355,7 +355,7 @@ export default function ProfilePage() {
             </div>
             <div className="flex flex-wrap gap-6 text-sm" style={{ color: "var(--muted)" }}>
               <Link href="/dig" className="hover:text-[var(--foreground)] transition">Dig</Link>
-              <Link href="/profile" className="hover:text-[var(--foreground)] transition">My Samples</Link>
+              <Link href="/profile" className="hover:text-[var(--foreground)] transition">My Crate</Link>
               <Link href="/blog" className="hover:text-[var(--foreground)] transition">Blog</Link>
               <Link href="/login" className="hover:text-[var(--foreground)] transition">Login</Link>
             </div>

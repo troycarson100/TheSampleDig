@@ -1744,7 +1744,7 @@ function SamplePlayer({
             </div>
           )}
         </div>
-        <div className="flex flex-col items-end gap-2 shrink-0" style={{ color: "var(--foreground)" }}>
+        <div className="hidden sm:flex flex-col items-end gap-2 shrink-0" style={{ color: "var(--foreground)" }}>
           <div className="flex items-center gap-3">
             <span className="text-sm font-medium">Tap tempo</span>
             <button
@@ -1815,7 +1815,7 @@ function SamplePlayer({
 
       {/* Chop Mode: focus trap so chop keys (A–L) work after playing from iframe; clicking this area refocuses the page */}
       <div
-        className="mt-4 flex flex-col gap-3"
+        className={`mt-4 flex flex-col gap-3${isMobile ? " hidden" : ""}`}
         onMouseDown={() => chopKeysFocusTrapRef.current?.focus({ preventScroll: true })}
       >
         <div
@@ -1825,9 +1825,7 @@ function SamplePlayer({
           aria-label="Focus for chop keys"
         />
         <div className="chop-row flex flex-col lg:flex-row lg:items-center gap-3 lg:gap-8">
-          {isMobile ? (
-            <span className="text-sm" style={{ color: "var(--muted)" }}>Chop mode not available on mobile</span>
-          ) : (
+          {!isMobile && (
           <>
           <label className="flex items-center gap-2 cursor-pointer shrink-0">
             <span className="text-sm font-medium toggle-label" style={{ color: "var(--foreground)" }}>Chop Mode</span>

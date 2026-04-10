@@ -95,7 +95,7 @@ export default function SiteNav() {
           </Link> */}
           {session && (
             <Link href="/profile" className={`${navLinkBase} ${isActive("/profile") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/profile" ? "page" : undefined}>
-              My Samples
+              My Crate
             </Link>
           )}
         </div>
@@ -193,7 +193,7 @@ export default function SiteNav() {
                 onClick={closeMenu}
                 aria-current={pathname === "/profile" ? "page" : undefined}
               >
-                My Samples
+                My Crate
               </Link>
             )}
           </div>
