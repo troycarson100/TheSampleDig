@@ -93,7 +93,11 @@ export const authOptions = {
       if (user) {
         token.id = user.id
         token.email = user.email
-        token.isPro = await resolveIsPro(String(user.id), String(user.email ?? ""))
+      }
+      // Refresh Pro status on every request so JWT matches DB (subscription changes, first load after deploy).
+      const uid = token.id != null ? String(token.id) : token.sub != null ? String(token.sub) : ""
+      if (uid) {
+        token.isPro = await resolveIsPro(uid, String(token.email ?? ""))
       }
       return token
     },

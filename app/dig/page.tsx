@@ -647,14 +647,20 @@ export default function DigPage() {
     }
   }, [])
 
+  /** Session-backed Pro subscription — hide all AdSense UI + script (not useIsPro() env bypass). */
+  const isProSubscriber = session?.user?.isPro === true
+  const showDigAds = !isProSubscriber
+
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
-      <Script
-        id="adsense-dig-loader"
-        strategy="afterInteractive"
-        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7744671172843728"
-        crossOrigin="anonymous"
-      />
+      {showDigAds ? (
+        <Script
+          id="adsense-dig-loader"
+          strategy="afterInteractive"
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7744671172843728"
+          crossOrigin="anonymous"
+        />
+      ) : null}
       <header className="site-header w-full">
         <SiteNav />
       </header>
@@ -685,7 +691,11 @@ export default function DigPage() {
 
       <div
         className="dig-page-wrap"
-        style={{ paddingBottom: "max(6rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)))" }}
+        style={
+          showDigAds
+            ? { paddingBottom: "max(6rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)))" }
+            : undefined
+        }
       >
         <div className="dig-app-grid flex flex-col md:grid md:grid-cols-[1fr_280px] dig-lg:grid-cols-[1fr_340px] gap-3 md:gap-6 items-start">
           <div className="max-md:flex-none md:flex-1 min-w-0 dig-col lg:min-w-0 w-full max-w-4xl">
@@ -782,8 +792,12 @@ export default function DigPage() {
             </div>
           </div>
 
-          {/* 214px = header/ticker offset (114) + fixed bottom ad strip (~100) so crate + sidebar ad fit above the bar */}
-          <div className="samples-panel md:sticky md:top-[102px] md:self-start shrink-0 md:h-[calc(100dvh-214px)] md:max-h-[calc(100dvh-214px)] flex flex-col gap-2 min-h-0 w-full md:w-auto">
+          {/* Pro: full column height. Non-Pro: reserve ~100px for fixed bottom ad above crate + sidebar slot */}
+          <div
+            className={`samples-panel md:sticky md:top-[102px] md:self-start shrink-0 flex flex-col gap-2 min-h-0 w-full md:w-auto ${
+              showDigAds ? "md:h-[calc(100dvh-214px)] md:max-h-[calc(100dvh-214px)]" : "md:h-[calc(100dvh-114px)] md:max-h-[calc(100dvh-114px)]"
+            }`}
+          >
               <div className="sidebar-dark flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg">
                 <SavedSamplesSidebar
                   sessionDigHistory={sessionDigHistory}
@@ -830,9 +844,11 @@ export default function DigPage() {
                   currentSampleId={sample?.id}
                 />
               </div>
-              <div className="w-full shrink-0">
-                <DigAdSenseUnit variant="sidebar" adSlot={ADSENSE_DIG_SIDEBAR_SLOT} />
-              </div>
+              {showDigAds ? (
+                <div className="w-full shrink-0">
+                  <DigAdSenseUnit variant="sidebar" adSlot={ADSENSE_DIG_SIDEBAR_SLOT} />
+                </div>
+              ) : null}
             </div>
 
           </div>
@@ -854,20 +870,22 @@ export default function DigPage() {
         </footer>
       </div>
 
-      <div
-        className="fixed bottom-0 left-0 right-0 z-40 border-t shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"
-        style={{
-          background: "var(--background)",
-          borderColor: "var(--border)",
-          paddingBottom: "env(safe-area-inset-bottom, 0px)",
-        }}
-        role="complementary"
-        aria-label="Advertisement"
-      >
-        <div className="max-w-4xl mx-auto px-3 sm:px-4 pt-1 pb-1">
-          <DigAdSenseUnit variant="footer" adSlot={ADSENSE_DIG_FOOTER_SLOT} />
+      {showDigAds ? (
+        <div
+          className="fixed bottom-0 left-0 right-0 z-40 border-t shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"
+          style={{
+            background: "var(--background)",
+            borderColor: "var(--border)",
+            paddingBottom: "env(safe-area-inset-bottom, 0px)",
+          }}
+          role="complementary"
+          aria-label="Advertisement"
+        >
+          <div className="max-w-4xl mx-auto px-3 sm:px-4 pt-1 pb-1">
+            <DigAdSenseUnit variant="footer" adSlot={ADSENSE_DIG_FOOTER_SLOT} />
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   )
 }
