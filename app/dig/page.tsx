@@ -8,7 +8,6 @@ import type { SavedLoopData } from "@/hooks/useChopMode"
 import DiceButton from "@/components/DiceButton"
 import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import SiteNav from "@/components/SiteNav"
-import DigHowToPopover from "@/components/DigHowToPopover"
 import DigFilterPanel from "@/components/DigFilterPanel"
 import { recordHistory, clearHistory, removeHistoryItem } from "@/lib/dig-history"
 import type { HistoryItem } from "@/lib/dig-history"
@@ -832,10 +831,6 @@ export default function DigPage() {
                      NEXT_PUBLIC_REQUIRE_PRO_SUBSCRIPTION off makes everyone “Pro” here and hides the upsell. */
                   isPro={session?.user?.isPro === true}
                 />
-              </div>
-              {/* How-to: on md+ it lives next to Chop Mode in SamplePlayer; show here on small screens only */}
-              <div className="flex md:hidden w-full justify-end min-h-[40px] items-center">
-                <DigHowToPopover />
               </div>
             </div>
 
