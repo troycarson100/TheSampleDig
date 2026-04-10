@@ -4,10 +4,19 @@ import { useCallback, useEffect, useState } from "react"
 import { useSession } from "next-auth/react"
 import Link from "next/link"
 
-const cardClass =
-  "rounded-lg border px-4 py-4 flex flex-col gap-3"
+/** Public Stripe Customer Portal entry (email magic link). Override via env if Stripe gives you a new link. */
+const DEFAULT_STRIPE_PORTAL_LOGIN_URL = "https://billing.stripe.com/p/login/8x29AV6Ht94eebgdV22ZO00"
+
+const linkClass =
+  "flex items-center justify-between gap-3 rounded-lg border px-4 py-3 w-full text-left no-underline transition hover:opacity-90"
 const btnClass =
-  "inline-flex items-center justify-center rounded-lg border px-4 py-2.5 text-sm font-medium transition hover:opacity-90 disabled:opacity-50 disabled:pointer-events-none"
+  `${linkClass} cursor-pointer font-[inherit]`
+
+function portalLoginUrl() {
+  return (
+    process.env.NEXT_PUBLIC_STRIPE_CUSTOMER_PORTAL_LOGIN_URL?.trim() || DEFAULT_STRIPE_PORTAL_LOGIN_URL
+  )
+}
 
 export default function SettingsSubscriptionManage() {
   const { data: session, status } = useSession()
@@ -16,12 +25,19 @@ export default function SettingsSubscriptionManage() {
   const [error, setError] = useState("")
 
   useEffect(() => {
-    if (status !== "authenticated") return
+    if (status !== "authenticated") {
+      setEligible(null)
+      return
+    }
     let cancelled = false
     ;(async () => {
       try {
         const res = await fetch("/api/stripe/billing-portal")
-        if (!res.ok || cancelled) return
+        if (cancelled) return
+        if (!res.ok) {
+          setEligible(false)
+          return
+        }
         const data = (await res.json()) as { eligible?: boolean }
         if (!cancelled) setEligible(data.eligible === true)
       } catch {
@@ -55,59 +71,109 @@ export default function SettingsSubscriptionManage() {
     }
   }, [])
 
+  const stripeUrl = portalLoginUrl()
+
   if (status === "loading") {
-    return null
+    return (
+      <div className="rounded-lg border px-4 py-3" style={{ borderColor: "var(--border)" }}>
+        <p className="text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
+          Loading billing…
+        </p>
+      </div>
+    )
   }
 
-  if (status !== "authenticated") {
-    return null
+  if (status !== "authenticated" || !session?.user) {
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="rounded-lg border px-4 py-3" style={{ borderColor: "var(--border)" }}>
+          <p className="text-sm mb-2" style={{ color: "var(--muted)" }}>
+            Sign in to open billing with one click. You can still use Stripe’s portal below with your account email.
+          </p>
+          <Link href="/login?callbackUrl=/settings" className="text-sm font-medium underline" style={{ color: "var(--foreground)" }}>
+            Sign in
+          </Link>
+        </div>
+        <a
+          href={stripeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={linkClass}
+          style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+        >
+          <span style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Manage billing on Stripe</span>
+          <span aria-hidden className="text-lg opacity-50">
+            →
+          </span>
+        </a>
+      </div>
+    )
   }
 
   return (
-    <div className={cardClass} style={{ borderColor: "var(--border)", background: "rgba(0,0,0,0.02)" }}>
-      <div>
-        <p className="text-sm font-semibold mb-1" style={{ color: "var(--foreground)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
-          Subscription & billing
+    <div className="flex flex-col gap-2">
+      <div className="mb-0.5">
+        <p className="text-xs uppercase tracking-wide mb-2" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
+          Billing
         </p>
-        <p className="text-xs leading-relaxed" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
-          Cancel your plan or trial anytime, update your card, or download invoices. You’ll be sent to a secure Stripe page.
+        <p className="text-xs leading-relaxed mb-2" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
+          Cancel or change your plan (including during a trial), update your card, or download invoices.
         </p>
       </div>
 
       {eligible === null ? (
-        <p className="text-xs" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
-          Loading…
-        </p>
+        <div className="rounded-lg border px-4 py-3" style={{ borderColor: "var(--border)" }}>
+          <p className="text-sm" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
+            Checking billing…
+          </p>
+        </div>
       ) : eligible ? (
-        <>
-          <button
-            type="button"
-            className={btnClass}
-            style={{
-              borderColor: "var(--border)",
-              color: "var(--foreground)",
-              background: "transparent",
-              alignSelf: "flex-start",
-            }}
-            onClick={openPortal}
-            disabled={loadingPortal}
-          >
+        <button
+          type="button"
+          className={btnClass}
+          style={{ borderColor: "var(--border)", color: "var(--foreground)", background: "transparent" }}
+          onClick={openPortal}
+          disabled={loadingPortal}
+        >
+          <span style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>
             {loadingPortal ? "Opening…" : "Manage or cancel subscription"}
-          </button>
-          {error ? (
-            <p className="text-xs" style={{ color: "#b91c1c", fontFamily: "var(--font-ibm-mono), monospace" }}>
-              {error}
-            </p>
-          ) : null}
-        </>
+          </span>
+          <span aria-hidden className="text-lg opacity-50">
+            →
+          </span>
+        </button>
       ) : (
-        <p className="text-xs leading-relaxed" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
-          After you subscribe, you can manage or cancel here.{" "}
-          <Link href="/pro" className="underline" style={{ color: "var(--foreground)" }}>
-            Pricing & Pro
-          </Link>
-        </p>
+        <a
+          href={stripeUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={linkClass}
+          style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
+        >
+          <span style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>Manage billing on Stripe</span>
+          <span aria-hidden className="text-lg opacity-50">
+            →
+          </span>
+        </a>
       )}
+
+      {eligible === true ? (
+        <p className="text-xs pl-0.5" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
+          Or open Stripe’s portal with your email:{" "}
+          <a href={stripeUrl} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--foreground)" }}>
+            billing.stripe.com
+          </a>
+        </p>
+      ) : null}
+
+      {error ? (
+        <p className="text-xs" style={{ color: "#b91c1c", fontFamily: "var(--font-ibm-mono), monospace" }}>
+          {error}{" "}
+          <a href={stripeUrl} target="_blank" rel="noopener noreferrer" className="underline" style={{ color: "var(--foreground)" }}>
+            Open Stripe instead
+          </a>
+        </p>
+      ) : null}
     </div>
   )
 }
