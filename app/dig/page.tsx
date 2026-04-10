@@ -95,6 +95,12 @@ function readDigStartHereDone(): boolean {
   }
 }
 
+/**
+ * Google AdSense: set `true` after the site is approved and slots are live.
+ * While `false`, non‑Pro users see no ad script, no units, and layout matches “no fixed footer ad”.
+ */
+const ADSENSE_DIG_UNITS_ENABLED = false
+
 export default function DigPage() {
   const { data: session, status } = useSession()
   const [sample, setSample] = useState<Sample | null>(null)
@@ -700,11 +706,11 @@ export default function DigPage() {
 
   /** Session-backed Pro subscription — hide all AdSense UI + script (not useIsPro() env bypass). */
   const isProSubscriber = session?.user?.isPro === true
-  const showDigAds = !isProSubscriber
+  const digAdsActive = !isProSubscriber && ADSENSE_DIG_UNITS_ENABLED
 
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
-      {showDigAds ? (
+      {digAdsActive ? (
         <Script
           id="adsense-dig-loader"
           strategy="afterInteractive"
@@ -743,7 +749,7 @@ export default function DigPage() {
       <div
         className="dig-page-wrap"
         style={
-          showDigAds
+          digAdsActive
             ? { paddingBottom: "max(6rem, calc(5.5rem + env(safe-area-inset-bottom, 0px)))" }
             : undefined
         }
@@ -883,7 +889,7 @@ export default function DigPage() {
           {/* Pro: full column height. Non-Pro: reserve ~100px for fixed bottom ad above crate + sidebar slot */}
           <div
             className={`samples-panel md:sticky md:top-[102px] md:self-start shrink-0 flex flex-col gap-2 min-h-0 w-full md:w-auto ${
-              showDigAds ? "md:h-[calc(100dvh-214px)] md:max-h-[calc(100dvh-214px)]" : "md:h-[calc(100dvh-114px)] md:max-h-[calc(100dvh-114px)]"
+              digAdsActive ? "md:h-[calc(100dvh-214px)] md:max-h-[calc(100dvh-214px)]" : "md:h-[calc(100dvh-114px)] md:max-h-[calc(100dvh-114px)]"
             }`}
           >
               <div className="sidebar-dark flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg">
@@ -932,7 +938,7 @@ export default function DigPage() {
                   currentSampleId={sample?.id}
                 />
               </div>
-              {showDigAds ? (
+              {digAdsActive ? (
                 <div className="w-full shrink-0">
                   <DigAdSenseUnit variant="sidebar" adSlot={ADSENSE_DIG_SIDEBAR_SLOT} />
                 </div>
@@ -958,7 +964,7 @@ export default function DigPage() {
         </footer>
       </div>
 
-      {showDigAds ? (
+      {digAdsActive ? (
         <div
           className="fixed bottom-0 left-0 right-0 z-40 border-t shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"
           style={{
