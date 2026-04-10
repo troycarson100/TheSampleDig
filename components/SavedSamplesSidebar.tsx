@@ -177,7 +177,8 @@ function PlaylistFilterDropdown({
             </button>
             <button
               type="button"
-              className="shrink-0 px-2 py-2 text-xs opacity-40 hover:opacity-100 hover:text-red-300"
+              className="shrink-0 flex items-center justify-center px-1 py-0.5 text-sm font-light leading-none transition-colors text-[#F0EBE1] hover:text-[#B85C38]"
+              style={{ fontFamily: "system-ui, sans-serif" }}
               aria-label={`Delete playlist ${pl.name}`}
               onClick={(e) => {
                 e.stopPropagation()
@@ -237,12 +238,12 @@ function TabBar({
           >
             <span className="inline-flex items-center gap-0.5">
               {label}
-              {tab === "crate" && isActive && (
+              {tab === "crate" && (
                 <button
                   ref={playlistChevronRef}
                   type="button"
                   className="p-0.5 rounded hover:bg-white/10 transition inline-flex"
-                  style={{ color: playlistDropdownOpen ? "var(--primary)" : "rgba(255,255,255,0.45)" }}
+                  style={{ color: playlistDropdownOpen ? "var(--rust-l)" : "rgba(255,255,255,0.45)" }}
                   aria-label="Playlists"
                   aria-expanded={playlistDropdownOpen}
                   onClick={(e) => {
@@ -274,8 +275,9 @@ function TabBar({
             )}
             {isActive && (
               <span
-                className="absolute bottom-0 left-4 right-4 rounded-t-full"
-                style={{ height: 2, background: "var(--primary, #fff)" }}
+                className="absolute bottom-0 left-4 right-4 rounded-t-sm"
+                style={{ height: 2, background: "var(--rust)" }}
+                aria-hidden
               />
             )}
           </button>
@@ -505,7 +507,7 @@ export default function SavedSamplesSidebar({
       />
 
       <PlaylistFilterDropdown
-        open={playlistDropdownOpen && activeTab === "crate"}
+        open={playlistDropdownOpen}
         onClose={() => setPlaylistDropdownOpen(false)}
         anchorRef={playlistChevronRef}
         playlists={playlists}
