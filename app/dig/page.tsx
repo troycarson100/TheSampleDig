@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect, useCallback, useRef } from "react"
-import Script from "next/script"
 import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import SamplePlayer from "@/components/SamplePlayer"
@@ -722,14 +721,6 @@ export default function DigPage() {
 
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
-      {digAdsActive ? (
-        <Script
-          id="adsense-dig-loader"
-          strategy="afterInteractive"
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7744671172843728"
-          crossOrigin="anonymous"
-        />
-      ) : null}
       <header className="site-header w-full">
         <SiteNav />
       </header>
