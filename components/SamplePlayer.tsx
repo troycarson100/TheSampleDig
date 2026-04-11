@@ -2290,12 +2290,12 @@ function SamplePlayer({
                 </svg>
               </button>
               {!canUseChopLoops && isAuthenticated && (
-                <div className="absolute inset-[-6px] z-10 flex items-center justify-center pointer-events-none rounded-xl" style={{ background: "rgba(244,240,232,0.72)", backdropFilter: "blur(2px)" }}>
+                <div className="absolute inset-[-6px] z-10 flex items-center justify-center pointer-events-none rounded-xl" style={{ background: "rgba(244,240,232,0.45)", backdropFilter: "blur(2px)" }}>
                   <button
                     type="button"
                     onClick={() => openProGate("Chop loops")}
-                    className="pro-gradient-btn pro-gradient-btn--rounded pointer-events-auto"
-                    style={{ padding: "9px 20px", fontSize: "8.5px", letterSpacing: "0.13em" }}
+                    className="pro-gradient-btn pointer-events-auto"
+                    style={{ padding: "9px 20px", fontSize: "8.5px", letterSpacing: "0.13em", borderRadius: META_BOX_STYLE.borderRadius }}
                     title="Upgrade to Pro to record and save chop loops"
                   >
                     Loop &amp; Save — Try Pro

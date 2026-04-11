@@ -877,8 +877,7 @@ body.theme-vinyl::before {
   .theme-vinyl .controls-bar,
   .theme-vinyl [class*="ctrl-bar"] {
     border-radius: 0 !important;
-    padding-left: 16px;
-    padding-right: 16px;
+    padding: 20px 16px !important;
   }
   .theme-vinyl .sidebar-dark {
     border-left: none !important;
@@ -900,7 +899,7 @@ body.theme-vinyl::before {
   align-items: center;
   justify-content: center;
   gap: 24px;
-  padding: 26px 22px 16px;
+  padding: 20px 22px 4px;
   background: var(--warm);
   border-radius: 8px 8px 0 0;
   overflow: visible;
