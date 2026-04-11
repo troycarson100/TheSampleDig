@@ -16,7 +16,7 @@ export interface FeatureGateModalProps {
 
 const PRO_FEATURES = [
   "Drum Break filter",
-  "Chop Mode",
+  "Loop, Quantize & Save Chop Loops",
   "Sample Notes",
   "History (up to 1,000 tracks)",
   "Playlists",
@@ -27,6 +27,7 @@ const FREE_FEATURES = [
   "Save samples to your crate",
   "Roll dice & discover tracks",
   "Genre & era filters",
+  "Chop Mode",
 ]
 
 function LockIcon() {

@@ -48,6 +48,8 @@ interface SamplePlayerProps {
   onVideoError?: () => void // Callback when video is unavailable
   /** When false, Chop Mode and Notes are locked behind a Pro upgrade prompt */
   isPro?: boolean
+  /** Logged-in (e.g. email) user — may use Chop Mode without Pro, but chop loops stay Pro-only */
+  isAuthenticated?: boolean
 }
 
 const TAP_MAX_TAPS = 8
@@ -291,14 +293,24 @@ function SamplePlayer({
   sampleId,
   initialNotes,
   isPro = true,
+  isAuthenticated = false,
 }: SamplePlayerProps) {
   const [proGateOpen, setProGateOpen] = useState(false)
   const [proGateFeature, setProGateFeature] = useState("this feature")
+  const [authGateOpen, setAuthGateOpen] = useState(false)
 
   function openProGate(feature: string) {
     setProGateFeature(feature)
     setProGateOpen(true)
   }
+  function openLoopGate() {
+    if (isAuthenticated) openProGate("Chop loops")
+    else setAuthGateOpen(true)
+  }
+
+  const canUseChopLoops = isPro === true
+  // Guests must sign in before using chop mode; logged-in free users can chop but not loop/save
+  const canToggleChopMode = isPro === true || isAuthenticated === true
   const iframeRef = useRef<HTMLIFrameElement>(null)
   const tapResetTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const youtubeIdRef = useRef<string | null>(null)
@@ -309,6 +321,7 @@ function SamplePlayer({
     const saved = localStorage.getItem("digChopModeEnabled")
     return saved == null ? true : saved === "true"
   })
+  const chopModeActive = chopModeEnabled && canToggleChopMode
   const [isMobile, setIsMobile] = useState(false)
   const [tapTempoEnabled, setTapTempoEnabled] = useState(true)
   const [tapTimes, setTapTimes] = useState<number[]>([])
@@ -349,10 +362,11 @@ function SamplePlayer({
     return () => mql.removeEventListener("change", handler)
   }, [])
   
-  // Persist chop mode preference so it survives dice-roll remounts
+  // Persist chop mode preference so it survives dice-roll remounts (only when user may use chop)
   useEffect(() => {
+    if (!canToggleChopMode) return
     localStorage.setItem("digChopModeEnabled", chopModeEnabled ? "true" : "false")
-  }, [chopModeEnabled])
+  }, [chopModeEnabled, canToggleChopMode])
   const bpmArrowIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const bpmArrowDelayRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const bpmDragStartRef = useRef<{ startX: number; startBpm: number } | null>(null)
@@ -564,10 +578,10 @@ function SamplePlayer({
 
   // When Chop Mode is on, focus the video overlay so Space and chop keys work without clicking out
   useEffect(() => {
-    if (chopModeEnabled) {
+    if (chopModeActive) {
       chopOverlayRef.current?.focus({ preventScroll: true })
     }
-  }, [chopModeEnabled])
+  }, [chopModeActive])
 
   type RecordPhase = "idle" | "countin" | "recording"
   const [recordPhase, setRecordPhase] = useState<RecordPhase>("idle")
@@ -650,7 +664,7 @@ function SamplePlayer({
 
   // Keyboard shortcuts in chop mode: Q toggles quantize, X clears recorded loop (same as clear-loop button).
   useEffect(() => {
-    if (!chopModeEnabled || isMobile) return
+    if (!chopModeActive || isMobile) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null
@@ -668,6 +682,12 @@ function SamplePlayer({
       }
 
       if (key === "x") {
+        if (!canUseChopLoops) {
+          e.preventDefault()
+          e.stopPropagation()
+          openLoopGate()
+          return
+        }
         e.preventDefault()
         e.stopPropagation()
         clearRecordedLoop()
@@ -676,7 +696,7 @@ function SamplePlayer({
 
     window.addEventListener("keydown", handleKeyDown, { capture: true })
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
-  }, [chopModeEnabled, isMobile, clearRecordedLoop])
+  }, [chopModeActive, isMobile, canUseChopLoops, isAuthenticated, clearRecordedLoop])
 
   const startLoopPlayback = useCallback((
     events: RecordedChopEvent[],
@@ -756,7 +776,7 @@ function SamplePlayer({
 
   // Shift+Space while chop mode is active toggles video+loop playback (pause/play)
   useEffect(() => {
-    if (!chopModeEnabled || isMobile) return
+    if (!chopModeActive || isMobile) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement | null
@@ -772,7 +792,7 @@ function SamplePlayer({
       const state = adapter?.getPlayerState?.()
       const isVideoPlaying = state === 1
 
-      const hasLoop = recordedSequence.length > 0
+      const hasLoop = recordedSequence.length > 0 && canUseChopLoops
 
       // If video or loop are running, treat as pause
       if (isVideoPlaying || isPlayingLoop) {
@@ -808,8 +828,9 @@ function SamplePlayer({
     window.addEventListener("keydown", handleKeyDown, { capture: true })
     return () => window.removeEventListener("keydown", handleKeyDown, { capture: true })
   }, [
-    chopModeEnabled,
+    chopModeActive,
     isMobile,
+    canUseChopLoops,
     isPlayingLoop,
     stopLoopPlayback,
     recordedSequence,
@@ -895,6 +916,10 @@ function SamplePlayer({
   }, [])
 
   const onRKey = useCallback(() => {
+    if (!canUseChopLoops) {
+      openLoopGate()
+      return
+    }
     if (recordPhase === "recording") {
       recordStopTimeRef.current = performance.now()
       stopRecordAndStartPlayback(
@@ -940,7 +965,7 @@ function SamplePlayer({
         playMetronomeBeep()
       }, intervalMs)
     }
-  }, [recordPhase, stopRecordAndStartPlayback, effectiveBpm, metronomeDuringRecording, clearRecordedLoop, quantizeEnabled, quantizeDivision, quantizeSwingPct, recordedSequence, loopStartMs, loopEndMs, recordingFullLengthMs, youtubeId])
+  }, [canUseChopLoops, isAuthenticated, recordPhase, stopRecordAndStartPlayback, effectiveBpm, metronomeDuringRecording, clearRecordedLoop, quantizeEnabled, quantizeDivision, quantizeSwingPct, recordedSequence, loopStartMs, loopEndMs, recordingFullLengthMs, youtubeId])
 
   const onSpaceWhenRecording = useCallback(() => {
     if (recordPhase === "recording") {
@@ -1146,16 +1171,16 @@ function SamplePlayer({
 
   const { chops, clearChops, removeChop, addChop, swapChops, slotsFull, onPadKeyPress, updateChopTime, pressedKey } = useChopMode(
     adapterRef,
-    chopModeEnabled,
+    chopModeActive,
     youtubeId,
     initialChops,
     onAfterChopPlay,
-    chopModeEnabled
+    chopModeActive
       ? {
-          isRecording: recordPhase === "recording",
+          isRecording: canUseChopLoops ? recordPhase === "recording" : false,
           recordStartTimeRef,
-          onRecordPad,
-          onSpaceWhenRecording,
+          onRecordPad: canUseChopLoops ? onRecordPad : undefined,
+          onSpaceWhenRecording: canUseChopLoops ? onSpaceWhenRecording : undefined,
           onRKey,
           onAddChop: onAddChopFlash,
         }
@@ -1174,6 +1199,14 @@ function SamplePlayer({
       : ""
   useEffect(() => {
     if (!youtubeId) return
+    if (!canUseChopLoops) {
+      setRecordedSequence([])
+      setLoopStartMs(0)
+      setLoopEndMs(0)
+      setRecordingFullLengthMs(0)
+      recordingFullLengthRef.current = 0
+      return
+    }
     if (initialLoop?.sequence?.length) {
       setRecordedSequence(initialLoop.sequence)
       setLoopStartMs(initialLoop.loopStartMs)
@@ -1191,7 +1224,7 @@ function SamplePlayer({
       setRecordingFullLengthMs(0)
       recordingFullLengthRef.current = 0
     }
-  }, [youtubeId, initialLoopSignature, initialLoop])
+  }, [youtubeId, initialLoopSignature, initialLoop, canUseChopLoops])
 
   // Load saved loops from localStorage when video changes
   useEffect(() => {
@@ -1208,7 +1241,7 @@ function SamplePlayer({
     if (!isSaved || !onSavedChopsChange) return
     const t = setTimeout(() => {
       const loopPayload: SavedLoopData | null =
-        recordedSequence.length > 0
+        canUseChopLoops && recordedSequence.length > 0
           ? {
               sequence: recordedSequence,
               loopStartMs,
@@ -1219,7 +1252,7 @@ function SamplePlayer({
       onSavedChopsChange(chops, loopPayload)
     }, SAVED_CHOPS_DEBOUNCE_MS)
     return () => clearTimeout(t)
-  }, [isSaved, chops, recordedSequence, loopStartMs, loopEndMs, recordingFullLengthMs, onSavedChopsChange])
+  }, [isSaved, canUseChopLoops, chops, recordedSequence, loopStartMs, loopEndMs, recordingFullLengthMs, onSavedChopsChange])
 
   // Auto-save BPM override when sample is saved and user changes BPM (debounced)
   const SAVED_BPM_DEBOUNCE_MS = 600
@@ -1492,11 +1525,16 @@ function SamplePlayer({
         featureName={proGateFeature}
         onClose={() => setProGateOpen(false)}
       />
+      <FeatureGateModal
+        open={authGateOpen}
+        type="signup"
+        onClose={() => setAuthGateOpen(false)}
+      />
       <div className="player-wrap aspect-video w-full max-w-full rounded-lg overflow-hidden bg-black relative">
         <PlayerVideoCore
           youtubeId={youtubeId}
           title={title}
-          chopModeEnabled={chopModeEnabled}
+          chopModeEnabled={chopModeActive}
           isMobile={isMobile}
           onVideoError={onVideoError}
           onIframeLoad={() => setIframeLoaded(true)}
@@ -1516,7 +1554,7 @@ function SamplePlayer({
                   onSaveToggle(undefined)
                   return
                 }
-                const hasLoop = recordedSequence.length > 0
+                const hasLoop = canUseChopLoops && recordedSequence.length > 0
                 onSaveToggle({
                   chops: chops.length > 0 ? chops : undefined,
                   loop: hasLoop
@@ -1536,7 +1574,7 @@ function SamplePlayer({
           </div>
         )}
         {/* Chop Mode: video timeline with playhead (and chop markers when present). Use duration from props or from player. */}
-        {chopModeEnabled && !isMobile && effectiveTimelineDuration > 0 && (
+        {chopModeActive && !isMobile && effectiveTimelineDuration > 0 && (
           <ChopTimelineMarkers
             chops={chops}
             duration={effectiveTimelineDuration}
@@ -1838,18 +1876,30 @@ function SamplePlayer({
               </button>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div
+            className={`flex items-center gap-3${!canUseChopLoops ? " opacity-45" : ""}`}
+          >
             <span className="text-sm font-medium">Metronome (recording)</span>
             <button
               type="button"
               role="switch"
               aria-checked={metronomeDuringRecording}
-              onClick={() => setMetronomeDuringRecording((v) => !v)}
+              onClick={() => {
+                if (!canUseChopLoops) {
+                  openLoopGate()
+                  return
+                }
+                setMetronomeDuringRecording((v) => !v)
+              }}
               className="relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
               style={{
                 background: metronomeDuringRecording ? "var(--primary)" : "var(--muted-light)",
               }}
-              title="Play metronome during recording (count-in always plays)"
+              title={
+                canUseChopLoops
+                  ? "Play metronome during recording (count-in always plays)"
+                  : "Upgrade to Pro to record chop loops"
+              }
             >
               <span
                 className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
@@ -1877,51 +1927,56 @@ function SamplePlayer({
           <>
           {/* Top bar: Chop Mode top-left, how-to top-right with inset from container edge */}
           <div className="flex w-full min-w-0 flex-row items-center justify-between gap-3">
-            <label className="flex min-w-0 shrink items-center gap-2 cursor-pointer">
-              <span className="flex items-center gap-1.5 text-sm font-medium toggle-label" style={{ color: "var(--foreground)" }}>
-                Chop Mode
-                {!isPro && (
-                  <span className="pro-gradient-pill text-white">
-                    <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden><rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" /></svg>
-                    PRO
-                  </span>
-                )}
-              </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={isPro ? chopModeEnabled : false}
-                onClick={() => {
-                  if (!isPro) { openProGate("Chop Mode"); return }
-                  setChopModeEnabled((v) => !v)
-                }}
-                className={`relative w-11 h-6 shrink-0 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1${!isPro ? " pro-chop-toggle-pro" : ""}`}
-                style={
-                  !isPro
-                    ? {}
-                    : {
-                        background: chopModeEnabled ? "var(--primary)" : "var(--muted-light)",
-                        opacity: 1,
-                      }
-                }
-                title={isPro ? undefined : "Upgrade to Pro to use Chop Mode"}
-              >
-                <span
-                  className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
-                  style={{ transform: isPro && chopModeEnabled ? "translateX(1.25rem)" : "translateX(0)" }}
-                />
-              </button>
-            </label>
+            <div className="flex min-w-0 shrink items-center gap-3 flex-wrap">
+              <label className="flex items-center gap-2 cursor-pointer" onClick={!canToggleChopMode ? (e) => { e.preventDefault(); setAuthGateOpen(true) } : undefined}>
+                <span className="flex items-center gap-1.5 text-sm font-medium toggle-label" style={{ color: "var(--foreground)" }}>
+                  Chop Mode
+                </span>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={canToggleChopMode ? chopModeEnabled : false}
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    if (!canToggleChopMode) { setAuthGateOpen(true); return }
+                    setChopModeEnabled((v) => !v)
+                  }}
+                  className="relative w-11 h-6 shrink-0 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
+                  style={{
+                    background: !canToggleChopMode
+                      ? "var(--rust)"
+                      : chopModeEnabled ? "var(--primary)" : "var(--muted-light)",
+                    opacity: 1,
+                  }}
+                  title={!canToggleChopMode ? "Create a free account to use Chop Mode" : undefined}
+                >
+                  <span
+                    className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
+                    style={{ transform: canToggleChopMode && chopModeEnabled ? "translateX(1.25rem)" : "translateX(0)" }}
+                  />
+                </button>
+              </label>
+              {!canToggleChopMode && (
+                <button
+                  type="button"
+                  onClick={() => setAuthGateOpen(true)}
+                  className="shrink-0 rounded-lg px-3 py-1.5 text-white border-0 cursor-pointer transition hover:opacity-90"
+                  style={{ background: "var(--rust)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", fontWeight: 600, letterSpacing: "0.1em", textTransform: "uppercase" }}
+                >
+                  Create Free Account
+                </button>
+              )}
+            </div>
             <div className="hidden shrink-0 items-center md:flex md:pr-3">
               <DigHowToPopover />
             </div>
           </div>
-          {chopModeEnabled && (
-            <div className="flex w-full flex-wrap items-center justify-center gap-3 pt-3 md:pt-4">
+          {chopModeActive && (
+            <div className="relative flex w-full flex-wrap items-center justify-center gap-3 pt-3 md:pt-4">
               <button
                 type="button"
                 onClick={() => setQuantizeEnabled((v) => !v)}
-                className="chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90"
+                className={`chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
                 style={{
                   borderColor: "var(--border)",
                   background: quantizeEnabled ? "var(--primary)" : "var(--muted-light)",
@@ -1936,7 +1991,7 @@ function SamplePlayer({
                 <select
                   value={quantizeDivision}
                   onChange={(e) => handleQuantizeDivisionChange(e.target.value as GridDivision)}
-                  className="text-xs rounded-full border px-2 py-1 bg-[var(--muted-light)]"
+                  className={`text-xs rounded-full border px-2 py-1 bg-[var(--muted-light)]${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
                   style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
                   aria-label="Quantize division"
                   title="Quantize grid division"
@@ -1961,7 +2016,7 @@ function SamplePlayer({
               <button
                 type="button"
                 onClick={onRKey}
-                className="chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90"
+                className={`chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
                 style={{
                   borderColor: "var(--border)",
                   background: recordPhase === "recording" ? "#dc2626" : "var(--muted-light)",
@@ -1983,7 +2038,7 @@ function SamplePlayer({
                   }
                 }}
                 disabled={recordedSequence.length === 0}
-                className="chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
                 style={{
                   borderColor: "var(--border)",
                   background: isPlayingLoop ? "#16a34a" : "var(--muted-light)",
@@ -2005,7 +2060,7 @@ function SamplePlayer({
               {/* Mini timeline: grey bar with colored ticks; draggable start/end edges; playhead */}
               <div
                 ref={loopBarRef}
-                className="chop-scrubber flex flex-none items-center w-full min-w-[200px] max-w-[420px] h-3 rounded-sm select-none overflow-visible"
+                className={`chop-scrubber flex flex-none items-center w-full min-w-[200px] max-w-[420px] h-3 rounded-sm select-none overflow-visible${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
                 style={{ background: "var(--muted-light)", flex: "none" }}
                 aria-label="Recorded sequence"
               >
@@ -2203,7 +2258,7 @@ function SamplePlayer({
                   setSavedLoopsList(getSavedLoops(youtubeId ?? ""))
                 }}
                 disabled={recordedSequence.length === 0}
-                className="chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+                className={`chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
                 style={{
                   borderColor: "var(--border)",
                   background: "var(--muted-light)",
@@ -2221,7 +2276,7 @@ function SamplePlayer({
               <button
                 type="button"
                 onClick={clearRecordedLoop}
-                className="chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90"
+                className={`chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
                 style={{
                   borderColor: "var(--border)",
                   background: clearLoopFlash ? "#eab308" : "var(--muted-light)",
@@ -2234,6 +2289,19 @@ function SamplePlayer({
                   <path d="M18 6L6 18M6 6l12 12" />
                 </svg>
               </button>
+              {!canUseChopLoops && isAuthenticated && (
+                <div className="absolute inset-[-6px] z-10 flex items-center justify-center pointer-events-none rounded-xl" style={{ background: "rgba(244,240,232,0.72)", backdropFilter: "blur(2px)" }}>
+                  <button
+                    type="button"
+                    onClick={() => openProGate("Chop loops")}
+                    className="pro-gradient-btn pro-gradient-btn--rounded pointer-events-auto"
+                    style={{ padding: "9px 20px", fontSize: "8.5px", letterSpacing: "0.13em" }}
+                    title="Upgrade to Pro to record and save chop loops"
+                  >
+                    Loop &amp; Save — Try Pro
+                  </button>
+                </div>
+              )}
               {slotsFull && (
                 <span className="text-sm" style={{ color: "var(--muted)" }}>Chop slots full</span>
               )}
@@ -2242,7 +2310,7 @@ function SamplePlayer({
           </>
           )}
         </div>
-        {chopModeEnabled && !isMobile && (
+        {chopModeActive && !isMobile && (
           <div className="chop-keyboard">
             <div className="mx-auto flex w-full max-w-full flex-col items-center gap-3 md:flex-row md:items-start md:justify-center md:gap-4">
               <button
@@ -2287,7 +2355,7 @@ function SamplePlayer({
             </div>
           </div>
         )}
-        {chopModeEnabled && !isMobile && savedLoopsList.length > 0 && (
+        {chopModeActive && !isMobile && savedLoopsList.length > 0 && (
           <div className="mt-3 w-full max-w-2xl mx-auto">
             <p
               className="mb-1.5 text-[9px] font-medium uppercase tracking-[0.14em]"
@@ -2407,12 +2475,15 @@ export default memo(SamplePlayer, (prevProps, nextProps) => {
   const otherPropsEqual = (
     prevProps.showHeart === nextProps.showHeart &&
     prevProps.isSaved === nextProps.isSaved &&
+    prevProps.isPro === nextProps.isPro &&
+    prevProps.isAuthenticated === nextProps.isAuthenticated &&
     prevProps.onVideoError === nextProps.onVideoError &&
     prevProps.initialChops === nextProps.initialChops &&
     prevProps.initialLoop === nextProps.initialLoop &&
     prevProps.sampleId === nextProps.sampleId &&
     prevProps.initialNotes === nextProps.initialNotes &&
-    prevProps.onSavedChopsChange === nextProps.onSavedChopsChange
+    prevProps.onSavedChopsChange === nextProps.onSavedChopsChange &&
+    prevProps.onSavedBpmChange === nextProps.onSavedBpmChange
   )
   const callbackEqual = prevProps.onSaveToggle === nextProps.onSaveToggle
   return iframePropsEqual && displayMetadataEqual && otherPropsEqual && callbackEqual

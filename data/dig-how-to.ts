@@ -46,6 +46,7 @@ export const DIG_HOW_TO_SECTIONS: HowToSection[] = [
   {
     title: "Record a loop",
     items: [
+      "Pro only: recording chop loops, saving loop copies, and loading saved loops. If you are signed in without Pro, you can still use Chop Mode (pads and timeline chops) — the loop strip stays locked.",
       "Press R to start recording, then play the chop keys in time. Press R or Space to stop.",
       "Your sequence becomes a loop you can play with Shift+Space. Use Q to quantize, X to clear the loop.",
       "Save the sample (heart) to keep chops and loop in My Samples.",

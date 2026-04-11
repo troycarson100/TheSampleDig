@@ -53,7 +53,7 @@ export default function ProOfferingContent({
               <div className={`${plStyles.featDesc} ${localStyles.goProDescCompact}`}>{card.desc}</div>
               {index === 0 ? <p className={localStyles.goProAdsDisclaimer}>*Excluding YouTube ads.</p> : null}
               {index === 1 ? (
-                <p className={localStyles.goProAdsDisclaimer}>*Chop mode works in desktop only.</p>
+                <p className={localStyles.goProAdsDisclaimer}>*Chop Mode works on desktop only.</p>
               ) : null}
             </div>
           ))}

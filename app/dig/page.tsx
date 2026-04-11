@@ -861,6 +861,7 @@ export default function DigPage() {
                   onSaveToggle={handleSaveToggle}
                   showHeart={true}
                   isPro={session?.user?.isPro === true}
+                  isAuthenticated={status === "authenticated"}
                   initialChops={sample.chops}
                   initialLoop={sample.loop}
                   sampleId={sample.id ?? sampleIdFromSaveRef.current}

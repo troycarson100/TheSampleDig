@@ -77,8 +77,8 @@ export const PRO_FEATURE_CARDS: { icon: ReactNode; title: string; desc: string }
   },
   {
     icon: <IconChopMode />,
-    title: "Chop Mode",
-    desc: "Map samples to your QWERTY keyboard and chop in real time. Tap tempo, metronome overlay, and tools built for serious producers.",
+    title: "Chop Mode: Loop & Save",
+    desc: "Record chop sequences, quantize to the grid, and save loops directly to your samples. Chop Mode (pads + timeline) is free — Pro unlocks looping, quantize recording, and saving.",
   },
   {
     icon: <IconDrumBreak />,

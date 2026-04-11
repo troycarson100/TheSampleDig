@@ -236,7 +236,6 @@ function PlaylistFilterDropdown({
                 textTransform: "uppercase",
                 color: "#fff",
                 boxSizing: "border-box",
-                background: "transparent",
               }}
               onClick={() => {
                 onProUpgrade()
