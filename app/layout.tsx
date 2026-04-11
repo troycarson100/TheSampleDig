@@ -1,6 +1,5 @@
 import type { Metadata } from "next"
 import { Geist, Geist_Mono, Halant, DM_Serif_Display, Bebas_Neue, IBM_Plex_Mono, Cormorant_Garamond } from "next/font/google"
-import Script from "next/script"
 import "./globals.css"
 import RootBody from "@/components/RootBody"
 
@@ -59,12 +58,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        <Script
-          id="adsense-global"
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-7744671172843728"
           crossOrigin="anonymous"
-          strategy="afterInteractive"
         />
       </head>
       <body
