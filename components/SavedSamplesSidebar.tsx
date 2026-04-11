@@ -806,18 +806,11 @@ export default function SavedSamplesSidebar({
           style={{ borderColor: "rgba(255,255,255,0.06)", background: "rgba(0,0,0,0.25)" }}
         >
           <p
-            className="text-center leading-relaxed mb-2"
+            className="text-center"
             style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "9px", letterSpacing: "0.06em", color: "rgba(245,240,232,0.55)" }}
           >
-            Session only — list clears when you refresh. Pro saves up to 1,000 tracks across visits.
+            Keep History with Pro
           </p>
-            <button
-              type="button"
-              className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--lg pro-gradient-btn--rounded text-center font-bold border-0 cursor-pointer w-full"
-              onClick={() => openProModal()}
-            >
-              TRY PRO FREE
-            </button>
         </div>
       )}
 

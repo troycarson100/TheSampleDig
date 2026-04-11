@@ -777,9 +777,9 @@ export default function DigPage() {
             Checkout was canceled. You can subscribe anytime from Try Pro.
           </div>
         )}
-        <div className="dig-app-grid flex flex-col md:grid md:grid-cols-[1fr_280px] dig-lg:grid-cols-[1fr_340px] gap-3 md:gap-6 items-start">
+        <div className="dig-app-grid flex flex-col md:grid md:grid-cols-[1fr_280px] dig-lg:grid-cols-[1fr_340px] gap-0 md:gap-6 items-start">
           <div className="max-md:flex-none md:flex-1 min-w-0 dig-col lg:min-w-0 w-full max-w-4xl">
-            <div className="player-area-card w-full">
+            <div className="player-area-card w-full max-md:rounded-none">
             {/* Controls */}
             <div className="controls-bar w-full flex flex-col items-center gap-3">
               {/* Back / Dice / Filters */}
@@ -842,7 +842,7 @@ export default function DigPage() {
             )}
 
             {/* Video area - connects to controls bar (same card), track meta + chop below */}
-            <div className="video-and-chop-card py-4 min-h-[280px]">
+            <div className="video-and-chop-card py-4 max-md:py-0 min-h-[280px]">
               {sample ? (
                 <SamplePlayer
                   key={sample.youtubeId}
@@ -884,11 +884,11 @@ export default function DigPage() {
 
           {/* Pro: full column height. Non-Pro: reserve ~100px for fixed bottom ad above crate + sidebar slot */}
           <div
-            className={`samples-panel md:sticky md:top-[102px] md:self-start shrink-0 flex flex-col gap-2 min-h-0 w-full md:w-auto ${
+            className={`samples-panel md:sticky md:top-[102px] md:self-start shrink-0 flex flex-col gap-2 max-md:gap-0 min-h-0 w-full md:w-auto ${
               digAdsActive ? "md:h-[calc(100dvh-214px)] md:max-h-[calc(100dvh-214px)]" : "md:h-[calc(100dvh-114px)] md:max-h-[calc(100dvh-114px)]"
             }`}
           >
-              <div className="sidebar-dark flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg">
+              <div className="sidebar-dark flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg max-md:rounded-none">
                 <SavedSamplesSidebar
                   sessionDigHistory={sessionDigHistory}
                   onSessionDigHistoryClear={clearSessionDigHistory}

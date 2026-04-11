@@ -866,6 +866,25 @@ body.theme-vinyl::before {
     /* Stack column layout: don’t force full viewport height — was stretching the player column (flex-1) and pushing My Crate / History to the bottom */
     min-height: 0;
   }
+  .theme-vinyl .dig-page-wrap {
+    padding: 0;
+    gap: 0;
+  }
+  .theme-vinyl .player-area-card {
+    border: none !important;
+    border-radius: 0 !important;
+  }
+  .theme-vinyl .controls-bar,
+  .theme-vinyl [class*="ctrl-bar"] {
+    border-radius: 0 !important;
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .theme-vinyl .sidebar-dark {
+    border-left: none !important;
+    border-right: none !important;
+    border-radius: 0 !important;
+  }
 }
 .theme-vinyl .dig-col,
 .theme-vinyl [class*="main-col"] {

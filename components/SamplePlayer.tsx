@@ -1530,7 +1530,7 @@ function SamplePlayer({
         type="signup"
         onClose={() => setAuthGateOpen(false)}
       />
-      <div className="player-wrap aspect-video w-full max-w-full rounded-lg overflow-hidden bg-black relative">
+      <div className="player-wrap aspect-video w-full max-w-full rounded-lg max-md:rounded-none overflow-hidden bg-black relative">
         <PlayerVideoCore
           youtubeId={youtubeId}
           title={title}
