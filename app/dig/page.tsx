@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react"
 import Script from "next/script"
+import { useRouter } from "next/navigation"
 import { useSession } from "next-auth/react"
 import SamplePlayer from "@/components/SamplePlayer"
 import type { SavedLoopData } from "@/hooks/useChopMode"
@@ -102,6 +103,14 @@ const ADSENSE_DIG_UNITS_ENABLED = false
 
 export default function DigPage() {
   const { data: session, status } = useSession()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.replace("/")
+    }
+  }, [status, router])
+
   const [sample, setSample] = useState<Sample | null>(null)
   const [previousSample, setPreviousSample] = useState<Sample | null>(null)
   const [loading, setLoading] = useState(false)
@@ -706,6 +715,10 @@ export default function DigPage() {
   /** Session-backed Pro subscription — hide all AdSense UI + script (not useIsPro() env bypass). */
   const isProSubscriber = session?.user?.isPro === true
   const digAdsActive = !isProSubscriber && ADSENSE_DIG_UNITS_ENABLED
+
+  if (status === "loading" || status === "unauthenticated") {
+    return <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }} />
+  }
 
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>

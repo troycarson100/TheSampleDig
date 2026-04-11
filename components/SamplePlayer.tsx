@@ -1601,7 +1601,7 @@ function SamplePlayer({
         <div>
           <h3 className="track-title text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>{title}</h3>
           {(
-            <div className="flex gap-2 flex-wrap items-stretch">
+            <div className="flex gap-2 flex-wrap items-stretch max-md:pb-[10px]">
               {genre && <span className="tag-genre meta-tag-box inline-flex items-center min-h-[32px] h-8 px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--rust)", borderColor: "var(--rust)" }}>{genre}</span>}
               {era && <span className="tag-era meta-tag-box inline-flex items-center min-h-[32px] h-8 px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--olive)", borderColor: "var(--olive)" }}>{era}</span>}
               {(() => {
