@@ -72,6 +72,7 @@ function PlaylistFilterDropdown({
   userId,
   guestSignupHref,
   onProUpgrade,
+  sampleYoutubeIds,
 }: {
   open: boolean
   onClose: () => void
@@ -88,6 +89,8 @@ function PlaylistFilterDropdown({
   guestSignupHref: string
   /** Logged-in non-Pro: opens Pro modal. Guests use `guestSignupHref`. */
   onProUpgrade?: () => void
+  /** Set of youtubeIds in the loaded crate — used for accurate playlist count. */
+  sampleYoutubeIds?: Set<string>
 }) {
   const panelRef = useRef<HTMLDivElement>(null)
   const [pos, setPos] = useState({ top: 0, left: 0 })
@@ -207,7 +210,7 @@ function PlaylistFilterDropdown({
             <button
               type="button"
               className="shrink-0 px-3 py-2 text-lg leading-none transition hover:bg-white/10"
-              style={{ borderLeft: "1px solid rgba(240,235,225,0.12)" }}
+              style={{ borderLeft: "1px solid rgba(240,235,225,0.12)", color: "#fff" }}
               aria-label="Create playlist"
               onClick={() => {
                 const pl = createPlaylist(userId, newPlaylistName)
@@ -319,7 +322,11 @@ function PlaylistFilterDropdown({
               }}
             >
               {pl.name}
-              <span className="text-[10px] tabular-nums opacity-40 ml-1">({pl.youtubeIds.length})</span>
+              <span className="text-[10px] tabular-nums opacity-40 ml-1">
+                ({sampleYoutubeIds
+                  ? pl.youtubeIds.filter((id) => sampleYoutubeIds.has(id)).length
+                  : pl.youtubeIds.length})
+              </span>
             </button>
             <button
               type="button"
@@ -458,6 +465,7 @@ function HistoryList({
   ephemeralItems,
   onEphemeralClear,
   onEphemeralRemoveItem,
+  onSaveToPlaylist,
 }: {
   onItemClick?: (item: HistoryItem) => void
   userId: string
@@ -466,6 +474,8 @@ function HistoryList({
   ephemeralItems?: HistoryItem[]
   onEphemeralClear?: () => void
   onEphemeralRemoveItem?: (youtubeId: string) => void
+  /** Called when a history item is added to a playlist — auto-saves it to the crate. */
+  onSaveToPlaylist?: (item: HistoryItem) => void
 }) {
   const isEphemeral = ephemeralItems !== undefined
   const [persistedItems, setPersistedItems] = useState<HistoryItem[]>([])
@@ -579,6 +589,7 @@ function HistoryList({
                       if (isEphemeral) onEphemeralRemoveItem?.(item.youtubeId)
                       else removeHistoryItem(item.youtubeId)
                     }}
+                    onAddedToPlaylist={() => onSaveToPlaylist?.(item)}
                   />
                 </div>
               </div>
@@ -685,6 +696,24 @@ export default function SavedSamplesSidebar({
     } catch {}
   }
 
+  const handleAutoSaveHistoryItem = async (item: HistoryItem) => {
+    if (!userId) return
+    if (samples.some((s) => s.youtubeId === item.youtubeId)) return
+    try {
+      const res = await fetch("/api/samples/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sampleId: item.youtubeId }),
+      })
+      if (res.ok) {
+        await fetchSavedSamples()
+        window.dispatchEvent(new CustomEvent("samplesUpdated"))
+      }
+    } catch {}
+  }
+
+  const sampleYoutubeIds = useMemo(() => new Set(samples.map((s) => s.youtubeId)), [samples])
+
   const displayedCrateSamples = useMemo(() => {
     if (!activePlaylistId) return samples
     const pl = playlists.find((p) => p.id === activePlaylistId)
@@ -729,6 +758,7 @@ export default function SavedSamplesSidebar({
         userId={userId}
         guestSignupHref="/register"
         onProUpgrade={session ? () => openProModal() : undefined}
+        sampleYoutubeIds={sampleYoutubeIds}
       />
 
       {/* My Crate: locked for guests */}
@@ -924,6 +954,7 @@ export default function SavedSamplesSidebar({
           onItemClick={onHistoryItemClick}
           userId={userId}
           isPro={isPro}
+          onSaveToPlaylist={session ? handleAutoSaveHistoryItem : undefined}
           {...(hasProSubscription
             ? {}
             : {

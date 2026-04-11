@@ -8,7 +8,7 @@ import HeartToggle from "@/components/HeartToggle"
 import SiteNav from "@/components/SiteNav"
 import CrateFilterPanel from "@/components/CrateFilterPanel"
 import { titleLooksLikeDrumBreak } from "@/lib/drum-break-title-match"
-import { getPlaylists } from "@/lib/user-playlists"
+import { getPlaylists, pruneYoutubeFromAllPlaylists } from "@/lib/user-playlists"
 import type { UserPlaylist } from "@/lib/user-playlists"
 
 const DIG_LOAD_SAMPLE_KEY = "digLoadSample"
@@ -100,6 +100,8 @@ export default function ProfilePage() {
       })
 
       if (response.ok) {
+        const removed = samples.find((s) => s.id === sampleId)
+        if (removed && userId) pruneYoutubeFromAllPlaylists(userId, removed.youtubeId)
         setSamples(samples.filter((s) => s.id !== sampleId))
         window.dispatchEvent(new CustomEvent('samplesUpdated'))
       }

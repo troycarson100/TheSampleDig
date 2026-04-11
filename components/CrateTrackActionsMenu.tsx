@@ -16,6 +16,8 @@ type Props = {
   isPro: boolean
   removeLabel: string
   onRemove: () => void
+  /** Called after a track is successfully added to any playlist. */
+  onAddedToPlaylist?: () => void
 }
 
 const PANEL_W = 240
@@ -26,6 +28,7 @@ export default function CrateTrackActionsMenu({
   isPro,
   removeLabel,
   onRemove,
+  onAddedToPlaylist,
 }: Props) {
   const { openProModal } = useGoProModal()
   const [open, setOpen] = useState(false)
@@ -108,12 +111,14 @@ export default function CrateTrackActionsMenu({
       setNewName("")
       refresh()
       setOpen(false)
+      onAddedToPlaylist?.()
     }
   }
 
   const handlePickPlaylist = (playlistId: string) => {
     addYoutubeToPlaylist(userId, playlistId, youtubeId)
     setOpen(false)
+    onAddedToPlaylist?.()
   }
 
   const panelStyle: CSSProperties = {
@@ -224,6 +229,7 @@ export default function CrateTrackActionsMenu({
             <button
               type="button"
               className="p-1 rounded hover:bg-white/10"
+              style={{ color: "#fff" }}
               aria-label="Back"
               onClick={() => setView("main")}
             >
@@ -249,7 +255,7 @@ export default function CrateTrackActionsMenu({
             <button
               type="button"
               className="shrink-0 px-3 py-2 text-lg leading-none transition hover:bg-white/10"
-              style={{ borderLeft: "1px solid rgba(240,235,225,0.12)" }}
+              style={{ borderLeft: "1px solid rgba(240,235,225,0.12)", color: "#fff" }}
               aria-label="Create playlist and add track"
               onClick={handleCreatePlaylist}
             >
