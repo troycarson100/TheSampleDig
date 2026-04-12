@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { recordUserActivity } from "@/lib/record-user-activity"
+import { ensureUsableYoutubeTitle } from "@/lib/database-samples"
 
 export async function GET() {
   try {
@@ -32,49 +33,52 @@ export async function GET() {
       }
     })
 
-    const samples = userSamples.map(us => {
-      let chops: unknown = undefined
-      let loop: unknown = undefined
-      let notes: string | undefined = undefined
-      let bpmOverride: number | null | undefined
-      if (us.notes) {
-        try {
-          const parsed = JSON.parse(us.notes) as unknown
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            chops = parsed
-          } else if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
-            const obj = parsed as { chops?: unknown; loop?: unknown; userNote?: string; bpmOverride?: number | null }
-            if (Array.isArray(obj.chops) && obj.chops.length > 0) chops = obj.chops
-            if (obj.loop && typeof obj.loop === "object" && Array.isArray((obj.loop as { sequence?: unknown }).sequence))
-              loop = obj.loop
-            if (typeof obj.userNote === "string") notes = obj.userNote
-            if (obj.bpmOverride !== undefined) bpmOverride = obj.bpmOverride
+    const samples = await Promise.all(
+      userSamples.map(async (us) => {
+        let chops: unknown = undefined
+        let loop: unknown = undefined
+        let notes: string | undefined = undefined
+        let bpmOverride: number | null | undefined
+        if (us.notes) {
+          try {
+            const parsed = JSON.parse(us.notes) as unknown
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              chops = parsed
+            } else if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+              const obj = parsed as { chops?: unknown; loop?: unknown; userNote?: string; bpmOverride?: number | null }
+              if (Array.isArray(obj.chops) && obj.chops.length > 0) chops = obj.chops
+              if (obj.loop && typeof obj.loop === "object" && Array.isArray((obj.loop as { sequence?: unknown }).sequence))
+                loop = obj.loop
+              if (typeof obj.userNote === "string") notes = obj.userNote
+              if (obj.bpmOverride !== undefined) bpmOverride = obj.bpmOverride
+            }
+          } catch {
+            // notes was not valid JSON, ignore
           }
-        } catch {
-          // notes was not valid JSON, ignore
         }
-      }
-      return {
-        id: us.sample.id,
-        youtubeId: us.sample.youtubeId,
-        title: us.sample.title,
-        channel: us.sample.channel,
-        thumbnailUrl: us.sample.thumbnailUrl,
-        tags: us.sample.tags,
-        genre: us.sample.genre,
-        era: us.sample.era,
-        bpm: us.sample.bpm,
-        key: us.sample.key,
-        analysisStatus: us.sample.analysisStatus,
-        startTime: us.startTime || undefined,
-        duration: us.sample.duration ?? undefined,
-        chops,
-        loop,
-        notes,
-        bpmOverride: bpmOverride ?? undefined,
-        savedAt: us.createdAt,
-      }
-    })
+        const title = await ensureUsableYoutubeTitle(us.sample.youtubeId, us.sample.title)
+        return {
+          id: us.sample.id,
+          youtubeId: us.sample.youtubeId,
+          title,
+          channel: us.sample.channel,
+          thumbnailUrl: us.sample.thumbnailUrl,
+          tags: us.sample.tags,
+          genre: us.sample.genre,
+          era: us.sample.era,
+          bpm: us.sample.bpm,
+          key: us.sample.key,
+          analysisStatus: us.sample.analysisStatus,
+          startTime: us.startTime || undefined,
+          duration: us.sample.duration ?? undefined,
+          chops,
+          loop,
+          notes,
+          bpmOverride: bpmOverride ?? undefined,
+          savedAt: us.createdAt,
+        }
+      })
+    )
 
     return NextResponse.json(samples)
   } catch (error: any) {

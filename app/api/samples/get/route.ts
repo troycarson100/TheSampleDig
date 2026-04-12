@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { ensureUsableYoutubeTitle } from "@/lib/database-samples"
 
 export async function GET(request: Request) {
   try {
@@ -38,7 +39,9 @@ export async function GET(request: Request) {
       )
     }
 
-    return NextResponse.json(sample)
+    const title = await ensureUsableYoutubeTitle(sample.youtubeId, sample.title)
+
+    return NextResponse.json({ ...sample, title })
   } catch (error: any) {
     console.error("Error fetching sample:", error)
     return NextResponse.json(
