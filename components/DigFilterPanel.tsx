@@ -225,7 +225,7 @@ export default function DigFilterPanel({
         {activeCount > 0 && !open && (
           <span
             className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full flex items-center justify-center text-[10px] font-bold leading-none"
-            style={{ background: "var(--foreground)", color: "var(--background)" }}
+            style={{ background: "var(--rust)", color: "#fff" }}
           >
             {activeCount}
           </span>
