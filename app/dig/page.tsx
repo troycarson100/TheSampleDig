@@ -96,7 +96,7 @@ function readDigStartHereDone(): boolean {
 
 /**
  * Google AdSense: footer slot default is in `lib/adsense-dig.ts`.
- * Set `true` when the AdSense site shows “Ready” / ads are serving (see commented blocks below).
+ * Set `true` and uncomment the blocks below when the site is ready to show ads (see `lib/adsense-blog.ts` for blog).
  */
 const ADSENSE_DIG_UNITS_ENABLED = false
 
@@ -953,7 +953,7 @@ export default function DigPage() {
                   currentSampleId={sample?.id}
                 />
               </div>
-              {/* AdSense sidebar (My Crate) — uncomment when site is ready to show ads
+              {/* AdSense sidebar (My Crate) — uncomment when ready
               {digAdsActive ? (
                 <div className="w-full shrink-0">
                   <DigAdSenseUnit variant="sidebar" adSlot={ADSENSE_DIG_SIDEBAR_SLOT} />
@@ -981,7 +981,7 @@ export default function DigPage() {
         </footer>
       </div>
 
-      {/* AdSense fixed footer bar — uncomment when site is ready to show ads
+      {/* AdSense fixed footer bar — uncomment when ready
       {digAdsActive ? (
         <div
           className="fixed bottom-0 left-0 right-0 z-40 border-t shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"

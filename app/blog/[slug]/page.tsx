@@ -1,4 +1,5 @@
 import Link from "next/link"
+import { Fragment } from "react"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import SiteNav from "@/components/SiteNav"
@@ -72,36 +73,24 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             </time>
           </header>
           <div className="max-w-none prose-blog">
-            {post.content.map((block, i) => {
-              if (block.type === "h2") {
-                return (
+            {post.content.map((block, i) => (
+              <Fragment key={i}>
+                {block.type === "h2" ? (
                   <h2
-                    key={i}
                     className="text-xl font-semibold mt-8 mb-3 first:mt-0"
                     style={{ fontFamily: "var(--font-dm-serif), 'DM Serif Display', serif", color: "var(--foreground)" }}
                   >
                     {block.text}
                   </h2>
-                )
-              }
-              if (block.type === "h3") {
-                return (
+                ) : block.type === "h3" ? (
                   <h3
-                    key={i}
                     className="text-lg font-semibold mt-6 mb-2"
                     style={{ fontFamily: "var(--font-dm-serif), 'DM Serif Display', serif", color: "var(--foreground)" }}
                   >
                     {block.text}
                   </h3>
-                )
-              }
-              if (block.type === "p" && "segments" in block) {
-                return (
-                  <p
-                    key={i}
-                    className="text-[15px] leading-relaxed mb-4"
-                    style={{ color: "var(--brown)", opacity: 0.9 }}
-                  >
+                ) : block.type === "p" && "segments" in block ? (
+                  <p className="text-[15px] leading-relaxed mb-4" style={{ color: "var(--brown)", opacity: 0.9 }}>
                     {block.segments.map((seg, j) =>
                       seg.type === "link" ? (
                         <Link
@@ -119,18 +108,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                       )
                     )}
                   </p>
-                )
-              }
-              return (
-                <p
-                  key={i}
-                  className="text-[15px] leading-relaxed mb-4"
-                  style={{ color: "var(--brown)", opacity: 0.9 }}
-                >
-                  {block.text}
-                </p>
-              )
-            })}
+                ) : (
+                  <p className="text-[15px] leading-relaxed mb-4" style={{ color: "var(--brown)", opacity: 0.9 }}>
+                    {"text" in block ? block.text : null}
+                  </p>
+                )}
+                {/* Blog in-article AdSense — uncomment when ready (import BlogAdSenseInArticle + getBlogInArticleAdInsertIndex; const inArticleAdAfterIndex = getBlogInArticleAdInsertIndex(post.content))
+                {inArticleAdAfterIndex === i ? <BlogAdSenseInArticle /> : null}
+                */}
+              </Fragment>
+            ))}
           </div>
         </article>
 
