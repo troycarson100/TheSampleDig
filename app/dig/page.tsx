@@ -95,9 +95,10 @@ function readDigStartHereDone(): boolean {
 }
 
 /**
- * Google AdSense: footer slot default is in `lib/adsense-dig.ts`. Set `true` to show fixed footer + sidebar units for non‑Pro users.
+ * Google AdSense: footer slot default is in `lib/adsense-dig.ts`.
+ * Set `true` when the AdSense site shows “Ready” / ads are serving (see commented blocks below).
  */
-const ADSENSE_DIG_UNITS_ENABLED = true
+const ADSENSE_DIG_UNITS_ENABLED = false
 
 export default function DigPage() {
   const { data: session, status } = useSession()
@@ -952,11 +953,13 @@ export default function DigPage() {
                   currentSampleId={sample?.id}
                 />
               </div>
+              {/* AdSense sidebar (My Crate) — uncomment when site is ready to show ads
               {digAdsActive ? (
                 <div className="w-full shrink-0">
                   <DigAdSenseUnit variant="sidebar" adSlot={ADSENSE_DIG_SIDEBAR_SLOT} />
                 </div>
               ) : null}
+              */}
             </div>
 
           </div>
@@ -978,6 +981,7 @@ export default function DigPage() {
         </footer>
       </div>
 
+      {/* AdSense fixed footer bar — uncomment when site is ready to show ads
       {digAdsActive ? (
         <div
           className="fixed bottom-0 left-0 right-0 z-40 border-t shadow-[0_-4px_24px_rgba(0,0,0,0.06)]"
@@ -994,6 +998,7 @@ export default function DigPage() {
           </div>
         </div>
       ) : null}
+      */}
     </div>
   )
 }

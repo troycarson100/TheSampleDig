@@ -25,12 +25,13 @@ const nextConfig: NextConfig = {
             key: 'Content-Security-Policy',
             value: [
               "default-src 'self'",
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com https://www.google.com",
+              // AdSense: pagead2.googlesyndication.com (not covered by www.google.com)
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com https://www.google.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://www.googletagservices.com",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://www.googleapis.com https://www.youtube.com https://youtube.com",
-              "frame-src 'self' https://www.youtube.com https://youtube.com",
+              "connect-src 'self' https://www.googleapis.com https://www.youtube.com https://youtube.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://www.googleadservices.com https://adservice.google.com",
+              "frame-src 'self' https://www.youtube.com https://youtube.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://pagead2.googlesyndication.com",
               "media-src 'self' https://www.youtube.com",
             ].join('; '),
           },
