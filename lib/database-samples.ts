@@ -7,6 +7,25 @@ import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db"
 import { DRUM_BREAK_CURATED_TAG, DRUM_BREAK_TITLE_PHRASES } from "@/lib/drum-break-title-match"
 import { YouTubeVideo } from "@/types/sample"
+import { fetchCanonicalYoutubeTitleIfGarbage } from "./youtube-sample-title"
+import { titleLooksLikeYoutubePlayerChrome } from "./youtube-title-garbage"
+
+/**
+ * If `title` is YouTube player chrome (e.g. "3:08 3:08 Now playing"), replace with the real
+ * title from the Data API and persist on `samples` when a row exists (or when later created).
+ */
+export async function ensureUsableYoutubeTitle(youtubeId: string, title: string): Promise<string> {
+  if (!titleLooksLikeYoutubePlayerChrome(title)) return title
+  const fixed = await fetchCanonicalYoutubeTitleIfGarbage(youtubeId, title)
+  if (fixed !== title) {
+    await prisma.sample.updateMany({
+      where: { youtubeId },
+      data: { title: fixed },
+    })
+    console.log(`[DB] Repaired garbage YouTube title for ${youtubeId}`)
+  }
+  return fixed
+}
 
 /** PostgreSQL regex: at least one character in Hiragana, Katakana, or CJK Unified Ideographs (common Kanji). Inlined in SQL to avoid parameter encoding issues. */
 const JAPANESE_TITLE_REGEX_LITERAL = "[ぁ-んァ-ン一-龥]"
@@ -74,9 +93,10 @@ async function getRandomSampleJapanese(
   `
   const row = rows[0]
   if (!row) return null
+  const title = await ensureUsableYoutubeTitle(row.youtube_id, row.title)
   return {
     id: row.youtube_id,
-    title: row.title,
+    title,
     channelTitle: row.channel,
     channelId: row.channel_id ?? undefined,
     thumbnail: row.thumbnail_url,
@@ -239,12 +259,13 @@ export async function getRandomSampleFromDatabase(
       return getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly, era, royaltyFreeOnly)
     }
     
-    console.log(`[DB] Retrieved sample from database: ${sample.youtubeId} - ${sample.title}`)
+    const resolvedTitle = await ensureUsableYoutubeTitle(sample.youtubeId, sample.title)
+    console.log(`[DB] Retrieved sample from database: ${sample.youtubeId} - ${resolvedTitle}`)
     console.log(`[DB] ✓ Sample ${sample.youtubeId} is NOT in excluded list (${excludeIds.length} exclusions checked)`)
     
     return {
       id: sample.youtubeId,
-      title: sample.title,
+      title: resolvedTitle,
       channelTitle: sample.channel,
       channelId: sample.channelId || undefined,
       thumbnail: sample.thumbnailUrl,
@@ -342,8 +363,10 @@ export async function storeSampleInDatabase(video: YouTubeVideo & {
       where: { youtubeId: video.id }
     })
 
+    const safeTitle = await ensureUsableYoutubeTitle(video.id, video.title)
+
     const baseData = {
-      title: video.title,
+      title: safeTitle,
       channel: video.channelTitle,
       thumbnailUrl: video.thumbnail,
       genre: video.genre || null,

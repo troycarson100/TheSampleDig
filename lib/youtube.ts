@@ -8,7 +8,11 @@ import {
   DURATION_PATTERNS
 } from "./youtube-config"
 import { getCachedSearchResult, cacheSearchResult, getCachedVideoDetailsBatch, cacheVideoDetailsBatch } from "./cache"
-import { getRandomSampleFromDatabase, getDatabaseSampleCount } from "./database-samples"
+import {
+  getRandomSampleFromDatabase,
+  getDatabaseSampleCount,
+  ensureUsableYoutubeTitle,
+} from "./database-samples"
 import { fetchWithKeyRotation, fetchWithKeyRoundRobin, getFirstYouTubeApiKey } from "./youtube-keys"
 import { getRandomCrateDiggerQuery } from "./crate-digger-list"
 
@@ -1859,9 +1863,11 @@ export async function findRandomSample(
       videoDetails?.tags || video.tags // Video tags
     )
 
+    const safeTitle = await ensureUsableYoutubeTitle(video.id.videoId, video.snippet.title)
+
     return {
       id: video.id.videoId,
-      title: video.snippet.title,
+      title: safeTitle,
       channelTitle: video.snippet.channelTitle,
       channelId: video.snippet.channelId, // Include channelId for database operations
       thumbnail: video.snippet.thumbnails.medium?.url || video.snippet.thumbnails.default.url,
