@@ -21,6 +21,7 @@
     "check-quota": "node -r dotenv/config scripts/check-youtube-quota.js",
     "postinstall": "npx prisma generate && node scripts/fix-node-releases-json.js && node scripts/fix-prisma-default.js && node scripts/copy-worklet.js && node scripts/fix-next-compiled-package-json.js && node scripts/fix-fast-glob-package-json.js && node scripts/fix-caniuse-lite-unpacker.js && node scripts/fix-jose-if-incomplete.js",
     "backfill-bpm-key": "tsx scripts/backfill-bpm-key.ts",
+    "backfill-garbage-youtube-titles": "tsx scripts/backfill-garbage-youtube-titles.ts",
     "backfill-bpm-key-ytdlp": "tsx scripts/backfill-bpm-key-ytdlp.ts",
     "backfill-reanalyze": "npx tsx@latest scripts/backfill-reanalyze-bpm-key.ts",
     "export-samples-list": "tsx scripts/export-samples-for-bpm-key.ts",

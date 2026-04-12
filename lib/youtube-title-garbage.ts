@@ -4,7 +4,11 @@
  */
 export function titleLooksLikeYoutubePlayerChrome(title: string | null | undefined): boolean {
   if (title == null || typeof title !== "string") return false
-  const t = title.replace(/\u00a0/g, " ").replace(/\u2009/g, " ").trim()
+  const t = title
+    .replace(/\u00a0/g, " ")
+    .replace(/\u2009/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
   if (!t) return false
   if (!/\bnow playing\b/i.test(t)) return false
   // Two mm:ss tokens (current/total or duplicated) — real API titles almost never contain this phrase
