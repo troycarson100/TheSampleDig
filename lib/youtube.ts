@@ -1074,6 +1074,17 @@ async function fetchSearchPage(
   publishedBeforeDate: Date | undefined,
   pageToken?: string
 ): Promise<{ items: any[]; nextPageToken?: string }> {
+  const useCrawl4ai = process.env.USE_CRAWL4AI === "true"
+  if (useCrawl4ai) {
+    if (pageToken) {
+      console.log("[Search] Crawl4AI: pagination not supported, using first page only")
+    }
+    console.log(`[Search] Crawl4AI YouTube search (no Data API) for: ${query.substring(0, 80)}...`)
+    const { crawl4aiYouTubeSearch } = await import("./youtube-crawl4ai")
+    const { items } = await crawl4aiYouTubeSearch(query, { enrichDetailsForFirst: 1 })
+    return { items, nextPageToken: undefined }
+  }
+
   const useScraper = process.env.USE_YOUTUBE_SCRAPER === "true"
   if (useScraper) {
     if (pageToken) {
@@ -1118,8 +1129,9 @@ export async function searchWithQuery(
   excludedVideoIds: string[] = [],
   publishedBeforeDate?: Date
 ): Promise<Array<any>> {
+  const useCrawl4ai = process.env.USE_CRAWL4AI === "true"
   const useScraper = process.env.USE_YOUTUBE_SCRAPER === "true"
-  if (!useScraper && !getFirstYouTubeApiKey()) {
+  if (!useCrawl4ai && !useScraper && !getFirstYouTubeApiKey()) {
     throw new Error("No YouTube API key set. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
   }
 
@@ -1138,7 +1150,7 @@ export async function searchWithQuery(
     return []
   }
 
-  if (useScraper) {
+  if (useCrawl4ai || useScraper) {
     const out = processVideoItemsScraperOnly(items, excludedVideoIds)
     cacheSearchResult(query, excludedVideoIds, out.results)
     return out.results
@@ -1590,15 +1602,16 @@ export async function searchWithQueryPaginated(
   pageToken?: string,
   options?: { verbose?: boolean }
 ): Promise<{ results: any[]; nextPageToken?: string; hadCandidates: boolean; pageStats?: PageStats }> {
+  const useCrawl4ai = process.env.USE_CRAWL4AI === "true"
   const useScraper = process.env.USE_YOUTUBE_SCRAPER === "true"
-  if (!useScraper && !getFirstYouTubeApiKey()) {
+  if (!useCrawl4ai && !useScraper && !getFirstYouTubeApiKey()) {
     throw new Error("No YouTube API key set. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
   }
   const { items, nextPageToken } = await fetchSearchPage(query, publishedBeforeDate, pageToken)
   if (!items.length) {
     return { results: [], nextPageToken, hadCandidates: false }
   }
-  if (useScraper) {
+  if (useCrawl4ai || useScraper) {
     const out = processVideoItemsScraperOnly(items, excludedVideoIds)
     return { results: out.results, nextPageToken, hadCandidates: out.hadCandidates }
   }
@@ -1622,7 +1635,7 @@ export async function findRandomSample(
   excludedVideoIds: string[] = [],
   userId?: string,
   options?: { databaseOnly?: boolean; genre?: string; era?: string; drumBreakOnly?: boolean; royaltyFreeOnly?: boolean }
-): Promise<YouTubeVideo & { genre?: string; era?: string; duration?: number }> {
+): Promise<YouTubeVideo & { genre?: string; era?: string; duration?: number; breakStartSeconds?: number }> {
   const databaseOnly = options?.databaseOnly === true
   const genre = options?.genre?.trim() || undefined
   const era = options?.era?.trim() || undefined

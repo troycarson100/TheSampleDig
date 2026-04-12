@@ -5,7 +5,7 @@
 
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db"
-import { DRUM_BREAK_TITLE_PHRASES } from "@/lib/drum-break-title-match"
+import { DRUM_BREAK_CURATED_TAG, DRUM_BREAK_TITLE_PHRASES } from "@/lib/drum-break-title-match"
 import { YouTubeVideo } from "@/types/sample"
 
 /** PostgreSQL regex: at least one character in Hiragana, Katakana, or CJK Unified Ideographs (common Kanji). Inlined in SQL to avoid parameter encoding issues. */
@@ -20,7 +20,7 @@ async function getRandomSampleJapanese(
   era?: string,
   drumBreakOnly?: boolean,
   royaltyFreeOnly?: boolean
-): Promise<(YouTubeVideo & { genre?: string; era?: string; duration?: number }) | null> {
+): Promise<(YouTubeVideo & { genre?: string; era?: string; duration?: number; breakStartSeconds?: number }) | null> {
   const excludeCondition =
     excludeIds.length === 0
       ? Prisma.sql`true`
@@ -34,7 +34,10 @@ async function getRandomSampleJapanese(
   const drumCondition =
     drumBreakOnly && DRUM_BREAK_TITLE_PHRASES.length > 0
       ? Prisma.sql`AND (${Prisma.join(
-          DRUM_BREAK_TITLE_PHRASES.map((p) => Prisma.sql`s.title ILIKE ${"%" + p + "%"}`),
+          [
+            ...DRUM_BREAK_TITLE_PHRASES.map((p) => Prisma.sql`s.title ILIKE ${"%" + p + "%"}`),
+            Prisma.sql`s.tags ILIKE ${"%" + DRUM_BREAK_CURATED_TAG + "%"}`,
+          ],
           " OR "
         )})`
       : Prisma.empty
@@ -56,9 +59,10 @@ async function getRandomSampleJapanese(
     genre: string | null
     era: string | null
     duration_seconds: number | null
+    break_start_seconds: number | null
   }
   const rows = await prisma.$queryRaw<Row[]>`
-    SELECT s.youtube_id, s.title, s.channel, s.channel_id, s.thumbnail_url, s.created_at, s.genre, s.era, s.duration_seconds
+    SELECT s.youtube_id, s.title, s.channel, s.channel_id, s.thumbnail_url, s.created_at, s.genre, s.era, s.duration_seconds, s.break_start_seconds
     FROM samples s
     WHERE ${excludeCondition}
       AND ${japaneseMatch}
@@ -80,6 +84,7 @@ async function getRandomSampleJapanese(
     genre: row.genre ?? undefined,
     era: row.era ?? undefined,
     duration: row.duration_seconds ?? undefined,
+    breakStartSeconds: row.break_start_seconds ?? undefined,
   }
 }
 
@@ -126,7 +131,7 @@ export async function getRandomSampleFromDatabase(
   drumBreakOnly?: boolean,
   era?: string,
   royaltyFreeOnly?: boolean
-): Promise<(YouTubeVideo & { genre?: string; era?: string; duration?: number }) | null> {
+): Promise<(YouTubeVideo & { genre?: string; era?: string; duration?: number; breakStartSeconds?: number }) | null> {
   try {
     // Build exclusion list
     let excludeIds = [...excludedVideoIds]
@@ -161,17 +166,7 @@ export async function getRandomSampleFromDatabase(
     }
 
     // Build where: exclusions + optional genre + optional era (skipped when royaltyFree) + optional title filters
-    type WhereClause = {
-      youtubeId?: { notIn: string[] }
-      genre?: { equals: string; mode: "insensitive" }
-      era?: { equals: string }
-      OR?: Array<
-        | { genre: { equals: string; mode: "insensitive" } }
-        | { tags: { contains: string; mode: "insensitive" } }
-      >
-      AND?: { OR: { title: { contains: string; mode: "insensitive" } }[] }[]
-    }
-    const whereClause: WhereClause =
+    const whereClause: Prisma.SampleWhereInput =
       excludeIds.length > 0 ? { youtubeId: { notIn: excludeIds } } : {}
     if (genre && genre.trim() !== "") {
       const g = genre.trim()
@@ -187,12 +182,15 @@ export async function getRandomSampleFromDatabase(
     if (era && era.trim() !== "" && !royaltyFreeOnly) {
       whereClause.era = { equals: era.trim() }
     }
-    const andClauses: { OR: { title: { contains: string; mode: "insensitive" } }[] }[] = []
+    const andClauses: Prisma.SampleWhereInput[] = []
     if (drumBreakOnly) {
       andClauses.push({
-        OR: DRUM_BREAK_TITLE_PHRASES.map((phrase) => ({
-          title: { contains: phrase, mode: "insensitive" as const },
-        })),
+        OR: [
+          ...DRUM_BREAK_TITLE_PHRASES.map((phrase) => ({
+            title: { contains: phrase, mode: "insensitive" as const },
+          })),
+          { tags: { contains: DRUM_BREAK_CURATED_TAG, mode: "insensitive" as const } },
+        ],
       })
     }
     if (royaltyFreeOnly) {
@@ -254,6 +252,7 @@ export async function getRandomSampleFromDatabase(
       genre: sample.genre || undefined,
       era: sample.era || undefined,
       duration: sample.duration ?? undefined,
+      breakStartSeconds: sample.breakStartSeconds ?? undefined,
     }
   } catch (error) {
     console.error("[DB] Error getting sample from database:", error)
@@ -307,6 +306,22 @@ export async function getExistingYoutubeIds(): Promise<string[]> {
   }
 }
 
+/** Merge comma-separated tags without duplicates (preserves non-drum tags on update). */
+function mergeSampleTags(existing: string | null | undefined, incoming: string | undefined): string | null {
+  if (incoming === undefined) return existing ?? null
+  const set = new Set<string>()
+  for (const t of (existing ?? "").split(",")) {
+    const s = t.trim()
+    if (s) set.add(s)
+  }
+  for (const t of incoming.split(",")) {
+    const s = t.trim()
+    if (s) set.add(s)
+  }
+  const arr = [...set]
+  return arr.length > 0 ? arr.join(", ") : null
+}
+
 /**
  * Store a sample in the database (used by pre-population and candidate pipeline)
  */
@@ -319,6 +334,8 @@ export async function storeSampleInDatabase(video: YouTubeVideo & {
   qualityScore?: number
   embeddable?: boolean
   tags?: string
+  /** Curated drum-break start (seconds); stored on Sample for Dig seek */
+  breakStartSeconds?: number
 }): Promise<boolean> {
   try {
     const existing = await prisma.sample.findUnique({
@@ -339,16 +356,21 @@ export async function storeSampleInDatabase(video: YouTubeVideo & {
     const createData = {
       ...baseData,
       tags: video.tags ?? null,
+      breakStartSeconds: video.breakStartSeconds ?? null,
       dateAddedDb: new Date(),
     }
 
     if (existing) {
-      const updateData = video.tags !== undefined ? { ...baseData, tags: video.tags } : baseData
+      const updateData: Prisma.SampleUpdateInput = { ...baseData }
+      if (video.tags !== undefined) {
+        updateData.tags = mergeSampleTags(existing.tags ?? null, video.tags) ?? video.tags
+      }
+      if (video.breakStartSeconds !== undefined) updateData.breakStartSeconds = video.breakStartSeconds
       await prisma.sample.update({
         where: { id: existing.id },
         data: updateData,
       })
-      return false // Already existed
+      return false // Already existed (updated in place — preserves user saves)
     }
 
     let channelId: string | null = null

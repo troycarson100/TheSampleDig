@@ -63,7 +63,8 @@ model Sample {
   duration       Int?          @map("duration_seconds")
   qualityScore   Float?        @map("quality_score")
   source         String?       // "search" | "playlist" | "channel"
-  tags           String?       // e.g. "post-5.5k" for samples added after 5.5k threshold
+  tags           String?       // e.g. "post-5.5k" for samples added after 5.5k threshold; "drum-break-curated" for PDF drum-break list
+  breakStartSeconds Int?       @map("break_start_seconds") // curated PDF: seconds to drum break; Dig seeks here when set
   embeddable     Boolean?       @map("embeddable") // false = blocked on external sites
   dateAddedDb    DateTime?     @map("date_added_db") // when added from YouTube API (for batch delete)
   createdAt      DateTime      @default(now()) @map("created_at")

@@ -95,10 +95,9 @@ function readDigStartHereDone(): boolean {
 }
 
 /**
- * Google AdSense: set `true` after the site is approved and slots are live.
- * While `false`, non‑Pro users see no ad script, no units, and layout matches “no fixed footer ad”.
+ * Google AdSense: footer slot default is in `lib/adsense-dig.ts`. Set `true` to show fixed footer + sidebar units for non‑Pro users.
  */
-const ADSENSE_DIG_UNITS_ENABLED = false
+const ADSENSE_DIG_UNITS_ENABLED = true
 
 export default function DigPage() {
   const { data: session, status } = useSession()
@@ -432,10 +431,22 @@ export default function DigPage() {
       }
       
       const data = responseData
-      // Drum Break: start at 0:00. Random Start Time off: start at 0:00. Otherwise smart start (avoid intro/outro).
+      // Curated PDF drum-break time (seconds) takes priority; then Drum Break mode at 0:00; else smart start.
       const END_BUFFER = 25
+      const curatedBreak =
+        typeof data.breakStartSeconds === "number" && !Number.isNaN(data.breakStartSeconds) && data.breakStartSeconds >= 0
+          ? Math.floor(data.breakStartSeconds)
+          : null
       let finalStartTime: number
-      if (drumBreak || !randomStartTime) {
+      if (curatedBreak != null) {
+        const dur = typeof data.duration === "number" && data.duration > 0 ? data.duration : null
+        if (dur != null && dur > END_BUFFER) {
+          finalStartTime = Math.min(curatedBreak, Math.max(0, dur - END_BUFFER))
+        } else {
+          finalStartTime = curatedBreak
+        }
+        console.log(`[Dig] Curated drum break start: ${finalStartTime}s (raw ${curatedBreak}, duration ${dur ?? "?"})`)
+      } else if (drumBreak || !randomStartTime) {
         finalStartTime = 0
         console.log(`[Dig] Start at 0:00 (drumBreak=${drumBreak}, randomStartTime=${randomStartTime})`)
       } else if (data.duration && data.duration > 0) {

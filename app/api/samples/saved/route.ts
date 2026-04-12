@@ -60,6 +60,7 @@ export async function GET() {
         title: us.sample.title,
         channel: us.sample.channel,
         thumbnailUrl: us.sample.thumbnailUrl,
+        tags: us.sample.tags,
         genre: us.sample.genre,
         era: us.sample.era,
         bpm: us.sample.bpm,

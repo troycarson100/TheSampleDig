@@ -1,3 +1,6 @@
+/** In `samples.tags`; rows with this token match Dig "drum break" filter even if title has no break keywords. */
+export const DRUM_BREAK_CURATED_TAG = "drum-break-curated"
+
 /** Title phrases that suggest a drum-break or breakbeat video (matches Dig / DB drum-break filter). */
 export const DRUM_BREAK_TITLE_PHRASES = [
   "drum break",
@@ -14,4 +17,13 @@ export function titleLooksLikeDrumBreak(title: string | null | undefined): boole
   if (!title || typeof title !== "string") return false
   const t = title.toLowerCase()
   return DRUM_BREAK_TITLE_PHRASES.some((phrase) => t.includes(phrase))
+}
+
+/** Dig / crate: curated PDF list or title phrases. */
+export function sampleMatchesDrumBreakFilter(
+  title: string | null | undefined,
+  tags: string | null | undefined
+): boolean {
+  if (tags && tags.toLowerCase().includes(DRUM_BREAK_CURATED_TAG)) return true
+  return titleLooksLikeDrumBreak(title)
 }

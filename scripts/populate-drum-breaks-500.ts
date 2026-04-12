@@ -1,18 +1,18 @@
 /**
- * Populate DB from "500 Rare Vintage Soul Samples" PDF — same discovery pattern as
- * populate-500-rare-vintage-jazz.ts: Playwright search (no YouTube Data API), one plain
- * `artist + title` query per track, relaxVinylIndicators: true, max 2 tracks per artist.
- * Writes markdown for spot-check / revert reference.
+ * Populate DB from "500 Rare Drum Breaks" PDF: Crawl4AI or Playwright search (no YouTube Data API),
+ * one `artist + title` query per track, `relaxVinylIndicators: true`, max 2 tracks per artist.
+ * Stores PDF break time on Sample.breakStartSeconds and tags `drum-break-curated` for Dig filter.
  *
  * Usage:
- *   USE_YOUTUBE_SCRAPER=true npx tsx scripts/populate-vintage-soul-500.ts [path-to.pdf] [--limit=N] [--dry-run]
- *   [--start-fresh] [--output=vintage-soul-500-spot-check.md] [--parse-only]
+ *   USE_CRAWL4AI=true npx tsx scripts/populate-drum-breaks-500.ts [path-to.pdf] [--limit=N] [--offset=N] [--dry-run]
+ *   [--start-fresh] [--output=drum-breaks-500-spot-check.md] [--parse-only]
  *
- * Resume: by default continues from .populate-vintage-soul-500-state.json if present; use --start-fresh to reset.
+ * `--offset=20` starts at PDF row index 20 (0-based). Combine with `--limit=480` for rows 20–499.
+ * Existing samples with the same YouTube ID are **updated** (break time + tags), not skipped.
  *
- * Default PDF: ~/Downloads/500_Rare_Vintage_Soul_Samples.pdf
- * If USE_CRAWL4AI=true, Crawl4AI runs instead of Playwright (see lib/youtube.ts fetchSearchPage).
- * After a Crawl4AI run, use --start-fresh once so resume state does not skip rows wrongly.
+ * Resume: .populate-drum-breaks-500-state.json — use --start-fresh after changing discovery backend.
+ *
+ * Default PDF: ~/Downloads/500_Rare_Drum_Breaks.pdf
  */
 
 import "dotenv/config"
@@ -21,13 +21,14 @@ import { readFile, writeFile, unlink } from "fs/promises"
 import { writeFileSync, appendFileSync } from "fs"
 import path from "path"
 import { PDFParse } from "pdf-parse"
-import { parseVintageSoulPdfText, type VintageSoulTrack } from "../lib/vintage-soul-500"
+import { parseDrumBreaksPdfText, type DrumBreakTrack } from "../lib/drum-breaks-500"
+import { DRUM_BREAK_CURATED_TAG } from "../lib/drum-break-title-match"
 import { searchWithQueryPaginated, extractMetadata } from "../lib/youtube"
-import { storeSampleInDatabase, getExistingYoutubeIds } from "../lib/database-samples"
+import { storeSampleInDatabase } from "../lib/database-samples"
 
-const DEFAULT_PDF = path.join(process.env.HOME || "", "Downloads", "500_Rare_Vintage_Soul_Samples.pdf")
-const STATE_FILE = path.join(process.cwd(), ".populate-vintage-soul-500-state.json")
-const DEFAULT_MD = "vintage-soul-500-spot-check.md"
+const DEFAULT_PDF = path.join(process.env.HOME || "", "Downloads", "500_Rare_Drum_Breaks.pdf")
+const STATE_FILE = path.join(process.cwd(), ".populate-drum-breaks-500-state.json")
+const DEFAULT_MD = "drum-breaks-500-spot-check.md"
 const MAX_TRACKS_PER_ARTIST = 2
 
 interface State {
@@ -36,6 +37,12 @@ interface State {
 
 function mdCell(s: string): string {
   return s.replace(/\|/g, "/").replace(/\r?\n/g, " ").trim()
+}
+
+function formatSec(sec: number): string {
+  const m = Math.floor(sec / 60)
+  const s = sec % 60
+  return `${m}:${s.toString().padStart(2, "0")}`
 }
 
 function normalizeArtist(name: string): string {
@@ -74,13 +81,16 @@ async function clearState(): Promise<void> {
 }
 
 async function main() {
+  const useCrawl4ai = process.env.USE_CRAWL4AI === "true"
   const useScraper = process.env.USE_YOUTUBE_SCRAPER === "true"
-  console.log("[Soul500] USE_YOUTUBE_SCRAPER:", useScraper ? "true" : "false")
+  console.log("[Drum500] USE_CRAWL4AI:", useCrawl4ai ? "true" : "false", "| USE_YOUTUBE_SCRAPER:", useScraper ? "true" : "false")
 
   const args = process.argv.slice(2)
   const pathArg = args.find((a) => !a.startsWith("--"))
   const limitArg = args.find((a) => a.startsWith("--limit="))
   const limit = limitArg ? Math.max(1, parseInt(limitArg.split("=")[1], 10)) : 0
+  const offsetArg = args.find((a) => a.startsWith("--offset="))
+  const explicitOffset = offsetArg ? Math.max(0, parseInt(offsetArg.split("=")[1], 10)) : 0
   const dryRun = args.includes("--dry-run")
   const parseOnly = args.includes("--parse-only")
   const startFresh = args.includes("--start-fresh")
@@ -88,49 +98,61 @@ async function main() {
   const mdPath = path.resolve(process.cwd(), outputArg ? outputArg.split("=")[1] : DEFAULT_MD)
 
   const pdfPath = path.resolve(pathArg || DEFAULT_PDF)
-  console.log("[Soul500] PDF:", pdfPath)
+  console.log("[Drum500] PDF:", pdfPath)
 
   const rawText = await loadPdfText(pdfPath)
-  const tracks = parseVintageSoulPdfText(rawText)
-  console.log("[Soul500] Parsed tracks:", tracks.length, "(expected 500)")
+  const tracks = parseDrumBreaksPdfText(rawText)
+  console.log("[Drum500] Parsed tracks with times:", tracks.length)
 
   if (parseOnly) {
-    if (tracks.length < 500) {
-      console.warn("[Soul500] Parse-only: count mismatch; check PDF text extraction.")
+    if (tracks.length === 0) {
+      console.warn("[Drum500] Parse-only: zero tracks — check PDF path and line format in lib/drum-breaks-500.ts")
     }
-    const sample = tracks.slice(0, 3).map((t) => `${t.index}. ${t.artist} – ${t.title}`)
-    console.log("[Soul500] Sample:", sample.join("\n"))
+    const sample = tracks.slice(0, 5).map(
+      (t) => `${t.index}. ${t.artist} – "${t.title}" @ ${formatSec(t.breakStartSec)} (${t.breakStartSec}s)`
+    )
+    console.log("[Drum500] Sample:\n", sample.join("\n"))
     return
   }
 
   if (tracks.length === 0) {
-    console.error("[Soul500] No tracks parsed. Check PDF path and format.")
+    console.error("[Drum500] No tracks parsed. Check PDF path and format.")
+    process.exit(1)
+  }
+
+  if (!useCrawl4ai && !useScraper) {
+    console.error("[Drum500] Set USE_CRAWL4AI=true or USE_YOUTUBE_SCRAPER=true (no YouTube Data API on this path).")
     process.exit(1)
   }
 
   let startOffset = 0
-  if (!startFresh) {
+  if (startFresh) {
+    await clearState()
+    console.log("[Drum500] Cleared resume state.")
+    startOffset = explicitOffset
+    if (explicitOffset > 0) console.log("[Drum500] Starting at offset", explicitOffset)
+  } else {
     const st = await loadState()
     if (st && st.trackOffset < tracks.length) {
       startOffset = st.trackOffset
-      console.log("[Soul500] Resuming at track offset", startOffset)
+      console.log("[Drum500] Resuming at track offset", startOffset)
+    } else if (explicitOffset > 0) {
+      startOffset = explicitOffset
+      console.log("[Drum500] No state file; using offset", explicitOffset)
     }
-  }
-  if (startFresh) {
-    await clearState()
-    console.log("[Soul500] Cleared resume state.")
   }
 
   const slice = limit > 0 ? tracks.slice(startOffset, startOffset + limit) : tracks.slice(startOffset)
-  const existingIds = dryRun ? [] : await getExistingYoutubeIds()
+  // Do not exclude DB youtube IDs from search — we need the natural top hit per row; upsert updates duplicates.
+  const searchExcludeIds: string[] = []
   const artistCount = new Map<string, number>()
   console.log(
-    "[Soul500] Excluding",
-    existingIds.length,
-    "existing YouTube IDs. Max",
+    "[Drum500] Search exclusion list: empty (duplicates updated in DB). Max",
     MAX_TRACKS_PER_ARTIST,
-    "tracks per artist. Run size:",
+    "new tracks per artist. Run size:",
     slice.length,
+    "from offset",
+    startOffset,
     "| dryRun:",
     dryRun
   )
@@ -141,24 +163,29 @@ async function main() {
   }
   const publishedBefore = undefined
 
-  const header = `# Vintage Soul 500 – YouTube spot check
+  const header = `# Drum breaks 500 – YouTube spot check
 
 Generated: ${new Date().toISOString()}
 Source PDF: \`${pdfPath}\`
 
-Discovery: same as \`populate-500-rare-vintage-jazz.ts\` — \`USE_YOUTUBE_SCRAPER=true\`, plain \`artist + title\` query, Playwright scrape (no Data API). **Genre and tags set to \`soul\`.** Max ${MAX_TRACKS_PER_ARTIST} stored tracks per artist.
+Discovery: \`USE_CRAWL4AI\` or \`USE_YOUTUBE_SCRAPER\`, plain \`artist + title\` query. Stored with **tags** \`${DRUM_BREAK_CURATED_TAG}\` and **breakStartSeconds** from PDF. Max ${MAX_TRACKS_PER_ARTIST} stored tracks per artist.
 
-| # | Artist | Song (list) | YouTube title | Channel | URL |
-|---|--------|-------------|---------------|---------|-----|
+| # | Artist | Song (list) | Break (PDF) | YouTube title | Channel | URL |
+|---|--------|-------------|---------------|---------------|---------|-----|
 `
   if (startOffset === 0) {
     writeFileSync(mdPath, header, "utf-8")
-  } else if (!dryRun) {
-    console.log("[Soul500] Append mode: not rewriting header (offset > 0).")
+  } else {
+    appendFileSync(
+      mdPath,
+      `\n## Batch from offset ${startOffset}\n\n| # | Artist | Song (list) | Break (PDF) | YouTube title | Channel | URL |\n|---|--------|-------------|---------------|---------------|---------|-----|\n`,
+      "utf-8"
+    )
+    console.log("[Drum500] Appending to MD from offset", startOffset)
   }
 
   let stored = 0
-  let skippedDup = 0
+  let updated = 0
   let skippedArtistCap = 0
   let misses = 0
   const missLines: string[] = []
@@ -170,7 +197,7 @@ Discovery: same as \`populate-500-rare-vintage-jazz.ts\` — \`USE_YOUTUBE_SCRAP
     const currentArtistCount = artistCount.get(artistKey) ?? 0
     if (currentArtistCount >= MAX_TRACKS_PER_ARTIST) {
       console.log(
-        `[Soul500] ${globalIdx + 1}/${tracks.length}: ${track.artist} – "${track.title}" (skip: already ${MAX_TRACKS_PER_ARTIST} for this artist)`
+        `[Drum500] ${globalIdx + 1}/${tracks.length}: ${track.artist} – "${track.title}" (skip: already ${MAX_TRACKS_PER_ARTIST} for this artist)`
       )
       skippedArtistCap++
       if (!dryRun) await saveState({ trackOffset: globalIdx + 1 })
@@ -180,24 +207,26 @@ Discovery: same as \`populate-500-rare-vintage-jazz.ts\` — \`USE_YOUTUBE_SCRAP
 
     const searchQuery = `${track.artist} ${track.title}`.replace(/\s+/g, " ")
     const short = searchQuery.length > 55 ? searchQuery.slice(0, 55) + "…" : searchQuery
-    console.log(`[Soul500] ${globalIdx + 1}/${tracks.length}: ${short}`)
+    console.log(`[Drum500] ${globalIdx + 1}/${tracks.length}: ${short}`)
 
     try {
       const { results } = await searchWithQueryPaginated(
         searchQuery,
-        existingIds,
+        searchExcludeIds,
         publishedBefore,
         undefined,
         searchOptions
       )
 
       if (results.length === 0) {
-        console.log(`[Soul500]   No results for: ${short}`)
+        console.log(`[Drum500]   No results for: ${short}`)
         misses++
-        missLines.push(`- **${track.index}** ${track.artist} – *${track.title}* — no video passed filters`)
+        missLines.push(
+          `- **${track.index}** ${track.artist} – *${track.title}* — no video passed filters`
+        )
         appendFileSync(
           mdPath,
-          `| ${track.index} | ${mdCell(track.artist)} | ${mdCell(track.title)} | — | — | — |\n`,
+          `| ${track.index} | ${mdCell(track.artist)} | ${mdCell(track.title)} | ${formatSec(track.breakStartSec)} | — | — | — |\n`,
           "utf-8"
         )
         if (!dryRun) await saveState({ trackOffset: globalIdx + 1 })
@@ -215,13 +244,6 @@ Discovery: same as \`populate-500-rare-vintage-jazz.ts\` — \`USE_YOUTUBE_SCRAP
         continue
       }
 
-      if (existingIds.includes(videoId)) {
-        skippedDup++
-        if (!dryRun) await saveState({ trackOffset: globalIdx + 1 })
-        await new Promise((r) => setTimeout(r, 500))
-        continue
-      }
-
       const title = video.snippet?.title ?? ""
       const channelTitle = video.snippet?.channelTitle ?? ""
       const url = `https://www.youtube.com/watch?v=${videoId}`
@@ -230,50 +252,45 @@ Discovery: same as \`populate-500-rare-vintage-jazz.ts\` — \`USE_YOUTUBE_SCRAP
         stored++
         appendFileSync(
           mdPath,
-          `| ${track.index} | ${mdCell(track.artist)} | ${mdCell(track.title)} | ${mdCell(title)} | ${mdCell(channelTitle)} | ${url} |\n`,
+          `| ${track.index} | ${mdCell(track.artist)} | ${mdCell(track.title)} | ${formatSec(track.breakStartSec)} | ${mdCell(title)} | ${mdCell(channelTitle)} | ${url} |\n`,
           "utf-8"
         )
         await new Promise((r) => setTimeout(r, 500))
         continue
       }
 
-      const metadata = extractMetadata(
-        searchQuery,
-        title,
-        video.details?.description,
-        video.details?.tags
-      )
+      const metadata = extractMetadata(searchQuery, title, video.details?.description, video.details?.tags)
       const wasNew = await storeSampleInDatabase({
         id: videoId,
         title,
         channelTitle,
         channelId: video.snippet?.channelId,
-        thumbnail:
-          video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url || "",
+        thumbnail: video.snippet?.thumbnails?.medium?.url || video.snippet?.thumbnails?.default?.url || "",
         publishedAt: video.snippet?.publishedAt,
-        genre: "soul",
+        genre: metadata.genre,
         era: metadata.era,
         duration: video.duration,
         source: "search",
-        tags: "soul",
+        tags: DRUM_BREAK_CURATED_TAG,
+        breakStartSeconds: track.breakStartSec,
       })
 
       if (wasNew) {
         stored++
-        existingIds.push(videoId)
         artistCount.set(artistKey, currentArtistCount + 1)
-        appendFileSync(
-          mdPath,
-          `| ${track.index} | ${mdCell(track.artist)} | ${mdCell(track.title)} | ${mdCell(title)} | ${mdCell(channelTitle)} | ${url} |\n`,
-          "utf-8"
-        )
       } else {
-        skippedDup++
+        updated++
+        console.log(`[Drum500]   Updated existing youtubeId=${videoId} (PDF break ${formatSec(track.breakStartSec)})`)
       }
+      appendFileSync(
+        mdPath,
+        `| ${track.index} | ${mdCell(track.artist)} | ${mdCell(track.title)} | ${formatSec(track.breakStartSec)} | ${mdCell(title)} | ${mdCell(channelTitle)} | ${url} |\n`,
+        "utf-8"
+      )
 
       if (!dryRun) await saveState({ trackOffset: globalIdx + 1 })
     } catch (e) {
-      console.error("[Soul500] Error:", (e as Error).message)
+      console.error("[Drum500] Error:", (e as Error).message)
       misses++
       missLines.push(`- **${track.index}** ${track.artist} – *${track.title}* — error: ${(e as Error).message}`)
       if (!dryRun) await saveState({ trackOffset: globalIdx + 1 })
@@ -287,7 +304,7 @@ Discovery: same as \`populate-500-rare-vintage-jazz.ts\` — \`USE_YOUTUBE_SCRAP
   }
 
   console.log(
-    `[Soul500] Done. Stored: ${stored}, skipped (dup/cap): ${skippedDup + skippedArtistCap}, misses/errors: ${misses}. MD: ${mdPath}`
+    `[Drum500] Done. New: ${stored}, updated (same YouTube ID): ${updated}, skipped (artist cap): ${skippedArtistCap}, misses/errors: ${misses}. MD: ${mdPath}`
   )
 }
 

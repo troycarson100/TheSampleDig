@@ -115,6 +115,7 @@ export async function GET(request: Request) {
     let bpm: number | null = null
     let key: string | null = null
     let analysisStatus: string | null = "pending"
+    let breakStartSeconds: number | null = null
     
     try {
       console.log(`[Dig] Loading Prisma client...`)
@@ -256,7 +257,8 @@ export async function GET(request: Request) {
       bpm = sample.bpm
       key = sample.key
       analysisStatus = sample.analysisStatus || "pending"
-      
+      breakStartSeconds = sample.breakStartSeconds
+
       console.log(`[Dig] Sample ready: ${sampleId} (YouTube: ${video.id})`)
 
       // BPM/key analysis disabled for dig page to avoid YouTube ToS and yt-dlp usage.
@@ -307,6 +309,7 @@ export async function GET(request: Request) {
           bpm = fallbackSample.bpm
           key = fallbackSample.key
           analysisStatus = fallbackSample.analysisStatus || "pending"
+          breakStartSeconds = fallbackSample.breakStartSeconds
         } else {
           // If we can't find or create, use YouTube ID as fallback
           // Save endpoint will handle creation
@@ -338,6 +341,7 @@ export async function GET(request: Request) {
         bpm: null,
         key: null,
         analysisStatus: "pending",
+        breakStartSeconds: retryVideo.breakStartSeconds ?? null,
       })
     }
     
@@ -346,6 +350,11 @@ export async function GET(request: Request) {
     // bpm/key/analysisStatus are from DB only (metadata backfill); we do not use the yt-dlp analyzer on dig.
     console.log(`[Dig] Returning sample - ID: ${sampleId}, YouTube ID: ${video.id}, Excluded count: ${excludedVideoIds.length}`)
     console.log(`[Dig] ✓ Video ${video.id} is NOT in excluded list (verified)`)
+    const vBreak =
+      breakStartSeconds ??
+      (typeof (video as { breakStartSeconds?: number | null }).breakStartSeconds === "number"
+        ? (video as { breakStartSeconds: number }).breakStartSeconds
+        : null)
     return NextResponse.json({
       id: sampleId || video.id, // Use database ID if available, otherwise YouTube ID
       youtubeId: video.id,
@@ -358,6 +367,7 @@ export async function GET(request: Request) {
       bpm: bpm,
       key: key,
       analysisStatus: analysisStatus,
+      breakStartSeconds: vBreak,
     })
   } catch (error: any) {
     console.error("[Dig] CRITICAL ERROR:", error)
