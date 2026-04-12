@@ -1783,7 +1783,7 @@ function SamplePlayer({
                     </button>
                     {notesOpen && (
                       <div
-                        className="absolute left-0 top-full mt-1 z-50 rounded-xl border p-3 min-w-[240px] max-w-[320px]"
+                        className="hidden sm:block absolute left-0 top-full mt-1 z-50 rounded-xl border p-3 min-w-[240px] max-w-[320px]"
                         style={{
                           background: "var(--warm)",
                           borderColor: "rgba(74, 55, 40, 0.2)",
@@ -1827,6 +1827,28 @@ function SamplePlayer({
                   </button>
                 </div>
               )}
+            </div>
+          )}
+          {/* Mobile-only inline notes panel — avoids clipping from overflow on small screens */}
+          {notesOpen && (
+            <div
+              className="sm:hidden mt-2 w-full rounded-xl border p-3"
+              style={{
+                background: "var(--warm)",
+                borderColor: "rgba(74, 55, 40, 0.2)",
+                boxShadow: "0 4px 12px rgba(0,0,0,0.1)",
+              }}
+            >
+              <textarea
+                value={notes}
+                onChange={handleNotesChange}
+                onKeyDown={(e) => e.stopPropagation()}
+                placeholder={isSaved ? "Add a note about this sample..." : "Save the sample first to add notes"}
+                disabled={!isSaved}
+                rows={3}
+                className="w-full resize-none rounded-lg border bg-white/50 px-3 py-2 text-sm focus:outline-none focus:ring-2 disabled:opacity-60 disabled:cursor-not-allowed"
+                style={{ borderColor: "rgba(74, 55, 40, 0.2)", color: "var(--brown)" }}
+              />
             </div>
           )}
         </div>
