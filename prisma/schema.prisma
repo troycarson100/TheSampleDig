@@ -27,6 +27,7 @@ model User {
   // Marketing / newsletter opt-in (Mailchimp exports). Default true at signup when checkbox left on.
   emailMarketingOptIn          Boolean       @default(true) @map("email_marketing_opt_in")
   savedSamples                 UserSample[]
+  digHistory                   UserDigHistory[]
   events                       UserEvent[]
 
   @@map("users")
@@ -111,6 +112,25 @@ model UserSample {
 
   @@unique([userId, sampleId])
   @@map("user_samples")
+}
+
+// Persisted dig history for Pro users (up to 1000 rows per user, enforced at API level)
+model UserDigHistory {
+  id           String   @id @default(cuid())
+  userId       String   @map("user_id")
+  youtubeId    String   @map("youtube_id")
+  title        String
+  channel      String
+  thumbnailUrl String   @map("thumbnail_url")
+  genre        String?
+  bpm          Int?
+  key          String?
+  viewedAt     DateTime @default(now()) @map("viewed_at")
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, youtubeId])
+  @@index([userId, viewedAt(sort: Desc)])
+  @@map("user_dig_history")
 }
 
 model PrelaunchSignup {

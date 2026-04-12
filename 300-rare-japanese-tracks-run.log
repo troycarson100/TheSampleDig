@@ -1,0 +1,1024 @@
+[300JP] USE_YOUTUBE_SCRAPER: true (scraper only, no API)
+[300JP] Reading PDF: /Users/troycarson/Downloads/300_rare_japanese_tracks.pdf
+[300JP] Parsed 300 track queries.
+[300JP] Replace mode: process every track, upsert DB, write Title, Genre, Year, Link for each.
+[300JP] Dry run: false
+[300JP] 1/300: Hiroshi Sato Awakening
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato Awakening...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 2/300: Minako Yoshida Light'n Up
+[Search] Scraping YouTube (no Search API quota) for: Minako Yoshida Light'n Up...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 3/300: Taeko Ohnuki 4:00 A.M.
+[Search] Scraping YouTube (no Search API quota) for: Taeko Ohnuki 4:00 A.M....
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 4/300: Makoto Matsushita First Light
+[Search] Scraping YouTube (no Search API quota) for: Makoto Matsushita First Light...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 5/300: Hiroshi Sato Say Goodbye
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato Say Goodbye...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 6/300: Naoya Matsuoka Funkist
+[Search] Scraping YouTube (no Search API quota) for: Naoya Matsuoka Funkist...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 7/300: Masayoshi Takanaka Sexy Dance
+[Search] Scraping YouTube (no Search API quota) for: Masayoshi Takanaka Sexy Dance...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 8/300: Haruomi Hosono Laugh-Gas
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Laugh-Gas...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 9/300: Shigeru Suzuki Gegege No Ge
+[Search] Scraping YouTube (no Search API quota) for: Shigeru Suzuki Gegege No Ge...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 10/300: Ryuichi Sakamoto Thousand Knives
+[Search] Scraping YouTube (no Search API quota) for: Ryuichi Sakamoto Thousand Knives...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 11/300: Toshiki Kadomatsu Weekend Fly to the Sun
+[Search] Scraping YouTube (no Search API quota) for: Toshiki Kadomatsu Weekend Fly to the Sun...
+[Search] Scraper-only: 22 candidates (no API calls)
+[300JP] 12/300: Masayoshi Takanaka All of Me
+[Search] Scraping YouTube (no Search API quota) for: Masayoshi Takanaka All of Me...
+[Search] Scraper-only: 34 candidates (no API calls)
+[300JP] 13/300: Ponta Box Upside Down
+[Search] Scraping YouTube (no Search API quota) for: Ponta Box Upside Down...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 14/300: Hiroshi Sato Love Music
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato Love Music...
+[Search] Scraper-only: 29 candidates (no API calls)
+[300JP] 15/300: Naoya Matsuoka Noa Noa
+[Search] Scraping YouTube (no Search API quota) for: Naoya Matsuoka Noa Noa...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 16/300: Junko Ohashi Telephone Number
+[Search] Scraping YouTube (no Search API quota) for: Junko Ohashi Telephone Number...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 17/300: Akira Ishikawa Count Buffalo Rock Steady
+[Search] Scraping YouTube (no Search API quota) for: Akira Ishikawa Count Buffalo Rock Steady...
+[Search] Scraper-only: 31 candidates (no API calls)
+[300JP] 18/300: Kyohei Tsutsumi Do Do Do
+[Search] Scraping YouTube (no Search API quota) for: Kyohei Tsutsumi Do Do Do...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 19/300: Pecker Bamboleo
+[Search] Scraping YouTube (no Search API quota) for: Pecker Bamboleo...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 20/300: Hiroshi Fukumura Mystic Soul
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Fukumura Mystic Soul...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 21/300: Tatsuro Yamashita Loveland, Island
+[Search] Scraping YouTube (no Search API quota) for: Tatsuro Yamashita Loveland, Island...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 22/300: Anri Last Summer Whisper
+[Search] Scraping YouTube (no Search API quota) for: Anri Last Summer Whisper...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 23/300: Miki Matsubara Stay With Me
+[Search] Scraping YouTube (no Search API quota) for: Miki Matsubara Stay With Me...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 24/300: Tomoko Aran I'm in Love
+[Search] Scraping YouTube (no Search API quota) for: Tomoko Aran I'm in Love...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 25/300: Hiroshi Sato Sometime in New York
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato Sometime in New York...
+[Search] Scraper-only: 31 candidates (no API calls)
+[300JP] 26/300: Mariya Takeuchi Plastic Love
+[Search] Scraping YouTube (no Search API quota) for: Mariya Takeuchi Plastic Love...
+[Search] Scraper-only: 19 candidates (no API calls)
+[300JP] 27/300: Yutaka Ozaki Oh My Little Girl
+[Search] Scraping YouTube (no Search API quota) for: Yutaka Ozaki Oh My Little Girl...
+[Search] Scraper-only: 17 candidates (no API calls)
+[300JP] 28/300: Miki Matsubara Mayonaka no Door
+[Search] Scraping YouTube (no Search API quota) for: Miki Matsubara Mayonaka no Door...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 29/300: Kingo Hamada Midnight Cruisin'
+[Search] Scraping YouTube (no Search API quota) for: Kingo Hamada Midnight Cruisin'...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 30/300: Anri Kokkai-dori
+[Search] Scraping YouTube (no Search API quota) for: Anri Kokkai-dori...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 31/300: Tatsuro Yamashita Ride on Time
+[Search] Scraping YouTube (no Search API quota) for: Tatsuro Yamashita Ride on Time...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 32/300: Junko Yagami La Nuit
+[Search] Scraping YouTube (no Search API quota) for: Junko Yagami La Nuit...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 33/300: Naomi & Goro I Love You So
+[Search] Scraping YouTube (no Search API quota) for: Naomi & Goro I Love You So...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 34/300: Eri Ohkuma You Were Mine
+[Search] Scraping YouTube (no Search API quota) for: Eri Ohkuma You Were Mine...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 35/300: Makoto Matsushita Tropical Night
+[Search] Scraping YouTube (no Search API quota) for: Makoto Matsushita Tropical Night...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 36/300: Tatsuro Yamashita For You
+[Search] Scraping YouTube (no Search API quota) for: Tatsuro Yamashita For You...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 37/300: Minako Yoshida Town
+[Search] Scraping YouTube (no Search API quota) for: Minako Yoshida Town...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 38/300: Sugar Babe DOWN TOWN
+[Search] Scraping YouTube (no Search API quota) for: Sugar Babe DOWN TOWN...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 39/300: Atsuko Enomoto Boys & Girls
+[Search] Scraping YouTube (no Search API quota) for: Atsuko Enomoto Boys & Girls...
+[Search] Scraper-only: 17 candidates (no API calls)
+[300JP] 40/300: Naomi Akimoto Love is All
+[Search] Scraping YouTube (no Search API quota) for: Naomi Akimoto Love is All...
+[Search] Scraper-only: 19 candidates (no API calls)
+[300JP] 41/300: Ryo Fukui Mellow Dream
+[Search] Scraping YouTube (no Search API quota) for: Ryo Fukui Mellow Dream...
+[Search] Scraper-only: 30 candidates (no API calls)
+[300JP] 42/300: Ryo Fukui It Could Happen to You
+[Search] Scraping YouTube (no Search API quota) for: Ryo Fukui It Could Happen to You...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 43/300: Terumasa Hino Taro's Mood
+[Search] Scraping YouTube (no Search API quota) for: Terumasa Hino Taro's Mood...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 44/300: Masabumi Kikuchi Wishes
+[Search] Scraping YouTube (no Search API quota) for: Masabumi Kikuchi Wishes...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 45/300: Motohiko Hino Sailing Wonder
+[Search] Scraping YouTube (no Search API quota) for: Motohiko Hino Sailing Wonder...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 46/300: Kazumi Watanabe Mobo Splash
+[Search] Scraping YouTube (no Search API quota) for: Kazumi Watanabe Mobo Splash...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 47/300: Hiroshi Suzuki Cat
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Suzuki Cat...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 48/300: Norio Maeda Morning Island
+[Search] Scraping YouTube (no Search API quota) for: Norio Maeda Morning Island...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 49/300: Hiromasa Suzuki Blue Minds
+[Search] Scraping YouTube (no Search API quota) for: Hiromasa Suzuki Blue Minds...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 50/300: Takeo Moriyama Smile
+[Search] Scraping YouTube (no Search API quota) for: Takeo Moriyama Smile...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 51/300: Sadao Watanabe Rendez-Vous
+[Search] Scraping YouTube (no Search API quota) for: Sadao Watanabe Rendez-Vous...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 52/300: The Square Twilight in Upper West
+[Search] Scraping YouTube (no Search API quota) for: The Square Twilight in Upper West...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 53/300: Casiopea Mint Jams
+[Search] Scraping YouTube (no Search API quota) for: Casiopea Mint Jams...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 54/300: Casiopea Galactic Funk
+[Search] Scraping YouTube (no Search API quota) for: Casiopea Galactic Funk...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 55/300: Ryo Fukui Autumn in Seattle
+[Search] Scraping YouTube (no Search API quota) for: Ryo Fukui Autumn in Seattle...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 56/300: Jun Fukamachi On the Move
+[Search] Scraping YouTube (no Search API quota) for: Jun Fukamachi On the Move...
+[Search] Scraper-only: 31 candidates (no API calls)
+[300JP] 57/300: Norio Maeda Cool Struttin'
+[Search] Scraping YouTube (no Search API quota) for: Norio Maeda Cool Struttin'...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 58/300: Makoto Ozone The Footprints
+[Search] Scraping YouTube (no Search API quota) for: Makoto Ozone The Footprints...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 59/300: Hiromasa Suzuki Four Dimensions
+[Search] Scraping YouTube (no Search API quota) for: Hiromasa Suzuki Four Dimensions...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 60/300: Kazumi Watanabe Endless Way
+[Search] Scraping YouTube (no Search API quota) for: Kazumi Watanabe Endless Way...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 61/300: T-Square Truth
+[Search] Scraping YouTube (no Search API quota) for: T-Square Truth...
+[Search] Scraper-only: 40 candidates (no API calls)
+[300JP] 62/300: Sadao Watanabe Morning Island
+[Search] Scraping YouTube (no Search API quota) for: Sadao Watanabe Morning Island...
+[Search] Scraper-only: 31 candidates (no API calls)
+[300JP] 63/300: Hiroshi Suzuki My Foolish Heart
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Suzuki My Foolish Heart...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 64/300: Terumasa Hino Speak to Loneliness
+[Search] Scraping YouTube (no Search API quota) for: Terumasa Hino Speak to Loneliness...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 65/300: Motohiko Hino Inner Space
+[Search] Scraping YouTube (no Search API quota) for: Motohiko Hino Inner Space...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 66/300: Yellow Magic Orchestra Technopolis
+[Search] Scraping YouTube (no Search API quota) for: Yellow Magic Orchestra Technopolis...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 67/300: Yellow Magic Orchestra Rydeen
+[Search] Scraping YouTube (no Search API quota) for: Yellow Magic Orchestra Rydeen...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 68/300: Ryuichi Sakamoto B-2 Unit
+[Search] Scraping YouTube (no Search API quota) for: Ryuichi Sakamoto B-2 Unit...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 69/300: Haruomi Hosono Watering a Flower
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Watering a Flower...
+[Search] Scraper-only: 22 candidates (no API calls)
+[300JP] 70/300: Hiroshi Yoshimura Soundscape 1: Surround
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Yoshimura Soundscape 1: Surround...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 71/300: Midori Takada Mr. Henri Rousseau's Dream
+[Search] Scraping YouTube (no Search API quota) for: Midori Takada Mr. Henri Rousseau's Dream...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 72/300: Yasuaki Shimizu Kakashi
+[Search] Scraping YouTube (no Search API quota) for: Yasuaki Shimizu Kakashi...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 73/300: Yukihiro Takahashi Murdered by the Music
+[Search] Scraping YouTube (no Search API quota) for: Yukihiro Takahashi Murdered by the Music...
+[Search] Scraper-only: 29 candidates (no API calls)
+[300JP] 74/300: Logic System Unit
+[Search] Scraping YouTube (no Search API quota) for: Logic System Unit...
+[Search] Scraper-only: 19 candidates (no API calls)
+[300JP] 75/300: Isao Tomita Snowflakes Are Dancing
+[Search] Scraping YouTube (no Search API quota) for: Isao Tomita Snowflakes Are Dancing...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 76/300: Yellow Magic Orchestra Computer Game
+[Search] Scraping YouTube (no Search API quota) for: Yellow Magic Orchestra Computer Game...
+[Search] Scraper-only: 30 candidates (no API calls)
+[300JP] 77/300: Ryuichi Sakamoto Merry Christmas Mr. Lawrence
+[Search] Scraping YouTube (no Search API quota) for: Ryuichi Sakamoto Merry Christmas Mr. Lawrence...
+[Search] Scraper-only: 30 candidates (no API calls)
+[300JP] 78/300: Yukihiro Takahashi Drip Dry Eyes
+[Search] Scraping YouTube (no Search API quota) for: Yukihiro Takahashi Drip Dry Eyes...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 79/300: Haruomi Hosono Sports Men
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Sports Men...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 80/300: Haruomi Hosono Boku wa Chotto
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Boku wa Chotto...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 81/300: Logic System Venus
+[Search] Scraping YouTube (no Search API quota) for: Logic System Venus...
+[Search] Scraper-only: 30 candidates (no API calls)
+[300JP] 82/300: Ryuichi Sakamoto Riot in Lagos
+[Search] Scraping YouTube (no Search API quota) for: Ryuichi Sakamoto Riot in Lagos...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 83/300: Yellow Magic Orchestra Behind the Mask
+[Search] Scraping YouTube (no Search API quota) for: Yellow Magic Orchestra Behind the Mask...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 84/300: Haruomi Hosono Watering Fireworks
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Watering Fireworks...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 85/300: Yukihiro Takahashi What Me Worry?
+[Search] Scraping YouTube (no Search API quota) for: Yukihiro Takahashi What Me Worry?...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 86/300: Hiroshi Yoshimura Music for Nine Post Cards
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Yoshimura Music for Nine Post Cards...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 87/300: Hiroshi Yoshimura Wet Land
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Yoshimura Wet Land...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 88/300: Stomu Yamashta Sea and Sky
+[Search] Scraping YouTube (no Search API quota) for: Stomu Yamashta Sea and Sky...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 89/300: Satoshi Ashikawa Still Way
+[Search] Scraping YouTube (no Search API quota) for: Satoshi Ashikawa Still Way...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 90/300: Masahide Sakuma Aqua
+[Search] Scraping YouTube (no Search API quota) for: Masahide Sakuma Aqua...
+[Search] Scraper-only: 22 candidates (no API calls)
+[300JP] 91/300: Hiroshi Yoshimura Pier and Lull
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Yoshimura Pier and Lull...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 92/300: Stomu Yamashta Freedom Is Frightening
+[Search] Scraping YouTube (no Search API quota) for: Stomu Yamashta Freedom Is Frightening...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 93/300: Midori Takada Trompe-l'oeil
+[Search] Scraping YouTube (no Search API quota) for: Midori Takada Trompe-l'oeil...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 94/300: Hiroshi Yoshimura Blink
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Yoshimura Blink...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 95/300: Yasuaki Shimizu Utakata No Hibi
+[Search] Scraping YouTube (no Search API quota) for: Yasuaki Shimizu Utakata No Hibi...
+[Search] Scraper-only: 33 candidates (no API calls)
+[300JP] 96/300: Shiro Pacific
+[Search] Scraping YouTube (no Search API quota) for: Shiro Pacific...
+[Search] Scraper-only: 14 candidates (no API calls)
+[300JP] 97/300: Haruomi Hosono Worried Noodles Mix
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Worried Noodles Mix...
+[Search] Scraper-only: 33 candidates (no API calls)
+[300JP] 98/300: Shigeru Suzuki La Costa
+[Search] Scraping YouTube (no Search API quota) for: Shigeru Suzuki La Costa...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 99/300: Hajime Hinata Morning Star
+[Search] Scraping YouTube (no Search API quota) for: Hajime Hinata Morning Star...
+[Search] Scraper-only: 10 candidates (no API calls)
+[300JP] 100/300: Ponta Murakami Sweet Funk
+[Search] Scraping YouTube (no Search API quota) for: Ponta Murakami Sweet Funk...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 101/300: Lovegun Theme from Lovegun
+[Search] Scraping YouTube (no Search API quota) for: Lovegun Theme from Lovegun...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 102/300: Hiroshi Minami Jungle Jane
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Minami Jungle Jane...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 103/300: Takeharu Kunimoto Burning
+[Search] Scraping YouTube (no Search API quota) for: Takeharu Kunimoto Burning...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 104/300: Shigeto Anzai Pega Pega
+[Search] Scraping YouTube (no Search API quota) for: Shigeto Anzai Pega Pega...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 105/300: Mutsumi Hatano Summer Breeze
+[Search] Scraping YouTube (no Search API quota) for: Mutsumi Hatano Summer Breeze...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 106/300: Naoya Matsuoka Noa Noa II
+[Search] Scraping YouTube (no Search API quota) for: Naoya Matsuoka Noa Noa II...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 107/300: Masayoshi Takanaka Super Takanaka
+[Search] Scraping YouTube (no Search API quota) for: Masayoshi Takanaka Super Takanaka...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 108/300: Ryu Kawasaki Golden Dragon
+[Search] Scraping YouTube (no Search API quota) for: Ryu Kawasaki Golden Dragon...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 109/300: Hiroshi Suzuki Colt
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Suzuki Colt...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 110/300: Yasuko Agawa Love TKO
+[Search] Scraping YouTube (no Search API quota) for: Yasuko Agawa Love TKO...
+[Search] Scraper-only: 29 candidates (no API calls)
+[300JP] 111/300: Osamu Kitajima Benzaiten
+[Search] Scraping YouTube (no Search API quota) for: Osamu Kitajima Benzaiten...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 112/300: Osamu Kitajima Masterless Samurai
+[Search] Scraping YouTube (no Search API quota) for: Osamu Kitajima Masterless Samurai...
+[Search] Scraper-only: 20 candidates (no API calls)
+[300JP] 113/300: Hako Yamasaki Tobimasu
+[Search] Scraping YouTube (no Search API quota) for: Hako Yamasaki Tobimasu...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 114/300: Jun Fukamachi Renaissance
+[Search] Scraping YouTube (no Search API quota) for: Jun Fukamachi Renaissance...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 115/300: Kyohei Tsutsumi Funk Party
+[Search] Scraping YouTube (no Search API quota) for: Kyohei Tsutsumi Funk Party...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 116/300: Ryu Kawasaki Juice
+[Search] Scraping YouTube (no Search API quota) for: Ryu Kawasaki Juice...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 117/300: Hiroshi Minami Sentimental City
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Minami Sentimental City...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 118/300: Shigeru Suzuki Moon Child
+[Search] Scraping YouTube (no Search API quota) for: Shigeru Suzuki Moon Child...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 119/300: Godiego Galaxy Express 999
+[Search] Scraping YouTube (no Search API quota) for: Godiego Galaxy Express 999...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 120/300: Moonriders Youkoso Chikashitsu e
+[Search] Scraping YouTube (no Search API quota) for: Moonriders Youkoso Chikashitsu e...
+[Search] Scraper-only: 19 candidates (no API calls)
+[300JP] 121/300: Haruomi Hosono Choo Choo Gatta
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Choo Choo Gatta...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 122/300: Haruomi Hosono Boku wa Chotto (Extended)
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Boku wa Chotto (Extended)...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 123/300: Akira Ishikawa Darkness II
+[Search] Scraping YouTube (no Search API quota) for: Akira Ishikawa Darkness II...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 124/300: Shoukichi Kina Haisai Ojisan
+[Search] Scraping YouTube (no Search API quota) for: Shoukichi Kina Haisai Ojisan...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 125/300: Happy End Kaze wo Atsumete
+[Search] Scraping YouTube (no Search API quota) for: Happy End Kaze wo Atsumete...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 126/300: Yosui Inoue Yozora ga Naiteru
+[Search] Scraping YouTube (no Search API quota) for: Yosui Inoue Yozora ga Naiteru...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 127/300: Sadistic Mika Band Black Ship Serenade
+[Search] Scraping YouTube (no Search API quota) for: Sadistic Mika Band Black Ship Serenade...
+[Search] Scraper-only: 31 candidates (no API calls)
+[300JP] 128/300: Sadistic Mika Band Yin Yang
+[Search] Scraping YouTube (no Search API quota) for: Sadistic Mika Band Yin Yang...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 129/300: Yellow Magic Orchestra Day Tripper
+[Search] Scraping YouTube (no Search API quota) for: Yellow Magic Orchestra Day Tripper...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 130/300: Ryuichi Sakamoto Neo Geo
+[Search] Scraping YouTube (no Search API quota) for: Ryuichi Sakamoto Neo Geo...
+[Search] Scraper-only: 32 candidates (no API calls)
+[300JP] 131/300: Chiemi Manabe Watashi no Kare wa Hidarikiki
+[Search] Scraping YouTube (no Search API quota) for: Chiemi Manabe Watashi no Kare wa Hidarikiki...
+[Search] Scraper-only: 20 candidates (no API calls)
+[300JP] 132/300: Meiko Nakahara Fanfan
+[Search] Scraping YouTube (no Search API quota) for: Meiko Nakahara Fanfan...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 133/300: Yoshimi Iwasaki Futari Dake no Ceremony
+[Search] Scraping YouTube (no Search API quota) for: Yoshimi Iwasaki Futari Dake no Ceremony...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 134/300: Keiko Lee My Foolish Heart
+[Search] Scraping YouTube (no Search API quota) for: Keiko Lee My Foolish Heart...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 135/300: Yuko Suzuki Never Let Me Go
+[Search] Scraping YouTube (no Search API quota) for: Yuko Suzuki Never Let Me Go...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 136/300: Akiko Yano Tadaima
+[Search] Scraping YouTube (no Search API quota) for: Akiko Yano Tadaima...
+[Search] Scraper-only: 22 candidates (no API calls)
+[300JP] 137/300: Akiko Yano Koi Wa Momoiro
+[Search] Scraping YouTube (no Search API quota) for: Akiko Yano Koi Wa Momoiro...
+[Search] Scraper-only: 19 candidates (no API calls)
+[300JP] 138/300: Taeko Ohnuki Kusuri wo Takusan
+[Search] Scraping YouTube (no Search API quota) for: Taeko Ohnuki Kusuri wo Takusan...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 139/300: Taeko Ohnuki A Sunset
+[Search] Scraping YouTube (no Search API quota) for: Taeko Ohnuki A Sunset...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 140/300: Minako Yoshida Shoulder to Shoulder
+[Search] Scraping YouTube (no Search API quota) for: Minako Yoshida Shoulder to Shoulder...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 141/300: Seiko Matsuda Sweet Memories
+[Search] Scraping YouTube (no Search API quota) for: Seiko Matsuda Sweet Memories...
+[Search] Scraper-only: 20 candidates (no API calls)
+[300JP] 142/300: Mariya Takeuchi September
+[Search] Scraping YouTube (no Search API quota) for: Mariya Takeuchi September...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 143/300: Tomoko Aran Midnight Pretenders
+[Search] Scraping YouTube (no Search API quota) for: Tomoko Aran Midnight Pretenders...
+[Search] Scraper-only: 22 candidates (no API calls)
+[300JP] 144/300: Yuki Saito Tobidase! Nakimushi
+[Search] Scraping YouTube (no Search API quota) for: Yuki Saito Tobidase! Nakimushi...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Yuki%20Saito%20Tobidase!%20Nakimushi
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Yuki%20Saito%20Tobidase!%20Nakimushi", waiting until "domcontentloaded"
+
+[300JP] 145/300: Junko Yagami Koibito yo
+[Search] Scraping YouTube (no Search API quota) for: Junko Yagami Koibito yo...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Junko%20Yagami%20Koibito%20yo
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Junko%20Yagami%20Koibito%20yo", waiting until "domcontentloaded"
+
+[300JP] 146/300: Ryo Fukui Early Summer
+[Search] Scraping YouTube (no Search API quota) for: Ryo Fukui Early Summer...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Ryo%20Fukui%20Early%20Summer
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Ryo%20Fukui%20Early%20Summer", waiting until "domcontentloaded"
+
+[300JP] 147/300: Hiroki Inui Misty
+[Search] Scraping YouTube (no Search API quota) for: Hiroki Inui Misty...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Hiroki%20Inui%20Misty
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Hiroki%20Inui%20Misty", waiting until "domcontentloaded"
+
+[300JP] 148/300: Nobuyuki Nakajima Breeze
+[Search] Scraping YouTube (no Search API quota) for: Nobuyuki Nakajima Breeze...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Nobuyuki%20Nakajima%20Breeze
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Nobuyuki%20Nakajima%20Breeze", waiting until "domcontentloaded"
+
+[300JP] 149/300: Masabumi Kikuchi Pooh's Theme
+[Search] Scraping YouTube (no Search API quota) for: Masabumi Kikuchi Pooh's Theme...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Masabumi%20Kikuchi%20Pooh%27s%20Theme
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Masabumi%20Kikuchi%20Pooh%27s%20Theme", waiting until "domcontentloaded"
+
+[300JP] 150/300: Keiko Matsui Nights in White Satin
+[Search] Scraping YouTube (no Search API quota) for: Keiko Matsui Nights in White Satin...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Keiko%20Matsui%20Nights%20in%20White%20Satin
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Keiko%20Matsui%20Nights%20in%20White%20Satin", waiting until "domcontentloaded"
+
+[300JP] 151/300: Makoto Ozone The Moment
+[Search] Scraping YouTube (no Search API quota) for: Makoto Ozone The Moment...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Makoto%20Ozone%20The%20Moment
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Makoto%20Ozone%20The%20Moment", waiting until "domcontentloaded"
+
+[300JP] 152/300: Hiroshi Minami Fly Me to the Moon
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Minami Fly Me to the Moon...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Hiroshi%20Minami%20Fly%20Me%20to%20the%20Moon
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Hiroshi%20Minami%20Fly%20Me%20to%20the%20Moon", waiting until "domcontentloaded"
+
+[300JP] 153/300: Naoya Matsuoka Open Your Eyes
+[Search] Scraping YouTube (no Search API quota) for: Naoya Matsuoka Open Your Eyes...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Naoya%20Matsuoka%20Open%20Your%20Eyes
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Naoya%20Matsuoka%20Open%20Your%20Eyes", waiting until "domcontentloaded"
+
+[300JP] 154/300: Ryo Kawasaki Raisins
+[Search] Scraping YouTube (no Search API quota) for: Ryo Kawasaki Raisins...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Ryo%20Kawasaki%20Raisins
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Ryo%20Kawasaki%20Raisins", waiting until "domcontentloaded"
+
+[300JP] 155/300: Sadao Watanabe Autumn Blow
+[Search] Scraping YouTube (no Search API quota) for: Sadao Watanabe Autumn Blow...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Sadao%20Watanabe%20Autumn%20Blow
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Sadao%20Watanabe%20Autumn%20Blow", waiting until "domcontentloaded"
+
+[300JP] 156/300: Toshiki Kadomatsu Miracle Night Dancing
+[Search] Scraping YouTube (no Search API quota) for: Toshiki Kadomatsu Miracle Night Dancing...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Toshiki%20Kadomatsu%20Miracle%20Night%20Dancing
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Toshiki%20Kadomatsu%20Miracle%20Night%20Dancing", waiting until "domcontentloaded"
+
+[300JP] 157/300: Toshiki Kadomatsu Yellow Cab
+[Search] Scraping YouTube (no Search API quota) for: Toshiki Kadomatsu Yellow Cab...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Toshiki%20Kadomatsu%20Yellow%20Cab
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Toshiki%20Kadomatsu%20Yellow%20Cab", waiting until "domcontentloaded"
+
+[300JP] 158/300: Minako Yoshida Midnight Driver
+[Search] Scraping YouTube (no Search API quota) for: Minako Yoshida Midnight Driver...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Minako%20Yoshida%20Midnight%20Driver
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Minako%20Yoshida%20Midnight%20Driver", waiting until "domcontentloaded"
+
+[300JP] 159/300: Makoto Matsushita You Make Me So High
+[Search] Scraping YouTube (no Search API quota) for: Makoto Matsushita You Make Me So High...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Makoto%20Matsushita%20You%20Make%20Me%20So%20High
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Makoto%20Matsushita%20You%20Make%20Me%20So%20High", waiting until "domcontentloaded"
+
+[300JP] 160/300: Hiroshi Sato Leilani
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato Leilani...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Hiroshi%20Sato%20Leilani
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Hiroshi%20Sato%20Leilani", waiting until "domcontentloaded"
+
+[300JP] 161/300: Masayoshi Takanaka Brasilian Skies
+[Search] Scraping YouTube (no Search API quota) for: Masayoshi Takanaka Brasilian Skies...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Masayoshi%20Takanaka%20Brasilian%20Skies
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Masayoshi%20Takanaka%20Brasilian%20Skies", waiting until "domcontentloaded"
+
+[300JP] 162/300: Haruomi Hosono Talking
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Talking...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Haruomi%20Hosono%20Talking
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Haruomi%20Hosono%20Talking", waiting until "domcontentloaded"
+
+[300JP] 163/300: Shigeru Suzuki My Baby
+[Search] Scraping YouTube (no Search API quota) for: Shigeru Suzuki My Baby...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Shigeru%20Suzuki%20My%20Baby
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Shigeru%20Suzuki%20My%20Baby", waiting until "domcontentloaded"
+
+[300JP] 164/300: Naoya Matsuoka Voyage
+[Search] Scraping YouTube (no Search API quota) for: Naoya Matsuoka Voyage...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Naoya%20Matsuoka%20Voyage
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Naoya%20Matsuoka%20Voyage", waiting until "domcontentloaded"
+
+[300JP] 165/300: Junko Ohashi Sunset Overture
+[Search] Scraping YouTube (no Search API quota) for: Junko Ohashi Sunset Overture...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Junko%20Ohashi%20Sunset%20Overture
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Junko%20Ohashi%20Sunset%20Overture", waiting until "domcontentloaded"
+
+[300JP] 166/300: Hiroshi Sato I Could Be So Happy
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato I Could Be So Happy...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Hiroshi%20Sato%20I%20Could%20Be%20So%20Happy
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Hiroshi%20Sato%20I%20Could%20Be%20So%20Happy", waiting until "domcontentloaded"
+
+[300JP] 167/300: Makoto Matsushita Stay with Me Tonight
+[Search] Scraping YouTube (no Search API quota) for: Makoto Matsushita Stay with Me Tonight...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Makoto%20Matsushita%20Stay%20with%20Me%20Tonight
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Makoto%20Matsushita%20Stay%20with%20Me%20Tonight", waiting until "domcontentloaded"
+
+[300JP] 168/300: Tatsuro Yamashita Let's Dance Baby
+[Search] Scraping YouTube (no Search API quota) for: Tatsuro Yamashita Let's Dance Baby...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Tatsuro%20Yamashita%20Let%27s%20Dance%20Baby
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Tatsuro%20Yamashita%20Let%27s%20Dance%20Baby", waiting until "domcontentloaded"
+
+[300JP] 169/300: Anri Shyness Boy
+[Search] Scraping YouTube (no Search API quota) for: Anri Shyness Boy...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Anri%20Shyness%20Boy
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Anri%20Shyness%20Boy", waiting until "domcontentloaded"
+
+[300JP] 170/300: Yasuko Agawa Magical Mystery Night
+[Search] Scraping YouTube (no Search API quota) for: Yasuko Agawa Magical Mystery Night...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Yasuko%20Agawa%20Magical%20Mystery%20Night
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Yasuko%20Agawa%20Magical%20Mystery%20Night", waiting until "domcontentloaded"
+
+[300JP] 171/300: Terumasa Hino Double Rainbow
+[Search] Scraping YouTube (no Search API quota) for: Terumasa Hino Double Rainbow...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Terumasa%20Hino%20Double%20Rainbow
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Terumasa%20Hino%20Double%20Rainbow", waiting until "domcontentloaded"
+
+[300JP] 172/300: Masabumi Kikuchi Ring! Ring! Ring!
+[Search] Scraping YouTube (no Search API quota) for: Masabumi Kikuchi Ring! Ring! Ring!...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Masabumi%20Kikuchi%20Ring!%20Ring!%20Ring!
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Masabumi%20Kikuchi%20Ring!%20Ring!%20Ring!", waiting until "domcontentloaded"
+
+[300JP] 173/300: Yosuke Yamashita Breath of the Forest
+[Search] Scraping YouTube (no Search API quota) for: Yosuke Yamashita Breath of the Forest...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Yosuke%20Yamashita%20Breath%20of%20the%20Forest
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Yosuke%20Yamashita%20Breath%20of%20the%20Forest", waiting until "domcontentloaded"
+
+[300JP] 174/300: Yosuke Yamashita Dedicated to Trane
+[Search] Scraping YouTube (no Search API quota) for: Yosuke Yamashita Dedicated to Trane...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Yosuke%20Yamashita%20Dedicated%20to%20Trane
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Yosuke%20Yamashita%20Dedicated%20to%20Trane", waiting until "domcontentloaded"
+
+[300JP] 175/300: Masahiko Togashi We Now Create
+[Search] Scraping YouTube (no Search API quota) for: Masahiko Togashi We Now Create...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Masahiko%20Togashi%20We%20Now%20Create
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Masahiko%20Togashi%20We%20Now%20Create", waiting until "domcontentloaded"
+
+[300JP] 176/300: Eiji Nakayama Midnight Sun
+[Search] Scraping YouTube (no Search API quota) for: Eiji Nakayama Midnight Sun...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Eiji%20Nakayama%20Midnight%20Sun
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Eiji%20Nakayama%20Midnight%20Sun", waiting until "domcontentloaded"
+
+[300JP] 177/300: Hiroshi Suzuki Stella by Starlight
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Suzuki Stella by Starlight...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Hiroshi%20Suzuki%20Stella%20by%20Starlight
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Hiroshi%20Suzuki%20Stella%20by%20Starlight", waiting until "domcontentloaded"
+
+[300JP] 178/300: Norio Maeda Theme for Lumina
+[Search] Scraping YouTube (no Search API quota) for: Norio Maeda Theme for Lumina...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Norio%20Maeda%20Theme%20for%20Lumina
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Norio%20Maeda%20Theme%20for%20Lumina", waiting until "domcontentloaded"
+
+[300JP] 179/300: Motohiko Hino Freedom Jazz Dance
+[Search] Scraping YouTube (no Search API quota) for: Motohiko Hino Freedom Jazz Dance...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Motohiko%20Hino%20Freedom%20Jazz%20Dance
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Motohiko%20Hino%20Freedom%20Jazz%20Dance", waiting until "domcontentloaded"
+
+[300JP] 180/300: Takeo Moriyama To Keith Jarrett
+[Search] Scraping YouTube (no Search API quota) for: Takeo Moriyama To Keith Jarrett...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Takeo%20Moriyama%20To%20Keith%20Jarrett
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Takeo%20Moriyama%20To%20Keith%20Jarrett", waiting until "domcontentloaded"
+
+[300JP] 181/300: Masahiko Sato Palladium
+[Search] Scraping YouTube (no Search API quota) for: Masahiko Sato Palladium...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Masahiko%20Sato%20Palladium
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Masahiko%20Sato%20Palladium", waiting until "domcontentloaded"
+
+[300JP] 182/300: Isao Suzuki Black Orpheus
+[Search] Scraping YouTube (no Search API quota) for: Isao Suzuki Black Orpheus...
+[300JP]   Error: page.goto: net::ERR_NAME_NOT_RESOLVED at https://www.youtube.com/results?search_query=Isao%20Suzuki%20Black%20Orpheus
+Call log:
+  - navigating to "https://www.youtube.com/results?search_query=Isao%20Suzuki%20Black%20Orpheus", waiting until "domcontentloaded"
+
+[300JP] 183/300: Sleepy Matsumoto Tenor Battle!
+[Search] Scraping YouTube (no Search API quota) for: Sleepy Matsumoto Tenor Battle!...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 184/300: Ryo Fukui What's New
+[Search] Scraping YouTube (no Search API quota) for: Ryo Fukui What's New...
+[Search] Scraper-only: 31 candidates (no API calls)
+[300JP] 185/300: Hiromasa Suzuki I'm Old Fashioned
+[Search] Scraping YouTube (no Search API quota) for: Hiromasa Suzuki I'm Old Fashioned...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 186/300: Taj Mahal Travellers August 1974
+[Search] Scraping YouTube (no Search API quota) for: Taj Mahal Travellers August 1974...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 187/300: Masahiko Satoh Amalgamation
+[Search] Scraping YouTube (no Search API quota) for: Masahiko Satoh Amalgamation...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 188/300: Jojo Hiroshige Remokon
+[Search] Scraping YouTube (no Search API quota) for: Jojo Hiroshige Remokon...
+[Search] Scraper-only: 19 candidates (no API calls)
+[300JP] 189/300: Group Ongaku Music of Group Sounds
+[Search] Scraping YouTube (no Search API quota) for: Group Ongaku Music of Group Sounds...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 190/300: J.A. Caesar Shinjuku Ryozanpaku
+[Search] Scraping YouTube (no Search API quota) for: J.A. Caesar Shinjuku Ryozanpaku...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 191/300: Yonin Bayashi Isshoku Sokuhatsu
+[Search] Scraping YouTube (no Search API quota) for: Yonin Bayashi Isshoku Sokuhatsu...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 192/300: Flower Travellin' Band Satori Part I
+[Search] Scraping YouTube (no Search API quota) for: Flower Travellin' Band Satori Part I...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 193/300: Speed Glue & Shinki Eve
+[Search] Scraping YouTube (no Search API quota) for: Speed Glue & Shinki Eve...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 194/300: Stomu Yamashta Metempsychosis
+[Search] Scraping YouTube (no Search API quota) for: Stomu Yamashta Metempsychosis...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 195/300: Far East Family Band Nipponjin
+[Search] Scraping YouTube (no Search API quota) for: Far East Family Band Nipponjin...
+[Search] Scraper-only: 31 candidates (no API calls)
+[300JP] 196/300: Hiroshi Sato East Wind
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato East Wind...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 197/300: Masayoshi Takanaka Saudade
+[Search] Scraping YouTube (no Search API quota) for: Masayoshi Takanaka Saudade...
+[Search] Scraper-only: 30 candidates (no API calls)
+[300JP] 198/300: Kingo Hamada You and Me
+[Search] Scraping YouTube (no Search API quota) for: Kingo Hamada You and Me...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 199/300: Toshiki Kadomatsu A Letter in the Wet Sand
+[Search] Scraping YouTube (no Search API quota) for: Toshiki Kadomatsu A Letter in the Wet Sand...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 200/300: Atsuko Enomoto My Burning Heart
+[Search] Scraping YouTube (no Search API quota) for: Atsuko Enomoto My Burning Heart...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 201/300: Ryuichi Sakamoto Cong'scape
+[Search] Scraping YouTube (no Search API quota) for: Ryuichi Sakamoto Cong'scape...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 202/300: Logic System East to West
+[Search] Scraping YouTube (no Search API quota) for: Logic System East to West...
+[Search] Scraper-only: 10 candidates (no API calls)
+[300JP] 203/300: Yukihiro Takahashi Sunset
+[Search] Scraping YouTube (no Search API quota) for: Yukihiro Takahashi Sunset...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 204/300: Haruomi Hosono Back to the Street
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Back to the Street...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 205/300: Makoto Matsushita So In Love
+[Search] Scraping YouTube (no Search API quota) for: Makoto Matsushita So In Love...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 206/300: Naoya Matsuoka Go Go Horse Riding
+[Search] Scraping YouTube (no Search API quota) for: Naoya Matsuoka Go Go Horse Riding...
+[Search] Scraper-only: 14 candidates (no API calls)
+[300JP] 207/300: Junko Ohashi Dreamin'
+[Search] Scraping YouTube (no Search API quota) for: Junko Ohashi Dreamin'...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 208/300: Hiroshi Sato Night Rider
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato Night Rider...
+[Search] Scraper-only: 17 candidates (no API calls)
+[300JP] 209/300: Tomoko Aran Cinderella Complex
+[Search] Scraping YouTube (no Search API quota) for: Tomoko Aran Cinderella Complex...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 210/300: Tatsuro Yamashita Bomber
+[Search] Scraping YouTube (no Search API quota) for: Tatsuro Yamashita Bomber...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 211/300: Hako Yamasaki Watashi ga Umareta Hi
+[Search] Scraping YouTube (no Search API quota) for: Hako Yamasaki Watashi ga Umareta Hi...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 212/300: Yosui Inoue Natsu no Owari ni
+[Search] Scraping YouTube (no Search API quota) for: Yosui Inoue Natsu no Owari ni...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 213/300: Happy End Natsu Nandesu
+[Search] Scraping YouTube (no Search API quota) for: Happy End Natsu Nandesu...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 214/300: Ryo Fukui Scenery
+[Search] Scraping YouTube (no Search API quota) for: Ryo Fukui Scenery...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 215/300: Sadao Watanabe Here There and Everywhere
+[Search] Scraping YouTube (no Search API quota) for: Sadao Watanabe Here There and Everywhere...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 216/300: Masahiko Togashi Song for the Trees
+[Search] Scraping YouTube (no Search API quota) for: Masahiko Togashi Song for the Trees...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 217/300: Yutaka Ozaki I Love You
+[Search] Scraping YouTube (no Search API quota) for: Yutaka Ozaki I Love You...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 218/300: Hiroshi Minami Evening Star
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Minami Evening Star...
+[Search] Scraper-only: 20 candidates (no API calls)
+[300JP] 219/300: Ryo Kawasaki Mirror of My Mind
+[Search] Scraping YouTube (no Search API quota) for: Ryo Kawasaki Mirror of My Mind...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 220/300: Jun Fukamachi A Letter
+[Search] Scraping YouTube (no Search API quota) for: Jun Fukamachi A Letter...
+[Search] Scraper-only: 20 candidates (no API calls)
+[300JP] 221/300: Miki Matsubara Jealousy
+[Search] Scraping YouTube (no Search API quota) for: Miki Matsubara Jealousy...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 222/300: Anri Remember Summer Days
+[Search] Scraping YouTube (no Search API quota) for: Anri Remember Summer Days...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 223/300: Mariya Takeuchi Sweetest Music
+[Search] Scraping YouTube (no Search API quota) for: Mariya Takeuchi Sweetest Music...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 224/300: Junko Yagami Ai no Korrida
+[Search] Scraping YouTube (no Search API quota) for: Junko Yagami Ai no Korrida...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 225/300: Akiko Yano Angry Waves
+[Search] Scraping YouTube (no Search API quota) for: Akiko Yano Angry Waves...
+[Search] Scraper-only: 18 candidates (no API calls)
+[300JP] 226/300: Tatsuro Yamashita Spacy
+[Search] Scraping YouTube (no Search API quota) for: Tatsuro Yamashita Spacy...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 227/300: Hiroshi Sato I Wanna Be With You Tonight
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato I Wanna Be With You Tonight...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 228/300: Naomi Akimoto On the Street
+[Search] Scraping YouTube (no Search API quota) for: Naomi Akimoto On the Street...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 229/300: Hiromi Iwasaki When the Rain Has Gone
+[Search] Scraping YouTube (no Search API quota) for: Hiromi Iwasaki When the Rain Has Gone...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 230/300: Kyohei Tsutsumi Midnight Paradise
+[Search] Scraping YouTube (no Search API quota) for: Kyohei Tsutsumi Midnight Paradise...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 231/300: Casiopea Eyes of the Mind
+[Search] Scraping YouTube (no Search API quota) for: Casiopea Eyes of the Mind...
+[Search] Scraper-only: 30 candidates (no API calls)
+[300JP] 232/300: Casiopea Swear
+[Search] Scraping YouTube (no Search API quota) for: Casiopea Swear...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 233/300: The Square Stars and the Moon
+[Search] Scraping YouTube (no Search API quota) for: The Square Stars and the Moon...
+[Search] Scraper-only: 29 candidates (no API calls)
+[300JP] 234/300: The Square Adventures
+[Search] Scraping YouTube (no Search API quota) for: The Square Adventures...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 235/300: Prism Take Me to the Mountain
+[Search] Scraping YouTube (no Search API quota) for: Prism Take Me to the Mountain...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 236/300: Prism Sound of Prism
+[Search] Scraping YouTube (no Search API quota) for: Prism Sound of Prism...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 237/300: After Dinner Hibi no Nawa
+[Search] Scraping YouTube (no Search API quota) for: After Dinner Hibi no Nawa...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 238/300: Kazumi Watanabe Olive's Step
+[Search] Scraping YouTube (no Search API quota) for: Kazumi Watanabe Olive's Step...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 239/300: Ryo Fukui It's You or No One
+[Search] Scraping YouTube (no Search API quota) for: Ryo Fukui It's You or No One...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 240/300: Masabumi Kikuchi Into the Spring
+[Search] Scraping YouTube (no Search API quota) for: Masabumi Kikuchi Into the Spring...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 241/300: T-Square Captain Funky
+[Search] Scraping YouTube (no Search API quota) for: T-Square Captain Funky...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 242/300: Casiopea Looking Up
+[Search] Scraping YouTube (no Search API quota) for: Casiopea Looking Up...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 243/300: Prism Blue Eyes
+[Search] Scraping YouTube (no Search API quota) for: Prism Blue Eyes...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 244/300: Hiroshi Suzuki Alone Together
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Suzuki Alone Together...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 245/300: Naoya Matsuoka Oceanic
+[Search] Scraping YouTube (no Search API quota) for: Naoya Matsuoka Oceanic...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 246/300: Minako Yoshida Crazy Love
+[Search] Scraping YouTube (no Search API quota) for: Minako Yoshida Crazy Love...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 247/300: Toshiki Kadomatsu Miss M
+[Search] Scraping YouTube (no Search API quota) for: Toshiki Kadomatsu Miss M...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 248/300: Yasuko Agawa Body to Body
+[Search] Scraping YouTube (no Search API quota) for: Yasuko Agawa Body to Body...
+[Search] Scraper-only: 34 candidates (no API calls)
+[300JP] 249/300: Mika Nakashima Forever Friends
+[Search] Scraping YouTube (no Search API quota) for: Mika Nakashima Forever Friends...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 250/300: Hajime Hinata Summer Nights
+[Search] Scraping YouTube (no Search API quota) for: Hajime Hinata Summer Nights...
+[Search] Scraper-only: 18 candidates (no API calls)
+[300JP] 251/300: Yoshimi Iwasaki Koi no Tobira wo Akete
+[Search] Scraping YouTube (no Search API quota) for: Yoshimi Iwasaki Koi no Tobira wo Akete...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 252/300: Naomi & Goro Groovin' Time
+[Search] Scraping YouTube (no Search API quota) for: Naomi & Goro Groovin' Time...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 253/300: Eri Ohkuma Half Moon
+[Search] Scraping YouTube (no Search API quota) for: Eri Ohkuma Half Moon...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 254/300: Makoto Matsushita Night Walk
+[Search] Scraping YouTube (no Search API quota) for: Makoto Matsushita Night Walk...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 255/300: Kingo Hamada Heart to Heart
+[Search] Scraping YouTube (no Search API quota) for: Kingo Hamada Heart to Heart...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 256/300: Tatsuro Yamashita Windy Lady
+[Search] Scraping YouTube (no Search API quota) for: Tatsuro Yamashita Windy Lady...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 257/300: Sugar Babe Show
+[Search] Scraping YouTube (no Search API quota) for: Sugar Babe Show...
+[Search] Scraper-only: 21 candidates (no API calls)
+[300JP] 258/300: Taeko Ohnuki Boy Soprano
+[Search] Scraping YouTube (no Search API quota) for: Taeko Ohnuki Boy Soprano...
+[Search] Scraper-only: 30 candidates (no API calls)
+[300JP] 259/300: Hiroshi Sato Beach Comber
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato Beach Comber...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 260/300: Tomoko Aran Heartbreak Tonight
+[Search] Scraping YouTube (no Search API quota) for: Tomoko Aran Heartbreak Tonight...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 261/300: Haruomi Hosono Hana ni Mizu
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Hana ni Mizu...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 262/300: Shigeru Suzuki La Costa Brava
+[Search] Scraping YouTube (no Search API quota) for: Shigeru Suzuki La Costa Brava...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 263/300: Osamu Kitajima Hiryu (Flying Dragon)
+[Search] Scraping YouTube (no Search API quota) for: Osamu Kitajima Hiryu (Flying Dragon)...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 264/300: Masayoshi Takanaka Yuhi No Sakura
+[Search] Scraping YouTube (no Search API quota) for: Masayoshi Takanaka Yuhi No Sakura...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 265/300: Far East Family Band Cave
+[Search] Scraping YouTube (no Search API quota) for: Far East Family Band Cave...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 266/300: Stomu Yamashta One by One
+[Search] Scraping YouTube (no Search API quota) for: Stomu Yamashta One by One...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 267/300: Ryuichi Sakamoto Tong Poo
+[Search] Scraping YouTube (no Search API quota) for: Ryuichi Sakamoto Tong Poo...
+[Search] Scraper-only: 19 candidates (no API calls)
+[300JP] 268/300: Haruomi Hosono Rock-a-Billy Shuffle
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Rock-a-Billy Shuffle...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 269/300: Shoukichi Kina Subete no Hito no Kokoro ni Hana o
+[Search] Scraping YouTube (no Search API quota) for: Shoukichi Kina Subete no Hito no Kokoro ni Hana o...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 270/300: Akira Ishikawa African Blood
+[Search] Scraping YouTube (no Search API quota) for: Akira Ishikawa African Blood...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 271/300: Yosuke Yamashita Trio Clay
+[Search] Scraping YouTube (no Search API quota) for: Yosuke Yamashita Trio Clay...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 272/300: Masahiko Satoh Separation
+[Search] Scraping YouTube (no Search API quota) for: Masahiko Satoh Separation...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 273/300: Yoshio Ojima Une Collection des Chainons
+[Search] Scraping YouTube (no Search API quota) for: Yoshio Ojima Une Collection des Chainons...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 274/300: Hiroshi Yoshimura Air in Resort
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Yoshimura Air in Resort...
+[Search] Scraper-only: 16 candidates (no API calls)
+[300JP] 275/300: Satoshi Ashikawa Wave Notation 1
+[Search] Scraping YouTube (no Search API quota) for: Satoshi Ashikawa Wave Notation 1...
+[Search] Scraper-only: 22 candidates (no API calls)
+[300JP] 276/300: Midori Takada Passing Through
+[Search] Scraping YouTube (no Search API quota) for: Midori Takada Passing Through...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 277/300: Yasuaki Shimizu Glass Orchestra
+[Search] Scraping YouTube (no Search API quota) for: Yasuaki Shimizu Glass Orchestra...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 278/300: Jun Togawa Suki Suki Daisuki
+[Search] Scraping YouTube (no Search API quota) for: Jun Togawa Suki Suki Daisuki...
+[Search] Scraper-only: 28 candidates (no API calls)
+[300JP] 279/300: Akiko Yano Rose Garden
+[Search] Scraping YouTube (no Search API quota) for: Akiko Yano Rose Garden...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 280/300: Haruomi Hosono Aru Hi
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Aru Hi...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 281/300: Shigeru Suzuki Free Soul
+[Search] Scraping YouTube (no Search API quota) for: Shigeru Suzuki Free Soul...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 282/300: Masayoshi Takanaka Rainbow Goblins
+[Search] Scraping YouTube (no Search API quota) for: Masayoshi Takanaka Rainbow Goblins...
+[Search] Scraper-only: 22 candidates (no API calls)
+[300JP] 283/300: Ryu Kawasaki Juice & Blues
+[Search] Scraping YouTube (no Search API quota) for: Ryu Kawasaki Juice & Blues...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 284/300: Chiemi Manabe Skip Beat
+[Search] Scraping YouTube (no Search API quota) for: Chiemi Manabe Skip Beat...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 285/300: Masabumi Kikuchi Sunrise
+[Search] Scraping YouTube (no Search API quota) for: Masabumi Kikuchi Sunrise...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 286/300: Yuki Saito Blue Lagoon
+[Search] Scraping YouTube (no Search API quota) for: Yuki Saito Blue Lagoon...
+[Search] Scraper-only: 25 candidates (no API calls)
+[300JP] 287/300: Ponta Box Rag Time
+[Search] Scraping YouTube (no Search API quota) for: Ponta Box Rag Time...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 288/300: Hiroshi Sato Tropical Paradise
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Sato Tropical Paradise...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 289/300: T-Square Magic
+[Search] Scraping YouTube (no Search API quota) for: T-Square Magic...
+[Search] Scraper-only: 39 candidates (no API calls)
+[300JP] 290/300: Casiopea After School
+[Search] Scraping YouTube (no Search API quota) for: Casiopea After School...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 291/300: Logic System Shanghai
+[Search] Scraping YouTube (no Search API quota) for: Logic System Shanghai...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 292/300: Yukihiro Takahashi Vive le Weekend
+[Search] Scraping YouTube (no Search API quota) for: Yukihiro Takahashi Vive le Weekend...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 293/300: Naoya Matsuoka Sound Sketch
+[Search] Scraping YouTube (no Search API quota) for: Naoya Matsuoka Sound Sketch...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 294/300: Hiroshi Suzuki Sweet Love
+[Search] Scraping YouTube (no Search API quota) for: Hiroshi Suzuki Sweet Love...
+[Search] Scraper-only: 22 candidates (no API calls)
+[300JP] 295/300: Masahide Sakuma Citron
+[Search] Scraping YouTube (no Search API quota) for: Masahide Sakuma Citron...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] 296/300: Haruomi Hosono Night Time Flies
+[Search] Scraping YouTube (no Search API quota) for: Haruomi Hosono Night Time Flies...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 297/300: Toshiki Kadomatsu One Way Generation
+[Search] Scraping YouTube (no Search API quota) for: Toshiki Kadomatsu One Way Generation...
+[Search] Scraper-only: 27 candidates (no API calls)
+[300JP] 298/300: Minako Yoshida Tsuki no Fune
+[Search] Scraping YouTube (no Search API quota) for: Minako Yoshida Tsuki no Fune...
+[Search] Scraper-only: 24 candidates (no API calls)
+[300JP] 299/300: Ryo Fukui Early Summer 2
+[Search] Scraping YouTube (no Search API quota) for: Ryo Fukui Early Summer 2...
+[Search] Scraper-only: 23 candidates (no API calls)
+[300JP] 300/300: Akira Ishikawa Summit
+[Search] Scraping YouTube (no Search API quota) for: Akira Ishikawa Summit...
+[Search] Scraper-only: 26 candidates (no API calls)
+[300JP] Done. Stored: 17 | Skipped (dupes): 244 | Errors: 39
+[300JP] Videos added: /Users/troycarson/Documents/Cursor Projects/thesampledig/300-rare-japanese-tracks-added.txt

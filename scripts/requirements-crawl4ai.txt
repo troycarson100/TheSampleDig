@@ -1,0 +1,6 @@
+# YouTube search via Crawl4AI (USE_CRAWL4AI=true). Install once:
+#   python3 -m venv .venv-crawl4ai && source .venv-crawl4ai/bin/activate
+#   pip install -r scripts/requirements-crawl4ai.txt && crawl4ai-setup
+# Point Node at the venv interpreter:
+#   export CRAWL4AI_PYTHON="$PWD/.venv-crawl4ai/bin/python"
+crawl4ai>=0.4.0

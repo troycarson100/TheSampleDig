@@ -9,7 +9,7 @@ import DiceButton from "@/components/DiceButton"
 import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import SiteNav from "@/components/SiteNav"
 import DigFilterPanel from "@/components/DigFilterPanel"
-import { recordHistory, clearHistory, removeHistoryItem } from "@/lib/dig-history"
+import { recordHistory, clearHistory, removeHistoryItem, recordHistoryServer } from "@/lib/dig-history"
 import type { HistoryItem } from "@/lib/dig-history"
 import FeatureGateModal from "@/components/FeatureGateModal"
 import { DigAdSenseUnit } from "@/components/DigAdSenseUnit"
@@ -482,7 +482,7 @@ export default function DigPage() {
       setSample(newSample)
       // Use ref so async dig completes with correct session (Pro history is subscription-based, not UI bypass).
       if (sessionRef.current?.user?.isPro === true) {
-        recordHistory({
+        const historyPayload = {
           youtubeId: newSample.youtubeId,
           title: newSample.title,
           channel: newSample.channel,
@@ -490,7 +490,10 @@ export default function DigPage() {
           genre: newSample.genre,
           bpm: newSample.bpm,
           key: newSample.key,
-        })
+        }
+        // Keep local cache for instant UI; sync to DB so history persists across devices/refreshes
+        recordHistory(historyPayload)
+        recordHistoryServer(historyPayload)
       } else {
         setSessionDigHistory((prev) => {
           const item: HistoryItem = {

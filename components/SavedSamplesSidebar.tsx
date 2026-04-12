@@ -7,7 +7,16 @@ import { useGoProModal } from "@/components/GoProModalContext"
 import { useSession } from "next-auth/react"
 import HeartToggle from "./HeartToggle"
 import CrateTrackActionsMenu from "./CrateTrackActionsMenu"
-import { getHistory, clearHistory, timeAgo, removeHistoryItem, type HistoryItem } from "@/lib/dig-history"
+import {
+  getHistory,
+  clearHistory,
+  timeAgo,
+  removeHistoryItem,
+  fetchHistoryServer,
+  clearHistoryServer,
+  removeHistoryItemServer,
+  type HistoryItem,
+} from "@/lib/dig-history"
 import {
   getPlaylists,
   createPlaylist,
@@ -462,6 +471,7 @@ function HistoryList({
   onItemClick,
   userId,
   isPro,
+  hasProSubscription,
   ephemeralItems,
   onEphemeralClear,
   onEphemeralRemoveItem,
@@ -470,6 +480,8 @@ function HistoryList({
   onItemClick?: (item: HistoryItem) => void
   userId: string
   isPro: boolean
+  /** True when the user has an active Pro subscription (used to decide server vs local storage). */
+  hasProSubscription: boolean
   /** When set (including `[]`), list is driven by parent state — session-only until refresh for non-Pro. */
   ephemeralItems?: HistoryItem[]
   onEphemeralClear?: () => void
@@ -479,23 +491,59 @@ function HistoryList({
 }) {
   const isEphemeral = ephemeralItems !== undefined
   const [persistedItems, setPersistedItems] = useState<HistoryItem[]>([])
+  const [serverItems, setServerItems] = useState<HistoryItem[]>([])
+  const [serverLoaded, setServerLoaded] = useState(false)
   const [, setTick] = useState(0)
 
+  // Load from server for Pro users
+  useEffect(() => {
+    if (!hasProSubscription) return
+    fetchHistoryServer().then((items) => {
+      setServerItems(items)
+      setServerLoaded(true)
+    })
+  }, [hasProSubscription])
+
+  // Listen for dig events to refresh server history for Pro users
+  useEffect(() => {
+    if (!hasProSubscription) return
+    const handler = () => {
+      fetchHistoryServer().then(setServerItems)
+    }
+    window.addEventListener("digHistoryUpdated", handler)
+    return () => window.removeEventListener("digHistoryUpdated", handler)
+  }, [hasProSubscription])
+
+  // Load from localStorage for non-Pro logged-in users
   const loadPersisted = () => setPersistedItems(getHistory())
 
   useEffect(() => {
-    if (isEphemeral) return
+    if (isEphemeral || hasProSubscription) return
     loadPersisted()
     window.addEventListener("digHistoryUpdated", loadPersisted)
     return () => window.removeEventListener("digHistoryUpdated", loadPersisted)
-  }, [isEphemeral])
+  }, [isEphemeral, hasProSubscription])
 
   useEffect(() => {
     const id = setInterval(() => setTick((t) => t + 1), 60_000)
     return () => clearInterval(id)
   }, [])
 
-  const items = isEphemeral ? ephemeralItems : persistedItems
+  const items: HistoryItem[] = isEphemeral
+    ? ephemeralItems
+    : hasProSubscription
+    ? serverItems
+    : persistedItems
+
+  if (hasProSubscription && !serverLoaded) {
+    return (
+      <div className="flex-1 flex items-center justify-center py-10">
+        <span style={{ fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", fontSize: "10px", color: "rgba(255,255,255,0.3)" }}>
+          Loading…
+        </span>
+      </div>
+    )
+  }
 
   if (items.length === 0) {
     return (
@@ -525,6 +573,10 @@ function HistoryList({
           onClick={() => {
             if (isEphemeral) {
               onEphemeralClear?.()
+            } else if (hasProSubscription) {
+              setServerItems([])
+              clearHistoryServer()
+              clearHistory()
             } else {
               clearHistory()
               setPersistedItems([])
@@ -586,8 +638,16 @@ function HistoryList({
                     isPro={isPro}
                     removeLabel="Remove from history"
                     onRemove={() => {
-                      if (isEphemeral) onEphemeralRemoveItem?.(item.youtubeId)
-                      else removeHistoryItem(item.youtubeId)
+                      if (isEphemeral) {
+                        onEphemeralRemoveItem?.(item.youtubeId)
+                      } else if (hasProSubscription) {
+                        setServerItems((prev) => prev.filter((h) => h.youtubeId !== item.youtubeId))
+                        removeHistoryItemServer(item.youtubeId)
+                        removeHistoryItem(item.youtubeId)
+                      } else {
+                        removeHistoryItem(item.youtubeId)
+                        setPersistedItems((prev) => prev.filter((h) => h.youtubeId !== item.youtubeId))
+                      }
                     }}
                     onAddedToPlaylist={() => onSaveToPlaylist?.(item)}
                   />
@@ -947,6 +1007,7 @@ export default function SavedSamplesSidebar({
           onItemClick={onHistoryItemClick}
           userId={userId}
           isPro={isPro}
+          hasProSubscription={hasProSubscription}
           onSaveToPlaylist={session ? handleAutoSaveHistoryItem : undefined}
           {...(hasProSubscription
             ? {}

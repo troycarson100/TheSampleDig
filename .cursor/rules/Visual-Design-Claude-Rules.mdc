@@ -1,0 +1,41 @@
+---
+alwaysApply: true
+---
+
+GLOBAL CONTEXT — READ BEFORE EVERY TASK:
+Project: SampleRoll.com (Next.js + Tailwind + Supabase)
+New feature: Beat Visualizer at /visualizer route
+CRITICAL ISOLATION RULES:
+1. NEVER modify any files in /app/dig/ or components used by the Dig page
+2. NEVER modify the existing Supabase user auth tables or RLS policies
+3. NEVER modify next.config.js unless ONLY adding a new route/redirect
+4. NEVER modify globals.css — create visualizer-specific styles only
+5. NEVER modify any existing API routes
+6. ALL visualizer code lives in /app/visualizer/ and /components/visualizer/
+7. ALL visualizer hooks live in /hooks/visualizer/
+8. ALL visualizer utils live in /lib/visualizer/
+9. If you need shared UI components, COPY them into /components/visualizer/ — do NOT import
+from existing shared components
+10. Feature flag: use env var NEXT_PUBLIC_VISUALIZER_ENABLED=true to gate the route
+DESIGN SYSTEM:
+- Background: #1A1209 (deep brown/black)
+- Primary text: #F5E6C8 (cream)
+- Accent: #C9A94E (gold)
+- Secondary: #8A7A66 (warm gray)
+- Headings: Playfair Display (Google Font)
+- Body: DM Sans (Google Font)
+- All UI is dark-mode only, warm editorial aesthetic
+- Buttons: gold outline or filled gold with dark text
+- Cards/panels: #231A0E with 1px #3D2E18 border, rounded-lg
+TECH CONSTRAINTS:
+- Audio: Web Audio API + Tone.js for scheduling/LFOs
+- Visuals: WebGL (Three.js or raw) — NO WebGPU yet (fallback concerns)
+- Export: WebCodecs API with canvas.captureStream() fallback
+- State: Zustand for visualizer state (do not add Redux or other state libs)
+- No server-side rendering for the visualizer — it should be a client component
+- All rendering happens client-side, zero server compute for visuals
+VERIFY AFTER EVERY STEP:
+- Run `npm run build` — must pass with zero errors
+- Visit /dig — must work exactly as before
+- Visit /visualizer — new work should render
+- No console errors on either page

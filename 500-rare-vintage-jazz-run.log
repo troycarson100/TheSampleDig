@@ -1,0 +1,1085 @@
+[500Jazz] USE_YOUTUBE_SCRAPER: true
+[500Jazz] Reading PDF: /Users/troycarson/Downloads/500_Rare_Vintage_Jazz_Tracks.pdf
+[500Jazz] Parsed 499 track entries.
+[500Jazz] Excluding 6926 existing YouTube IDs. Max 2 tracks per artist.
+[500Jazz] 1/499: Brother Jack McDuff Tobacco Road
+[Search] Scraping YouTube (no Search API quota) for: Brother Jack McDuff Tobacco Road...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 2/499: Brother Jack McDuff Rock Candy
+[Search] Scraping YouTube (no Search API quota) for: Brother Jack McDuff Rock Candy...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 3/499: Jimmy McGriff The Worm
+[Search] Scraping YouTube (no Search API quota) for: Jimmy McGriff The Worm...
+[Search] Scraper-only: 33 candidates (no API calls)
+[500Jazz] 4/499: Jimmy McGriff Fat Cakes
+[Search] Scraping YouTube (no Search API quota) for: Jimmy McGriff Fat Cakes...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 5/499: Groove Holmes Misty
+[Search] Scraping YouTube (no Search API quota) for: Groove Holmes Misty...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 6/499: Groove Holmes Fly Me to the Moon
+[Search] Scraping YouTube (no Search API quota) for: Groove Holmes Fly Me to the Moon...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 7/499: Don Patterson Boppin' and Burnin'
+[Search] Scraping YouTube (no Search API quota) for: Don Patterson Boppin' and Burnin'...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 8/499: Don Patterson Hip Cake Walk
+[Search] Scraping YouTube (no Search API quota) for: Don Patterson Hip Cake Walk...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 9/499: Shirley Scott Blue Seven
+[Search] Scraping YouTube (no Search API quota) for: Shirley Scott Blue Seven...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 10/499: Shirley Scott Roll 'Em
+[Search] Scraping YouTube (no Search API quota) for: Shirley Scott Roll 'Em...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 11/499: Charles Earland More Today Than Yesterday
+[Search] Scraping YouTube (no Search API quota) for: Charles Earland More Today Than Yesterday...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 12/499: Charles Earland Leaving Yesterday Behind
+[Search] Scraping YouTube (no Search API quota) for: Charles Earland Leaving Yesterday Behind...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 13/499: Lonnie Smith Move Your Hand
+[Search] Scraping YouTube (no Search API quota) for: Lonnie Smith Move Your Hand...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 14/499: Lonnie Smith Spinning Wheel
+[Search] Scraping YouTube (no Search API quota) for: Lonnie Smith Spinning Wheel...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 15/499: Larry Young Tyrant
+[Search] Scraping YouTube (no Search API quota) for: Larry Young Tyrant...
+[Search] Scraper-only: 19 candidates (no API calls)
+[500Jazz] 16/499: Larry Young Fuel
+[Search] Scraping YouTube (no Search API quota) for: Larry Young Fuel...
+[Search] Scraper-only: 32 candidates (no API calls)
+[500Jazz] 17/499: Baby Face Willette Face to Face
+[Search] Scraping YouTube (no Search API quota) for: Baby Face Willette Face to Face...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 18/499: Baby Face Willette Jumpin' High
+[Search] Scraping YouTube (no Search API quota) for: Baby Face Willette Jumpin' High...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 19/499: John Patton Minor Swing
+[Search] Scraping YouTube (no Search API quota) for: John Patton Minor Swing...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 20/499: John Patton Let 'Em Roll
+[Search] Scraping YouTube (no Search API quota) for: John Patton Let 'Em Roll...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 21/499: John Patton – "Got a Good Thing Going" (skip: already 2 for this artist)
+[500Jazz] 22/499: Don Gardner Cheatin' Kind
+[Search] Scraping YouTube (no Search API quota) for: Don Gardner Cheatin' Kind...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 23/499: Freddie Roach Mo' Greens Please
+[Search] Scraping YouTube (no Search API quota) for: Freddie Roach Mo' Greens Please...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 24/499: Freddie Roach Good Move
+[Search] Scraping YouTube (no Search API quota) for: Freddie Roach Good Move...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 25/499: Freddie Roach – "Down to Earth" (skip: already 2 for this artist)
+[500Jazz] 26/499: Billy Gardner Dig It
+[Search] Scraping YouTube (no Search API quota) for: Billy Gardner Dig It...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 27/499: Richard 'Groove' Holmes Soul Message
+[Search] Scraping YouTube (no Search API quota) for: Richard 'Groove' Holmes Soul Message...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 28/499: Big John Patton The Turnaround
+[Search] Scraping YouTube (no Search API quota) for: Big John Patton The Turnaround...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 29/499: Reuben Wilson Love Bug
+[Search] Scraping YouTube (no Search API quota) for: Reuben Wilson Love Bug...
+[Search] Scraper-only: 19 candidates (no API calls)
+[500Jazz] 30/499: Reuben Wilson Got to Get Your Own
+[Search] Scraping YouTube (no Search API quota) for: Reuben Wilson Got to Get Your Own...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 31/499: Hank Mobley This I Dig of You
+[Search] Scraping YouTube (no Search API quota) for: Hank Mobley This I Dig of You...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 32/499: Hank Mobley Dig Dis
+[Search] Scraping YouTube (no Search API quota) for: Hank Mobley Dig Dis...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 33/499: Hank Mobley – "The Dip" (skip: already 2 for this artist)
+[500Jazz] 34/499: Hank Mobley – "Straight No Filter" (skip: already 2 for this artist)
+[500Jazz] 35/499: Hank Mobley – "Hi Voltage" (skip: already 2 for this artist)
+[500Jazz] 36/499: Lee Morgan Ceora
+[Search] Scraping YouTube (no Search API quota) for: Lee Morgan Ceora...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 37/499: Lee Morgan Speedball
+[Search] Scraping YouTube (no Search API quota) for: Lee Morgan Speedball...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 38/499: Lee Morgan – "Gary's Notebook" (skip: already 2 for this artist)
+[500Jazz] 39/499: Lee Morgan – "Hocus Pocus" (skip: already 2 for this artist)
+[500Jazz] 40/499: Lee Morgan – "The Delightfulee" (skip: already 2 for this artist)
+[500Jazz] 41/499: Freddie Hubbard Sky Dive
+[Search] Scraping YouTube (no Search API quota) for: Freddie Hubbard Sky Dive...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 42/499: Freddie Hubbard Red Clay
+[Search] Scraping YouTube (no Search API quota) for: Freddie Hubbard Red Clay...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 43/499: Freddie Hubbard – "Straight Life" (skip: already 2 for this artist)
+[500Jazz] 44/499: Freddie Hubbard – "First Light" (skip: already 2 for this artist)
+[500Jazz] 45/499: Freddie Hubbard – "Byrdlike" (skip: already 2 for this artist)
+[500Jazz] 46/499: Woody Shaw Katrina Ballerina
+[Search] Scraping YouTube (no Search API quota) for: Woody Shaw Katrina Ballerina...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 47/499: Woody Shaw Moontrane
+[Search] Scraping YouTube (no Search API quota) for: Woody Shaw Moontrane...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 48/499: Woody Shaw – "Zoltan" (skip: already 2 for this artist)
+[500Jazz] 49/499: Woody Shaw – "The Organ Grinder" (skip: already 2 for this artist)
+[500Jazz] 50/499: Woody Shaw – "Rahsaan" (skip: already 2 for this artist)
+[500Jazz] 51/499: Kenny Dorham Lotus Blossom
+[Search] Scraping YouTube (no Search API quota) for: Kenny Dorham Lotus Blossom...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 52/499: Kenny Dorham Blue Spring Shuffle
+[Search] Scraping YouTube (no Search API quota) for: Kenny Dorham Blue Spring Shuffle...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 53/499: Kenny Dorham – "Afrodisia" (skip: already 2 for this artist)
+[500Jazz] 54/499: Kenny Dorham – "Whistle Stop" (skip: already 2 for this artist)
+[500Jazz] 55/499: Kenny Dorham – "La Mesha" (skip: already 2 for this artist)
+[500Jazz] 56/499: Blue Mitchell Fungii Mama
+[Search] Scraping YouTube (no Search API quota) for: Blue Mitchell Fungii Mama...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 57/499: Blue Mitchell Bring It Home to Me
+[Search] Scraping YouTube (no Search API quota) for: Blue Mitchell Bring It Home to Me...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 58/499: Blue Mitchell – "The Thing to Do" (skip: already 2 for this artist)
+[500Jazz] 59/499: Blue Mitchell – "Heads Up" (skip: already 2 for this artist)
+[500Jazz] 60/499: Blue Mitchell – "Scrapple from the Apple" (skip: already 2 for this artist)
+[500Jazz] 61/499: Harold Land Damisi
+[Search] Scraping YouTube (no Search API quota) for: Harold Land Damisi...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 62/499: Harold Land Take Aim
+[Search] Scraping YouTube (no Search API quota) for: Harold Land Take Aim...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 63/499: Harold Land – "Xochimilco" (skip: already 2 for this artist)
+[500Jazz] 64/499: Harold Land – "Grooveyard" (skip: already 2 for this artist)
+[500Jazz] 65/499: Harold Land – "West Coast Blues" (skip: already 2 for this artist)
+[500Jazz] 66/499: Clifford Jordan Down Through the Years
+[Search] Scraping YouTube (no Search API quota) for: Clifford Jordan Down Through the Years...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 67/499: Clifford Jordan Bearcat
+[Search] Scraping YouTube (no Search API quota) for: Clifford Jordan Bearcat...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 68/499: Clifford Jordan – "Powerful Paul Robeson" (skip: already 2 for this artist)
+[500Jazz] 69/499: Cedar Walton Ugetsu
+[Search] Scraping YouTube (no Search API quota) for: Cedar Walton Ugetsu...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 70/499: Cedar Walton Bolivia
+[Search] Scraping YouTube (no Search API quota) for: Cedar Walton Bolivia...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 71/499: Cedar Walton – "Fantasy in D" (skip: already 2 for this artist)
+[500Jazz] 72/499: Cedar Walton – "Ojos de Rojo" (skip: already 2 for this artist)
+[500Jazz] 73/499: Cedar Walton – "Jacob's Ladder" (skip: already 2 for this artist)
+[500Jazz] 74/499: Barry Harris Luminescence
+[Search] Scraping YouTube (no Search API quota) for: Barry Harris Luminescence...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 75/499: Barry Harris Nascimento
+[Search] Scraping YouTube (no Search API quota) for: Barry Harris Nascimento...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 76/499: Barry Harris – "Subconscious-Lee" (skip: already 2 for this artist)
+[500Jazz] 77/499: Pepper Adams Bossa Nouveau
+[Search] Scraping YouTube (no Search API quota) for: Pepper Adams Bossa Nouveau...
+[Search] Scraper-only: 20 candidates (no API calls)
+[500Jazz] 78/499: Pepper Adams Claudette's Way
+[Search] Scraping YouTube (no Search API quota) for: Pepper Adams Claudette's Way...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 79/499: Pepper Adams – "Civilization and Its Discontents" (skip: already 2 for this artist)
+[500Jazz] 80/499: Pepper Adams – "Dobbin'" (skip: already 2 for this artist)
+[500Jazz] 81/499: Idris Muhammad Could Heaven Ever Be Like This
+[Search] Scraping YouTube (no Search API quota) for: Idris Muhammad Could Heaven Ever Be Like This...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 82/499: Idris Muhammad Turn This Mutha Out
+[Search] Scraping YouTube (no Search API quota) for: Idris Muhammad Turn This Mutha Out...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 83/499: Idris Muhammad – "Loran's Dance" (skip: already 2 for this artist)
+[500Jazz] 84/499: Idris Muhammad – "Power of Soul" (skip: already 2 for this artist)
+[500Jazz] 85/499: Alphonse Mouzon The Funky Snakefoot
+[Search] Scraping YouTube (no Search API quota) for: Alphonse Mouzon The Funky Snakefoot...
+[Search] Scraper-only: 31 candidates (no API calls)
+[500Jazz] 86/499: Alphonse Mouzon Distant Lover
+[Search] Scraping YouTube (no Search API quota) for: Alphonse Mouzon Distant Lover...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 87/499: Alphonse Mouzon – "Mind Transplant" (skip: already 2 for this artist)
+[500Jazz] 88/499: Billy Cobham Quadrant 4
+[Search] Scraping YouTube (no Search API quota) for: Billy Cobham Quadrant 4...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 89/499: Billy Cobham Snoopy's Search
+[Search] Scraping YouTube (no Search API quota) for: Billy Cobham Snoopy's Search...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 90/499: Billy Cobham – "Le Lis" (skip: already 2 for this artist)
+[500Jazz] 91/499: Billy Cobham – "Thinking of You" (skip: already 2 for this artist)
+[500Jazz] 92/499: Billy Cobham – "Heather" (skip: already 2 for this artist)
+[500Jazz] 93/499: Lonnie Liston Smith Expansions
+[Search] Scraping YouTube (no Search API quota) for: Lonnie Liston Smith Expansions...
+[Search] Scraper-only: 32 candidates (no API calls)
+[500Jazz] 94/499: Lonnie Liston Smith A Garden of Peace
+[Search] Scraping YouTube (no Search API quota) for: Lonnie Liston Smith A Garden of Peace...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 95/499: Lonnie Liston Smith – "Visions of a New World" (skip: already 2 for this artist)
+[500Jazz] 96/499: Lonnie Liston Smith – "Quiet Moments" (skip: already 2 for this artist)
+[500Jazz] 97/499: Lonnie Liston Smith – "A Chance for Peace" (skip: already 2 for this artist)
+[500Jazz] 98/499: Johnny Hammond Los Conquistadores Chocolates
+[Search] Scraping YouTube (no Search API quota) for: Johnny Hammond Los Conquistadores Chocolates...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 99/499: Johnny Hammond Tell Me What to Do
+[Search] Scraping YouTube (no Search API quota) for: Johnny Hammond Tell Me What to Do...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 100/499: Johnny Hammond – "Fantasy" (skip: already 2 for this artist)
+[500Jazz] 101/499: Johnny Hammond – "It's Too Late" (skip: already 2 for this artist)
+[500Jazz] 102/499: Bobbi Humphrey Blacks and Blues
+[Search] Scraping YouTube (no Search API quota) for: Bobbi Humphrey Blacks and Blues...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 103/499: Bobbi Humphrey Harlem River Drive
+[Search] Scraping YouTube (no Search API quota) for: Bobbi Humphrey Harlem River Drive...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 104/499: Bobbi Humphrey – "Satin Doll" (skip: already 2 for this artist)
+[500Jazz] 105/499: Bobbi Humphrey – "Mestizo Eyes" (skip: already 2 for this artist)
+[500Jazz] 106/499: Bobbi Humphrey – "Chicago Damn" (skip: already 2 for this artist)
+[500Jazz] 107/499: Roy Ayers Everybody Loves the Sunshine
+[Search] Scraping YouTube (no Search API quota) for: Roy Ayers Everybody Loves the Sunshine...
+[Search] Scraper-only: 35 candidates (no API calls)
+[500Jazz] 108/499: Roy Ayers Running Away
+[Search] Scraping YouTube (no Search API quota) for: Roy Ayers Running Away...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 109/499: Roy Ayers – "Red Black and Green" (skip: already 2 for this artist)
+[500Jazz] 110/499: Roy Ayers – "Lifeline" (skip: already 2 for this artist)
+[500Jazz] 111/499: Roy Ayers – "The Memory" (skip: already 2 for this artist)
+[500Jazz] 112/499: Rusty Bryant Fire Eater
+[Search] Scraping YouTube (no Search API quota) for: Rusty Bryant Fire Eater...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 113/499: Rusty Bryant Legends of the Street
+[Search] Scraping YouTube (no Search API quota) for: Rusty Bryant Legends of the Street...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 114/499: Rusty Bryant – "Loran's Dance" (skip: already 2 for this artist)
+[500Jazz] 115/499: Grant Green Ease Back
+[Search] Scraping YouTube (no Search API quota) for: Grant Green Ease Back...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 116/499: Grant Green Down Here on the Ground
+[Search] Scraping YouTube (no Search API quota) for: Grant Green Down Here on the Ground...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 117/499: Grant Green – "I Want to Hold Your Hand" (skip: already 2 for this artist)
+[500Jazz] 118/499: Grant Green – "Sookie Sookie" (skip: already 2 for this artist)
+[500Jazz] 119/499: Grant Green – "Ain't It Funky Now" (skip: already 2 for this artist)
+[500Jazz] 120/499: Grant Green – "Slick" (skip: already 2 for this artist)
+[500Jazz] 121/499: Pharoah Sanders Upper Egypt & Lower Egypt
+[Search] Scraping YouTube (no Search API quota) for: Pharoah Sanders Upper Egypt & Lower Egypt...
+[Search] Scraper-only: 31 candidates (no API calls)
+[500Jazz] 122/499: Pharoah Sanders Japan
+[Search] Scraping YouTube (no Search API quota) for: Pharoah Sanders Japan...
+[Search] Scraper-only: 20 candidates (no API calls)
+[500Jazz] 123/499: Pharoah Sanders – "Black Unity" (skip: already 2 for this artist)
+[500Jazz] 124/499: Pharoah Sanders – "Hum-Allah-Hum-Allah-Hum-Allah" (skip: already 2 for this artist)
+[500Jazz] 125/499: Pharoah Sanders – "Astral Traveling" (skip: already 2 for this artist)
+[500Jazz] 126/499: Pharoah Sanders – "Love Is Everywhere" (skip: already 2 for this artist)
+[500Jazz] 127/499: Pharoah Sanders – "You've Got to Have Freedom" (skip: already 2 for this artist)
+[500Jazz] 128/499: Alice Coltrane Ptah the El Daoud
+[Search] Scraping YouTube (no Search API quota) for: Alice Coltrane Ptah the El Daoud...
+[Search] Scraper-only: 21 candidates (no API calls)
+[500Jazz] 129/499: Alice Coltrane Blue Nile
+[Search] Scraping YouTube (no Search API quota) for: Alice Coltrane Blue Nile...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 130/499: Alice Coltrane – "Turiya and Ramakrishna" (skip: already 2 for this artist)
+[500Jazz] 131/499: Alice Coltrane – "Shiva-Loka" (skip: already 2 for this artist)
+[500Jazz] 132/499: Alice Coltrane – "Something About John Coltrane" (skip: already 2 for this artist)
+[500Jazz] 133/499: Alice Coltrane – "Galaxy in Turiya" (skip: already 2 for this artist)
+[500Jazz] 134/499: Sun Ra Enlightenment
+[Search] Scraping YouTube (no Search API quota) for: Sun Ra Enlightenment...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 135/499: Sun Ra Hours After
+[Search] Scraping YouTube (no Search API quota) for: Sun Ra Hours After...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 136/499: Sun Ra – "Somebody Else's Idea" (skip: already 2 for this artist)
+[500Jazz] 137/499: Sun Ra – "Outer Nothingness" (skip: already 2 for this artist)
+[500Jazz] 138/499: Sun Ra – "Springtime in Chicago" (skip: already 2 for this artist)
+[500Jazz] 139/499: Archie Shepp Steam
+[Search] Scraping YouTube (no Search API quota) for: Archie Shepp Steam...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 140/499: Archie Shepp Mama Too Tight
+[Search] Scraping YouTube (no Search API quota) for: Archie Shepp Mama Too Tight...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 141/499: Archie Shepp – "Hambone" (skip: already 2 for this artist)
+[500Jazz] 142/499: Archie Shepp – "Attica Blues" (skip: already 2 for this artist)
+[500Jazz] 143/499: Archie Shepp – "Poem for Malcolm" (skip: already 2 for this artist)
+[500Jazz] 144/499: Mal Waldron Soul Eyes
+[Search] Scraping YouTube (no Search API quota) for: Mal Waldron Soul Eyes...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 145/499: Mal Waldron Status Seeking
+[Search] Scraping YouTube (no Search API quota) for: Mal Waldron Status Seeking...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 146/499: Mal Waldron – "Warm Canto" (skip: already 2 for this artist)
+[500Jazz] 147/499: Yusef Lateef Sister Mamie
+[Search] Scraping YouTube (no Search API quota) for: Yusef Lateef Sister Mamie...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 148/499: Yusef Lateef Plum Blossom
+[Search] Scraping YouTube (no Search API quota) for: Yusef Lateef Plum Blossom...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 149/499: Yusef Lateef – "Club Car" (skip: already 2 for this artist)
+[500Jazz] 150/499: Yusef Lateef – "Detroit" (skip: already 2 for this artist)
+[500Jazz] 151/499: Cal Tjader Soul Burst
+[Search] Scraping YouTube (no Search API quota) for: Cal Tjader Soul Burst...
+[Search] Scraper-only: 32 candidates (no API calls)
+[500Jazz] 152/499: Cal Tjader Guarachi Guaro
+[Search] Scraping YouTube (no Search API quota) for: Cal Tjader Guarachi Guaro...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 153/499: Cal Tjader – "Bossa Nova Cha Cha" (skip: already 2 for this artist)
+[500Jazz] 154/499: Cal Tjader – "Afro Blue" (skip: already 2 for this artist)
+[500Jazz] 155/499: Cal Tjader – "El Sonido Nuevo" (skip: already 2 for this artist)
+[500Jazz] 156/499: Eddie Palmieri Azucar Pa Ti
+[Search] Scraping YouTube (no Search API quota) for: Eddie Palmieri Azucar Pa Ti...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 157/499: Eddie Palmieri Mozambique
+[Search] Scraping YouTube (no Search API quota) for: Eddie Palmieri Mozambique...
+[Search] Scraper-only: 19 candidates (no API calls)
+[500Jazz] 158/499: Willie Bobo Fried Neckbones and Some Home Fries
+[Search] Scraping YouTube (no Search API quota) for: Willie Bobo Fried Neckbones and Some Home Fries...
+[Search] Scraper-only: 29 candidates (no API calls)
+[500Jazz] 159/499: Willie Bobo Evil Ways
+[Search] Scraping YouTube (no Search API quota) for: Willie Bobo Evil Ways...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 160/499: Willie Bobo – "Gypsy Queen" (skip: already 2 for this artist)
+[500Jazz] 161/499: Mongo Santamaria Watermelon Man
+[Search] Scraping YouTube (no Search API quota) for: Mongo Santamaria Watermelon Man...
+[Search] Scraper-only: 31 candidates (no API calls)
+[500Jazz] 162/499: Mongo Santamaria Cloud Nine
+[Search] Scraping YouTube (no Search API quota) for: Mongo Santamaria Cloud Nine...
+[Search] Scraper-only: 21 candidates (no API calls)
+[500Jazz] 163/499: Mongo Santamaria – "Sofrito" (skip: already 2 for this artist)
+[500Jazz] 164/499: Mongo Santamaria – "Afro Blue" (skip: already 2 for this artist)
+[500Jazz] 165/499: Mongo Santamaria – "Fatback" (skip: already 2 for this artist)
+[500Jazz] 166/499: Ray Barretto Soul Drummers
+[Search] Scraping YouTube (no Search API quota) for: Ray Barretto Soul Drummers...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 167/499: Ray Barretto Together
+[Search] Scraping YouTube (no Search API quota) for: Ray Barretto Together...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 168/499: Ray Barretto – "Acid" (skip: already 2 for this artist)
+[500Jazz] 169/499: Ray Barretto – "Guajira" (skip: already 2 for this artist)
+[500Jazz] 170/499: Tito Puente Oye Como Va
+[Search] Scraping YouTube (no Search API quota) for: Tito Puente Oye Como Va...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 171/499: Tito Puente Para Los Rumberos
+[Search] Scraping YouTube (no Search API quota) for: Tito Puente Para Los Rumberos...
+[Search] Scraper-only: 31 candidates (no API calls)
+[500Jazz] 172/499: Tito Puente – "Ran Kan Kan" (skip: already 2 for this artist)
+[500Jazz] 173/499: Joe Cuba Sextet Bang Bang
+[Search] Scraping YouTube (no Search API quota) for: Joe Cuba Sextet Bang Bang...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 174/499: Charlie Palmieri Mambo Jambo
+[Search] Scraping YouTube (no Search API quota) for: Charlie Palmieri Mambo Jambo...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 175/499: Giovanni Hidalgo Conga Blue
+[Search] Scraping YouTube (no Search API quota) for: Giovanni Hidalgo Conga Blue...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 176/499: Herbie Mann Memphis Underground
+[Search] Scraping YouTube (no Search API quota) for: Herbie Mann Memphis Underground...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 177/499: Herbie Mann Chain of Fools
+[Search] Scraping YouTube (no Search API quota) for: Herbie Mann Chain of Fools...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 178/499: Herbie Mann – "Hold On, I'm Comin'" (skip: already 2 for this artist)
+[500Jazz] 179/499: Herbie Mann – "Battle Hymn of the Republic" (skip: already 2 for this artist)
+[500Jazz] 180/499: Herbie Mann – "Unchain My Heart" (skip: already 2 for this artist)
+[500Jazz] 181/499: Hubert Laws Skagly
+[Search] Scraping YouTube (no Search API quota) for: Hubert Laws Skagly...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 182/499: Hubert Laws My Fair Lady
+[Search] Scraping YouTube (no Search API quota) for: Hubert Laws My Fair Lady...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 183/499: Hubert Laws – "Fire and Rain" (skip: already 2 for this artist)
+[500Jazz] 184/499: Hubert Laws – "Land of Passion" (skip: already 2 for this artist)
+[500Jazz] 185/499: Hubert Laws – "Mean Lene" (skip: already 2 for this artist)
+[500Jazz] 186/499: Jeremy Steig Lullaby
+[Search] Scraping YouTube (no Search API quota) for: Jeremy Steig Lullaby...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 187/499: Jeremy Steig Howlin' for Judy
+[Search] Scraping YouTube (no Search API quota) for: Jeremy Steig Howlin' for Judy...
+[Search] Scraper-only: 29 candidates (no API calls)
+[500Jazz] 188/499: James Moody Tin Tin Deo
+[Search] Scraping YouTube (no Search API quota) for: James Moody Tin Tin Deo...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 189/499: James Moody Moody's Mood for Love
+[Search] Scraping YouTube (no Search API quota) for: James Moody Moody's Mood for Love...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 190/499: Frank Wess Opus in Swing
+[Search] Scraping YouTube (no Search API quota) for: Frank Wess Opus in Swing...
+[Search] Scraper-only: 19 candidates (no API calls)
+[500Jazz] 191/499: Frank Wess Flute Juice
+[Search] Scraping YouTube (no Search API quota) for: Frank Wess Flute Juice...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 192/499: Frank Wess – "Entre Nous" (skip: already 2 for this artist)
+[500Jazz] 193/499: Leo Wright Blues Shout
+[Search] Scraping YouTube (no Search API quota) for: Leo Wright Blues Shout...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 194/499: Sahib Shihab Sentone
+[Search] Scraping YouTube (no Search API quota) for: Sahib Shihab Sentone...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 195/499: Sahib Shihab La Leyenda del Beso
+[Search] Scraping YouTube (no Search API quota) for: Sahib Shihab La Leyenda del Beso...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 196/499: Bobby Hutcherson Montara
+[Search] Scraping YouTube (no Search API quota) for: Bobby Hutcherson Montara...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 197/499: Bobby Hutcherson Ummh
+[Search] Scraping YouTube (no Search API quota) for: Bobby Hutcherson Ummh...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 198/499: Bobby Hutcherson – "Goin' Down South" (skip: already 2 for this artist)
+[500Jazz] 199/499: Bobby Hutcherson – "Wise One" (skip: already 2 for this artist)
+[500Jazz] 200/499: Bobby Hutcherson – "Pompeian" (skip: already 2 for this artist)
+[500Jazz] 201/499: Bobby Hutcherson – "Little B's Poem" (skip: already 2 for this artist)
+[500Jazz] 202/499: Gary Burton Country Roads
+[Search] Scraping YouTube (no Search API quota) for: Gary Burton Country Roads...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 203/499: Gary Burton Sunset Bell
+[Search] Scraping YouTube (no Search API quota) for: Gary Burton Sunset Bell...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 204/499: Gary Burton – "Guru" (skip: already 2 for this artist)
+[500Jazz] 205/499: Milt Jackson Olinga
+[Search] Scraping YouTube (no Search API quota) for: Milt Jackson Olinga...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 206/499: Milt Jackson Bags' Groove
+[Search] Scraping YouTube (no Search API quota) for: Milt Jackson Bags' Groove...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 207/499: Milt Jackson – "Heartstrings" (skip: already 2 for this artist)
+[500Jazz] 208/499: Victor Feldman Seven Steps to Heaven
+[Search] Scraping YouTube (no Search API quota) for: Victor Feldman Seven Steps to Heaven...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 209/499: Victor Feldman Falling in Love with Love
+[Search] Scraping YouTube (no Search API quota) for: Victor Feldman Falling in Love with Love...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 210/499: Walt Dickerson To My Queen
+[Search] Scraping YouTube (no Search API quota) for: Walt Dickerson To My Queen...
+[Search] Scraper-only: 19 candidates (no API calls)
+[500Jazz] 211/499: Ahmad Jamal Poinciana
+[Search] Scraping YouTube (no Search API quota) for: Ahmad Jamal Poinciana...
+[Search] Scraper-only: 33 candidates (no API calls)
+[500Jazz] 212/499: Ahmad Jamal But Not for Me
+[Search] Scraping YouTube (no Search API quota) for: Ahmad Jamal But Not for Me...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 213/499: Ahmad Jamal – "Night Mist Blues" (skip: already 2 for this artist)
+[500Jazz] 214/499: Ahmad Jamal – "Stolen Moments" (skip: already 2 for this artist)
+[500Jazz] 215/499: Ahmad Jamal – "Pattern" (skip: already 2 for this artist)
+[500Jazz] 216/499: McCoy Tyner Passion Dance
+[Search] Scraping YouTube (no Search API quota) for: McCoy Tyner Passion Dance...
+[Search] Scraper-only: 31 candidates (no API calls)
+[500Jazz] 217/499: McCoy Tyner Contemplation
+[Search] Scraping YouTube (no Search API quota) for: McCoy Tyner Contemplation...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 218/499: McCoy Tyner – "Fly with the Wind" (skip: already 2 for this artist)
+[500Jazz] 219/499: McCoy Tyner – "Land of the Lonely" (skip: already 2 for this artist)
+[500Jazz] 220/499: McCoy Tyner – "Afro Blue" (skip: already 2 for this artist)
+[500Jazz] 221/499: Herbie Hancock Maiden Voyage
+[Search] Scraping YouTube (no Search API quota) for: Herbie Hancock Maiden Voyage...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 222/499: Herbie Hancock Cantaloupe Island
+[Search] Scraping YouTube (no Search API quota) for: Herbie Hancock Cantaloupe Island...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 223/499: Herbie Hancock – "Jessica" (skip: already 2 for this artist)
+[500Jazz] 224/499: Herbie Hancock – "Sleeping Giant" (skip: already 2 for this artist)
+[500Jazz] 225/499: Herbie Hancock – "Rain Dance" (skip: already 2 for this artist)
+[500Jazz] 226/499: Duke Pearson Cristo Redentor
+[Search] Scraping YouTube (no Search API quota) for: Duke Pearson Cristo Redentor...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 227/499: Duke Pearson Gaslight
+[Search] Scraping YouTube (no Search API quota) for: Duke Pearson Gaslight...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 228/499: Duke Pearson – "You Know I Care" (skip: already 2 for this artist)
+[500Jazz] 229/499: Duke Pearson – "Sweet Honey Bee" (skip: already 2 for this artist)
+[500Jazz] 230/499: Phineas Newborn Jr. Here Is Phineas
+[Search] Scraping YouTube (no Search API quota) for: Phineas Newborn Jr. Here Is Phineas...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 231/499: Phineas Newborn Jr. Stockholm Sweetnin'
+[Search] Scraping YouTube (no Search API quota) for: Phineas Newborn Jr. Stockholm Sweetnin'...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 232/499: Phineas Newborn Jr. – "Ray's Idea" (skip: already 2 for this artist)
+[500Jazz] 233/499: Andrew Hill Compulsion
+[Search] Scraping YouTube (no Search API quota) for: Andrew Hill Compulsion...
+[Search] Scraper-only: 32 candidates (no API calls)
+[500Jazz] 234/499: Andrew Hill Smoke Stack
+[Search] Scraping YouTube (no Search API quota) for: Andrew Hill Smoke Stack...
+[Search] Scraper-only: 31 candidates (no API calls)
+[500Jazz] 235/499: Andrew Hill – "New Monastery" (skip: already 2 for this artist)
+[500Jazz] 236/499: Andrew Hill – "Erato" (skip: already 2 for this artist)
+[500Jazz] 237/499: Andrew Hill – "Nefertiti" (skip: already 2 for this artist)
+[500Jazz] 238/499: Mal Waldron – "Fire Waltz" (skip: already 2 for this artist)
+[500Jazz] 239/499: Mal Waldron – "Dee's Dilemma" (skip: already 2 for this artist)
+[500Jazz] 240/499: Randy Weston Little Niles
+[Search] Scraping YouTube (no Search API quota) for: Randy Weston Little Niles...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 241/499: Charles Mingus Moanin'
+[Search] Scraping YouTube (no Search API quota) for: Charles Mingus Moanin'...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 242/499: Charles Mingus Better Git It in Your Soul
+[Search] Scraping YouTube (no Search API quota) for: Charles Mingus Better Git It in Your Soul...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 243/499: Charles Mingus – "Haitian Fight Song" (skip: already 2 for this artist)
+[500Jazz] 244/499: Charles Mingus – "Wednesday Night Prayer Meeting" (skip: already 2 for this artist)
+[500Jazz] 245/499: Charles Mingus – "Goodbye Pork Pie Hat" (skip: already 2 for this artist)
+[500Jazz] 246/499: Paul Chambers Whims of Chambers
+[Search] Scraping YouTube (no Search API quota) for: Paul Chambers Whims of Chambers...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 247/499: Paul Chambers Nita
+[Search] Scraping YouTube (no Search API quota) for: Paul Chambers Nita...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 248/499: Ron Carter Eighty One
+[Search] Scraping YouTube (no Search API quota) for: Ron Carter Eighty One...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 249/499: Ron Carter Doom
+[Search] Scraping YouTube (no Search API quota) for: Ron Carter Doom...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 250/499: Ron Carter – "Little Waltz" (skip: already 2 for this artist)
+[500Jazz] 251/499: Israel Crosby Poinciana
+[Search] Scraping YouTube (no Search API quota) for: Israel Crosby Poinciana...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 252/499: Sam Jones Unit 7
+[Search] Scraping YouTube (no Search API quota) for: Sam Jones Unit 7...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 253/499: Sam Jones One for Amos
+[Search] Scraping YouTube (no Search API quota) for: Sam Jones One for Amos...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 254/499: Reggie Workman Coltrane Time
+[Search] Scraping YouTube (no Search API quota) for: Reggie Workman Coltrane Time...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 255/499: Scott La Faro Jade Visions
+[Search] Scraping YouTube (no Search API quota) for: Scott La Faro Jade Visions...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 256/499: Sonny Rollins East Broadway Run Down
+[Search] Scraping YouTube (no Search API quota) for: Sonny Rollins East Broadway Run Down...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 257/499: Sonny Rollins Alfie's Theme
+[Search] Scraping YouTube (no Search API quota) for: Sonny Rollins Alfie's Theme...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 258/499: Sonny Rollins – "G-Man" (skip: already 2 for this artist)
+[500Jazz] 259/499: Sonny Rollins – "Why Don't I" (skip: already 2 for this artist)
+[500Jazz] 260/499: Sonny Rollins – "Blessing in Disguise" (skip: already 2 for this artist)
+[500Jazz] 261/499: Dexter Gordon Cheese Cake
+[Search] Scraping YouTube (no Search API quota) for: Dexter Gordon Cheese Cake...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 262/499: Dexter Gordon Society Red
+[Search] Scraping YouTube (no Search API quota) for: Dexter Gordon Society Red...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 263/499: Dexter Gordon – "Fried Bananas" (skip: already 2 for this artist)
+[500Jazz] 264/499: Dexter Gordon – "The Panther" (skip: already 2 for this artist)
+[500Jazz] 265/499: Dexter Gordon – "Blues Walk" (skip: already 2 for this artist)
+[500Jazz] 266/499: Booker Ervin Mojo
+[Search] Scraping YouTube (no Search API quota) for: Booker Ervin Mojo...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 267/499: Booker Ervin Boo
+[Search] Scraping YouTube (no Search API quota) for: Booker Ervin Boo...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 268/499: Booker Ervin – "Poinciana" (skip: already 2 for this artist)
+[500Jazz] 269/499: Booker Ervin – "Setting the Pace" (skip: already 2 for this artist)
+[500Jazz] 270/499: Booker Ervin – "One for Mort" (skip: already 2 for this artist)
+[500Jazz] 271/499: Joe Henderson Inner Urge
+[Search] Scraping YouTube (no Search API quota) for: Joe Henderson Inner Urge...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 272/499: Joe Henderson Mode for Joe
+[Search] Scraping YouTube (no Search API quota) for: Joe Henderson Mode for Joe...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 273/499: Joe Henderson – "Isotope" (skip: already 2 for this artist)
+[500Jazz] 274/499: Joe Henderson – "Serenity" (skip: already 2 for this artist)
+[500Jazz] 275/499: Joe Henderson – "Invitation" (skip: already 2 for this artist)
+[500Jazz] 276/499: Stanley Turrentine River's Invitation
+[Search] Scraping YouTube (no Search API quota) for: Stanley Turrentine River's Invitation...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 277/499: Stanley Turrentine Sister Sadie
+[Search] Scraping YouTube (no Search API quota) for: Stanley Turrentine Sister Sadie...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 278/499: Stanley Turrentine – "Tin Tin Deo" (skip: already 2 for this artist)
+[500Jazz] 279/499: Stanley Turrentine – "Sugar" (skip: already 2 for this artist)
+[500Jazz] 280/499: Stanley Turrentine – "Salt Song" (skip: already 2 for this artist)
+[500Jazz] 281/499: Rahsaan Roland Kirk Volunteered Slavery
+[Search] Scraping YouTube (no Search API quota) for: Rahsaan Roland Kirk Volunteered Slavery...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 282/499: Rahsaan Roland Kirk The Inflated Tear
+[Search] Scraping YouTube (no Search API quota) for: Rahsaan Roland Kirk The Inflated Tear...
+[Search] Scraper-only: 32 candidates (no API calls)
+[500Jazz] 283/499: Rahsaan Roland Kirk – "Bright Moments" (skip: already 2 for this artist)
+[500Jazz] 284/499: Rahsaan Roland Kirk – "Serenade to a Cuckoo" (skip: already 2 for this artist)
+[500Jazz] 285/499: Rahsaan Roland Kirk – "Goodbye Pork Pie Hat" (skip: already 2 for this artist)
+[500Jazz] 286/499: Illinois Jacquet Blues Part 1
+[Search] Scraping YouTube (no Search API quota) for: Illinois Jacquet Blues Part 1...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 287/499: Illinois Jacquet Robbin's Nest
+[Search] Scraping YouTube (no Search API quota) for: Illinois Jacquet Robbin's Nest...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 288/499: Illinois Jacquet – "Port of Rico" (skip: already 2 for this artist)
+[500Jazz] 289/499: Gene Ammons Ca'Purange
+[Search] Scraping YouTube (no Search API quota) for: Gene Ammons Ca'Purange...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 290/499: Gene Ammons My Way
+[Search] Scraping YouTube (no Search API quota) for: Gene Ammons My Way...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 291/499: Gene Ammons – "Jungle Strut" (skip: already 2 for this artist)
+[500Jazz] 292/499: Gene Ammons – "Hittin' the Jug" (skip: already 2 for this artist)
+[500Jazz] 293/499: Clifford Jordan – "Glass Bead Games" (skip: already 2 for this artist)
+[500Jazz] 294/499: Clifford Jordan – "Firm Roots" (skip: already 2 for this artist)
+[500Jazz] 295/499: Johnny Griffin The Little Giant
+[Search] Scraping YouTube (no Search API quota) for: Johnny Griffin The Little Giant...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 296/499: Jackie McLean Appointment in Ghana
+[Search] Scraping YouTube (no Search API quota) for: Jackie McLean Appointment in Ghana...
+[Search] Scraper-only: 29 candidates (no API calls)
+[500Jazz] 297/499: Jackie McLean Dr. Jackle
+[Search] Scraping YouTube (no Search API quota) for: Jackie McLean Dr. Jackle...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 298/499: Jackie McLean – "Demon's Dance" (skip: already 2 for this artist)
+[500Jazz] 299/499: Jackie McLean – "Melody for Melonae" (skip: already 2 for this artist)
+[500Jazz] 300/499: Jackie McLean – "Condition Blue" (skip: already 2 for this artist)
+[500Jazz] 301/499: Cannonball Adderley Sack o' Woe
+[Search] Scraping YouTube (no Search API quota) for: Cannonball Adderley Sack o' Woe...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 302/499: Cannonball Adderley Jive Samba
+[Search] Scraping YouTube (no Search API quota) for: Cannonball Adderley Jive Samba...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 303/499: Cannonball Adderley – "Del Sasser" (skip: already 2 for this artist)
+[500Jazz] 304/499: Cannonball Adderley – "The Dues" (skip: already 2 for this artist)
+[500Jazz] 305/499: Cannonball Adderley – "Country Preacher" (skip: already 2 for this artist)
+[500Jazz] 306/499: Lou Donaldson Alligator Boogaloo
+[Search] Scraping YouTube (no Search API quota) for: Lou Donaldson Alligator Boogaloo...
+[Search] Scraper-only: 29 candidates (no API calls)
+[500Jazz] 307/499: Lou Donaldson Pot Luck
+[Search] Scraping YouTube (no Search API quota) for: Lou Donaldson Pot Luck...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 308/499: Lou Donaldson – "Sunny Side Up" (skip: already 2 for this artist)
+[500Jazz] 309/499: Lou Donaldson – "Gravy Train" (skip: already 2 for this artist)
+[500Jazz] 310/499: Lou Donaldson – "Blues Walk" (skip: already 2 for this artist)
+[500Jazz] 311/499: Phil Woods Rights of Swing
+[Search] Scraping YouTube (no Search API quota) for: Phil Woods Rights of Swing...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 312/499: Phil Woods Alive and Well in Paris
+[Search] Scraping YouTube (no Search API quota) for: Phil Woods Alive and Well in Paris...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 313/499: Phil Woods – "Goodbye Mr. Evans" (skip: already 2 for this artist)
+[500Jazz] 314/499: Gary Bartz Celestial Blues
+[Search] Scraping YouTube (no Search API quota) for: Gary Bartz Celestial Blues...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 315/499: Gary Bartz Uhuru Sasa
+[Search] Scraping YouTube (no Search API quota) for: Gary Bartz Uhuru Sasa...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 316/499: Gary Bartz – "Gentle Smiles" (skip: already 2 for this artist)
+[500Jazz] 317/499: Gary Bartz – "Harlem Bush Music" (skip: already 2 for this artist)
+[500Jazz] 318/499: Charles McPherson Bebop Revisited
+[Search] Scraping YouTube (no Search API quota) for: Charles McPherson Bebop Revisited...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 319/499: Charles McPherson Siku Ya Bibi
+[Search] Scraping YouTube (no Search API quota) for: Charles McPherson Siku Ya Bibi...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 320/499: Charles McPherson – "Horizons" (skip: already 2 for this artist)
+[500Jazz] 321/499: Clifford Brown Joy Spring
+[Search] Scraping YouTube (no Search API quota) for: Clifford Brown Joy Spring...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 322/499: Clifford Brown Cherokee
+[Search] Scraping YouTube (no Search API quota) for: Clifford Brown Cherokee...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 323/499: Clifford Brown – "Gerkin for Perkin" (skip: already 2 for this artist)
+[500Jazz] 324/499: Donald Byrd Cristo Redentor
+[Search] Scraping YouTube (no Search API quota) for: Donald Byrd Cristo Redentor...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 325/499: Donald Byrd Fly Little Bird Fly
+[Search] Scraping YouTube (no Search API quota) for: Donald Byrd Fly Little Bird Fly...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 326/499: Donald Byrd – "Pentecostal Feeling" (skip: already 2 for this artist)
+[500Jazz] 327/499: Donald Byrd – "Chant" (skip: already 2 for this artist)
+[500Jazz] 328/499: Donald Byrd – "Black Byrd" (skip: already 2 for this artist)
+[500Jazz] 329/499: Chet Baker Imagination
+[Search] Scraping YouTube (no Search API quota) for: Chet Baker Imagination...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 330/499: Chet Baker Everything Happens to Me
+[Search] Scraping YouTube (no Search API quota) for: Chet Baker Everything Happens to Me...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 331/499: Art Farmer Moonrise
+[Search] Scraping YouTube (no Search API quota) for: Art Farmer Moonrise...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 332/499: Art Farmer Petite Fleur
+[Search] Scraping YouTube (no Search API quota) for: Art Farmer Petite Fleur...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 333/499: Art Farmer – "Goodbye" (skip: already 2 for this artist)
+[500Jazz] 334/499: Booker Little Booker's Waltz
+[Search] Scraping YouTube (no Search API quota) for: Booker Little Booker's Waltz...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 335/499: Booker Little Moods in Free Time
+[Search] Scraping YouTube (no Search API quota) for: Booker Little Moods in Free Time...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 336/499: Booker Little – "We Speak" (skip: already 2 for this artist)
+[500Jazz] 337/499: Booker Little – "Matilda" (skip: already 2 for this artist)
+[500Jazz] 338/499: Booker Little – "Quiet Please" (skip: already 2 for this artist)
+[500Jazz] 339/499: Thad Jones A Child Is Born
+[Search] Scraping YouTube (no Search API quota) for: Thad Jones A Child Is Born...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 340/499: Thad Jones Little Pixie
+[Search] Scraping YouTube (no Search API quota) for: Thad Jones Little Pixie...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 341/499: Grant Green – "Idle Moments" (skip: already 2 for this artist)
+[500Jazz] 342/499: Grant Green – "Jean de Fleur" (skip: already 2 for this artist)
+[500Jazz] 343/499: Grant Green – "Matador" (skip: already 2 for this artist)
+[500Jazz] 344/499: Kenny Burrell Midnight Blue
+[Search] Scraping YouTube (no Search API quota) for: Kenny Burrell Midnight Blue...
+[Search] Scraper-only: 33 candidates (no API calls)
+[500Jazz] 345/499: Kenny Burrell Chitlins con Carne
+[Search] Scraping YouTube (no Search API quota) for: Kenny Burrell Chitlins con Carne...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 346/499: Kenny Burrell – "Mule" (skip: already 2 for this artist)
+[500Jazz] 347/499: Kenny Burrell – "Moon and Sand" (skip: already 2 for this artist)
+[500Jazz] 348/499: Kenny Burrell – "For Charlie Christian and Benny Goodman" (skip: already 2 for this artist)
+[500Jazz] 349/499: Wes Montgomery Bumpin' on Sunset
+[Search] Scraping YouTube (no Search API quota) for: Wes Montgomery Bumpin' on Sunset...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 350/499: Wes Montgomery Road Song
+[Search] Scraping YouTube (no Search API quota) for: Wes Montgomery Road Song...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 351/499: Wes Montgomery – "Tequila" (skip: already 2 for this artist)
+[500Jazz] 352/499: Wes Montgomery – "A Day in the Life" (skip: already 2 for this artist)
+[500Jazz] 353/499: Wes Montgomery – "Twisted Blues" (skip: already 2 for this artist)
+[500Jazz] 354/499: George Benson Giblet Gravy
+[Search] Scraping YouTube (no Search API quota) for: George Benson Giblet Gravy...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 355/499: George Benson Benson Burner
+[Search] Scraping YouTube (no Search API quota) for: George Benson Benson Burner...
+[Search] Scraper-only: 35 candidates (no API calls)
+[500Jazz] 356/499: George Benson – "A Foggy Day" (skip: already 2 for this artist)
+[500Jazz] 357/499: Pat Martino El Hombre
+[Search] Scraping YouTube (no Search API quota) for: Pat Martino El Hombre...
+[Search] Scraper-only: 20 candidates (no API calls)
+[500Jazz] 358/499: Pat Martino Express
+[Search] Scraping YouTube (no Search API quota) for: Pat Martino Express...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 359/499: Pat Martino – "Sunny" (skip: already 2 for this artist)
+[500Jazz] 360/499: Pat Martino – "Willow" (skip: already 2 for this artist)
+[500Jazz] 361/499: Pat Martino – "Comin' and Goin'" (skip: already 2 for this artist)
+[500Jazz] 362/499: Gabor Szabo Mizrab
+[Search] Scraping YouTube (no Search API quota) for: Gabor Szabo Mizrab...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 363/499: Gabor Szabo Gypsy Queen
+[Search] Scraping YouTube (no Search API quota) for: Gabor Szabo Gypsy Queen...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 364/499: Gabor Szabo – "Spellbinder" (skip: already 2 for this artist)
+[500Jazz] 365/499: Leon Thomas The Creator Has a Master Plan
+[Search] Scraping YouTube (no Search API quota) for: Leon Thomas The Creator Has a Master Plan...
+[Search] Scraper-only: 12 candidates (no API calls)
+[500Jazz] 366/499: Leon Thomas Damn Nam
+[Search] Scraping YouTube (no Search API quota) for: Leon Thomas Damn Nam...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 367/499: Leon Thomas – "Echoes" (skip: already 2 for this artist)
+[500Jazz] 368/499: Shirley Horn Wild Is Love
+[Search] Scraping YouTube (no Search API quota) for: Shirley Horn Wild Is Love...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 369/499: Shirley Horn Slow Burn
+[Search] Scraping YouTube (no Search API quota) for: Shirley Horn Slow Burn...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 370/499: Eddie Jefferson Body and Soul
+[Search] Scraping YouTube (no Search API quota) for: Eddie Jefferson Body and Soul...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 371/499: Eddie Jefferson So What
+[Search] Scraping YouTube (no Search API quota) for: Eddie Jefferson So What...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 372/499: Eddie Jefferson – "Moody's Mood for Love" (skip: already 2 for this artist)
+[500Jazz] 373/499: Jon Hendricks Cloudburst
+[Search] Scraping YouTube (no Search API quota) for: Jon Hendricks Cloudburst...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 374/499: Jon Hendricks Moanin'
+[Search] Scraping YouTube (no Search API quota) for: Jon Hendricks Moanin'...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 375/499: Betty Carter Round Midnight
+[Search] Scraping YouTube (no Search API quota) for: Betty Carter Round Midnight...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 376/499: Betty Carter Social Call
+[Search] Scraping YouTube (no Search API quota) for: Betty Carter Social Call...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 377/499: Abbey Lincoln Retribution
+[Search] Scraping YouTube (no Search API quota) for: Abbey Lincoln Retribution...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 378/499: Abbey Lincoln Triptych
+[Search] Scraping YouTube (no Search API quota) for: Abbey Lincoln Triptych...
+[Search] Scraper-only: 29 candidates (no API calls)
+[500Jazz] 379/499: Abbey Lincoln – "Afro Blue" (skip: already 2 for this artist)
+[500Jazz] 380/499: Art Blakey Moanin'
+[Search] Scraping YouTube (no Search API quota) for: Art Blakey Moanin'...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 381/499: Art Blakey Dat Dere
+[Search] Scraping YouTube (no Search API quota) for: Art Blakey Dat Dere...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 382/499: Art Blakey – "Three Blind Mice" (skip: already 2 for this artist)
+[500Jazz] 383/499: Art Blakey – "Blues March" (skip: already 2 for this artist)
+[500Jazz] 384/499: Max Roach Driva' Man
+[Search] Scraping YouTube (no Search API quota) for: Max Roach Driva' Man...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 385/499: Max Roach Mendacity
+[Search] Scraping YouTube (no Search API quota) for: Max Roach Mendacity...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 386/499: Max Roach – "We Insist" (skip: already 2 for this artist)
+[500Jazz] 387/499: Elvin Jones Three Card Molly
+[Search] Scraping YouTube (no Search API quota) for: Elvin Jones Three Card Molly...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 388/499: Elvin Jones Agenda
+[Search] Scraping YouTube (no Search API quota) for: Elvin Jones Agenda...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 389/499: Elvin Jones – "Heavy Sounds" (skip: already 2 for this artist)
+[500Jazz] 390/499: Tony Williams Pee Wee
+[Search] Scraping YouTube (no Search API quota) for: Tony Williams Pee Wee...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 391/499: Tony Williams There Comes a Time
+[Search] Scraping YouTube (no Search API quota) for: Tony Williams There Comes a Time...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 392/499: Tony Williams – "Life Time" (skip: already 2 for this artist)
+[500Jazz] 393/499: Philly Joe Jones Blues for Dracula
+[Search] Scraping YouTube (no Search API quota) for: Philly Joe Jones Blues for Dracula...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 394/499: Roy Haynes Thank You Thank You
+[Search] Scraping YouTube (no Search API quota) for: Roy Haynes Thank You Thank You...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 395/499: Roy Haynes Hip Ensemble
+[Search] Scraping YouTube (no Search API quota) for: Roy Haynes Hip Ensemble...
+[Search] Scraper-only: 21 candidates (no API calls)
+[500Jazz] 396/499: Roy Haynes – "Cracklin'" (skip: already 2 for this artist)
+[500Jazz] 397/499: Buddy Rich Channel One Suite
+[Search] Scraping YouTube (no Search API quota) for: Buddy Rich Channel One Suite...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 398/499: Billy Higgins Zoltan
+[Search] Scraping YouTube (no Search API quota) for: Billy Higgins Zoltan...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 399/499: Jack DeJohnette Sorcery
+[Search] Scraping YouTube (no Search API quota) for: Jack DeJohnette Sorcery...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 400/499: Tina Brooks Back to the Tracks
+[Search] Scraping YouTube (no Search API quota) for: Tina Brooks Back to the Tracks...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 401/499: Tina Brooks Miss Hazel
+[Search] Scraping YouTube (no Search API quota) for: Tina Brooks Miss Hazel...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 402/499: Tina Brooks – "Up Tight's Creek" (skip: already 2 for this artist)
+[500Jazz] 403/499: Tina Brooks – "Delilah" (skip: already 2 for this artist)
+[500Jazz] 404/499: Harold Vick Steppin' Out
+[Search] Scraping YouTube (no Search API quota) for: Harold Vick Steppin' Out...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 405/499: Harold Vick Don't Look Back
+[Search] Scraping YouTube (no Search API quota) for: Harold Vick Don't Look Back...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 406/499: Harold Vick – "A Sleepin' Bee" (skip: already 2 for this artist)
+[500Jazz] 407/499: Freddie Redd Thespian
+[Search] Scraping YouTube (no Search API quota) for: Freddie Redd Thespian...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 408/499: Freddie Redd San Francisco
+[Search] Scraping YouTube (no Search API quota) for: Freddie Redd San Francisco...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 409/499: Freddie Redd – "Nurse" (skip: already 2 for this artist)
+[500Jazz] 410/499: Leo Parker Mad Lad Returns
+[Search] Scraping YouTube (no Search API quota) for: Leo Parker Mad Lad Returns...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 411/499: Leo Parker Happy Go Lucky
+[Search] Scraping YouTube (no Search API quota) for: Leo Parker Happy Go Lucky...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 412/499: Ike Quebec Brother Can You Spare a Dime
+[Search] Scraping YouTube (no Search API quota) for: Ike Quebec Brother Can You Spare a Dime...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 413/499: Ike Quebec Acquitted
+[Search] Scraping YouTube (no Search API quota) for: Ike Quebec Acquitted...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 414/499: Ike Quebec – "It Might As Well Be Spring" (skip: already 2 for this artist)
+[500Jazz] 415/499: Ike Quebec – "Count Every Star" (skip: already 2 for this artist)
+[500Jazz] 416/499: Horace Parlan Wadin'
+[Search] Scraping YouTube (no Search API quota) for: Horace Parlan Wadin'...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 417/499: Horace Parlan No Blues
+[Search] Scraping YouTube (no Search API quota) for: Horace Parlan No Blues...
+[Search] Scraper-only: 31 candidates (no API calls)
+[500Jazz] 418/499: Horace Parlan – "Happy Frame of Mind" (skip: already 2 for this artist)
+[500Jazz] 419/499: Kenny Drew Talkin' and Walkin'
+[Search] Scraping YouTube (no Search API quota) for: Kenny Drew Talkin' and Walkin'...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 420/499: Kenny Drew Funk-Er-Iff
+[Search] Scraping YouTube (no Search API quota) for: Kenny Drew Funk-Er-Iff...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 421/499: Kenny Drew – "Lion's Den" (skip: already 2 for this artist)
+[500Jazz] 422/499: Elmo Hope Bow Wow
+[Search] Scraping YouTube (no Search API quota) for: Elmo Hope Bow Wow...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 423/499: Elmo Hope Chips
+[Search] Scraping YouTube (no Search API quota) for: Elmo Hope Chips...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 424/499: Elmo Hope – "One Second Please" (skip: already 2 for this artist)
+[500Jazz] 425/499: Elmo Hope – "Tranquility" (skip: already 2 for this artist)
+[500Jazz] 426/499: Jimmy Forrest Night Train
+[Search] Scraping YouTube (no Search API quota) for: Jimmy Forrest Night Train...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 427/499: Jimmy Forrest Bolo Blues
+[Search] Scraping YouTube (no Search API quota) for: Jimmy Forrest Bolo Blues...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 428/499: Lem Winchester Lem's Beat
+[Search] Scraping YouTube (no Search API quota) for: Lem Winchester Lem's Beat...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 429/499: Lem Winchester Winchester Special
+[Search] Scraping YouTube (no Search API quota) for: Lem Winchester Winchester Special...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 430/499: Dudu Pukwana Ntsu (The Eagle)
+[Search] Scraping YouTube (no Search API quota) for: Dudu Pukwana Ntsu (The Eagle)...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 431/499: Dudu Pukwana Mra
+[Search] Scraping YouTube (no Search API quota) for: Dudu Pukwana Mra...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 432/499: Abdullah Ibrahim Sunset in Blue
+[Search] Scraping YouTube (no Search API quota) for: Abdullah Ibrahim Sunset in Blue...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 433/499: Abdullah Ibrahim Tuan Guru
+[Search] Scraping YouTube (no Search API quota) for: Abdullah Ibrahim Tuan Guru...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 434/499: Abdullah Ibrahim – "Water from an Ancient Well" (skip: already 2 for this artist)
+[500Jazz] 435/499: Hugh Masekela Ha Lese Le Di Khanna
+[Search] Scraping YouTube (no Search API quota) for: Hugh Masekela Ha Lese Le Di Khanna...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 436/499: Hugh Masekela Riot
+[Search] Scraping YouTube (no Search API quota) for: Hugh Masekela Riot...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 437/499: Fela Kuti / Jazz Collaborations Egbe Mi O
+[Search] Scraping YouTube (no Search API quota) for: Fela Kuti / Jazz Collaborations Egbe Mi O...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 438/499: Art Ensemble of Chicago Bye Bye Baby
+[Search] Scraping YouTube (no Search API quota) for: Art Ensemble of Chicago Bye Bye Baby...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 439/499: Art Ensemble of Chicago Theme de Yo Yo
+[Search] Scraping YouTube (no Search API quota) for: Art Ensemble of Chicago Theme de Yo Yo...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 440/499: Art Ensemble of Chicago – "Funky AECO" (skip: already 2 for this artist)
+[500Jazz] 441/499: Dollar Brand Blues for a Hip King
+[Search] Scraping YouTube (no Search API quota) for: Dollar Brand Blues for a Hip King...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 442/499: Don Cherry Elephantasy
+[Search] Scraping YouTube (no Search API quota) for: Don Cherry Elephantasy...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 443/499: Don Cherry Complete Communion
+[Search] Scraping YouTube (no Search API quota) for: Don Cherry Complete Communion...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 444/499: Don Cherry – "Infant Happiness" (skip: already 2 for this artist)
+[500Jazz] 445/499: Ornette Coleman Lonely Woman
+[Search] Scraping YouTube (no Search API quota) for: Ornette Coleman Lonely Woman...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 446/499: Ornette Coleman What Reason Could I Give
+[Search] Scraping YouTube (no Search API quota) for: Ornette Coleman What Reason Could I Give...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 447/499: Ornette Coleman – "Se Gun Egu" (skip: already 2 for this artist)
+[500Jazz] 448/499: Carla Bley Ad Infinitum
+[Search] Scraping YouTube (no Search API quota) for: Carla Bley Ad Infinitum...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 449/499: Carla Bley Jesus Maria
+[Search] Scraping YouTube (no Search API quota) for: Carla Bley Jesus Maria...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 450/499: Joe Zawinul Mercy Mercy Mercy
+[Search] Scraping YouTube (no Search API quota) for: Joe Zawinul Mercy Mercy Mercy...
+[Search] Scraper-only: 21 candidates (no API calls)
+[500Jazz] 451/499: Joe Zawinul In a Silent Way
+[Search] Scraping YouTube (no Search API quota) for: Joe Zawinul In a Silent Way...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 452/499: Herbie Hancock – "Wiggle Waggle" (skip: already 2 for this artist)
+[500Jazz] 453/499: Herbie Hancock – "Fat Albert Rotunda" (skip: already 2 for this artist)
+[500Jazz] 454/499: Herbie Hancock – "Tell Me a Bedtime Story" (skip: already 2 for this artist)
+[500Jazz] 455/499: Herbie Hancock – "Quasar" (skip: already 2 for this artist)
+[500Jazz] 456/499: Herbie Hancock – "Toys" (skip: already 2 for this artist)
+[500Jazz] 457/499: Miles Davis Yesternow
+[Search] Scraping YouTube (no Search API quota) for: Miles Davis Yesternow...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 458/499: Miles Davis Little Church
+[Search] Scraping YouTube (no Search API quota) for: Miles Davis Little Church...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 459/499: Miles Davis – "John McLaughlin" (skip: already 2 for this artist)
+[500Jazz] 460/499: Gary McFarland Tijuana Gift Shop
+[Search] Scraping YouTube (no Search API quota) for: Gary McFarland Tijuana Gift Shop...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 461/499: Gary McFarland Weep
+[Search] Scraping YouTube (no Search API quota) for: Gary McFarland Weep...
+[Search] Scraper-only: 21 candidates (no API calls)
+[500Jazz] 462/499: Oliver Nelson Stolen Moments
+[Search] Scraping YouTube (no Search API quota) for: Oliver Nelson Stolen Moments...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 463/499: Oliver Nelson Yearnin'
+[Search] Scraping YouTube (no Search API quota) for: Oliver Nelson Yearnin'...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 464/499: Oliver Nelson – "Hoe Down" (skip: already 2 for this artist)
+[500Jazz] 465/499: Oliver Nelson – "Straight Ahead" (skip: already 2 for this artist)
+[500Jazz] 466/499: Clark Terry Mumbles
+[Search] Scraping YouTube (no Search API quota) for: Clark Terry Mumbles...
+[Search] Scraper-only: 36 candidates (no API calls)
+[500Jazz] 467/499: Clark Terry Squeeze Me
+[Search] Scraping YouTube (no Search API quota) for: Clark Terry Squeeze Me...
+[Search] Scraper-only: 29 candidates (no API calls)
+[500Jazz] 468/499: Clark Terry – "All Too Soon" (skip: already 2 for this artist)
+[500Jazz] 469/499: Warne Marsh Background Music
+[Search] Scraping YouTube (no Search API quota) for: Warne Marsh Background Music...
+[Search] Scraper-only: 27 candidates (no API calls)
+[500Jazz] 470/499: Johnny Coles Little Johnny C
+[Search] Scraping YouTube (no Search API quota) for: Johnny Coles Little Johnny C...
+[Search] Scraper-only: 21 candidates (no API calls)
+[500Jazz] 471/499: Johnny Coles Hobo Joe
+[Search] Scraping YouTube (no Search API quota) for: Johnny Coles Hobo Joe...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 472/499: Blue Mitchell – "The Last Tango in Paris" (skip: already 2 for this artist)
+[500Jazz] 473/499: Carmell Jones Business Meetin'
+[Search] Scraping YouTube (no Search API quota) for: Carmell Jones Business Meetin'...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 474/499: Carmell Jones The Remarkable Carmell Jones
+[Search] Scraping YouTube (no Search API quota) for: Carmell Jones The Remarkable Carmell Jones...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 475/499: Carmell Jones – "Sad Eyes" (skip: already 2 for this artist)
+[500Jazz] 476/499: Charlie Rouse Epistrophy
+[Search] Scraping YouTube (no Search API quota) for: Charlie Rouse Epistrophy...
+[Search] Scraper-only: 29 candidates (no API calls)
+[500Jazz] 477/499: Charlie Rouse Ask Me Now
+[Search] Scraping YouTube (no Search API quota) for: Charlie Rouse Ask Me Now...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 478/499: Wilbur Ware The Chicago Sound
+[Search] Scraping YouTube (no Search API quota) for: Wilbur Ware The Chicago Sound...
+[Search] Scraper-only: 30 candidates (no API calls)
+[500Jazz] 479/499: Wilbur Ware Thelonica
+[Search] Scraping YouTube (no Search API quota) for: Wilbur Ware Thelonica...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 480/499: Jymie Merritt Nommo
+[Search] Scraping YouTube (no Search API quota) for: Jymie Merritt Nommo...
+[Search] Scraper-only: 24 candidates (no API calls)
+[500Jazz] 481/499: Teddy Charles The Word
+[Search] Scraping YouTube (no Search API quota) for: Teddy Charles The Word...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 482/499: Teddy Charles Nature Boy
+[Search] Scraping YouTube (no Search API quota) for: Teddy Charles Nature Boy...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 483/499: Johnny Board Blue Lights
+[Search] Scraping YouTube (no Search API quota) for: Johnny Board Blue Lights...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 484/499: Curtis Amy Katanga!
+[Search] Scraping YouTube (no Search API quota) for: Curtis Amy Katanga!...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 485/499: Curtis Amy Groovin' Blue
+[Search] Scraping YouTube (no Search API quota) for: Curtis Amy Groovin' Blue...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 486/499: Clifford Scott Honky Tonk
+[Search] Scraping YouTube (no Search API quota) for: Clifford Scott Honky Tonk...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 487/499: Bill Hardman Home
+[Search] Scraping YouTube (no Search API quota) for: Bill Hardman Home...
+[Search] Scraper-only: 22 candidates (no API calls)
+[500Jazz] 488/499: Bill Hardman Saying Something
+[Search] Scraping YouTube (no Search API quota) for: Bill Hardman Saying Something...
+[Search] Scraper-only: 18 candidates (no API calls)
+[500Jazz] 489/499: Dizzy Reece Asia Minor
+[Search] Scraping YouTube (no Search API quota) for: Dizzy Reece Asia Minor...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 490/499: Dizzy Reece The Rake
+[Search] Scraping YouTube (no Search API quota) for: Dizzy Reece The Rake...
+[Search] Scraper-only: 21 candidates (no API calls)
+[500Jazz] 491/499: Dizzy Reece – "Comin' Your Way" (skip: already 2 for this artist)
+[500Jazz] 492/499: Pepper Adams / Donald Byrd Child's Play
+[Search] Scraping YouTube (no Search API quota) for: Pepper Adams / Donald Byrd Child's Play...
+[Search] Scraper-only: 25 candidates (no API calls)
+[500Jazz] 493/499: Ray Bryant Little Susie
+[Search] Scraping YouTube (no Search API quota) for: Ray Bryant Little Susie...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 494/499: Ray Bryant Con Alma
+[Search] Scraping YouTube (no Search API quota) for: Ray Bryant Con Alma...
+[Search] Scraper-only: 23 candidates (no API calls)
+[500Jazz] 495/499: Junior Mance Smokey Blues
+[Search] Scraping YouTube (no Search API quota) for: Junior Mance Smokey Blues...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] 496/499: Junior Mance Jubilation
+[Search] Scraping YouTube (no Search API quota) for: Junior Mance Jubilation...
+[Search] Scraper-only: 26 candidates (no API calls)
+[500Jazz] 497/499: Junior Mance – "Softly as in a Morning Sunrise" (skip: already 2 for this artist)
+[500Jazz] 498/499: Junior Mance – "Big Bag" (skip: already 2 for this artist)
+[500Jazz] 499/499: Wynton Kelly Temperance
+[Search] Scraping YouTube (no Search API quota) for: Wynton Kelly Temperance...
+[Search] Scraper-only: 28 candidates (no API calls)
+[500Jazz] Done. Stored: 290 | Skipped (dup/cap): 209 | Errors: 0
+[500Jazz] Output: /Users/troycarson/Documents/Cursor Projects/thesampledig/500-rare-vintage-jazz-added.txt

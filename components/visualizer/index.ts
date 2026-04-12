@@ -1,0 +1,12 @@
+/** Beat Visualizer UI — barrel exports */
+export { AudioDropZone } from "./AudioDropZone"
+export { TransportControls } from "./TransportControls"
+export { VisualizerWorkspace } from "./VisualizerWorkspace"
+export { WaveformDisplay } from "./WaveformDisplay"
+export { ParameterPanel } from "./ParameterPanel"
+export { BindingEditor } from "./BindingEditor"
+export { VizButton, type VizButtonProps, type VizButtonVariant } from "./VizButton"
+export { VizPanel, type VizPanelProps } from "./VizPanel"
+export { VizSlider, type VizSliderProps } from "./VizSlider"
+export { VizSelect, type VizSelectProps } from "./VizSelect"
+export { VizIcon, type VizIconProps, type VizIconComponent } from "./VizIcon"

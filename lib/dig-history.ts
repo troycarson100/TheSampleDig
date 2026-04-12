@@ -12,6 +12,10 @@ export interface HistoryItem {
   viewedAt: number // unix ms
 }
 
+// ---------------------------------------------------------------------------
+// localStorage helpers (used for non-Pro / offline cache)
+// ---------------------------------------------------------------------------
+
 export function recordHistory(item: Omit<HistoryItem, "viewedAt">): void {
   if (typeof window === "undefined") return
   try {
@@ -53,6 +57,49 @@ export function removeHistoryItem(youtubeId: string): void {
     window.dispatchEvent(new CustomEvent("digHistoryUpdated"))
   } catch {}
 }
+
+// ---------------------------------------------------------------------------
+// Server-sync helpers (Pro users — persists to database)
+// ---------------------------------------------------------------------------
+
+/** Record a history item on the server (Pro only). Fire-and-forget. */
+export async function recordHistoryServer(item: Omit<HistoryItem, "viewedAt">): Promise<void> {
+  try {
+    await fetch("/api/history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item),
+    })
+  } catch {}
+}
+
+/** Fetch persisted history from server (Pro only). Returns [] on error. */
+export async function fetchHistoryServer(): Promise<HistoryItem[]> {
+  try {
+    const res = await fetch("/api/history")
+    if (!res.ok) return []
+    const data = await res.json()
+    return Array.isArray(data.items) ? data.items : []
+  } catch {
+    return []
+  }
+}
+
+/** Remove a single history item on the server (Pro only). Fire-and-forget. */
+export async function removeHistoryItemServer(youtubeId: string): Promise<void> {
+  try {
+    await fetch(`/api/history/${encodeURIComponent(youtubeId)}`, { method: "DELETE" })
+  } catch {}
+}
+
+/** Clear all history on the server (Pro only). Fire-and-forget. */
+export async function clearHistoryServer(): Promise<void> {
+  try {
+    await fetch("/api/history", { method: "DELETE" })
+  } catch {}
+}
+
+// ---------------------------------------------------------------------------
 
 export function timeAgo(ms: number): string {
   const diff = Date.now() - ms

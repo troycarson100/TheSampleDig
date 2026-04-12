@@ -1,0 +1,1295 @@
+[Backfill reanalyze] Mode: missing-only. Processing 4008 (limit: none).
+[Backfill reanalyze] Cached audio = no re-download. Delay between items: 3 s
+[1/4008] rTNhELFtuIE Cerrone - Make Up... (will download)
+[Analysis] Starting for rTNhELFtuIE
+[Analysis] Downloading audio for rTNhELFtuIE...
+[Analysis] Download failed for rTNhELFtuIE: yt-dlp failed (code 1): ERROR: [youtube] rTNhELFtuIE: Sign in to confirm your age. This video may be inappropriate for some users. Use --cookies-from-browser or --cookies for the authentication. See  https://github.com/yt-dlp/yt-dlp/wiki/FAQ#how-do-i-pass-cookies-to-yt-dlp  for how to manually pass cookies. Also see  https://github.com/yt-dlp/yt-dlp/wiki/Extractors#exporting-youtube-cookies  for tips on effectively exporting YouTube cookies
+
+[2/4008] BWBOsj6TiiA Matthew Young / Night Music... (cached)
+  → BPM – Key Bm
+[3/4008] sYm206a4vTE Troublemakers - All We Love... (will download)
+[Analysis] Starting for sYm206a4vTE
+[Analysis] Downloading audio for sYm206a4vTE...
+[Analysis] Download failed for sYm206a4vTE: yt-dlp failed (code 1): ERROR: [youtube] sYm206a4vTE: Video unavailable. This video contains content from WMG, who has blocked it in your country on copyright grounds
+
+[Analysis] Download timeout after 15 seconds for rTNhELFtuIE
+[4/4008] dVZHNt05qRw "Soon As I Get Home" (1985) Helen Stephens & The N... (will download)
+[Analysis] Starting for dVZHNt05qRw
+[Analysis] Downloading audio for dVZHNt05qRw...
+[Analysis] Download failed for dVZHNt05qRw: yt-dlp failed (code 1): ERROR: [youtube] dVZHNt05qRw: Video unavailable. This video is no longer available because the YouTube account associated with this video has been terminated.
+
+[5/4008] ZNe_44Vxghg Doris Monteiro: Agora (1976) [Full Album]... (will download)
+[Analysis] Starting for ZNe_44Vxghg
+[Analysis] Downloading audio for ZNe_44Vxghg...
+[Analysis] Download failed for ZNe_44Vxghg: yt-dlp failed (code 1): ERROR: [youtube] ZNe_44Vxghg: Video unavailable. This video is not available
+
+[6/4008] DX1N0j65H-0 Cal Tjader - Latin Kick (1958)  Full vinyl LP... (will download)
+[Analysis] Starting for DX1N0j65H-0
+[Analysis] Downloading audio for DX1N0j65H-0...
+[Analysis] Download failed for DX1N0j65H-0: yt-dlp failed (code 1): ERROR: [youtube] DX1N0j65H-0: Video unavailable. This video is not available
+
+[Analysis] Download timeout after 15 seconds for sYm206a4vTE
+[7/4008] jvoSSkp2Njc Dave Pike - Jazz for the Jet Set (1966)  Full viny... (will download)
+[Analysis] Starting for jvoSSkp2Njc
+[Analysis] Downloading audio for jvoSSkp2Njc...
+[Analysis] Download failed for jvoSSkp2Njc: yt-dlp failed (code 1): ERROR: [youtube] jvoSSkp2Njc: Video unavailable. This video is not available
+
+[Analysis] Download timeout after 15 seconds for dVZHNt05qRw
+[8/4008] D4sjq295Zo0 Vytas Brenner (Venezuela, 1975) - Jayeche (Full Al... (will download)
+[Analysis] Starting for D4sjq295Zo0
+[Analysis] Downloading audio for D4sjq295Zo0...
+[Analysis] Download timeout after 15 seconds for ZNe_44Vxghg
+[Analysis] Download failed for D4sjq295Zo0: yt-dlp failed (code 1): ERROR: [youtube] D4sjq295Zo0: Video unavailable. This video is not available
+
+[9/4008] 9ZjRMvI0Fys Marcos Valle - LP 1974 - Album Completo/Full Album... (will download)
+[Analysis] Starting for 9ZjRMvI0Fys
+[Analysis] Downloading audio for 9ZjRMvI0Fys...
+[Analysis] Download timeout after 15 seconds for DX1N0j65H-0
+[Analysis] Download failed for 9ZjRMvI0Fys: yt-dlp failed (code 1): ERROR: [youtube] 9ZjRMvI0Fys: Video unavailable. This video is not available
+
+[10/4008] sZmSZGJggE4 Link Wray-Self Titled S/T (Full Album)... (will download)
+[Analysis] Starting for sZmSZGJggE4
+[Analysis] Downloading audio for sZmSZGJggE4...
+[Analysis] Download timeout after 15 seconds for jvoSSkp2Njc
+[Analysis] Download failed for sZmSZGJggE4: yt-dlp failed (code 1): ERROR: [youtube] sZmSZGJggE4: Video unavailable. This video is not available
+
+[11/4008] r9XLtmr5yqE Vinicius de Moraes e Baden Powell (1966) (Full Alb... (will download)
+[Analysis] Starting for r9XLtmr5yqE
+[Analysis] Downloading audio for r9XLtmr5yqE...
+[Analysis] Download timeout after 15 seconds for D4sjq295Zo0
+[Analysis] Download failed for r9XLtmr5yqE: yt-dlp failed (code 1): ERROR: [youtube] r9XLtmr5yqE: Video unavailable. This video is not available
+
+[12/4008] VMGSGzl5Gfs The Mike Mainieri Quartet ‎– Insight (1968)... (will download)
+[Analysis] Starting for VMGSGzl5Gfs
+[Analysis] Downloading audio for VMGSGzl5Gfs...
+[Analysis] Download timeout after 15 seconds for 9ZjRMvI0Fys
+[Analysis] Download failed for VMGSGzl5Gfs: yt-dlp failed (code 1): ERROR: [youtube] VMGSGzl5Gfs: Video unavailable. This video is not available
+
+[13/4008] 22VFPZVN3tQ Macroblank - 痛みの永遠... (will download)
+[Analysis] Starting for 22VFPZVN3tQ
+[Analysis] Downloading audio for 22VFPZVN3tQ...
+[Analysis] Download timeout after 15 seconds for sZmSZGJggE4
+[Analysis] Download failed for 22VFPZVN3tQ: yt-dlp failed (code 1): ERROR: [youtube] 22VFPZVN3tQ: Video unavailable. This video is not available
+
+[14/4008] fAi7IeJG-6Y Herb Ellis & Remo Palmier ‎– Windflower (1978)... (will download)
+[Analysis] Starting for fAi7IeJG-6Y
+[Analysis] Downloading audio for fAi7IeJG-6Y...
+[Analysis] Download timeout after 15 seconds for r9XLtmr5yqE
+[Analysis] Download failed for fAi7IeJG-6Y: yt-dlp failed (code 1): ERROR: [youtube] fAi7IeJG-6Y: Video unavailable. This video is not available
+
+[15/4008] -PllESNkER8 "A Man Called Jesus" (1983) Andrew Wartts & Gospel... (will download)
+[Analysis] Starting for -PllESNkER8
+[Analysis] Downloading audio for -PllESNkER8...
+[Analysis] Download failed for -PllESNkER8: yt-dlp failed (code 1): ERROR: [youtube] -PllESNkER8: Video unavailable. This video is no longer available because the YouTube account associated with this video has been terminated.
+
+[Analysis] Download timeout after 15 seconds for VMGSGzl5Gfs
+[16/4008] mAxhCmhMzek Rance Allen Group "I Feel Like Going On" (1980) Co... (will download)
+[Analysis] Starting for mAxhCmhMzek
+[Analysis] Downloading audio for mAxhCmhMzek...
+[Analysis] Download failed for mAxhCmhMzek: yt-dlp failed (code 1): ERROR: [youtube] mAxhCmhMzek: Video unavailable. This video is no longer available because the YouTube account associated with this video has been terminated.
+
+[Analysis] Download timeout after 15 seconds for 22VFPZVN3tQ
+[17/4008] Kyiy2NvSdFs Foggy Night... (will download)
+[Analysis] Starting for Kyiy2NvSdFs
+[Analysis] Downloading audio for Kyiy2NvSdFs...
+[Analysis] Download failed for Kyiy2NvSdFs: yt-dlp failed (code 1): ERROR: [youtube] Kyiy2NvSdFs: Video unavailable. This video is not available
+
+[Analysis] Download timeout after 15 seconds for fAi7IeJG-6Y
+[18/4008] MB3b1nnPPUY NEW SOUL JAZZ - The Sunday Morning Compilation!... (will download)
+[Analysis] Starting for MB3b1nnPPUY
+[Analysis] Downloading audio for MB3b1nnPPUY...
+[Analysis] Download failed for MB3b1nnPPUY: yt-dlp failed (code 1): ERROR: [youtube] MB3b1nnPPUY: Video unavailable. This video is not available
+
+[Analysis] Download timeout after 15 seconds for -PllESNkER8
+[19/4008] 82JYo9-z170 Terry Callier - What Color Is Love (US, 1972) [Ful... (will download)
+[Analysis] Starting for 82JYo9-z170
+[Analysis] Downloading audio for 82JYo9-z170...
+[Analysis] Download failed for 82JYo9-z170: yt-dlp failed (code 1): ERROR: [youtube] 82JYo9-z170: Video unavailable. This video is not available
+
+[Analysis] Download timeout after 15 seconds for mAxhCmhMzek
+[20/4008] SIdJrFeilAs Teddy Pendergrass - Love T.K.O.... (will download)
+[Analysis] Starting for SIdJrFeilAs
+[Analysis] Downloading audio for SIdJrFeilAs...
+[Analysis] Download timeout after 15 seconds for Kyiy2NvSdFs
+[Backfill reanalyze] Timeout after 90s for rTNhELFtuIE
+[Analysis] Download failed for SIdJrFeilAs: yt-dlp failed (code 1): ERROR: [youtube] SIdJrFeilAs: Video unavailable. This video contains content from SME, who has blocked it in your country on copyright grounds
+
+[21/4008] pqno3vm4bgU The Travellers Slow Soul... (cached)
+[Analysis] Download timeout after 15 seconds for MB3b1nnPPUY
+[Backfill reanalyze] Timeout for BWBOsj6TiiA
+  → BPM 86 Key F#m
+[Analysis] Download timeout after 15 seconds for 82JYo9-z170
+[22/4008] GJH5RyIZsYM Lightnin Rod And Kool And The Gang - Sport... (cached)
+[Backfill reanalyze] Timeout after 90s for sYm206a4vTE
+  → BPM 117 Key Am
+[Analysis] Download timeout after 15 seconds for SIdJrFeilAs
+[23/4008] 1MuBNWhhhIs Buck Clarke - Feel [JAZZ]... (cached)
+[Backfill reanalyze] Timeout after 90s for dVZHNt05qRw
+  → BPM 112 Key Dm
+[Backfill reanalyze] Timeout after 90s for ZNe_44Vxghg
+[24/4008] NddWv2vnR3Y Wayne Shorter - Down In The Depths [JAZZ]... (cached)
+  → BPM 62 Key Gm
+[Backfill reanalyze] Timeout after 90s for DX1N0j65H-0
+[25/4008] bkLxCrEO1WE Grupa Organowa Krzysztofa Sadowskiego - Alpha Cent... (cached)
+[Backfill reanalyze] Timeout after 90s for jvoSSkp2Njc
+  → BPM 103 Key Cm
+[26/4008] jv7K_rbSW4I Dorothy Ashby - Satin Doll... (cached)
+[Backfill reanalyze] Timeout after 90s for D4sjq295Zo0
+  → BPM 83 Key Gm
+[Backfill reanalyze] Timeout after 90s for 9ZjRMvI0Fys
+[27/4008] 1_5mosg9Eqw Return To Forever - Hello Again... (cached)
+[Backfill reanalyze] Timeout after 90s for sZmSZGJggE4
+  → BPM 68 Key Cm
+[28/4008] VCEa89F1EsA Wes Montgomery - Yesterdays [JAZZ]... (cached)
+[Backfill reanalyze] Timeout after 90s for r9XLtmr5yqE
+  → BPM 72 Key Dm
+[29/4008] C1Mr188oLcI Lena Horne - And I Love Him... (cached)
+[Backfill reanalyze] Timeout after 90s for VMGSGzl5Gfs
+  → BPM 108 Key A#m
+[Backfill reanalyze] Timeout after 90s for 22VFPZVN3tQ
+[30/4008] OCpYj-8-I5Q Dionne Warwick - Walk The Way You Talk... (cached)
+[Backfill reanalyze] Timeout after 90s for fAi7IeJG-6Y
+  → BPM 117 Key Gm
+[31/4008] JXUdUMzWz7E Deodato And João Donato - Batuque... (cached)
+[Backfill reanalyze] Timeout after 90s for -PllESNkER8
+  → BPM 62 Key Bm
+[Backfill reanalyze] Timeout after 90s for mAxhCmhMzek
+[32/4008] J0s6aDMNtXk McCoy Tyner - You Stepped Out Of A Dream... (cached)
+[Backfill reanalyze] Timeout after 90s for Kyiy2NvSdFs
+  → BPM 68 Key Cm
+[33/4008] c2fLspff0eo The Command All-Stars - Blues In The Night... (cached)
+[Backfill reanalyze] Timeout after 90s for MB3b1nnPPUY
+  → BPM 112 Key Cm
+[Backfill reanalyze] Timeout after 90s for 82JYo9-z170
+[34/4008] PKXwfxFGEQY Roy Ayers And Wayne Henderson - Step Into Our Life... (cached)
+  → BPM 81 Key Em
+[Backfill reanalyze] Timeout after 90s for SIdJrFeilAs
+[35/4008] QwW0Az8qads Roy Ayers - DC City... (cached)
+[Backfill reanalyze] Timeout for pqno3vm4bgU
+  → BPM 81 Key Bm
+[36/4008] GlLVeybkM_A The Modern Jazz Quartet - The Golden Striker... (cached)
+[Backfill reanalyze] Timeout for GJH5RyIZsYM
+  → BPM 86 Key Bm
+[37/4008] fbQjjCmHBlE Buck Clayton Quintet - B C Blues... (cached)
+[Backfill reanalyze] Timeout for 1MuBNWhhhIs
+  → BPM 72 Key A#m
+[38/4008] n20OnCoOjTc Cal Tjader - Invitation [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for NddWv2vnR3Y
+  → BPM 96 Key Am
+[39/4008] MYpOoWRZOg8 Lou Donaldson - Snake Bone... (cached)
+[Backfill reanalyze] Timeout for bkLxCrEO1WE
+  → BPM 62 Key Dm
+[40/4008] Z29RBnY4Imk Flip Nunez - See You Later... (cached)
+[Backfill reanalyze] Timeout for jv7K_rbSW4I
+  → BPM 92 Key Em
+[41/4008] vAD_KnCAf3g Dumbo Gets Mad - Try Again... (cached)
+[Backfill reanalyze] Timeout for 1_5mosg9Eqw
+  → BPM 117 Key Em
+[42/4008] 9JSX8KIthbc Lou Donaldson - Donkey Walk... (cached)
+[Backfill reanalyze] Timeout for VCEa89F1EsA
+  → BPM 86 Key Em
+[43/4008] -DASLtPu-J8 Barney Kessel - You Go To My Head... (cached)
+[Backfill reanalyze] Timeout for C1Mr188oLcI
+  → BPM 112 Key A#m
+[44/4008] PQUZaTEh3TU Tomasz Stańko - A I J [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for OCpYj-8-I5Q
+  → BPM 68 Key Em
+[45/4008] dyenk-2lD-g The Cannonball Adderley Quintet - Snakin The Grass... (cached)
+[Backfill reanalyze] Timeout for JXUdUMzWz7E
+  → BPM 86 Key Em
+[46/4008] K9z5XWuk95c Roy Haynes - Wonderin... (cached)
+[Backfill reanalyze] Timeout for J0s6aDMNtXk
+  → BPM 108 Key Em
+[47/4008] _1HvGb7AIHk Monk Higgins - Little Green Apples... (cached)
+[Backfill reanalyze] Timeout for c2fLspff0eo
+  → BPM 89 Key Cm
+[48/4008] EdQhMTICvGs Roy Ayers Ubiquity - Aint Got Time... (cached)
+[Backfill reanalyze] Timeout for PKXwfxFGEQY
+  → BPM 92 Key Fm
+[49/4008] xj7kT0AY9oM Sonny Fortune - Revelation [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for QwW0Az8qads
+  → BPM 65 Key Dm
+[50/4008] nn6E5V9KGPw The Headhunters - Rima... (cached)
+[Backfill reanalyze] Timeout for GlLVeybkM_A
+  → BPM 62 Key C#m
+[51/4008] k5VERPm6yxo Tezeta Band - Tèy Geryèlèshem... (cached)
+[Backfill reanalyze] Timeout for fbQjjCmHBlE
+  → BPM 112 Key D#m
+[52/4008] liIyJDc5PYQ Art Blakey And The Jazz Messengers - Ping Pong... (cached)
+[Backfill reanalyze] Timeout for n20OnCoOjTc
+  → BPM 103 Key Bm
+[53/4008] I9lXEAst940 Thelonious Monk And John Coltrane - Functional... (cached)
+[Backfill reanalyze] Timeout for MYpOoWRZOg8
+  → BPM 108 Key Dm
+[54/4008] c5s7luKYOQg Bun Hunga And His Combo - Bangala... (cached)
+[Backfill reanalyze] Timeout for Z29RBnY4Imk
+  → BPM 76 Key Gm
+[55/4008] eoV1W3MrDrI Larry Young - Spaceball... (cached)
+[Backfill reanalyze] Timeout for vAD_KnCAf3g
+  → BPM 92 Key Cm
+[56/4008] q1rjUJTQ8p0 Herbie Mann And João Gilberto - Consolação... (cached)
+[Backfill reanalyze] Timeout for 9JSX8KIthbc
+  → BPM 117 Key Dm
+[57/4008] aiqK6FQrWpY Stanley Black And His Orchestra - Siboney... (cached)
+[Backfill reanalyze] Timeout for -DASLtPu-J8
+  → BPM 62 Key Gm
+[58/4008] NO_HW7AtsMc Cal Tjader - Green Peppers... (cached)
+[Backfill reanalyze] Timeout for PQUZaTEh3TU
+  → BPM 92 Key Gm
+[59/4008] Ze4gFJ5L-JM Jimmy Ponder - Funky Butt... (cached)
+[Backfill reanalyze] Timeout for dyenk-2lD-g
+  → BPM 76 Key G#m
+[60/4008] LyNNO9lhHT8 Ahmad Jamal - Spring Is Here [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for K9z5XWuk95c
+  → BPM 78 Key Cm
+[61/4008] tGSXp3pfT10 McCoy Tyner - Salvadore De Samba... (cached)
+[Backfill reanalyze] Timeout for _1HvGb7AIHk
+  → BPM 72 Key Am
+[62/4008] yhOPlTU6WB0 Francesco De Masi - Qualsiasi Cosa... (cached)
+[Backfill reanalyze] Timeout for EdQhMTICvGs
+  → BPM 68 Key Cm
+[63/4008] BFhBm7n8zgE Dizzy Gillespie - Matrix... (cached)
+[Backfill reanalyze] Timeout for xj7kT0AY9oM
+  → BPM 103 Key Cm
+[64/4008] 8iOoaf2UFbY Freddie McCoy - Gimme Some... (cached)
+[Backfill reanalyze] Timeout for nn6E5V9KGPw
+  → BPM 103 Key C
+[65/4008] 57U5kSWuJhE Phil Woods - Part III... (cached)
+[Backfill reanalyze] Timeout for k5VERPm6yxo
+  → BPM 92 Key Cm
+[66/4008] ixukCOW5psE Jeremy Steig - In The Beginning... (cached)
+[Backfill reanalyze] Timeout for liIyJDc5PYQ
+  → BPM 86 Key Gm
+[67/4008] -3HMVuAUm38 John Klemmer - Love Song To Katherine [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for I9lXEAst940
+  → BPM 117 Key Am
+[68/4008] wyA-eCchQj4 Cal Tjader - Tema Taimoso... (cached)
+[Backfill reanalyze] Timeout for c5s7luKYOQg
+  → BPM 92 Key D#m
+[69/4008] QdXh5BuNFt4 Catalyst - Got To Be There [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for eoV1W3MrDrI
+  → BPM 103 Key Cm
+[70/4008] g315LiqI_yk Bob James - Treasure Island... (cached)
+[Backfill reanalyze] Timeout for q1rjUJTQ8p0
+  → BPM 86 Key Bm
+[71/4008] YqjemmkWF3s Don Patterson And Booker Ervin - Sbout Time [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for aiqK6FQrWpY
+  → BPM 62 Key Dm
+[72/4008] 0GbS31uOaBs Alex Puddu - XXX Action... (cached)
+[Backfill reanalyze] Timeout for NO_HW7AtsMc
+  → BPM 72 Key Am
+[73/4008] RjIbk_70aHo Ben Cooper And His Orchestra - Endless... (cached)
+[Backfill reanalyze] Timeout for Ze4gFJ5L-JM
+  → BPM 96 Key Gm
+[74/4008] CU0jbdlUw_k Nowy - Blue Silver... (cached)
+[Backfill reanalyze] Timeout for LyNNO9lhHT8
+  → BPM 96 Key D#m
+[75/4008] JftUSLpv094 Zbigniew Namysłowski Quintet - Zabłąkana Owieczka... (cached)
+[Backfill reanalyze] Timeout for tGSXp3pfT10
+  → BPM 112 Key D#m
+[76/4008] RhvDkMkfpao Dollar Brand - Mamma [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for yhOPlTU6WB0
+  → BPM 81 Key Fm
+[77/4008] RVN8dWOzbBI War - H2 Overture... (cached)
+[Backfill reanalyze] Timeout for BFhBm7n8zgE
+  → BPM 68 Key F#m
+[78/4008] EUqtBmD_qjQ Derek Warne - Comes The Cajun... (cached)
+[Backfill reanalyze] Timeout for 8iOoaf2UFbY
+  → BPM 112 Key Gm
+[79/4008] vmQBH0-s38I Pharoah Sanders - Hum-Allah-Hum-Allah-Hum-Allah... (cached)
+[Backfill reanalyze] Timeout for 57U5kSWuJhE
+  → BPM 108 Key C#m
+[80/4008] Nh1xOQ24hxc Bill Evans - Funkallero... (cached)
+[Backfill reanalyze] Timeout for ixukCOW5psE
+  → BPM 72 Key F#m
+[81/4008] KBjKdBUY9cs Bobby Hutcherson - Procession... (cached)
+[Backfill reanalyze] Timeout for -3HMVuAUm38
+  → BPM 108 Key C
+[82/4008] yo3taxSV6Zg Ahmad Jamal - Children Of The Night [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for wyA-eCchQj4
+  → BPM 81 Key Cm
+[83/4008] DFi64OWi268 Ornette Coleman - Virgin Beauty [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for QdXh5BuNFt4
+  → BPM 81 Key C#m
+[84/4008] oXZO8pnQxJA Brian Auger And The Trinity - A Day In The Life... (cached)
+[Backfill reanalyze] Timeout for g315LiqI_yk
+  → BPM 103 Key Cm
+[85/4008] SqiczcgVbPw Joe Henderson Sextet - Without A Song... (cached)
+[Backfill reanalyze] Timeout for YqjemmkWF3s
+  → BPM 108 Key Gm
+[86/4008] tO6r7Oowd7U Azymuth - O Bofe... (cached)
+[Backfill reanalyze] Timeout for 0GbS31uOaBs
+  → BPM 112 Key Cm
+[87/4008] _4hqHwbdaUQ Roland Kirk - Silverlization... (cached)
+[Backfill reanalyze] Timeout for RjIbk_70aHo
+  → BPM 72 Key Cm
+[88/4008] LhF4hHLlHAI Johnny Lytle - Jungle Child [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for CU0jbdlUw_k
+  → BPM 117 Key A#m
+[89/4008] cIUL6hfAMxQ The Cannonball Adderley Quintet - Ndolima... (cached)
+[Backfill reanalyze] Timeout for JftUSLpv094
+  → BPM 108 Key Bm
+[90/4008] ZOgiu-cAaNg Monk Higgins And Alex Brown - B B D... (cached)
+[Backfill reanalyze] Timeout for RhvDkMkfpao
+  → BPM 72 Key Cm
+[91/4008] G79bEyXY04M Yves Montand - Quand Tu Dors Près De Moi... (cached)
+[Backfill reanalyze] Timeout for RVN8dWOzbBI
+  → BPM 74 Key Cm
+[92/4008] woFE9cH6dfA Charlie Parker - The Gypsy... (cached)
+[Backfill reanalyze] Timeout for EUqtBmD_qjQ
+  → BPM 62 Key Cm
+[93/4008] fNnnwP-zBKo The Mysterious Flying Orchestra - Nice N Spicy... (cached)
+[Backfill reanalyze] Timeout for vmQBH0-s38I
+  → BPM 92 Key Gm
+[94/4008] wuRplElOZpg Charles Mingus - Things Aint What They Used To Be ... (cached)
+[Backfill reanalyze] Timeout for Nh1xOQ24hxc
+  → BPM 76 Key Cm
+[95/4008] -7jIgziVvdQ Monk Montgomery - Reality... (cached)
+[Backfill reanalyze] Timeout for KBjKdBUY9cs
+  → BPM 117 Key Am
+[96/4008] eqgg6ONyOAE Fausto Rey - Yo Te Propongo... (cached)
+[Backfill reanalyze] Timeout for yo3taxSV6Zg
+  → BPM 76 Key Am
+[97/4008] QZkIsRIWDGI Sly And The Family Stone - Wishful Thinkin... (cached)
+[Backfill reanalyze] Timeout for DFi64OWi268
+  → BPM 74 Key Fm
+[98/4008] 6G4Xn0Cyt8Y Horace Silver Quintet - Sighin And Cryin... (cached)
+[Backfill reanalyze] Timeout for oXZO8pnQxJA
+  → BPM 96 Key Cm
+[99/4008] Rgrb69POqnA Sun Ra - Thats How I Feel... (cached)
+[Backfill reanalyze] Timeout for SqiczcgVbPw
+  → BPM 65 Key Dm
+[100/4008] maaceAlZyCs Bud Powell - Duid Deed [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for tO6r7Oowd7U
+  → BPM 81 Key A#m
+[101/4008] R5a6Lbv_4qs Billy Cobham - Le Lis [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for _4hqHwbdaUQ
+  → BPM 99 Key A#m
+[102/4008] bf37TZXxAEM The Art Blakey Percussion Ensemble - Oscalypso... (cached)
+[Backfill reanalyze] Timeout for LhF4hHLlHAI
+  → BPM 108 Key Dm
+[103/4008] OxY3QCrCZVw Milt Jackson And The Monty Alexander Trio - 3000 M... (cached)
+[Backfill reanalyze] Timeout for cIUL6hfAMxQ
+  → BPM 92 Key Am
+[104/4008] 50TVOYpqo7w Pierre Cavalli - Lembrança Do Santos... (cached)
+[Backfill reanalyze] Timeout for ZOgiu-cAaNg
+  → BPM 86 Key Am
+[105/4008] LPlA76PcG1o Richard Evans - Feel The Fire [SOUL-JAZZ]... (cached)
+[Backfill reanalyze] Timeout for G79bEyXY04M
+  → BPM 62 Key Cm
+[106/4008] SnDqXS2zVyU John Coltrane And Johnny Hartman - Autumn Serenade... (cached)
+[Backfill reanalyze] Timeout for woFE9cH6dfA
+  → BPM 112 Key D#m
+[107/4008] z7WOJMAwwLc Jimmy McGriff - Dig On It... (cached)
+[Backfill reanalyze] Timeout for fNnnwP-zBKo
+  → BPM 92 Key Fm
+[108/4008] on-7sRResPA Bill Plummer And The Cosmic Brotherhood - The Look... (cached)
+[Backfill reanalyze] Timeout for wuRplElOZpg
+  → BPM 112 Key Fm
+[109/4008] gz098FSHK0c Eddie Harris - Smoke Signals... (cached)
+[Backfill reanalyze] Timeout for -7jIgziVvdQ
+  → BPM 65 Key Dm
+[110/4008] f8AQlkU1LyE Roy Haynes - Senyah... (cached)
+[Backfill reanalyze] Timeout for eqgg6ONyOAE
+  → BPM 68 Key Gm
+[111/4008] Bg5v5lSKiKw John Kaizan Neptune - Blue Wind... (cached)
+[Backfill reanalyze] Timeout for QZkIsRIWDGI
+  → BPM 76 Key Am
+[112/4008] FXQqeLHGQRA James Tatum - Introduction   Lord Have Mercy [JAZZ... (cached)
+[Backfill reanalyze] Timeout for 6G4Xn0Cyt8Y
+  → BPM 81 Key Am
+[113/4008] S-8ImQMr0BM Roy Ayers And Wayne Henderson - For Real... (cached)
+[Backfill reanalyze] Timeout for Rgrb69POqnA
+  → BPM 96 Key Em
+[114/4008] uYJsjZU9kkE Les McCann And Eddie Harris - Kathleens Theme [JAZ... (cached)
+[Backfill reanalyze] Timeout for maaceAlZyCs
+  → BPM 68 Key Bm
+[115/4008] vRpGZLZI7ho Donald Byrd And Gigi Gryce - I Remember Clifford... (cached)
+[Backfill reanalyze] Timeout for R5a6Lbv_4qs
+  → BPM 62 Key G#m
+[116/4008] FA0q31TWWSk Weldon Irvine - Heres Where I Came In... (cached)
+[Backfill reanalyze] Timeout for bf37TZXxAEM
+  → BPM 65 Key Cm
+[117/4008] 8cUSpT_6LB0 The Tymes - Hypnotized... (cached)
+[Backfill reanalyze] Timeout for OxY3QCrCZVw
+  → BPM 92 Key A#m
+[118/4008] SHEmhknfeL4 Billy Cobham - To The Women In My Life... (cached)
+[Backfill reanalyze] Timeout for 50TVOYpqo7w
+  → BPM 99 Key A#m
+[119/4008] FSMMpddmDqo Carmen McRae - Feelin Good... (cached)
+[Backfill reanalyze] Timeout for LPlA76PcG1o
+  → BPM 74 Key D#m
+[120/4008] q14bShwg_6c Old Timers - Ondraszek... (cached)
+[Backfill reanalyze] Timeout for SnDqXS2zVyU
+  → BPM 86 Key Cm
+[121/4008] T8xFrQuTOa8 Phil Upchurch - Cyrenna... (cached)
+[Backfill reanalyze] Timeout for z7WOJMAwwLc
+  → BPM 68 Key Em
+[Backfill reanalyze] Timeout for on-7sRResPA
+[122/4008] iP2ke7wkS4M The Crusaders - Elegant Evening... (cached)
+  → BPM 86 Key Gm
+[Backfill reanalyze] Timeout for gz098FSHK0c
+[123/4008] eZYu2qvp6i4 Full Moon - Selfish People... (cached)
+  → BPM 108 Key Dm
+[Backfill reanalyze] Timeout for f8AQlkU1LyE
+[124/4008] aAZnhRLOuvw Pharoah Sanders - Ocean Song [JAZZ]... (cached)
+  → BPM 112 Key G#m
+[Backfill reanalyze] Timeout for Bg5v5lSKiKw
+[125/4008] m3NezNdc2wM Buddy Rich - Tales Of A Rhoda Rat... (cached)
+  → BPM 92 Key F#m
+[Backfill reanalyze] Timeout for FXQqeLHGQRA
+[126/4008] 0NbxD0m1FnM Zbigniew Namysłowski Quintet - Smutny Jasio [JAZZ]... (cached)
+  → BPM 65 Key Bm
+[Backfill reanalyze] Timeout for S-8ImQMr0BM
+[127/4008] QfTHraOWcjQ Astrud Gilberto - Dreamer... (cached)
+  → BPM 92 Key Dm
+[Backfill reanalyze] Timeout for uYJsjZU9kkE
+[128/4008] o8OAP07wZ7c Lester Young - Deed I Do... (cached)
+  → BPM 86 Key Cm
+[Backfill reanalyze] Timeout for vRpGZLZI7ho
+[129/4008] SxwrtPlPqVA Hubert Laws - Cymbaline... (cached)
+  → BPM 96 Key Em
+[Backfill reanalyze] Timeout for FA0q31TWWSk
+[130/4008] ljKr0X-hNaY Kenny Barron - Quiet Times [JAZZ]... (cached)
+  → BPM 72 Key D#
+[Backfill reanalyze] Timeout for 8cUSpT_6LB0
+[131/4008] rfQQR-d-g70 Nucleus - Mysteries... (cached)
+  → BPM 62 Key Cm
+[132/4008] gG4A_OdXofE Cal Tjader - Sake And Greens [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for SHEmhknfeL4
+  → BPM 108 Key G#m
+[133/4008] 9xkEJDnC1gc Monty Alexander - Love Has A Way [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for FSMMpddmDqo
+  → BPM 99 Key Em
+[134/4008] m7LDxhOQrgY Cal Tjader And Carmen McRae - Speak Low [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for q14bShwg_6c
+  → BPM 76 Key Cm
+[135/4008] noaP2EMUIkU George Benson - Golden Slumbers  You Never Give Me... (cached)
+[Backfill reanalyze] Timeout for T8xFrQuTOa8
+  → BPM 68 Key Bm
+[136/4008] 5NRgxzXrKRM Michel Sardaby - Love Love And Dream [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for iP2ke7wkS4M
+  → BPM 103 Key D#m
+[137/4008] 4Zqiq83nyxQ Eric Gale - Morning Glory [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for eZYu2qvp6i4
+  → BPM 76 Key Em
+[138/4008] aaGHVvCEQ1c Cal Tjader - Morning Mist [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for aAZnhRLOuvw
+  → BPM 89 Key Cm
+[139/4008] ma4wrTx5RN0 Les McCann - Soaring Part 1 [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for m3NezNdc2wM
+  → BPM 112 Key D#
+[140/4008] Mwc_Q_GcTiY Joe Farrell - Follow Your Heart [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for 0NbxD0m1FnM
+  → BPM 89 Key Em
+[141/4008] BEASAoqM1wM Gretchen Parlato - Blue In Green [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for QfTHraOWcjQ
+  → BPM 108 Key C#m
+[142/4008] 4ghjGW1Tx6A Emilio Santiago - Coragem Pra Se Separar... (cached)
+[Backfill reanalyze] Timeout for o8OAP07wZ7c
+  → BPM 86 Key C#m
+[143/4008] TJ0GoSaHN04 Funk Inc - Lets Make Peace And Stop The War... (cached)
+[Backfill reanalyze] Timeout for SxwrtPlPqVA
+  → BPM 99 Key Bm
+[144/4008] gnFEiZNDl0g Don Costa - Adios... (cached)
+[Backfill reanalyze] Timeout for ljKr0X-hNaY
+  → BPM 103 Key C#m
+[145/4008] 8kAzzG6ZDLs Keith Jarrett - Margot [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for rfQQR-d-g70
+  → BPM 81 Key F#m
+[Backfill reanalyze] Timeout for gG4A_OdXofE
+[146/4008] QnZMfvxh4oc Ramsey Lewis - Mother Natures Son... (cached)
+  → BPM 108 Key A#m
+[Backfill reanalyze] Timeout for 9xkEJDnC1gc
+[147/4008] PoI-gvW3_dg The Paul Butterfield Blues Band - Last Hopes Gone... (cached)
+  → BPM 86 Key Dm
+[148/4008] AKnkiEPJ0eI Ramsey Lewis - Gemini Rising [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for m7LDxhOQrgY
+  → BPM 68 Key Bm
+[Backfill reanalyze] Timeout for noaP2EMUIkU
+[149/4008] TIl5cHhwg70 The Singers Unlimited - The More I See You... (cached)
+  → BPM 65 Key Cm
+[Backfill reanalyze] Timeout for 5NRgxzXrKRM
+[150/4008] 7KAM-jHmwI0 Dorothy Ashby - Dancing On The Ceiling [JAZZ]... (cached)
+  → BPM 99 Key Gm
+[Backfill reanalyze] Timeout for 4Zqiq83nyxQ
+[151/4008] y26c0gPhhso Paul Mitchell Trio - Dont Let Me Be Lonely Tonight... (cached)
+  → BPM 81 Key Cm
+[Backfill reanalyze] Timeout for aaGHVvCEQ1c
+[152/4008] i9nK0gRJYKQ Spirit - Caught [JAZZ]... (cached)
+  → BPM 68 Key Gm
+[Backfill reanalyze] Timeout for ma4wrTx5RN0
+[153/4008] 4RcjqWT6LDM The Jonah Jones Quartet - Lisbon Antigua... (cached)
+  → BPM 108 Key Gm
+[Backfill reanalyze] Timeout for Mwc_Q_GcTiY
+[154/4008] QZ-VLPvbL4M The London Jazz Four - Things We Said Today... (cached)
+  → BPM 108 Key Dm
+[155/4008] Y2L2LC77srs Placebo - Aria... (cached)
+[Backfill reanalyze] Timeout for BEASAoqM1wM
+  → BPM 103 Key Gm
+[156/4008] k9pmdCCMU6I Jimmy Smith - Burning Spear... (cached)
+[Backfill reanalyze] Timeout for 4ghjGW1Tx6A
+  → BPM 112 Key Am
+[157/4008] 2xJn3z_NiJs Bennie Maupin - Water Torture... (cached)
+[Backfill reanalyze] Timeout for TJ0GoSaHN04
+  → BPM 74 Key Cm
+[158/4008] LO8bhRTiMjQ Impacto Cinco - Carmem Carmem... (cached)
+[Backfill reanalyze] Timeout for gnFEiZNDl0g
+  → BPM 99 Key Em
+[159/4008] UN86wKzgXNc Yusef Lateef - Youve Changed [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for 8kAzzG6ZDLs
+  → BPM 70 Key Gm
+[160/4008] oHXcAHHW2_I Michal Urbaniak Group - Sound Pieces... (cached)
+[Backfill reanalyze] Timeout for QnZMfvxh4oc
+  → BPM 96 Key Am
+[161/4008] UH7F8GKvJzo The Roy Haynes Trio - Con Alma [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for PoI-gvW3_dg
+  → BPM 112 Key G#m
+[162/4008] Mh8tljViMgA Les McCann - Beaux J Poo Boo... (cached)
+[Backfill reanalyze] Timeout for AKnkiEPJ0eI
+  → BPM 65 Key Cm
+[163/4008] vi5WWzI4YkE Acker Bilk, Sandy Brown, Terry Lightfoot And Archi... (cached)
+[Backfill reanalyze] Timeout for TIl5cHhwg70
+  → BPM 62 Key Gm
+[164/4008] ZuuGvGfpDIg Donna Washington - Guys Like You... (cached)
+[Backfill reanalyze] Timeout for 7KAM-jHmwI0
+  → BPM 99 Key Gm
+[165/4008] 5Vq58GlIDUQ Enoch Light And The Light Brigade - The Look Of Lo... (cached)
+[Backfill reanalyze] Timeout for y26c0gPhhso
+  → BPM 108 Key F#m
+[166/4008] YH-1ti2iTjM Erroll Garner - Pastel... (cached)
+[Backfill reanalyze] Timeout for i9nK0gRJYKQ
+  → BPM 74 Key C#m
+[167/4008] RwCTSLlcZJc Brazilian Octopus - Pavane... (cached)
+[Backfill reanalyze] Timeout for 4RcjqWT6LDM
+  → BPM 112 Key Gm
+[168/4008] XJjmsCt7oGM David Earle Johnson - Ten Little Times... (cached)
+[Backfill reanalyze] Timeout for QZ-VLPvbL4M
+  → BPM 108 Key A#m
+[169/4008] X-KeyjUFdCE Jeff Tyzik - Notte A Roma... (cached)
+[Backfill reanalyze] Timeout for Y2L2LC77srs
+  → BPM 108 Key Cm
+[170/4008] gJ7amo0ujFI Bob James - Jamaica Farewell [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for k9pmdCCMU6I
+  → BPM 117 Key G
+[171/4008] Z-pw-QjFhu4 Hampton Hawes - Go Down Moses... (cached)
+[Backfill reanalyze] Timeout for 2xJn3z_NiJs
+  → BPM 117 Key Am
+[172/4008] f3US27yuVJI Cannonball Adderley Quartet - Poor Butterfly [JAZZ... (cached)
+[Backfill reanalyze] Timeout for LO8bhRTiMjQ
+  → BPM 72 Key D#m
+[173/4008] RM5rtkRpGoM Bob James - I Want To Thank You [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for UN86wKzgXNc
+  → BPM 76 Key Am
+[174/4008] Q2MQbscuPiM Milt Jackson - Olinga... (cached)
+[Backfill reanalyze] Timeout for oHXcAHHW2_I
+  → BPM 76 Key A#m
+[175/4008] ziOkkgnimaI Roy Ayers - A Rose For Cindy [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for UH7F8GKvJzo
+  → BPM 65 Key A#m
+[176/4008] w5WwgwSFt34 Funk Inc - Im Going To Love You... (cached)
+[Backfill reanalyze] Timeout for Mh8tljViMgA
+  → BPM 86 Key Cm
+[177/4008] UYJyHKpGDHg The Cannonball Adderley Quintet - Oh Babe... (cached)
+  → BPM 62 Key Em
+[Backfill reanalyze] Timeout for vi5WWzI4YkE
+[178/4008] 1tg1UQf2LJQ Buddy Rich - Time Being... (cached)
+  → BPM 92 Key G#m
+[Backfill reanalyze] Timeout for ZuuGvGfpDIg
+[179/4008] 63W13DeTlM0 Bobby Broom - Shes My Reason... (cached)
+  → BPM 96 Key Am
+[Backfill reanalyze] Timeout for 5Vq58GlIDUQ
+[180/4008] 97v_bwMgn2A Eddie Harris - Walk Soft [JAZZ]... (cached)
+  → BPM 68 Key Am
+[Backfill reanalyze] Timeout for YH-1ti2iTjM
+[181/4008] VM7tyP3zO9g Push - Out On Sunday... (cached)
+  → BPM 70 Key Am
+[Backfill reanalyze] Timeout for RwCTSLlcZJc
+[182/4008] _JDEfKVkA_k John McLaughlin - Its Funny... (cached)
+  → BPM 117 Key Bm
+[Backfill reanalyze] Timeout for XJjmsCt7oGM
+[183/4008] uqXlGMhKBXI Bob James - Groove For Julie... (cached)
+  → BPM 86 Key Am
+[Backfill reanalyze] Timeout for X-KeyjUFdCE
+[184/4008] Mm91XdR3v4k The Jazz Crusaders - The Young Rabbits... (cached)
+  → BPM 108 Key Bm
+[185/4008] 762PjVrJ0Z0 Shelly Manne - Tomorrow... (cached)
+[Backfill reanalyze] Timeout for gJ7amo0ujFI
+  → BPM 68 Key Bm
+[186/4008] 8J2HpDgvh-M Cal Tjader - Corine [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for Z-pw-QjFhu4
+  → BPM 81 Key Bm
+[187/4008] saawXA74Wo4 Duke Ellington And Johnny Hodges - Going Up [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for f3US27yuVJI
+  → BPM 99 Key Cm
+[188/4008] 8Yf_4rdPCLg Stan Getz - In Your Own Sweet Way [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for RM5rtkRpGoM
+  → BPM 68 Key Cm
+[189/4008] 4D3o4cMD4LA Bill Evans - Maxine [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for Q2MQbscuPiM
+  → BPM 76 Key Dm
+[190/4008] WkYtpfqogKQ Bud Shank Clare Fischer And Joe Pass - If I Should... (cached)
+[Backfill reanalyze] Timeout for ziOkkgnimaI
+  → BPM 92 Key Am
+[191/4008] 1sTrhjTz8hw Hank Jones - I Didnt Know What Time It Was... (cached)
+[Backfill reanalyze] Timeout for w5WwgwSFt34
+  → BPM 99 Key Dm
+[192/4008] 0sXdgXTJLt8 Kenny G And George Benson - Summertime [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for UYJyHKpGDHg
+  → BPM 81 Key Cm
+[193/4008] Aje_nt_W1SM Wilbert Longmire - Good Morning... (cached)
+[Backfill reanalyze] Timeout for 1tg1UQf2LJQ
+  → BPM 72 Key Dm
+[194/4008] yWJtCjspOds George Benson, Hubert Laws And Ronnie Foster - Gon... (cached)
+[Backfill reanalyze] Timeout for 63W13DeTlM0
+  → BPM 92 Key Am
+[195/4008] hrp_8MMzA0E Джазовый Ансамбль Игоря Бриля - И Настанет День... (cached)
+[Backfill reanalyze] Timeout for 97v_bwMgn2A
+  → BPM 81 Key Cm
+[196/4008] MVTjfElbiu8 Nana Caymmi - Saudade... (cached)
+[Backfill reanalyze] Timeout for VM7tyP3zO9g
+  → BPM 68 Key Am
+[197/4008] lySKu5_z888 William DeVaughn - Somethings Being Done... (cached)
+[Backfill reanalyze] Timeout for _JDEfKVkA_k
+  → BPM 103 Key D#m
+[198/4008] U26lTdB_-2o Grupo Medusa - Ferrovias... (cached)
+[Backfill reanalyze] Timeout for uqXlGMhKBXI
+  → BPM 65 Key Bm
+[199/4008] Sy1x97Calq0 Archie Shepp - Naima [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for Mm91XdR3v4k
+  → BPM 103 Key Gm
+[200/4008] F8cqJIAQLso Eddie Harris - Recess [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for 762PjVrJ0Z0
+  → BPM 65 Key Gm
+[201/4008] 0Cx9hQ3TtyU The Ramsey Lewis Trio - Cecile [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for 8J2HpDgvh-M
+  → BPM 86 Key A#m
+[202/4008] O8EptU9h9hM David Matthews - Silent Running [JAZZ]... (cached)
+[Backfill reanalyze] Timeout for saawXA74Wo4
+  → BPM 81 Key Cm
+[203/4008] ri3LxdU6zKA Mandrill - Symphonic Revolution... (cached)
+[Backfill reanalyze] Timeout for 8Yf_4rdPCLg
+  → BPM 108 Key Dm
+[204/4008] z8dFxGIyGGc Michael Franks - Heart Like An Open Book... (cached)
+[Backfill reanalyze] Timeout for 4D3o4cMD4LA
+  → BPM 103 Key C#m
+[Backfill reanalyze] Timeout for WkYtpfqogKQ
+[205/4008] 8jYLcDN6lyM Cal Tjader - Joao [JAZZ]... (cached)
+  → BPM 62 Key Cm
+[Backfill reanalyze] Timeout for 1sTrhjTz8hw
+[206/4008] tgkFl-qRPak Jimmy Smith And Wes Montgomery - Call Me... (cached)
+  → BPM 76 Key Cm
+[Backfill reanalyze] Timeout for 0sXdgXTJLt8
+[207/4008] A5ZZV-gMELQ Dancing Fantasy - Big Light... (cached)
+  → BPM 92 Key Em
+[Backfill reanalyze] Timeout for Aje_nt_W1SM
+[208/4008] gYK1YFswGfU John Klemmer - Summer Song [JAZZ]... (cached)
+  → BPM 65 Key G#m
+[Backfill reanalyze] Timeout for yWJtCjspOds
+[209/4008] iE6EVirIUI4 Clifford Brown - Yesterdays... (cached)
+  → BPM 86 Key Dm
+[Backfill reanalyze] Timeout for hrp_8MMzA0E
+[210/4008] myMDepP3n5c The Milt Jackson Quartet - Autumn Breeze [JAZZ]... (cached)
+  → BPM 78 Key Gm
+[Backfill reanalyze] Timeout for MVTjfElbiu8
+[211/4008] obvCXoS9DDg Ahmad Jamal - Dialogue [JAZZ]... (cached)
+  → BPM 92 Key Em
+[Backfill reanalyze] Timeout for lySKu5_z888
+[212/4008] 3OkwLqLztZw Zach Gill - Fine Wine... (cached)
+  → BPM 68 Key Am
+[Backfill reanalyze] Timeout for U26lTdB_-2o
+[213/4008] I9LeahBtrBE Donald Byrd And Booker Little - Wee Tina [JAZZ]... (cached)
+  → BPM 99 Key Dm
+[Backfill reanalyze] Timeout for Sy1x97Calq0
+[214/4008] G7yK_QjkRl0 Bobby Hutcherson - Ummh... (cached)
+  → BPM 117 Key A#m
+[Backfill reanalyze] Timeout for F8cqJIAQLso
+[215/4008] llO0pTSretY Donald Byrd - Beast Of Burden [JAZZ]... (cached)
+  → BPM 78 Key Gm
+[Backfill reanalyze] Timeout for 0Cx9hQ3TtyU
+[216/4008] gaBf18LEJwY Calvin Keys - Aunt Lovey... (cached)
+  → BPM 81 Key Dm
+[Backfill reanalyze] Timeout for O8EptU9h9hM
+[217/4008] WIlO4B4oPkk The John Payne Band - Electric Lush [JAZZ]... (cached)
+  → BPM 117 Key Am
+[Backfill reanalyze] Timeout for ri3LxdU6zKA
+[218/4008] ByQ2-_Z1PrA Jazz Orkestar Radio-Televizije Beograd - Prolećna ... (cached)
+  → BPM 72 Key Am
+[Backfill reanalyze] Timeout for z8dFxGIyGGc
+[219/4008] Byd5qKLPtPY Placebo - SUS... (cached)
+  → BPM 83 Key Em
+[Backfill reanalyze] Timeout for 8jYLcDN6lyM
+[220/4008] 54txoVv2Hwc Dinah Washington - Willow Weep For Me... (cached)
+  → BPM 99 Key Cm
+[Backfill reanalyze] Timeout for tgkFl-qRPak
+[221/4008] lZMjxwBjRD4 Jimmy Smith - Slippery Hips... (cached)
+  → BPM 99 Key Cm
+[Backfill reanalyze] Timeout for A5ZZV-gMELQ
+[222/4008] q9tAN7-zl-g Stan Getz And Laurindo Almeida - Once Again... (cached)
+  → BPM 89 Key Gm
+[Backfill reanalyze] Timeout for gYK1YFswGfU
+[223/4008] 3KWV0m_9f-8 Joey Pastrana And His Orchestra - Noche De Ronda... (cached)
+  → BPM 72 Key Dm
+[Backfill reanalyze] Timeout for iE6EVirIUI4
+[224/4008] WmN1ghZ4aFw Bobby Vince Paunetto - Little Ricos Theme [JAZZ]... (cached)
+  → BPM 68 Key F#m
+[Backfill reanalyze] Timeout for myMDepP3n5c
+[225/4008] mJayRIV8zAE Reuben Wilson - Set Us Free... (cached)
+  → BPM 112 Key Fm
+[Backfill reanalyze] Timeout for obvCXoS9DDg
+[226/4008] ZcJnrRB6LDI Nazaré Pereira - Clarão De Lua... (cached)
+  → BPM 99 Key Dm
+[Backfill reanalyze] Timeout for 3OkwLqLztZw
+[227/4008] wgAHccqCv70 Rahsaan Roland Kirk - Whats Goin On Mercy Mercy Me... (cached)
+  → BPM 117 Key A#m
+[Backfill reanalyze] Timeout for I9LeahBtrBE
+[228/4008] HNW2W3TY0EY Piero Umiliani - Mahe... (cached)
+  → BPM 112 Key Gm
+[Backfill reanalyze] Timeout for G7yK_QjkRl0
+[229/4008] tpI1OBcr_eI Roland Kirk And The Vibration Society - Sweet Fire... (cached)
+  → BPM 96 Key C#m
+[Backfill reanalyze] Timeout for llO0pTSretY
+[230/4008] GYxAT8txu9o The Baron Von Ohlen Quartet And Mary Ann Moss - El... (cached)
+  → BPM 117 Key Em
+[Backfill reanalyze] Timeout for gaBf18LEJwY
+[231/4008] lRKeJEsSSdk The Jeff Lorber Fusion - Katherine... (cached)
+  → BPM 92 Key Dm
+[Backfill reanalyze] Timeout for WIlO4B4oPkk
+[232/4008] kg5-B3OOs5g Les McCann - Somebodys Been Lying Bout Me... (cached)
+  → BPM 62 Key D#m
+[Backfill reanalyze] Timeout for ByQ2-_Z1PrA
+[233/4008] xNoiXk8elbY Gato Barbieri - Last Tango In Paris II... (cached)
+  → BPM 96 Key C
+[Backfill reanalyze] Timeout for Byd5qKLPtPY
+[234/4008] cIjqPs7jNGE Miles Davis - Konda [JAZZ]... (cached)
+  → BPM 65 Key Am
+[Backfill reanalyze] Timeout for 54txoVv2Hwc
+[235/4008] 8eQV5R4WLgY Yusef Lateef - The Improvisers... (cached)
+  → BPM 83 Key Gm
+[Backfill reanalyze] Timeout for lZMjxwBjRD4
+[236/4008] jxNGljiJMJs Cal Tjaders Modern Mambo Quintet - Ill Remember Ap... (cached)
+  → BPM 117 Key Bm
+[Backfill reanalyze] Timeout for q9tAN7-zl-g
+[237/4008] 4ZkshZa72rI Csaba Deseő - Reith On... (cached)
+  → BPM 72 Key Dm
+[Backfill reanalyze] Timeout for 3KWV0m_9f-8
+[238/4008] rBhly97uuuM William S Fischer - Txori Erresinula... (cached)
+  → BPM 103 Key Am
+[Backfill reanalyze] Timeout for WmN1ghZ4aFw
+[239/4008] IpkY1n6MMZA Nucleus - Elastic Rock... (cached)
+  → BPM 65 Key Dm
+[Backfill reanalyze] Timeout for mJayRIV8zAE
+[240/4008] DDsmZQ202Tk Wayne Shorter - Lost... (cached)
+  → BPM 68 Key F#m
+[Backfill reanalyze] Timeout for ZcJnrRB6LDI
+[241/4008] N4JLLIDgtIM Nina Simone - Hey Buddy Bolden... (cached)
+  → BPM 103 Key Dm
+[Backfill reanalyze] Timeout for wgAHccqCv70
+[242/4008] kIoMIxB_4Sw Grupo Encuentro - Deuterio... (cached)
+  → BPM 86 Key Cm
+[Backfill reanalyze] Timeout for HNW2W3TY0EY
+[243/4008] 4F6DuQDIPD0 Hersh Hamel And Art Pepper - Image Before You [JAZ... (cached)
+  → BPM 112 Key Gm
+[Backfill reanalyze] Timeout for tpI1OBcr_eI
+[244/4008] 0yDOg1uhJGw Cal Tjader - Invitation [JAZZ]... (cached)
+  → BPM 99 Key Dm
+[Backfill reanalyze] Timeout for GYxAT8txu9o
+[245/4008] rnh13Wm1TY0 Hubert Laws Group - Rehabilitation [JAZZ]... (cached)
+  → BPM 81 Key Gm
+[Backfill reanalyze] Timeout for lRKeJEsSSdk
+[246/4008] fdDGv49eiO0 Dorothy Ashby - Invitation [JAZZ]... (cached)
+  → BPM 86 Key Dm
+[Backfill reanalyze] Timeout for kg5-B3OOs5g
+[247/4008] QkewFYDAy4s Pharoah Sanders - Upper Egypt And Lower Egypt [JAZ... (cached)
+  → BPM 76 Key D#m
+[Backfill reanalyze] Timeout for xNoiXk8elbY
+[248/4008] QxXxPhe3PlI Miles Davis - Freedom Jazz Dance... (cached)
+  → BPM 103 Key G#m
+[Backfill reanalyze] Timeout for cIjqPs7jNGE
+[249/4008] UxAykguKhAk Isaac Hayes - You Dont Know Like I Know... (cached)
+  → BPM 65 Key D#m
+[Backfill reanalyze] Timeout for 8eQV5R4WLgY
+[250/4008] _CteEVJO1Lg Bobby Hutcherson - Rosewood [JAZZ]... (cached)
+  → BPM 81 Key Am
+[Backfill reanalyze] Timeout for jxNGljiJMJs
+[251/4008] M1xfha020Y0 Art Pepper - Diane [JAZZ]... (cached)
+  → BPM 72 Key A#m
+[Backfill reanalyze] Timeout for 4ZkshZa72rI
+[252/4008] KP-7I7BgFpY The Chaffey College Jazz Ensemble - Imagination Fl... (cached)
+  → BPM 81 Key Dm
+[Backfill reanalyze] Timeout for rBhly97uuuM
+[253/4008] sImHC52r2jc Art Blakey And The Jazz Messengers - This Is For A... (cached)
+  → BPM 92 Key Gm
+[Backfill reanalyze] Timeout for IpkY1n6MMZA
+[254/4008] AaoXiLryAVU Gianfranco Plenizio - Minor Jazz Number Two... (cached)
+  → BPM 86 Key Gm
+[Backfill reanalyze] Timeout for DDsmZQ202Tk
+[255/4008] 6G_Czr4yga4 Bill Evans - Always [JAZZ]... (cached)
+  → BPM 76 Key Cm
+[Backfill reanalyze] Timeout for N4JLLIDgtIM
+[256/4008] uvveDMgEq8g Jr Walker And The All Stars - Probe Your Mind... (cached)
+  → BPM 76 Key Em
+[Backfill reanalyze] Timeout for kIoMIxB_4Sw
+[257/4008] L8UxCXkDxB0 The Four Roses Dance Party - Love... (cached)
+  → BPM 112 Key Cm
+[Backfill reanalyze] Timeout for 4F6DuQDIPD0
+[258/4008] HxzlLVgrP_I Milt Jackson And John Coltrane - Bags And Trane [J... (cached)
+  → BPM 117 Key C#m
+[Backfill reanalyze] Timeout for 0yDOg1uhJGw
+[259/4008] bogVzEK3Qzw Grover Washington Jr - Until Its Time For You To G... (cached)
+  → BPM 65 Key D#m
+[Backfill reanalyze] Timeout for rnh13Wm1TY0
+[260/4008] EHo1VQBlsjg Thelonious Monk - Black And Tan Fantasy [JAZZ]... (cached)
+  → BPM 99 Key A#m
+[Backfill reanalyze] Timeout for fdDGv49eiO0
+[261/4008] jjwz5ooVQYw Lalo Schifrin - Dragonfly... (cached)
+  → BPM 65 Key Gm
+[Backfill reanalyze] Timeout for QkewFYDAy4s
+[262/4008] bzQC1Sr1x2k Joe Henderson - Tetragon [JAZZ]... (cached)
+  → BPM 99 Key Gm
+[Backfill reanalyze] Timeout for QxXxPhe3PlI
+[263/4008] Rwv-4m9Dg6g Gary Bartz - Carnival De LEsprit... (cached)
+  → BPM 81 Key Am
+[Backfill reanalyze] Timeout for UxAykguKhAk
+[264/4008] k_IIjQL-pn0 Roy Ayers Ubiquity - Red Black And Green... (cached)
+  → BPM 96 Key Fm
+[Backfill reanalyze] Timeout for _CteEVJO1Lg
+[265/4008] oQ0SfvRW2FY Bobbi Humphrey - San Francisco Lights... (cached)
+  → BPM 103 Key D#m
+[Backfill reanalyze] Timeout for M1xfha020Y0
+[266/4008] hSf07E4p9Yo Don Byas - Laura [JAZZ]... (cached)
+  → BPM 108 Key Bm
+[Backfill reanalyze] Timeout for KP-7I7BgFpY
+[267/4008] oujpHPFRQrM David Axelrod - Dont You Worry Bout A Thing... (cached)
+  → BPM 62 Key Gm
+[Backfill reanalyze] Timeout for sImHC52r2jc
+[268/4008] T16YG7rONfU Marina Lima - Só Você... (cached)
+  → BPM 83 Key Dm
+[Backfill reanalyze] Timeout for AaoXiLryAVU
+[269/4008] jVGlC8dCFPk Roy Ayers Ubiquity - Sweet Tears [JAZZ]... (cached)
+  → BPM 65 Key A#m
+[Backfill reanalyze] Timeout for 6G_Czr4yga4
+[270/4008] q33ajsa838k Azar Lawrence - Cant Hide Love... (cached)
+  → BPM 86 Key Fm
+[Backfill reanalyze] Timeout for uvveDMgEq8g
+[271/4008] sx5C5w914YI Billy Taylor - A Secret [JAZZ]... (cached)
+  → BPM 103 Key Gm
+[Backfill reanalyze] Timeout for L8UxCXkDxB0
+[272/4008] n-CaKqFYjKM Carmel - Tracks Of My Tears... (cached)
+  → BPM 99 Key C#m
+[Backfill reanalyze] Timeout for HxzlLVgrP_I
+[273/4008] OhWrgX_L7lU Jon Hassell And Ronu Majumdar - Nature Boy [JAZZ]... (cached)
+  → BPM 117 Key Dm
+[Backfill reanalyze] Timeout for bogVzEK3Qzw
+[274/4008] Ab9eP4wD1oA Andrzej Kurylewicz, Ryszard Garbień And Ryszard Sz... (cached)
+  → BPM 117 Key A#m
+[Backfill reanalyze] Timeout for EHo1VQBlsjg
+[275/4008] oKzWGQAPses Nancy Wilson And Cannonball Adderley - Never Will ... (cached)
+  → BPM 99 Key Cm
+[Backfill reanalyze] Timeout for jjwz5ooVQYw
+[276/4008] 8sCL9VkVwCk Rogier Van Otterloo - Moord Met Geduld [JAZZ]... (cached)
+  → BPM 86 Key Gm
+[Backfill reanalyze] Timeout for bzQC1Sr1x2k
+[277/4008] Gn9ss4-hm4g Sérgio Godinho - Caramba... (cached)
+  → BPM 86 Key Bm
+[Backfill reanalyze] Timeout for Rwv-4m9Dg6g
+[278/4008] Lrpr_IFHzEc Monty Alexander - A Time For Love [JAZZ]... (cached)
+  → BPM 68 Key Dm
+[Backfill reanalyze] Timeout for k_IIjQL-pn0
+[279/4008] 74aixUT-FgM Tomorrows People - Lovers To Friends... (cached)
+  → BPM 65 Key Dm
+[Backfill reanalyze] Timeout for oQ0SfvRW2FY
+[280/4008] CBwsVZ-qaoQ Byron Morris And Unity - Panamanian Aire... (cached)
+  → BPM 99 Key Am
+[Backfill reanalyze] Timeout for hSf07E4p9Yo
+[281/4008] CJpgGMXqoM4 Roy Ayers, Merry Clayton And Sylvia Cox - I Am You... (cached)
+  → BPM 108 Key Dm
+[Backfill reanalyze] Timeout for oujpHPFRQrM
+[282/4008] _62t1jl0skE Buddy Rich - Miss Bessies Cooking... (cached)
+  → BPM 62 Key F#m
+[Backfill reanalyze] Timeout for T16YG7rONfU
+[283/4008] 7J-L-ySpPF8 Archie Shepp Quartet - Alone Together [JAZZ]... (cached)
+  → BPM 76 Key Dm
+[Backfill reanalyze] Timeout for jVGlC8dCFPk
+[284/4008] SBhyY-cadwQ Roy Ayers Ubiquity - Baby I Need Your Love... (cached)
+  → BPM 76 Key Bm
+[Backfill reanalyze] Timeout for q33ajsa838k
+[285/4008] PV3Fr5W7uf8 Return To Forever - The Musician... (cached)
+  → BPM 112 Key Em
+[Backfill reanalyze] Timeout for sx5C5w914YI
+[286/4008] NDzJaU32KSc Marcus Belgrave - Glue Fingers Part 2... (cached)
+  → BPM 112 Key C#m
+[Backfill reanalyze] Timeout for n-CaKqFYjKM
+[287/4008] 8pt5TnDPJ9o Dinah Washington And Clifford Brown - No More... (cached)
+  → BPM 89 Key G#m
+[Backfill reanalyze] Timeout for OhWrgX_L7lU
+[288/4008] be1XOL8Kc_s The Lyman Woodard Organization - Belle Isle Daze... (cached)
+  → BPM 108 Key Cm
+[Backfill reanalyze] Timeout for Ab9eP4wD1oA
+[289/4008] B-6qyK1bpiA Deodato - Spirit Of Summer... (cached)
+  → BPM 83 Key Cm
+[Backfill reanalyze] Timeout for oKzWGQAPses
+[290/4008] 7-LGY_JYFug Herbie Hancock - I Have A Dream [JAZZ]... (cached)
+  → BPM 62 Key Gm
+[Backfill reanalyze] Timeout for 8sCL9VkVwCk
+[291/4008] AW5A1tCK6CQ Magnum - Witch Doctors Brew... (cached)
+  → BPM 99 Key Gm
+[Backfill reanalyze] Timeout for Gn9ss4-hm4g
+[292/4008] zLSWHMwCcc4 Sun Ra - Springtime In Chicago [JAZZ]... (cached)
+  → BPM 92 Key D#m
+[Backfill reanalyze] Timeout for Lrpr_IFHzEc
+[293/4008] 3mkcTbt6R24 Three Pieces - Self Dealin... (cached)
+  → BPM 99 Key Am
+[Backfill reanalyze] Timeout for 74aixUT-FgM
+[294/4008] Ik59Ta69RGM The Fabulous Three - Nightbird... (cached)
+  → BPM 117 Key Fm
+[295/4008] 0yDESLVmQTw Wayne Henderson - Lush Life... (cached)
+[Backfill reanalyze] Timeout for CBwsVZ-qaoQ
+  → BPM 92 Key Fm
+[296/4008] TBjwige-stY Miriam Makeba - Where Does It Lead... (cached)
+[Backfill reanalyze] Timeout for CJpgGMXqoM4
+  → BPM 117 Key Cm
+[297/4008] bQrzCvQCEho Nick Ingman - Summer Never End [UK] Library, Easy ... (cached)
+[Backfill reanalyze] Timeout for _62t1jl0skE
+  → BPM 89 Key Em
+[298/4008] F2kzoQGQRUs 田上博司 / プレアデスのレクイエム... (cached)
+[Backfill reanalyze] Timeout for 7J-L-ySpPF8
+  → BPM 94 Key Am
+[299/4008] Bwc75JewXL8 風コーラス団 Kaze Chorus Dan - 君は飛べる [Japan] Soul, Easy... (cached)
+[Backfill reanalyze] Timeout for SBhyY-cadwQ
+  → BPM 74 Key Fm
+[300/4008] hIx_snybtws Paul Bley + Niels Henning Ørsted Pedersen / Paradi... (cached)
+[Backfill reanalyze] Timeout for PV3Fr5W7uf8
+  → BPM 68 Key Am
+[301/4008] ahOiRBnXk74 Frank Pellico / Speak Softly Love... (cached)
+[Backfill reanalyze] Timeout for NDzJaU32KSc
+  → BPM 65 Key Cm
+[302/4008] j3j_xhZeaQ4 *Thomas Morton - Play The Music [US] Jazz, Easy Li... (cached)
+[Backfill reanalyze] Timeout for 8pt5TnDPJ9o
+  → BPM 83 Key Am
+[303/4008] jdArNdtj1uY François - Something In You [France] Soul, Jazz, F... (cached)
+[Backfill reanalyze] Timeout for be1XOL8Kc_s
+  → BPM 72 Key Am
+[304/4008] l0OHZ9VUFSg Desmond Champ - A little Mozart... (cached)
+[Backfill reanalyze] Timeout for B-6qyK1bpiA
+  → BPM 65 Key Am
+[305/4008] thc_mKIXptE カシオペア / スパン・オブ・ア・ドリーム... (cached)
+[Backfill reanalyze] Timeout for 7-LGY_JYFug
+  → BPM 65 Key C#m
+[306/4008] 8Jz7Xq4qXUA Teddy Lasry / Stress... (cached)
+[Backfill reanalyze] Timeout for AW5A1tCK6CQ
+  → BPM 65 Key Gm
+[307/4008] d3at7eifgpw Бели, Зелени И Червени / Очите На Тереза... (cached)
+[Backfill reanalyze] Timeout for zLSWHMwCcc4
+  → BPM 108 Key Fm
+[308/4008] HUR6McoOBK4 ROSE / Renaissance... (cached)
+[Backfill reanalyze] Timeout for 3mkcTbt6R24
+  → BPM 72 Key F#m
+[309/4008] XWYK8qmm9mg Fausto Papetti / Brilla Loco Diamante... (cached)
+[Backfill reanalyze] Timeout for Ik59Ta69RGM
+  → BPM 62 Key Gm
+[310/4008] akcAyaSrS8g Niemen / Lilacs and Champagne... (cached)
+[Backfill reanalyze] Timeout for 0yDESLVmQTw
+  → BPM 74 Key Em
+[311/4008] B1zdPSi3cPU Paul Osborne / Murder Point... (cached)
+[Backfill reanalyze] Timeout for TBjwige-stY
+  → BPM 112 Key C
+[312/4008] RtuGlihEe2E Bill Molenhof / Grandfather Time... (cached)
+[Backfill reanalyze] Timeout for bQrzCvQCEho
+  → BPM 76 Key C#m
+[313/4008] 4s3-EBhKufQ MATRIX / Blue Black... (cached)
+[Backfill reanalyze] Timeout for F2kzoQGQRUs
+  → BPM 112 Key Bm
+[314/4008] JTxANUxm3ZE Arthur Smith and Clay Smith / Modus Obscurus... (cached)
+[Backfill reanalyze] Timeout for Bwc75JewXL8
+  → BPM 65 Key Dm
+[315/4008] sNIIj_deNCQ Harold Budd / Widows Charm... (cached)
+[Backfill reanalyze] Timeout for hIx_snybtws
+  → BPM 115 Key A
+[316/4008] rqSErKGxLaY Susan Mazer / Rooting... (cached)
+[Backfill reanalyze] Timeout for ahOiRBnXk74
+  → BPM 103 Key Am
+[317/4008] KpYdu2bs1R4 Jerry Goodman & Jan Hammer / Night... (cached)
+[Backfill reanalyze] Timeout for j3j_xhZeaQ4
+  → BPM 86 Key Gm
+[318/4008] CmyfFt0Za-U Cal Tjader / A House Is Not A Home... (cached)
+[Backfill reanalyze] Timeout for jdArNdtj1uY
+  → BPM 68 Key Cm
+[319/4008] y2MR4yfd1fs Walter Rooney / Windmills of Your Mind... (cached)
+[Backfill reanalyze] Timeout for l0OHZ9VUFSg
+  → BPM 86 Key Em
+[320/4008] XEHCOXg9T-Y STAR TREK / Crier in Emptiness (Conclusion)... (cached)
+[Backfill reanalyze] Timeout for thc_mKIXptE
+  → BPM 62 Key Dm
+[321/4008] lWiU7Gx_upw Indra Lesmana / Sleeping Beauty... (cached)
+[Backfill reanalyze] Timeout for 8Jz7Xq4qXUA
+  → BPM 68 Key Cm
+[322/4008] PkmI4C_qfsA Zbigniew Lewandowski / Zmęczenie (Skrócone)... (cached)
+[Backfill reanalyze] Timeout for d3at7eifgpw
+  → BPM 89 Key F#m
+[323/4008] 8ZUGbnXwmzk Rickey Kelly / Lush Life... (cached)
+[Backfill reanalyze] Timeout for HUR6McoOBK4
+  → BPM 65 Key F#m
+[324/4008] JsbityAOtQM Andreas Hofer / Unbetitelt... (cached)
+[Backfill reanalyze] Timeout for XWYK8qmm9mg
+  → BPM 117 Key F#m
+[325/4008] fvq0przVG7w Jan Steele / All Day... (cached)
+[Backfill reanalyze] Timeout for akcAyaSrS8g
+  → BPM 62 Key Dm
+[326/4008] C8h0-b7cr1Y Take Six / Night Meeting... (cached)
+[Backfill reanalyze] Timeout for B1zdPSi3cPU
+  → BPM 108 Key C#m
+[327/4008] WnjiQmcnvn4 THIRD EYE / Bloodstream... (cached)
+[Backfill reanalyze] Timeout for RtuGlihEe2E
+  → BPM 68 Key Fm
+[328/4008] QCBVV5VJnqM SPELL / The Dream... (cached)
+[Backfill reanalyze] Timeout for 4s3-EBhKufQ
+  → BPM 76 Key Fm
+[329/4008] gXpJN9CFOK4 Bernard Lubat and His Mad Ducks / To Yasmina... (cached)
+[Backfill reanalyze] Timeout for JTxANUxm3ZE
+  → BPM 68 Key Dm
+[330/4008] 2JXWD5vq3eo ILLUSION / Beautiful Country... (cached)
+[Backfill reanalyze] Timeout for sNIIj_deNCQ
+  → BPM 62 Key Gm
+[331/4008] 72iePXvHB6E ART ZOYD 3 / Simulacres... (cached)
+[Backfill reanalyze] Timeout for rqSErKGxLaY
+  → BPM 62 Key Am
+[332/4008] n5iXmdc2W7k 川 島 和 子 / ブラックフライデー... (cached)
+[Backfill reanalyze] Timeout for KpYdu2bs1R4
+  → BPM 72 Key Bm
+[333/4008] MkQYoGeYI1c Jiří Stivín / Nálady: Melancholici... (will download)
+[Analysis] Starting for MkQYoGeYI1c
+[Analysis] Downloading audio for MkQYoGeYI1c...
+[Analysis] Download failed for MkQYoGeYI1c: yt-dlp failed (code 1): ERROR: [youtube] MkQYoGeYI1c: Video unavailable. This video contains content from Supraphon, who has blocked it on copyright grounds
+
+[Backfill reanalyze] Timeout for CmyfFt0Za-U
+[334/4008] 7N_eUE-D1XU Barre Phillips / Mountainscape IV... (cached)
+  → BPM 96 Key Dm
+[Backfill reanalyze] Timeout for y2MR4yfd1fs
+[335/4008] QJCqriRz0Pw ROLLSPLYTT / Die Verwandlungen des Herrn P. (Teil ... (cached)
+[Backfill reanalyze] Timeout for XEHCOXg9T-Y
+  → BPM 68 Key Dm
+[Analysis] Download timeout after 15 seconds for MkQYoGeYI1c
+[336/4008] 9pjyHwJpTJ0 幾見雅博 / ロンリー・ナイト... (cached)
+[Backfill reanalyze] Timeout for lWiU7Gx_upw
+  → BPM 65 Key Am
+[337/4008] DW2veST3dnE زياد الرحباني / تنويع ثاني... (cached)
+[Backfill reanalyze] Timeout for PkmI4C_qfsA
+  → BPM 99 Key Gm
+[338/4008] 4yOtcknxU80 Marden Pond / Desert Flower... (cached)
+[Backfill reanalyze] Timeout for 8ZUGbnXwmzk
+  → BPM 62 Key Dm
+[339/4008] dmpDtBGuZsg Blood, Sweat & Tears / The Confrontation (Interlud... (cached)
+[Backfill reanalyze] Timeout for JsbityAOtQM
+  → BPM 108 Key Dm
+[Backfill reanalyze] Timeout for fvq0przVG7w
+[340/4008] cpb23HCk1oo David Amram / Credo... (cached)
+  → BPM 96 Key Dm
+[Backfill reanalyze] Timeout for C8h0-b7cr1Y
+[341/4008] m0MflK_xBcU Jackie Mclean / Long-Time Lover... (cached)
+  → BPM 81 Key D#m
+[Backfill reanalyze] Timeout for WnjiQmcnvn4
+[342/4008] 9kXtsOyuDW4 Pepe Sánchez y Su Rock-Band / Renacimiento (2 Part... (cached)
+  → BPM 112 Key Gm
+[Backfill reanalyze] Timeout for QCBVV5VJnqM
+[343/4008] UT4YOMZpqsA Brian Bennett / Passing Shapes... (cached)
+  → BPM 117 Key F#m
+[Backfill reanalyze] Timeout for gXpJN9CFOK4
+[344/4008] qwTyqDEz8Wk ムー一族 / 更科のテーマ... (cached)
+[Backfill reanalyze] Timeout for 2JXWD5vq3eo
+  → BPM 68 Key Em
+[345/4008] ZI8zL3tI3Lk Irving Martin + Brian Dee / Dream Reflections... (cached)
+[Backfill reanalyze] Timeout for 72iePXvHB6E
+  → BPM 96 Key Em
+[346/4008] Jtlkw7x-L0k Lesette Wilson / Elaine... (cached)
+[Backfill reanalyze] Timeout for n5iXmdc2W7k
+  → BPM 120 Key Dm
+[347/4008] -BOK2sDf3LQ William Penn / Iridescent Stillness Through Curved... (cached)
+[Backfill reanalyze] Timeout after 90s for MkQYoGeYI1c
+  → BPM 68 Key Em
+[Backfill reanalyze] Timeout for 7N_eUE-D1XU
+[348/4008] ZZfMfGnF4gs GILGAMESH / Bobberty (Part II)... (cached)
+  → BPM 108 Key D#m
+[Backfill reanalyze] Timeout for QJCqriRz0Pw
+[349/4008] pBFM3BHHE_M ALL DAY / All Day... (cached)
+  → BPM 103 Key Dm
+[Backfill reanalyze] Timeout for 9pjyHwJpTJ0
+[350/4008] aDfVLPs82F0 東海林修 / 悲しみ色... (cached)
+  → BPM 112 Key Em
+[Backfill reanalyze] Timeout for DW2veST3dnE
+[351/4008] s959-lRZh-4 Doug Wood / Flashback II... (cached)
+  → BPM 86 Key Gm
+[Backfill reanalyze] Timeout for 4yOtcknxU80
+[352/4008] dTjn8-5Z_9Y Harn Soper / 14B–8... (cached)
+  → BPM 103 Key A#m
+[Backfill reanalyze] Timeout for dmpDtBGuZsg
+[353/4008] ZUrbUdKW6lY Johnny Trudell / A Time for Love... (cached)
+  → BPM 108 Key A#m
+[Backfill reanalyze] Timeout for cpb23HCk1oo
+[354/4008] jm6ImzZYTgk ライオン・メリー / 冬はココに来る人は, 少ししかいない... (cached)
+  → BPM 108 Key D#m
+[Backfill reanalyze] Timeout for m0MflK_xBcU
+[355/4008] 0x5NGUXP1Dc Charlie Byrd / Crystal Silence... (cached)
+  → BPM 70 Key Bm
+[Backfill reanalyze] Timeout for 9kXtsOyuDW4
+[356/4008] 2EFWzIyGNiI Jan Beran / Etüde Nr. 4... (cached)
+  → BPM 99 Key Dm
+[Backfill reanalyze] Timeout for UT4YOMZpqsA
+[357/4008] KOFKf0FGamI Walter Martino / Delirious Fever... (cached)
+  → BPM 65 Key Am
+[Backfill reanalyze] Timeout for qwTyqDEz8Wk
+[358/4008] m8LV4DJBi5I Nico Fidenco / Romantic July... (cached)
+  → BPM 86 Key Gm
+[Backfill reanalyze] Timeout for ZI8zL3tI3Lk
+[359/4008] MrQi_PmP-ss MOUNT EVEREST / Coral Sea... (cached)
+  → BPM 103 Key Cm
+[Backfill reanalyze] Timeout for Jtlkw7x-L0k
+[360/4008] XZExFcS5tbc Eddie Jobson / Trapped (Reprise)... (cached)
+  → BPM 68 Key Gm
+[Backfill reanalyze] Timeout for -BOK2sDf3LQ
+[361/4008] j6Y2oBUz-SY Hubert Laws / What a Night... (cached)
+  → BPM 108 Key Fm
+[Backfill reanalyze] Timeout for ZZfMfGnF4gs
+[362/4008] ctPZ6BWSNu4 HIGHRISE / Absence... (cached)
+  → BPM 62 Key Em
+[Backfill reanalyze] Timeout for pBFM3BHHE_M
+[363/4008] ROoNl1KoPBI Le Groupe X / Dicotomia... (cached)
+  → BPM 108 Key Em
+[Backfill reanalyze] Timeout for aDfVLPs82F0
+[364/4008] XACcJoUK8S0 René Ufer / Sügis – Üksindus... (cached)
+  → BPM 78 Key Cm
+[Backfill reanalyze] Timeout for s959-lRZh-4
+[365/4008] d8FUH_m_7jg Dominique Guiot / The Fourth Man... (cached)
+  → BPM 99 Key Bm
+[Backfill reanalyze] Timeout for dTjn8-5Z_9Y
+[366/4008] 1VxllGEQbPs Rose Royce - Safe and Warm... (cached)
+  → BPM 68 Key A#m
+[Backfill reanalyze] Timeout for ZUrbUdKW6lY
+[367/4008] uMY6nm2-k40 FA-5 - El Blue [Cuba] Latin Jazz, Psych, Easy List... (cached)
+  → BPM 96 Key Em
+[Backfill reanalyze] Timeout for jm6ImzZYTgk
+[368/4008] xchu-jVg5dw Lea Darwin & Rick Panzer - Floor Stretch Warm Up [... (cached)
+  → BPM 65 Key D#m
+[Backfill reanalyze] Timeout for 0x5NGUXP1Dc
+[369/4008] b7iubFTk3OM Wind Song - A Gift In Words [US] Soul, Easy Listen... (cached)
+  → BPM 65 Key Fm
+[Backfill reanalyze] Timeout for 2EFWzIyGNiI
+[370/4008] xNOOq-vUxlM Abissi Infiniti - Nebbia Incantata II [Italy] Psyc... (cached)
+  → BPM 83 Key Em
+[Backfill reanalyze] Timeout for KOFKf0FGamI
+[371/4008] 3MiIt_oEzdg 松下誠 / 火の山からの光景 (インスト)... (cached)
+  → BPM 68 Key Am
+[Backfill reanalyze] Timeout for m8LV4DJBi5I
+[372/4008] ENV5CqXo_aM Brian Bennett & Alan Hawkshaw - Library LP Synthes... (cached)
+  → BPM 86 Key Fm
+[Backfill reanalyze] Timeout for MrQi_PmP-ss
+[373/4008] lolitZQio1Y Winfried Mühlum-Pyrápheros / Part VII... (cached)
+  → BPM 65 Key Cm
+[Backfill reanalyze] Timeout for XZExFcS5tbc
+[374/4008] skiFFtOO4ho Հարութ / Նախաբան... (cached)
+  → BPM 99 Key Em
+[Backfill reanalyze] Timeout for j6Y2oBUz-SY
+[375/4008] DhyEmexMJss アーニー・ローレンス と トレジャー・アイランド / ヨフィーが帰る (再導入)... (cached)
+  → BPM 96 Key F#m
+[Backfill reanalyze] Timeout for ctPZ6BWSNu4
+[376/4008] Fc7myfk7ufk Franco Cassano / Io Che Non Vivo... (cached)
+  → BPM 86 Key Bm
+[Backfill reanalyze] Timeout for ROoNl1KoPBI
+[377/4008] l1kV0fpfvY8 NETHERWORLD / Among the Clouds... (cached)
+  → BPM 76 Key Bm
+[Backfill reanalyze] Timeout for XACcJoUK8S0
+[378/4008] EzAAHHPsl4g Gianni Mazza / Inquinamento... (cached)
+  → BPM 65 Key Gm
+[Backfill reanalyze] Timeout for d8FUH_m_7jg
+[379/4008] nQC7TMtJ1VE 大野雄二 / ラブ・フィーバー (パート3)... (cached)
+  → BPM 65 Key Em
+[Backfill reanalyze] Timeout for 1VxllGEQbPs
+[380/4008] VIbmjM25RMo Sam Sklair + Otto Sieben / Hunter and Hunted 1... (cached)
+  → BPM 76 Key Am
+[Backfill reanalyze] Timeout for uMY6nm2-k40
+[381/4008] AViSIePbFsE NATDAMPEREN / Fimbulvinter... (cached)
+  → BPM 117 Key Dm
+[Backfill reanalyze] Timeout for xchu-jVg5dw
+[382/4008] _Gu9_A4wA1Y Bill Reddie / Ascent Into Now... (cached)
+  → BPM 68 Key Em
+[Backfill reanalyze] Timeout for b7iubFTk3OM
+[383/4008] de5mjdpTO20 渡辺香津美カルテット / ミルキー·シェード... (cached)
+  → BPM 92 Key F
+[Backfill reanalyze] Timeout for xNOOq-vUxlM
+[384/4008] 0kMu1_uN-zs Frank Strazzeri / Ballad of the Matador... (cached)
+  → BPM 108 Key Bm
+[Backfill reanalyze] Timeout for 3MiIt_oEzdg
+[385/4008] yH96Uyz9tyQ Lora Lee and Jana Lyn Stewart / So Far to Go... (cached)
+  → BPM 86 Key G#m
+[Backfill reanalyze] Timeout for ENV5CqXo_aM
+[386/4008] Du0rUh2Ugt4 J&F Quintet / Transistor... (cached)
+  → BPM 83 Key Cm
+[Backfill reanalyze] Timeout for lolitZQio1Y
+[387/4008] UT2G3-kc6Po Mike Harvey / We'd Like to Know... (cached)
+  → BPM 76 Key Em
+[Backfill reanalyze] Timeout for skiFFtOO4ho
+[388/4008] W-USbcX4yXg Danny Toan / Come Into My Life... (cached)
+  → BPM 96 Key Gm
+[Backfill reanalyze] Timeout for DhyEmexMJss
+[389/4008] Z1pFePkcKts Pierre Porte + Joël Fajerman / Angelic Dream... (cached)
+  → BPM 108 Key Fm
+[Backfill reanalyze] Timeout for Fc7myfk7ufk
+[Backfill reanalyze] Timeout for l1kV0fpfvY8
+[Backfill reanalyze] Timeout for EzAAHHPsl4g
+[Backfill reanalyze] Timeout for nQC7TMtJ1VE
+[Backfill reanalyze] Timeout for VIbmjM25RMo
+[Backfill reanalyze] Timeout for AViSIePbFsE
+[Backfill reanalyze] Timeout for _Gu9_A4wA1Y
+[Backfill reanalyze] Timeout for de5mjdpTO20
+[Backfill reanalyze] Timeout for 0kMu1_uN-zs
+[Backfill reanalyze] Timeout for yH96Uyz9tyQ
+[Backfill reanalyze] Timeout for Du0rUh2Ugt4
+[Backfill reanalyze] Timeout for UT2G3-kc6Po
+[Backfill reanalyze] Timeout for W-USbcX4yXg
+[Backfill reanalyze] Timeout for Z1pFePkcKts
+[390/4008] xB68cYuuBaI REAL EYES / Madman's Game... (cached)
+[Backfill reanalyze] Fatal: PrismaClientKnownRequestError: 
+Invalid `prisma.sample.update()` invocation in
+/Users/troycarson/Documents/Cursor Projects/thesampledig/scripts/backfill-reanalyze-bpm-key.ts:121:25
+
+  118 }
+  119 
+  120 const finalStatus = result.bpm != null || result.key != null ? "completed" : "failed"
+→ 121 await prisma.sample.update(
+Server has closed the connection.
+    at Ln.handleRequestError (/Users/troycarson/Documents/Cursor Projects/thesampledig/node_modules/@prisma/client/runtime/library.js:121:7753)
+    at Ln.handleAndLogRequestError (/Users/troycarson/Documents/Cursor Projects/thesampledig/node_modules/@prisma/client/runtime/library.js:121:7061)
+    at Ln.request (/Users/troycarson/Documents/Cursor Projects/thesampledig/node_modules/@prisma/client/runtime/library.js:121:6745)
+    at async l (/Users/troycarson/Documents/Cursor Projects/thesampledig/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at async main (/Users/troycarson/Documents/Cursor Projects/thesampledig/scripts/backfill-reanalyze-bpm-key.ts:121:5) {
+  code: 'P1017',
+  clientVersion: '5.19.0',
+  meta: { modelName: 'Sample' }
+}
+cL2ATQKW-jk
+[Backfill reanalyze] Timeout for 3HV03ghTlxg
+[Backfill reanalyze] Timeout for xJXLRSwekXI
+[Backfill reanalyze] Timeout for YagwuU_I7bQ
+[400/4008] FyIXsaNRZzo Alessio Alba / Citta Satellite (Versione Completa)... (cached)
+  → BPM 117 Key Gm
+[401/4008] k35eQf2Xplg Jean Blaute / Warffum (Verkorte)... (cached)
+[Backfill reanalyze] Timeout for FyIXsaNRZzo
+[Backfill reanalyze] Timeout for k35eQf2Xplg
+[Backfill reanalyze] Fatal: PrismaClientKnownRequestError: 
+Invalid `prisma.sample.update()` invocation in
+/Users/troycarson/Documents/Cursor Projects/thesampledig/scripts/backfill-reanalyze-bpm-key.ts:121:25
+
+  118 }
+  119 
+  120 const finalStatus = result.bpm != null || result.key != null ? "completed" : "failed"
+→ 121 await prisma.sample.update(
+Server has closed the connection.
+    at Ln.handleRequestError (/Users/troycarson/Documents/Cursor Projects/thesampledig/node_modules/@prisma/client/runtime/library.js:121:7753)
+    at Ln.handleAndLogRequestError (/Users/troycarson/Documents/Cursor Projects/thesampledig/node_modules/@prisma/client/runtime/library.js:121:7061)
+    at Ln.request (/Users/troycarson/Documents/Cursor Projects/thesampledig/node_modules/@prisma/client/runtime/library.js:121:6745)
+    at async l (/Users/troycarson/Documents/Cursor Projects/thesampledig/node_modules/@prisma/client/runtime/library.js:130:9633)
+    at async main (/Users/troycarson/Documents/Cursor Projects/thesampledig/scripts/backfill-reanalyze-bpm-key.ts:121:5) {
+  code: 'P1017',
+  clientVersion: '5.19.0',
+  meta: { modelName: 'Sample' }
+}
