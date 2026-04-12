@@ -1386,6 +1386,24 @@ export const blogPosts: BlogPost[] = [
   },
 ]
 
+/**
+ * Index of the content block after which to insert the in-article ad (typically after the 2nd paragraph).
+ * Returns -1 if there is no suitable anchor.
+ */
+export function getBlogInArticleAdInsertIndex(content: ContentBlock[]): number {
+  let pCount = 0
+  for (let i = 0; i < content.length; i++) {
+    if (content[i].type === "p") {
+      pCount++
+      if (pCount === 2) return i
+    }
+  }
+  for (let i = 0; i < content.length; i++) {
+    if (content[i].type === "p") return i
+  }
+  return -1
+}
+
 export function getPostBySlug(slug: string): BlogPost | undefined {
   return blogPosts.find((p) => p.slug === slug)
 }
