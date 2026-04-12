@@ -6,11 +6,12 @@
  *
  *   --dry-run    No DB writes
  *   --overwrite  Set genre even when already present (default: only null/empty genre)
+ *   --verbose    Log Discogs search steps / HTTP errors (DISCOGS_DEBUG)
  *   limit        Max samples to process
  *
  * Env:
  *   DATABASE_URL
- *   DISCOGS_PERSONAL_TOKEN  (recommended) OR DISCOGS_CONSUMER_KEY + DISCOGS_CONSUMER_SECRET
+ *   DISCOGS_PERSONAL_TOKEN or DISCOGS_TOKEN (recommended) OR DISCOGS_CONSUMER_KEY + DISCOGS_CONSUMER_SECRET
  *   DISCOGS_USER_AGENT      optional override (must identify your app per Discogs)
  */
 
@@ -32,13 +33,16 @@ async function sleep(ms: number) {
 
 async function main() {
   const args = process.argv.slice(2)
+  if (args.includes("--verbose")) {
+    process.env.DISCOGS_DEBUG = "1"
+  }
   const dryRun = args.includes("--dry-run")
   const overwrite = args.includes("--overwrite")
-  const posArgs = args.filter((a) => a !== "--dry-run" && a !== "--overwrite")
+  const posArgs = args.filter((a) => !["--dry-run", "--overwrite", "--verbose"].includes(a))
   const limitArg = posArgs[0]
   const limit = limitArg ? parseInt(limitArg, 10) : undefined
   if (limitArg && (isNaN(limit!) || limit! < 1)) {
-    console.error("Usage: npx tsx scripts/backfill-genre-discogs.ts [--dry-run] [--overwrite] [limit]")
+    console.error("Usage: npx tsx scripts/backfill-genre-discogs.ts [--dry-run] [--overwrite] [--verbose] [limit]")
     process.exit(1)
   }
 
@@ -49,7 +53,7 @@ async function main() {
 
   if (!getDiscogsCredentials()) {
     console.error(
-      "Set Discogs credentials: DISCOGS_PERSONAL_TOKEN (from discogs.com/settings/developers) " +
+      "Set Discogs credentials: DISCOGS_PERSONAL_TOKEN or DISCOGS_TOKEN (from discogs.com/settings/developers) " +
         "or DISCOGS_CONSUMER_KEY + DISCOGS_CONSUMER_SECRET"
     )
     process.exit(1)

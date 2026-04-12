@@ -14,11 +14,20 @@
 
 const DEFAULT_UA = "SampleRoll/1.0 +https://sampleroll.com (genre backfill)"
 
+const DEBUG = process.env.DISCOGS_DEBUG === "1" || process.env.DISCOGS_DEBUG === "true"
+
+function dlog(...args: unknown[]) {
+  if (DEBUG) console.error("[discogs]", ...args)
+}
+
 export function getDiscogsCredentials():
   | { kind: "token"; token: string }
   | { kind: "consumer"; key: string; secret: string }
   | null {
-  const token = process.env.DISCOGS_PERSONAL_TOKEN?.trim()
+  const token =
+    process.env.DISCOGS_PERSONAL_TOKEN?.trim() ||
+    process.env.DISCOGS_TOKEN?.trim() ||
+    process.env.DISCOGS_USER_TOKEN?.trim()
   if (token) return { kind: "token", token }
   const key = process.env.DISCOGS_CONSUMER_KEY?.trim()
   const secret = process.env.DISCOGS_CONSUMER_SECRET?.trim()
@@ -46,7 +55,8 @@ export function cleanYoutubeTitleForDiscogs(title: string): string {
 }
 
 /**
- * Build candidate (artist, track) pairs: channel + title, and "Artist - Title" splits from the title.
+ * Build candidate (artist, track) pairs.
+ * Order matters: "Artist - Title" in the video title is usually reliable; channel is often a random uploader.
  */
 export function discogsSearchPairs(channel: string, videoTitle: string): Array<{ artist: string; track: string }> {
   const cleanChannel = channel.replace(/\s*-\s*Topic\s*$/i, "").trim()
@@ -58,8 +68,6 @@ export function discogsSearchPairs(channel: string, videoTitle: string): Array<{
     if (a.length > 0 && t.length > 0) out.push({ artist: a, track: t })
   }
 
-  add(cleanChannel, cleanTitle)
-
   const dash = cleanTitle.match(/^([\s\S]+?)\s*[-–—|]\s+([\s\S]+)$/)
   if (dash) {
     const left = dash[1].trim()
@@ -67,6 +75,8 @@ export function discogsSearchPairs(channel: string, videoTitle: string): Array<{
     add(left, right)
     if (left !== cleanChannel) add(cleanChannel, right)
   }
+
+  add(cleanChannel, cleanTitle)
 
   const seen = new Set<string>()
   return out.filter((p) => {
@@ -133,6 +143,7 @@ export function mapDiscogsToAppGenre(genres: string[], styles: string[]): string
 async function discogsFetchJson<T>(url: string, creds: NonNullable<ReturnType<typeof getDiscogsCredentials>>, userAgent: string): Promise<T> {
   const res = await fetch(url, {
     headers: {
+      Accept: "application/json",
       "User-Agent": userAgent,
       Authorization: discogsAuthHeader(creds),
     },
@@ -167,10 +178,14 @@ type ReleaseOrMasterResponse = {
 
 function pickReleaseOrMasterResults(s: SearchResponse): NonNullable<SearchResponse["results"]> {
   const rows = s.results ?? []
-  return rows.filter((row) => {
+  const picked = rows.filter((row) => {
     const t = (row.type || "").toLowerCase()
     return (t === "release" || t === "master") && Boolean(row.resource_url)
   })
+  if (picked.length === 0 && rows.length > 0 && DEBUG) {
+    dlog("search returned rows but no release/master:", rows.slice(0, 5).map((r) => `${r.type}:${r.title ?? r.id}`))
+  }
+  return picked
 }
 
 /** Ordered search URLs for one (artist, track) pair — track = song name, not album. */
@@ -179,10 +194,22 @@ function searchUrlsForPair(artist: string, track: string): string[] {
   const tr = track.slice(0, 100)
   const q = `${a} ${tr}`.slice(0, 170).trim()
   return [
-    `https://api.discogs.com/database/search?artist=${encodeURIComponent(a)}&track=${encodeURIComponent(tr)}&per_page=10`,
-    `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&per_page=15`,
-    `https://api.discogs.com/database/search?q=${encodeURIComponent(tr)}&artist=${encodeURIComponent(a)}&per_page=10`,
-    `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&per_page=10`,
+    // Broad text search first — Discogs' combined index matches real-world metadata best
+    `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&per_page=25`,
+    `https://api.discogs.com/database/search?artist=${encodeURIComponent(a)}&track=${encodeURIComponent(tr)}&per_page=15`,
+    `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&per_page=15`,
+    `https://api.discogs.com/database/search?q=${encodeURIComponent(tr)}&artist=${encodeURIComponent(a)}&per_page=15`,
+  ]
+}
+
+/** When we only have a title string (or channel is useless), try track-only / title-only queries. */
+function searchUrlsTitleFallbacks(cleanTitle: string): string[] {
+  const t = cleanTitle.slice(0, 120).trim()
+  if (t.length < 2) return []
+  return [
+    `https://api.discogs.com/database/search?track=${encodeURIComponent(t)}&per_page=25`,
+    `https://api.discogs.com/database/search?q=${encodeURIComponent(t)}&per_page=25`,
+    `https://api.discogs.com/database/search?q=${encodeURIComponent(t)}&type=release&per_page=25`,
   ]
 }
 
@@ -196,26 +223,36 @@ export async function fetchDiscogsGenreForTrack(
 ): Promise<{ genre: string | null; releaseId?: number; genres: string[]; styles: string[] } | null> {
   const creds = getDiscogsCredentials()
   if (!creds) return null
+  const auth = creds
 
   const ua = options?.userAgent?.trim() || process.env.DISCOGS_USER_AGENT?.trim() || DEFAULT_UA
+  const cleanTitle = cleanYoutubeTitleForDiscogs(videoTitle)
   const pairs = discogsSearchPairs(channel, videoTitle)
-  if (pairs.length === 0) return null
 
-  let results: NonNullable<SearchResponse["results"]> = []
-  for (const { artist, track } of pairs) {
-    for (const searchUrl of searchUrlsForPair(artist, track)) {
+  async function runSearchList(urls: string[], label: string): Promise<NonNullable<SearchResponse["results"]>> {
+    for (const searchUrl of urls) {
       try {
-        const s = await discogsFetchJson<SearchResponse>(searchUrl, creds, ua)
+        const s = await discogsFetchJson<SearchResponse>(searchUrl, auth, ua)
+        const n = s.results?.length ?? 0
+        if (DEBUG) dlog(label, n, "results", searchUrl.slice(0, 120))
         const r = pickReleaseOrMasterResults(s)
-        if (r.length > 0) {
-          results = r
-          break
-        }
-      } catch {
-        continue
+        if (r.length > 0) return r
+      } catch (e) {
+        dlog(label, "fail", searchUrl.slice(0, 100), e instanceof Error ? e.message : e)
       }
     }
+    return []
+  }
+
+  let results: NonNullable<SearchResponse["results"]> = []
+
+  for (const { artist, track } of pairs) {
+    results = await runSearchList(searchUrlsForPair(artist, track), "pair")
     if (results.length > 0) break
+  }
+
+  if (results.length === 0 && cleanTitle.length > 0) {
+    results = await runSearchList(searchUrlsTitleFallbacks(cleanTitle), "title-fallback")
   }
 
   if (results.length === 0) return null
@@ -223,8 +260,9 @@ export async function fetchDiscogsGenreForTrack(
   const first = results[0]
   let detail: ReleaseOrMasterResponse
   try {
-    detail = await discogsFetchJson<ReleaseOrMasterResponse>(first.resource_url, creds, ua)
-  } catch {
+    detail = await discogsFetchJson<ReleaseOrMasterResponse>(first.resource_url, auth, ua)
+  } catch (e) {
+    dlog("release fetch failed", first.resource_url, e instanceof Error ? e.message : e)
     return null
   }
 
