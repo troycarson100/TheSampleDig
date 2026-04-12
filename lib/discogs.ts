@@ -7,6 +7,9 @@
  *   DISCOGS_CONSUMER_KEY + DISCOGS_CONSUMER_SECRET — app credentials
  *
  * All requests must send a descriptive User-Agent (Discogs requirement).
+ *
+ * Important: Discogs `release_title` is the *album* name, not the song. For songs use
+ * `artist` + `track`, or a broad `q` query.
  */
 
 const DEFAULT_UA = "SampleRoll/1.0 +https://sampleroll.com (genre backfill)"
@@ -32,6 +35,46 @@ export interface DiscogsReleaseMeta {
   id: number
   genres: string[]
   styles: string[]
+}
+
+/** Strip junk from YouTube video titles before searching. */
+export function cleanYoutubeTitleForDiscogs(title: string): string {
+  return title
+    .replace(/\s*[\[(](?:official|remastered?|remaster|audio|video|hd|4k|full album|visualizer)[^\])]*[\])]/gi, "")
+    .replace(/\s*-\s*Official\b.*$/i, "")
+    .trim()
+}
+
+/**
+ * Build candidate (artist, track) pairs: channel + title, and "Artist - Title" splits from the title.
+ */
+export function discogsSearchPairs(channel: string, videoTitle: string): Array<{ artist: string; track: string }> {
+  const cleanChannel = channel.replace(/\s*-\s*Topic\s*$/i, "").trim()
+  const cleanTitle = cleanYoutubeTitleForDiscogs(videoTitle)
+  const out: Array<{ artist: string; track: string }> = []
+  const add = (artist: string, track: string) => {
+    const a = artist.trim()
+    const t = track.trim()
+    if (a.length > 0 && t.length > 0) out.push({ artist: a, track: t })
+  }
+
+  add(cleanChannel, cleanTitle)
+
+  const dash = cleanTitle.match(/^([\s\S]+?)\s*[-–—|]\s+([\s\S]+)$/)
+  if (dash) {
+    const left = dash[1].trim()
+    const right = dash[2].trim()
+    add(left, right)
+    if (left !== cleanChannel) add(cleanChannel, right)
+  }
+
+  const seen = new Set<string>()
+  return out.filter((p) => {
+    const k = `${p.artist.toLowerCase()}\0${p.track.toLowerCase()}`
+    if (seen.has(k)) return false
+    seen.add(k)
+    return true
+  })
 }
 
 /**
@@ -116,69 +159,82 @@ type SearchResponse = {
   }>
 }
 
-type ReleaseResponse = {
+type ReleaseOrMasterResponse = {
   id: number
   genres?: string[]
   styles?: string[]
 }
 
+function pickReleaseOrMasterResults(s: SearchResponse): NonNullable<SearchResponse["results"]> {
+  const rows = s.results ?? []
+  return rows.filter((row) => {
+    const t = (row.type || "").toLowerCase()
+    return (t === "release" || t === "master") && Boolean(row.resource_url)
+  })
+}
+
+/** Ordered search URLs for one (artist, track) pair — track = song name, not album. */
+function searchUrlsForPair(artist: string, track: string): string[] {
+  const a = artist.slice(0, 100)
+  const tr = track.slice(0, 100)
+  const q = `${a} ${tr}`.slice(0, 170).trim()
+  return [
+    `https://api.discogs.com/database/search?artist=${encodeURIComponent(a)}&track=${encodeURIComponent(tr)}&per_page=10`,
+    `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&per_page=15`,
+    `https://api.discogs.com/database/search?q=${encodeURIComponent(tr)}&artist=${encodeURIComponent(a)}&per_page=10`,
+    `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&per_page=10`,
+  ]
+}
+
 /**
- * Search for a release and return genres/styles from the best matching release.
+ * Search for a release and return genres/styles from the best matching release or master.
  */
 export async function fetchDiscogsGenreForTrack(
-  artist: string,
-  trackTitle: string,
+  channel: string,
+  videoTitle: string,
   options?: { userAgent?: string }
 ): Promise<{ genre: string | null; releaseId?: number; genres: string[]; styles: string[] } | null> {
   const creds = getDiscogsCredentials()
   if (!creds) return null
 
   const ua = options?.userAgent?.trim() || process.env.DISCOGS_USER_AGENT?.trim() || DEFAULT_UA
-  const cleanArtist = artist.replace(/\s*-\s*Topic\s*$/i, "").trim()
-  const cleanTitle = trackTitle
-    .replace(/\s*[\[(](?:official|remastered?|remaster|audio|video|hd|4k|full album|visualizer)[^\])]*[\])]/gi, "")
-    .replace(/\s*-\s*Official\b.*$/i, "")
-    .trim()
+  const pairs = discogsSearchPairs(channel, videoTitle)
+  if (pairs.length === 0) return null
 
-  if (!cleanArtist || !cleanTitle) return null
-
-  const q = `${cleanArtist} ${cleanTitle}`.slice(0, 170).trim()
-  const searchUrls = [
-    `https://api.discogs.com/database/search?type=release&artist=${encodeURIComponent(cleanArtist)}&release_title=${encodeURIComponent(cleanTitle)}&per_page=5`,
-    `https://api.discogs.com/database/search?q=${encodeURIComponent(q)}&type=release&per_page=5`,
-  ]
-
-  type ResultRow = NonNullable<SearchResponse["results"]>[number]
-  let results: ResultRow[] = []
-  for (const searchUrl of searchUrls) {
-    try {
-      const s = await discogsFetchJson<SearchResponse>(searchUrl, creds, ua)
-      const r = s.results?.filter((row) => row.type === "release" && row.resource_url) ?? []
-      if (r.length > 0) {
-        results = r
-        break
+  let results: NonNullable<SearchResponse["results"]> = []
+  for (const { artist, track } of pairs) {
+    for (const searchUrl of searchUrlsForPair(artist, track)) {
+      try {
+        const s = await discogsFetchJson<SearchResponse>(searchUrl, creds, ua)
+        const r = pickReleaseOrMasterResults(s)
+        if (r.length > 0) {
+          results = r
+          break
+        }
+      } catch {
+        continue
       }
-    } catch {
-      continue
     }
+    if (results.length > 0) break
   }
+
   if (results.length === 0) return null
 
   const first = results[0]
-  let release: ReleaseResponse
+  let detail: ReleaseOrMasterResponse
   try {
-    release = await discogsFetchJson<ReleaseResponse>(first.resource_url, creds, ua)
+    detail = await discogsFetchJson<ReleaseOrMasterResponse>(first.resource_url, creds, ua)
   } catch {
     return null
   }
 
-  const genres = release.genres ?? []
-  const styles = release.styles ?? []
+  const genres = detail.genres ?? []
+  const styles = detail.styles ?? []
   const genre = mapDiscogsToAppGenre(genres, styles)
 
   return {
     genre,
-    releaseId: release.id,
+    releaseId: detail.id,
     genres,
     styles,
   }
