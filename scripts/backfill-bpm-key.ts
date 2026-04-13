@@ -1,66 +1,140 @@
 /**
- * Backfill BPM and key for samples in the DB using Spotify (or other metadata APIs).
- * No YouTube audio / yt-dlp – uses title + channel to look up metadata.
+ * Backfill BPM and key for samples using metadata APIs (no YouTube audio / yt-dlp).
+ * `getBpmKey` in lib/metadata-bpm-key.ts uses Google Custom Search to parse snippets.
  *
- * Usage: npx tsx scripts/backfill-bpm-key.ts [limit]
- *   limit: max samples to process (default: all that need backfill)
+ * Usage:
+ *   npx tsx scripts/backfill-bpm-key.ts [--drum-only] [limit]
  *
- * Env: SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, DATABASE_URL (loaded from .env)
+ *   (default)    Rows missing BPM or key: all drum-break–style samples first, then the rest.
+ *   --drum-only  Only samples that match the Dig drum-break filter (curated tag or title phrases).
+ *   limit        Max rows to process (after ordering). Omit = process full backlog in order.
  *
- * Rate: ~2 Spotify requests per sample (search + audio-features). We throttle to stay under limits.
+ * Env: GOOGLE_CSE_API_KEY, GOOGLE_CSE_ID, DATABASE_URL (.env / .env.local)
+ *
+ * Rate: throttled between rows; retries on 429.
  */
 
 import { config } from "dotenv"
 import { resolve } from "path"
 
+config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
 
-import { PrismaClient } from "@prisma/client"
+import type { Prisma } from "@prisma/client"
+import { prisma } from "../lib/db"
 import { getBpmKey } from "../lib/metadata-bpm-key"
+import {
+  DRUM_BREAK_CURATED_TAG,
+  DRUM_BREAK_TITLE_PHRASES,
+} from "../lib/drum-break-title-match"
 
 const DELAY_MS = 800
 const MAX_RETRIES = 3
+
+const missingBpmOrKey: Prisma.SampleWhereInput = {
+  OR: [{ bpm: null }, { key: null }],
+}
+
+const drumBreakClause: Prisma.SampleWhereInput = {
+  OR: [
+    { tags: { contains: DRUM_BREAK_CURATED_TAG, mode: "insensitive" } },
+    ...DRUM_BREAK_TITLE_PHRASES.map((phrase) => ({
+      title: { contains: phrase, mode: "insensitive" as const },
+    })),
+  ],
+}
 
 async function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
 }
 
+async function loadSamples(drumOnly: boolean, limit: number | undefined) {
+  const select = {
+    id: true,
+    youtubeId: true,
+    title: true,
+    channel: true,
+    bpm: true,
+    key: true,
+    tags: true,
+  } as const
+
+  if (drumOnly) {
+    return prisma.sample.findMany({
+      where: { AND: [missingBpmOrKey, drumBreakClause] },
+      select,
+      orderBy: { createdAt: "asc" },
+      ...(limit != null ? { take: limit } : {}),
+    })
+  }
+
+  if (limit == null) {
+    const [drumRows, restRows] = await Promise.all([
+      prisma.sample.findMany({
+        where: { AND: [missingBpmOrKey, drumBreakClause] },
+        select,
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.sample.findMany({
+        where: { AND: [missingBpmOrKey, { NOT: drumBreakClause }] },
+        select,
+        orderBy: { createdAt: "asc" },
+      }),
+    ])
+    return [...drumRows, ...restRows]
+  }
+
+  const drumRows = await prisma.sample.findMany({
+    where: { AND: [missingBpmOrKey, drumBreakClause] },
+    select,
+    orderBy: { createdAt: "asc" },
+    take: limit,
+  })
+  if (drumRows.length >= limit) return drumRows
+
+  const rest = await prisma.sample.findMany({
+    where: { AND: [missingBpmOrKey, { NOT: drumBreakClause }] },
+    select,
+    orderBy: { createdAt: "asc" },
+    take: limit - drumRows.length,
+  })
+  return [...drumRows, ...rest]
+}
+
 async function main() {
-  const limitArg = process.argv[2]
+  const args = process.argv.slice(2)
+  const drumOnly = args.includes("--drum-only")
+  const posArgs = args.filter((a) => a !== "--drum-only")
+  const limitArg = posArgs[0]
   const limit = limitArg ? parseInt(limitArg, 10) : undefined
-  if (limitArg && (isNaN(limit) || limit < 1)) {
-    console.error("Usage: npx tsx scripts/backfill-bpm-key.ts [limit]")
+  if (limitArg && (isNaN(limit!) || limit! < 1)) {
+    console.error("Usage: npx tsx scripts/backfill-bpm-key.ts [--drum-only] [limit]")
     process.exit(1)
   }
 
-  const hasSpotify =
-    !!process.env.SPOTIFY_CLIENT_ID?.trim() && !!process.env.SPOTIFY_CLIENT_SECRET?.trim()
   const hasGoogle =
     !!process.env.GOOGLE_CSE_API_KEY?.trim() && !!process.env.GOOGLE_CSE_ID?.trim()
-  if (!hasSpotify && !hasGoogle) {
+  if (!hasGoogle) {
     console.error(
-      "Set at least one provider in .env: (SPOTIFY_CLIENT_ID + SPOTIFY_CLIENT_SECRET) or (GOOGLE_CSE_API_KEY + GOOGLE_CSE_ID)"
+      "Set GOOGLE_CSE_API_KEY and GOOGLE_CSE_ID in .env (getBpmKey uses Google Custom Search)."
     )
     process.exit(1)
   }
 
-  const prisma = new PrismaClient()
+  const [drumPending, restPending] = await Promise.all([
+    prisma.sample.count({ where: { AND: [missingBpmOrKey, drumBreakClause] } }),
+    prisma.sample.count({ where: { AND: [missingBpmOrKey, { NOT: drumBreakClause }] } }),
+  ])
+  const totalMissing = drumPending + restPending
 
-  const where = {
-    OR: [{ bpm: null }, { key: null }, { analysisStatus: { not: "completed" } }],
-  }
-  const totalToProcess = await prisma.sample.count({ where })
-  const take = limit ?? totalToProcess
-  const samples = await prisma.sample.findMany({
-    where,
-    select: { id: true, youtubeId: true, title: true, channel: true, bpm: true, key: true },
-    take,
-    orderBy: { createdAt: "asc" },
-  })
+  const samples = await loadSamples(drumOnly, limit)
 
   console.log(
-    `[Backfill BPM/Key] Found ${totalToProcess} samples needing backfill. Processing ${samples.length} (limit: ${limit ?? "none"}).`
+    `[Backfill BPM/Key] Missing BPM/key: ${totalMissing} total (drum-break cohort: ${drumPending}, other: ${restPending}). ` +
+      `Mode: ${drumOnly ? "--drum-only" : "drum-first then rest"}. ` +
+      `Processing ${samples.length} row(s)${limit != null ? ` (limit ${limit})` : ""}.`
   )
+
   if (samples.length === 0) {
     console.log("[Backfill BPM/Key] Nothing to do.")
     await prisma.$disconnect()
