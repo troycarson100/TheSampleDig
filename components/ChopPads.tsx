@@ -12,6 +12,13 @@ const KEY_W = 2.5
 const GAP = 0.5
 /** Total width of the keybed (bottom row); use for space bar width. */
 export const CHOP_KEYBOARD_WIDTH_REM = ROW_2.length * KEY_W + (ROW_2.length - 1) * GAP
+/** Two pad rows + gap-3 between them (matches ChopPads layout). */
+export const CHOP_KEYBED_HEIGHT_REM = KEY_W + 0.75 + KEY_W
+/**
+ * Pads + mt-3 + space bar block + hint — used to size the scaled keyboard column in SamplePlayer.
+ * Slightly generous so the container does not clip when scaled.
+ */
+export const CHOP_KEYBOARD_COLUMN_HEIGHT_REM = CHOP_KEYBED_HEIGHT_REM + 0.75 + 3.5 + 2
 /** Left position (rem) for each top key so it’s centered between the given bottom keys. */
 const TOP_LEFT_REM = [
   1.5,   /* W between A and S */

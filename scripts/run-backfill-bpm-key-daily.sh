@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Run BPM/key backfill daily (e.g. after Google CSE quota resets).
+# Run BPM/key backfill daily (yt-dlp + local librosa; host needs yt-dlp, ffmpeg, Python+librosa).
 # Logs to logs/backfill-bpm-key.log in the project root.
 #
 # To run every day at 8:00 AM UTC (midnight Pacific):

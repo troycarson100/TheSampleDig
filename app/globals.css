@@ -1171,6 +1171,20 @@ body.theme-vinyl::before {
   position: relative;
   cursor: pointer;
 }
+
+/* Loop timeline: grow/shrink without forcing full width so Save + Clear stay grouped on one flex line when possible */
+.chop-loop-timeline {
+  flex: 1 1 200px;
+  min-width: 0;
+  width: auto;
+}
+
+.theme-vinyl .chop-scrubber.chop-loop-timeline,
+.theme-vinyl [class*="chop-scrubber"].chop-loop-timeline {
+  flex: 1 1 200px;
+  min-width: 0;
+  width: auto;
+}
 .theme-vinyl .scrubber-fill,
 .theme-vinyl [class*="chop-fill"] {
   height: 100%;

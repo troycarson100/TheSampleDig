@@ -3,7 +3,7 @@
  * `getBpmKey` in lib/metadata-bpm-key.ts uses Google Custom Search to parse snippets.
  *
  * Usage:
- *   npx tsx scripts/backfill-bpm-key.ts [--drum-only] [limit]
+ *   npx tsx scripts/backfill-bpm-key-google.ts [--drum-only] [limit]
  *
  *   (default)    Rows missing BPM or key: all drum-break–style samples first, then the rest.
  *   --drum-only  Only samples that match the Dig drum-break filter (curated tag or title phrases).
@@ -108,7 +108,7 @@ async function main() {
   const limitArg = posArgs[0]
   const limit = limitArg ? parseInt(limitArg, 10) : undefined
   if (limitArg && (isNaN(limit!) || limit! < 1)) {
-    console.error("Usage: npx tsx scripts/backfill-bpm-key.ts [--drum-only] [limit]")
+    console.error("Usage: npx tsx scripts/backfill-bpm-key-google.ts [--drum-only] [limit]")
     process.exit(1)
   }
 

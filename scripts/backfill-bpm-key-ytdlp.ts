@@ -1,56 +1,133 @@
 /**
- * Backfill BPM and key for samples in the DB using yt-dlp + librosa (backend only).
- * Runs only from CLI; no frontend or API exposure.
+ * Backfill BPM and key using yt-dlp + ffmpeg + Python/librosa (local analysis; no Google CSE).
+ *
+ * Usage:
+ *   npx tsx scripts/backfill-bpm-key-ytdlp.ts [--drum-only] [limit]
+ *
+ *   (default)    Rows missing BPM or key: drum-break cohort first, then the rest.
+ *   --drum-only  Only samples that match the Dig drum-break filter.
+ *   limit        Max rows to process (after ordering). Omit = full backlog in order.
  *
  * Requires: yt-dlp, ffmpeg, Python 3 with librosa (pip install librosa numpy)
- *
- * Usage: npx tsx scripts/backfill-bpm-key-ytdlp.ts [limit]
- *   limit: max samples to process (default: all that need backfill)
- *
- * Env: DATABASE_URL (loaded from .env)
+ * Env: DATABASE_URL (.env / .env.local)
  */
 
 import { config } from "dotenv"
 import { resolve } from "path"
 
+config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
 
-import { PrismaClient } from "@prisma/client"
+import type { Prisma } from "@prisma/client"
+import { prisma } from "../lib/db"
 import { analyzeYouTubeVideo } from "../lib/audio-analysis"
+import {
+  DRUM_BREAK_CURATED_TAG,
+  DRUM_BREAK_TITLE_PHRASES,
+} from "../lib/drum-break-title-match"
 
 const DELAY_BETWEEN_VIDEOS_MS = 4000
 const PER_VIDEO_TIMEOUT_MS = 90000
+
+const missingBpmOrKey: Prisma.SampleWhereInput = {
+  OR: [{ bpm: null }, { key: null }],
+}
+
+const drumBreakClause: Prisma.SampleWhereInput = {
+  OR: [
+    { tags: { contains: DRUM_BREAK_CURATED_TAG, mode: "insensitive" } },
+    ...DRUM_BREAK_TITLE_PHRASES.map((phrase) => ({
+      title: { contains: phrase, mode: "insensitive" as const },
+    })),
+  ],
+}
 
 async function sleep(ms: number) {
   return new Promise((r) => setTimeout(r, ms))
 }
 
+async function loadSamples(drumOnly: boolean, limit: number | undefined) {
+  const select = {
+    id: true,
+    youtubeId: true,
+    title: true,
+    bpm: true,
+    key: true,
+    tags: true,
+  } as const
+
+  if (drumOnly) {
+    return prisma.sample.findMany({
+      where: { AND: [missingBpmOrKey, drumBreakClause] },
+      select,
+      orderBy: { createdAt: "asc" },
+      ...(limit != null ? { take: limit } : {}),
+    })
+  }
+
+  if (limit == null) {
+    const [drumRows, restRows] = await Promise.all([
+      prisma.sample.findMany({
+        where: { AND: [missingBpmOrKey, drumBreakClause] },
+        select,
+        orderBy: { createdAt: "asc" },
+      }),
+      prisma.sample.findMany({
+        where: { AND: [missingBpmOrKey, { NOT: drumBreakClause }] },
+        select,
+        orderBy: { createdAt: "asc" },
+      }),
+    ])
+    return [...drumRows, ...restRows]
+  }
+
+  const drumRows = await prisma.sample.findMany({
+    where: { AND: [missingBpmOrKey, drumBreakClause] },
+    select,
+    orderBy: { createdAt: "asc" },
+    take: limit,
+  })
+  if (drumRows.length >= limit) return drumRows
+
+  const rest = await prisma.sample.findMany({
+    where: { AND: [missingBpmOrKey, { NOT: drumBreakClause }] },
+    select,
+    orderBy: { createdAt: "asc" },
+    take: limit - drumRows.length,
+  })
+  return [...drumRows, ...rest]
+}
+
 async function main() {
-  const limitArg = process.argv[2]
+  const args = process.argv.slice(2)
+  const drumOnly = args.includes("--drum-only")
+  const posArgs = args.filter((a) => a !== "--drum-only")
+  const limitArg = posArgs[0]
   const limit = limitArg ? parseInt(limitArg, 10) : undefined
-  if (limitArg && (isNaN(limit) || limit < 1)) {
-    console.error("Usage: npx tsx scripts/backfill-bpm-key-ytdlp.ts [limit]")
+  if (limitArg && (isNaN(limit!) || limit! < 1)) {
+    console.error("Usage: npx tsx scripts/backfill-bpm-key-ytdlp.ts [--drum-only] [limit]")
     process.exit(1)
   }
 
-  const prisma = new PrismaClient()
+  const [drumPending, restPending] = await Promise.all([
+    prisma.sample.count({ where: { AND: [missingBpmOrKey, drumBreakClause] } }),
+    prisma.sample.count({ where: { AND: [missingBpmOrKey, { NOT: drumBreakClause }] } }),
+  ])
+  const totalMissing = drumPending + restPending
 
-  const where = {
-    OR: [{ bpm: null }, { key: null }, { analysisStatus: { not: "completed" } }],
-  }
-  const totalToProcess = await prisma.sample.count({ where })
-  const take = limit ?? totalToProcess
-  const samples = await prisma.sample.findMany({
-    where,
-    select: { id: true, youtubeId: true, title: true },
-    take,
-    orderBy: { createdAt: "asc" },
-  })
+  const samples = await loadSamples(drumOnly, limit)
 
   console.log(
-    `[Backfill yt-dlp] Found ${totalToProcess} samples needing BPM/key. Processing ${samples.length} (limit: ${limit ?? "none"}).`
+    `[Backfill yt-dlp] Missing BPM/key: ${totalMissing} total (drum-break cohort: ${drumPending}, other: ${restPending}). ` +
+      `Mode: ${drumOnly ? "--drum-only" : "drum-first then rest"}. ` +
+      `Processing ${samples.length} row(s)${limit != null ? ` (limit ${limit})` : ""}.`
   )
-  console.log("[Backfill yt-dlp] Requires: yt-dlp, ffmpeg, Python 3 + librosa. Delay between videos:", DELAY_BETWEEN_VIDEOS_MS / 1000, "s")
+  console.log(
+    "[Backfill yt-dlp] Requires: yt-dlp, ffmpeg, Python 3 + librosa. Delay between videos:",
+    DELAY_BETWEEN_VIDEOS_MS / 1000,
+    "s"
+  )
+
   if (samples.length === 0) {
     console.log("[Backfill yt-dlp] Nothing to do.")
     await prisma.$disconnect()
@@ -68,7 +145,9 @@ async function main() {
     const analysisPromise = analyzeYouTubeVideo(sample.youtubeId)
     const timeoutPromise = new Promise<{ bpm: null; key: null }>((resolve) => {
       setTimeout(() => {
-        console.warn(`[Backfill yt-dlp] Timeout after ${PER_VIDEO_TIMEOUT_MS / 1000}s for ${sample.youtubeId}`)
+        console.warn(
+          `[Backfill yt-dlp] Timeout after ${PER_VIDEO_TIMEOUT_MS / 1000}s for ${sample.youtubeId}`
+        )
         resolve({ bpm: null, key: null })
       }, PER_VIDEO_TIMEOUT_MS)
     })
@@ -77,21 +156,26 @@ async function main() {
     try {
       result = await Promise.race([analysisPromise, timeoutPromise])
     } catch (err: unknown) {
-      console.error(`[Backfill yt-dlp] Error for ${sample.youtubeId}:`, err instanceof Error ? err.message : String(err))
+      console.error(
+        `[Backfill yt-dlp] Error for ${sample.youtubeId}:`,
+        err instanceof Error ? err.message : String(err)
+      )
       result = { bpm: null, key: null }
     }
 
-    const finalStatus = result.bpm != null || result.key != null ? "completed" : "failed"
+    const hasNew = result.bpm != null || result.key != null
+    const finalStatus = hasNew ? "completed" : "failed"
+
     await prisma.sample.update({
       where: { id: sample.id },
       data: {
-        bpm: result.bpm,
-        key: result.key,
+        ...(result.bpm != null && { bpm: result.bpm }),
+        ...(result.key != null && { key: result.key }),
         analysisStatus: finalStatus,
       },
     })
 
-    if (finalStatus === "completed") {
+    if (hasNew) {
       updated++
       console.log(`  → BPM ${result.bpm ?? "–"} Key ${result.key ?? "–"}`)
     } else {

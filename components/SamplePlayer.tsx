@@ -1,9 +1,9 @@
 "use client"
 
-import { useEffect, useRef, useMemo, memo, useState, useCallback } from "react"
+import { useEffect, useLayoutEffect, useRef, useMemo, memo, useState, useCallback } from "react"
 
 import HeartToggle from "./HeartToggle"
-import ChopPads, { CHOP_KEYBOARD_WIDTH_REM } from "./ChopPads"
+import ChopPads, { CHOP_KEYBOARD_COLUMN_HEIGHT_REM, CHOP_KEYBOARD_WIDTH_REM } from "./ChopPads"
 import ChopTimelineMarkers from "./ChopTimelineMarkers"
 import { useChopMode, type UseChopModeQuantizeOptions } from "@/hooks/useChopMode"
 import type { GridDivision } from "@/lib/grid-quantize"
@@ -345,9 +345,25 @@ function SamplePlayer({
   const chopKeysFocusTrapRef = useRef<HTMLDivElement>(null)
   const chopOverlayRef = useRef<HTMLDivElement>(null)
   const loopBarRef = useRef<HTMLDivElement>(null)
+  const chopKeyboardScaleRef = useRef<HTMLDivElement>(null)
+  const [chopKeyboardScale, setChopKeyboardScale] = useState(1)
   const loopBoundsRef = useRef({ start: 0, end: 0 })
   const loopBarTotalMsRef = useRef(0)
   const playbackBoundsRef = useRef<{ start: number; end: number } | null>(null)
+
+  /** Scale chop keybed + space bar when the main column is narrower than the fixed key layout (tablet + sidebar). */
+  useLayoutEffect(() => {
+    const el = chopKeyboardScaleRef.current
+    if (!el) return
+    const designPx = CHOP_KEYBOARD_WIDTH_REM * 16
+    const ro = new ResizeObserver(() => {
+      const w = el.clientWidth
+      if (w <= 0) return
+      setChopKeyboardScale(w < designPx ? Math.max(0.52, Math.min(1, w / designPx)) : 1)
+    })
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
 
   // Hide chop mode on mobile (too laggy); under 768px
   useEffect(() => {
@@ -1598,10 +1614,10 @@ function SamplePlayer({
 
       <div className="track-meta-bar mt-0 p-5 w-full" style={{ background: "var(--warm)" }}>
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-        <div>
+        <div className="min-w-0 flex-1">
           <h3 className="track-title text-xl font-bold mb-2" style={{ color: "var(--foreground)" }}>{title}</h3>
           {(
-            <div className="flex gap-2 flex-wrap items-stretch max-md:pb-[10px]">
+            <div className="flex gap-2 flex-wrap items-center max-md:pb-[10px]">
               {genre && <span className="tag-genre meta-tag-box inline-flex items-center min-h-[32px] h-8 px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--rust)", borderColor: "var(--rust)" }}>{genre}</span>}
               {era && <span className="tag-era meta-tag-box inline-flex items-center min-h-[32px] h-8 px-3 py-0 rounded-lg text-sm border" style={{ background: "transparent", color: "var(--olive)", borderColor: "var(--olive)" }}>{era}</span>}
               {(() => {
@@ -1731,7 +1747,7 @@ function SamplePlayer({
                 </span>
               )}
               {showHeart && (
-                <div className="inline-flex items-stretch gap-2">
+                <div className="inline-flex items-center gap-2">
                   <div className="relative" ref={notesContainerRef}>
                     <button
                       type="button"
@@ -1852,13 +1868,31 @@ function SamplePlayer({
             </div>
           )}
         </div>
-        <div className="hidden sm:flex flex-col items-end gap-2 shrink-0" style={{ color: "var(--foreground)" }}>
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium">Tap tempo</span>
+        <div
+          className="hidden sm:flex max-w-full flex-col items-end gap-1.5 xl:flex-row xl:flex-wrap xl:items-center xl:justify-end xl:gap-x-4 xl:gap-y-1.5 shrink-0"
+          style={{ color: "var(--foreground)" }}
+        >
+          <div className="flex items-center gap-1.5 shrink-0">
+            {tapTempoEnabled && (
+              <button
+                type="button"
+                onClick={handleTapTempo}
+                className="text-xs font-medium px-2 py-1 rounded-md border transition"
+                style={{
+                  borderColor: "var(--border)",
+                  color: "var(--foreground)",
+                  background: tapButtonFlash ? "var(--muted-light)" : "#FFF",
+                }}
+                title="Tap in time with the music to set BPM"
+              >
+                Tap
+              </button>
+            )}
             <button
               type="button"
               role="switch"
               aria-checked={tapTempoEnabled}
+              aria-label="Tap tempo"
               onClick={() => {
                 setTapTempoEnabled((v) => !v)
                 if (tapTempoEnabled) {
@@ -1871,41 +1905,27 @@ function SamplePlayer({
                   }
                 }
               }}
-              className="relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
+              className="relative h-4 w-8 shrink-0 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
               style={{
                 background: tapTempoEnabled ? "var(--primary)" : "var(--muted-light)",
               }}
               title={tapTempoEnabled ? "Tap tempo on – BPM updates from your taps" : "Tap tempo off – use analyzed BPM"}
             >
               <span
-                className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
-                style={{ transform: tapTempoEnabled ? "translateX(1.25rem)" : "translateX(0)" }}
+                className="absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-white shadow-sm transition-transform"
+                style={{ transform: tapTempoEnabled ? "translateX(1rem)" : "translateX(0)" }}
               />
             </button>
-            {tapTempoEnabled && (
-              <button
-                type="button"
-                onClick={handleTapTempo}
-                className="text-sm font-medium px-3 py-1.5 rounded-lg border transition"
-                style={{
-                  borderColor: "var(--border)",
-                  color: "var(--foreground)",
-                  background: tapButtonFlash ? "var(--muted-light)" : "#FFF",
-                }}
-                title="Tap in time with the music to set BPM"
-              >
-                Tap
-              </button>
-            )}
           </div>
           <div
-            className={`flex items-center gap-3${!canUseChopLoops ? " opacity-45" : ""}`}
+            className={`flex items-center gap-1.5 shrink-0${!canUseChopLoops ? " opacity-45" : ""}`}
           >
-            <span className="text-sm font-medium">Metronome (recording)</span>
+            <span className="text-xs font-medium whitespace-nowrap">Metronome</span>
             <button
               type="button"
               role="switch"
               aria-checked={metronomeDuringRecording}
+              aria-label="Metronome during recording"
               onClick={() => {
                 if (!canUseChopLoops) {
                   openLoopGate()
@@ -1913,7 +1933,7 @@ function SamplePlayer({
                 }
                 setMetronomeDuringRecording((v) => !v)
               }}
-              className="relative w-11 h-6 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
+              className="relative h-4 w-8 shrink-0 rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-offset-1"
               style={{
                 background: metronomeDuringRecording ? "var(--primary)" : "var(--muted-light)",
               }}
@@ -1924,8 +1944,8 @@ function SamplePlayer({
               }
             >
               <span
-                className="absolute top-1 left-1 w-4 h-4 rounded-full bg-white shadow-sm transition-transform"
-                style={{ transform: metronomeDuringRecording ? "translateX(1.25rem)" : "translateX(0)" }}
+                className="absolute top-0.5 left-0.5 h-3 w-3 rounded-full bg-white shadow-sm transition-transform"
+                style={{ transform: metronomeDuringRecording ? "translateX(1rem)" : "translateX(0)" }}
               />
             </button>
           </div>
@@ -1944,7 +1964,7 @@ function SamplePlayer({
           className="sr-only"
           aria-label="Focus for chop keys"
         />
-        <div className="chop-row flex w-full flex-col !items-stretch gap-3 md:gap-5">
+        <div className="chop-row flex w-full min-w-0 flex-col !items-stretch gap-3 md:gap-5">
           {!isMobile && (
           <>
           {/* Top bar: Chop Mode top-left, how-to top-right with inset from container edge */}
@@ -1994,7 +2014,7 @@ function SamplePlayer({
             </div>
           </div>
           {chopModeActive && (
-            <div className="relative flex w-full flex-wrap items-center justify-center gap-3 pt-3 md:pt-4">
+            <div className="relative flex w-full min-w-0 flex-wrap items-center justify-center gap-x-3 gap-y-3 pt-3 md:pt-4">
               <button
                 type="button"
                 onClick={() => setQuantizeEnabled((v) => !v)}
@@ -2082,8 +2102,8 @@ function SamplePlayer({
               {/* Mini timeline: grey bar with colored ticks; draggable start/end edges; playhead */}
               <div
                 ref={loopBarRef}
-                className={`chop-scrubber flex flex-none items-center w-full min-w-[200px] max-w-[420px] h-3 rounded-sm select-none overflow-visible${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
-                style={{ background: "var(--muted-light)", flex: "none" }}
+                className={`chop-scrubber chop-loop-timeline flex min-h-3 h-3 flex-1 min-w-0 max-w-[420px] basis-[min(100%,420px)] items-center rounded-sm select-none overflow-visible${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
+                style={{ background: "var(--muted-light)" }}
                 aria-label="Recorded sequence"
               >
                 {(() => {
@@ -2266,51 +2286,53 @@ function SamplePlayer({
                   )
                 })()}
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  if (recordedSequence.length === 0) return
-                  const totalMs = recordingFullLengthMs || recordingFullLengthRef.current || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
-                  saveLoop(youtubeId ?? "", {
-                    sequence: recordedSequence,
-                    loopStartMs,
-                    loopEndMs: loopEndMs || totalMs,
-                    fullLengthMs: recordingFullLengthMs || totalMs,
-                  })
-                  setSavedLoopsList(getSavedLoops(youtubeId ?? ""))
-                }}
-                disabled={recordedSequence.length === 0}
-                className={`chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
-                style={{
-                  borderColor: "var(--border)",
-                  background: "var(--muted-light)",
-                  color: "var(--muted)",
-                }}
-                aria-label="Save loop copy"
-                title="Save a copy of this loop (load from list below)"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                  <polyline points="17 21 17 13 7 13 7 21" />
-                  <polyline points="7 3 7 8 15 8" />
-                </svg>
-              </button>
-              <button
-                type="button"
-                onClick={clearRecordedLoop}
-                className={`chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
-                style={{
-                  borderColor: "var(--border)",
-                  background: clearLoopFlash ? "#eab308" : "var(--muted-light)",
-                  color: clearLoopFlash ? "#000" : "var(--muted)",
-                }}
-                aria-label="Clear recorded loop"
-                title="Clear recorded loop"
-              >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
-                  <path d="M18 6L6 18M6 6l12 12" />
-                </svg>
-              </button>
+              <div className="flex shrink-0 items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (recordedSequence.length === 0) return
+                    const totalMs = recordingFullLengthMs || recordingFullLengthRef.current || Math.max(...recordedSequence.map((e) => e.timeMs)) + 500
+                    saveLoop(youtubeId ?? "", {
+                      sequence: recordedSequence,
+                      loopStartMs,
+                      loopEndMs: loopEndMs || totalMs,
+                      fullLengthMs: recordingFullLengthMs || totalMs,
+                    })
+                    setSavedLoopsList(getSavedLoops(youtubeId ?? ""))
+                  }}
+                  disabled={recordedSequence.length === 0}
+                  className={`chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
+                  style={{
+                    borderColor: "var(--border)",
+                    background: "var(--muted-light)",
+                    color: "var(--muted)",
+                  }}
+                  aria-label="Save loop copy"
+                  title="Save a copy of this loop (load from list below)"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                    <polyline points="17 21 17 13 7 13 7 21" />
+                    <polyline points="7 3 7 8 15 8" />
+                  </svg>
+                </button>
+                <button
+                  type="button"
+                  onClick={clearRecordedLoop}
+                  className={`chop-icon-btn flex items-center justify-center w-8 h-8 rounded-full border transition hover:opacity-90${!canUseChopLoops ? " opacity-40 pointer-events-none select-none" : ""}`}
+                  style={{
+                    borderColor: "var(--border)",
+                    background: clearLoopFlash ? "#eab308" : "var(--muted-light)",
+                    color: clearLoopFlash ? "#000" : "var(--muted)",
+                  }}
+                  aria-label="Clear recorded loop"
+                  title="Clear recorded loop"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" aria-hidden>
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
               {!canUseChopLoops && isAuthenticated && (
                 <div className="absolute inset-[-6px] z-10 flex items-center justify-center pointer-events-none rounded-xl" style={{ background: "rgba(244,240,232,0.45)", backdropFilter: "blur(2px)" }}>
                   <button
@@ -2333,45 +2355,69 @@ function SamplePlayer({
           )}
         </div>
         {chopModeActive && !isMobile && (
-          <div className="chop-keyboard">
-            <div className="mx-auto flex w-full max-w-full flex-col items-center gap-3 md:flex-row md:items-start md:justify-center md:gap-4">
+          <div className="chop-keyboard min-w-0">
+            <div className="mx-auto flex w-full max-w-full min-w-0 flex-col items-start gap-3 xl:flex-row xl:items-start xl:justify-start xl:gap-4">
               <button
                 type="button"
                 onClick={clearChops}
-                className="chop-btn shrink-0 self-center text-sm font-medium px-3 py-1.5 rounded-lg border transition hover:opacity-80 md:self-start"
+                className="chop-btn shrink-0 self-start text-sm font-medium px-3 py-1.5 rounded-lg border transition hover:opacity-80"
                 style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
               >
                 Clear
               </button>
-              <div className="flex w-full min-w-0 flex-col items-center md:w-auto">
-                <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} onRemoveChop={removeChop} onSwapChops={swapChops} pressedKey={pressedKey} />
-                <div className="flex flex-col items-center justify-center mt-3 gap-1">
-              <button
-              type="button"
-              onClick={() => !slotsFull && addChop()}
-              disabled={slotsFull}
-              className={`chop-space-bar py-3 rounded-lg border transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${chops.length === 0 && !spaceBarFlash ? "chop-space-bar-breathe" : ""}`}
-              style={{
-                width: `${CHOP_KEYBOARD_WIDTH_REM}rem`,
-                ...(chops.length > 0 || spaceBarFlash
-                  ? {
-                      background: spaceBarFlash ? "#d4d1cc" : "#e8e6e3",
-                      border: "1px solid rgba(0,0,0,0.08)",
-                      borderBottom: spaceBarFlash ? "2px solid rgba(74,55,40,0.28)" : "2px solid rgba(74,55,40,0.16)",
-                      boxShadow: undefined,
-                      transform: "scale(1)",
-                    }
-                  : {}),
-                color: "#9a9590",
-              }}
-              aria-label="Chop at current time (Space)"
-              title="Chop at current time (Space or click)"
+              <div
+                ref={chopKeyboardScaleRef}
+                className="flex w-full min-w-0 max-w-full flex-col items-center max-xl:mx-auto xl:w-auto xl:max-w-none xl:flex-1"
               >
-                <span className="font-semibold text-sm">Chop (Space Bar)</span>
-              </button>
-              <span className="text-[10px] font-medium uppercase tracking-wider toggle-label" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace", marginTop: 10 }}>
-                SHIFT+SPACE = PLAY/PAUSE
-              </span>
+                <div
+                  className="relative w-full max-w-full min-w-0"
+                  style={{
+                    height: `${CHOP_KEYBOARD_COLUMN_HEIGHT_REM * chopKeyboardScale}rem`,
+                    maxWidth: `${CHOP_KEYBOARD_WIDTH_REM}rem`,
+                  }}
+                >
+                  <div
+                    className="absolute left-1/2 top-0 flex w-full min-w-0 flex-col items-center gap-3"
+                    style={{
+                      width: `${CHOP_KEYBOARD_WIDTH_REM}rem`,
+                      transform: `translateX(-50%) scale(${chopKeyboardScale})`,
+                      transformOrigin: "top center",
+                    }}
+                  >
+                    <ChopPads chops={chops} onPadKeyPress={onPadKeyPress} onRemoveChop={removeChop} onSwapChops={swapChops} pressedKey={pressedKey} />
+                    <div className="flex w-full flex-col items-center justify-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() => !slotsFull && addChop()}
+                        disabled={slotsFull}
+                        className={`chop-space-bar w-full max-w-full py-3 rounded-lg border transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ${chops.length === 0 && !spaceBarFlash ? "chop-space-bar-breathe" : ""}`}
+                        style={{
+                          width: `${CHOP_KEYBOARD_WIDTH_REM}rem`,
+                          maxWidth: "100%",
+                          ...(chops.length > 0 || spaceBarFlash
+                            ? {
+                                background: spaceBarFlash ? "#d4d1cc" : "#e8e6e3",
+                                border: "1px solid rgba(0,0,0,0.08)",
+                                borderBottom: spaceBarFlash ? "2px solid rgba(74,55,40,0.28)" : "2px solid rgba(74,55,40,0.16)",
+                                boxShadow: undefined,
+                                transform: "scale(1)",
+                              }
+                            : {}),
+                          color: "#9a9590",
+                        }}
+                        aria-label="Chop at current time (Space)"
+                        title="Chop at current time (Space or click)"
+                      >
+                        <span className="font-semibold text-sm">Chop (Space Bar)</span>
+                      </button>
+                      <span
+                        className="text-[10px] font-medium uppercase tracking-wider toggle-label"
+                        style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), 'IBM Plex Mono', monospace", marginTop: 10 }}
+                      >
+                        SHIFT+SPACE = PLAY/PAUSE
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
