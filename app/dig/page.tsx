@@ -439,7 +439,7 @@ export default function DigPage() {
           ? Math.floor(data.breakStartSeconds)
           : null
       let finalStartTime: number
-      if (curatedBreak != null) {
+      if (curatedBreak != null && drumBreak) {
         const dur = typeof data.duration === "number" && data.duration > 0 ? data.duration : null
         if (dur != null && dur > END_BUFFER) {
           finalStartTime = Math.min(curatedBreak, Math.max(0, dur - END_BUFFER))
@@ -449,7 +449,9 @@ export default function DigPage() {
         console.log(`[Dig] Curated drum break start: ${finalStartTime}s (raw ${curatedBreak}, duration ${dur ?? "?"})`)
       } else if (drumBreak || !randomStartTime) {
         finalStartTime = 0
-        console.log(`[Dig] Start at 0:00 (drumBreak=${drumBreak}, randomStartTime=${randomStartTime})`)
+        console.log(
+          `[Dig] Start at 0:00 (drumBreak=${drumBreak}, randomStartTime=${randomStartTime})`
+        )
       } else if (data.duration && data.duration > 0) {
         finalStartTime = Math.max(15, Math.min(Math.floor(data.duration * 0.3), data.duration - END_BUFFER))
         if (finalStartTime > data.duration - END_BUFFER) {

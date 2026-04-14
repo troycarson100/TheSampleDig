@@ -4,6 +4,7 @@
  * with processVideoItems + getVideoDetailsBatch (details still use API).
  *
  * Enable with USE_YOUTUBE_SCRAPER=true. Pagination is not supported (one page per query).
+ * `drumBreakEra` search mode always uses this scraper (no Data API search quota).
  */
 
 import { chromium, type Browser, type Page } from "playwright"
@@ -303,6 +304,7 @@ export async function scrapeYouTubeSearch(
       const title = getTitle(r)
       const { name: channelTitle, channelId } = getChannel(r)
       const thumbnailUrl = `https://i.ytimg.com/vi/${videoId}/mqdefault.jpg`
+      const durationSec = getDurationSeconds(r)
       items.push({
         id: { videoId },
         snippet: {
@@ -315,6 +317,7 @@ export async function scrapeYouTubeSearch(
           },
           publishedAt: undefined,
         },
+        ...(durationSec !== undefined ? { duration: durationSec } : {}),
       })
     }
 

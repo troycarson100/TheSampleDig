@@ -5,7 +5,10 @@
 
 import { Prisma } from "@prisma/client"
 import { prisma } from "@/lib/db"
-import { DRUM_BREAK_CURATED_TAG, DRUM_BREAK_TITLE_PHRASES } from "@/lib/drum-break-title-match"
+import {
+  DRUM_BREAK_CURATED_TAG,
+  DRUM_BREAK_TITLE_PHRASES,
+} from "@/lib/drum-break-title-match"
 import { YouTubeVideo } from "@/types/sample"
 import { fetchCanonicalYoutubeTitleIfGarbage } from "./youtube-sample-title"
 import { titleLooksLikeYoutubePlayerChrome } from "./youtube-title-garbage"
@@ -30,6 +33,27 @@ export async function ensureUsableYoutubeTitle(youtubeId: string, title: string)
 /** PostgreSQL regex: at least one character in Hiragana, Katakana, or CJK Unified Ideographs (common Kanji). Inlined in SQL to avoid parameter encoding issues. */
 const JAPANESE_TITLE_REGEX_LITERAL = "[ぁ-んァ-ン一-龥]"
 
+export type RandomSampleDbExtras = {
+  /** When true, general Dig may return `(Drum Break)` / `[DRUM BREAK]` uploads (e.g. empty-pool fallback). */
+  relaxExclusiveDrumBreakExclusion?: boolean
+}
+
+/**
+ * `(Drum Break)` / `[DRUM BREAK]` style titles — Pro drum-break toggle only; excluded from general Dig.
+ */
+function prismaWhereExcludeExclusiveDrumBreakTitle(): Prisma.SampleWhereInput {
+  return {
+    NOT: {
+      OR: [
+        { title: { contains: "(drum break)", mode: "insensitive" } },
+        { title: { contains: "[drum break]", mode: "insensitive" } },
+        { title: { contains: "(DRUM BREAK)", mode: "insensitive" } },
+        { title: { contains: "[DRUM BREAK]", mode: "insensitive" } },
+      ],
+    },
+  }
+}
+
 /**
  * Get a random sample when genre filter is "japanese": matches genre, tags containing "japanese",
  * or title/channel containing Japanese script (Hiragana, Katakana, Kanji). Uses raw SQL for regex.
@@ -38,7 +62,8 @@ async function getRandomSampleJapanese(
   excludeIds: string[],
   era?: string,
   drumBreakOnly?: boolean,
-  royaltyFreeOnly?: boolean
+  royaltyFreeOnly?: boolean,
+  extras?: RandomSampleDbExtras
 ): Promise<(YouTubeVideo & { genre?: string; era?: string; duration?: number; breakStartSeconds?: number }) | null> {
   const excludeCondition =
     excludeIds.length === 0
@@ -67,6 +92,13 @@ async function getRandomSampleJapanese(
           " OR "
         )})`
       : Prisma.empty
+  const excludeExclusiveDrumBreak =
+    !drumBreakOnly && extras?.relaxExclusiveDrumBreakExclusion !== true
+      ? Prisma.sql`AND NOT (
+          s.title ILIKE ${"%(drum break)%"} OR
+          s.title ILIKE ${"%[drum break]%"}
+        )`
+      : Prisma.empty
 
   type Row = {
     youtube_id: string
@@ -88,6 +120,7 @@ async function getRandomSampleJapanese(
       ${eraCondition}
       ${drumCondition}
       ${royaltyCondition}
+      ${excludeExclusiveDrumBreak}
     ORDER BY random()
     LIMIT 1
   `
@@ -143,6 +176,7 @@ const ROYALTY_FREE_TITLE_PHRASES = [
  * @param era - Optional era filter (e.g. "1960s", "1970s"); when set, only samples with this era are returned (ignored when royaltyFreeOnly)
  * @param drumBreakOnly - When true, only return samples whose title suggests drum-break content
  * @param royaltyFreeOnly - When true, only return samples whose title contains "royalty free" or "sample pack" etc.; disables era filter
+ * @param extras - `relaxExclusiveDrumBreakExclusion`: allow `(Drum Break)`-labeled uploads in general Dig (e.g. fallback when drum pool is empty)
  */
 export async function getRandomSampleFromDatabase(
   excludedVideoIds: string[] = [],
@@ -150,7 +184,8 @@ export async function getRandomSampleFromDatabase(
   genre?: string,
   drumBreakOnly?: boolean,
   era?: string,
-  royaltyFreeOnly?: boolean
+  royaltyFreeOnly?: boolean,
+  extras?: RandomSampleDbExtras
 ): Promise<(YouTubeVideo & { genre?: string; era?: string; duration?: number; breakStartSeconds?: number }) | null> {
   try {
     // Build exclusion list
@@ -177,7 +212,8 @@ export async function getRandomSampleFromDatabase(
           excludeIds,
           era?.trim() || undefined,
           drumBreakOnly,
-          royaltyFreeOnly
+          royaltyFreeOnly,
+          extras
         )
         if (jp) return jp
       } catch (err) {
@@ -203,6 +239,9 @@ export async function getRandomSampleFromDatabase(
       whereClause.era = { equals: era.trim() }
     }
     const andClauses: Prisma.SampleWhereInput[] = []
+    if (!drumBreakOnly && extras?.relaxExclusiveDrumBreakExclusion !== true) {
+      andClauses.push(prismaWhereExcludeExclusiveDrumBreakTitle())
+    }
     if (drumBreakOnly) {
       andClauses.push({
         OR: [
@@ -256,7 +295,7 @@ export async function getRandomSampleFromDatabase(
       console.error(`[DB] ERROR: Selected sample ${sample.youtubeId} is in excluded list! Retrying...`)
       console.error(`[DB] Excluded list:`, excludeIds.slice(0, 10).join(", "), excludeIds.length > 10 ? "..." : "")
       // Retry with same exclusions
-      return getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly, era, royaltyFreeOnly)
+      return getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly, era, royaltyFreeOnly, extras)
     }
     
     const resolvedTitle = await ensureUsableYoutubeTitle(sample.youtubeId, sample.title)

@@ -52,7 +52,6 @@ next-env.d.ts
 # populate resume state (local only)
 .populate-resume-state.json
 .populate-drum-breaks-500-state.json
-
 # daily backfill logs
 /logs
 

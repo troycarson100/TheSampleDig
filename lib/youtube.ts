@@ -771,7 +771,8 @@ async function getChannelReputation(youtubeChannelId: string, channelName: strin
 export function shouldHardFilter(
   title: string,
   channelTitle: string,
-  description?: string
+  description?: string,
+  opts?: { skipModernUploadYearReject?: boolean }
 ): boolean {
   const titleLower = title.toLowerCase()
   const channelLower = channelTitle.toLowerCase()
@@ -798,13 +799,16 @@ export function shouldHardFilter(
   }
 
   // Reject if song/content year is 2000+ (unless free sample pack etc.)
-  const allText = `${titleLower} ${descLower}`
-  const modernYearMatch = allText.match(/\b(20[0-2][0-9])\b/)
-  if (modernYearMatch) {
-    const keepPhrases = ["free sample pack", "sample pack", "royalty free", "royalty-free", "creative commons", "cc0", "public domain", "free to use", "no copyright"]
-    if (!keepPhrases.some((p) => allText.includes(p))) {
-      console.log(`[Hard Filter] REJECTED: ${title} - Modern year ${modernYearMatch[1]} in title/description`)
-      return true
+  // Drum-break ingest skips this: descriptions often cite upload/copyright years while the audio is vintage.
+  if (!opts?.skipModernUploadYearReject) {
+    const allText = `${titleLower} ${descLower}`
+    const modernYearMatch = allText.match(/\b(20[0-2][0-9])\b/)
+    if (modernYearMatch) {
+      const keepPhrases = ["free sample pack", "sample pack", "royalty free", "royalty-free", "creative commons", "cc0", "public domain", "free to use", "no copyright"]
+      if (!keepPhrases.some((p) => allText.includes(p))) {
+        console.log(`[Hard Filter] REJECTED: ${title} - Modern year ${modernYearMatch[1]} in title/description`)
+        return true
+      }
     }
   }
 
@@ -1599,21 +1603,262 @@ export async function processVideoItems(
  * Does not use cache. Used by populate to get more than the first page per query.
  * When options.verbose is true, includes pageStats for debugging filter bottlenecks.
  */
+type SearchMode = "default" | "acapella" | "drumBreakEra"
+
+interface SearchWithQueryPaginatedOptions {
+  verbose?: boolean
+  mode?: SearchMode
+}
+
+function getVideoIdFromSearchItem(item: any): string | null {
+  if (typeof item?.id?.videoId === "string" && item.id.videoId.length > 0) {
+    return item.id.videoId
+  }
+  if (typeof item?.id === "string" && item.id.length > 0) {
+    return item.id
+  }
+  return null
+}
+
+function processVideoItemsAcapellaOnly(
+  rawItems: any[],
+  excludedVideoIds: string[],
+  query: string
+): { results: any[]; hadCandidates: boolean } {
+  const excludedSet = excludedVideoIds.length > 0 ? new Set(excludedVideoIds) : null
+  const acapellaTitleRegex = /\ba\s*cappella\b|\bacapella\b|\bvocals?\s*only\b/i
+  const hardRejectRegex = /\blive\b|\bcover\b|\bkaraoke\b|\breaction\b|\btutorial\b|\bstem(s)?\b|\binstrumental\b/i
+  const queryTokens = query
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter((t) => t.length >= 3)
+    .filter((t) => !["acapella", "cappella", "vocals", "only"].includes(t))
+
+  const results: any[] = []
+  for (const item of rawItems) {
+    const videoId = getVideoIdFromSearchItem(item)
+    if (!videoId) continue
+    if (excludedSet?.has(videoId)) continue
+
+    const title = String(item?.snippet?.title ?? "")
+    const channelTitle = String(item?.snippet?.channelTitle ?? "")
+    const description = String(item?.snippet?.description ?? item?.description ?? "")
+    const titleLower = title.toLowerCase()
+    const titleAndChannel = `${titleLower} ${channelTitle.toLowerCase()}`
+    const text = `${titleLower} ${channelTitle.toLowerCase()} ${description.toLowerCase()}`
+
+    // Acapella mode requires explicit title signal so we do not ingest ambiguous uploads.
+    if (!acapellaTitleRegex.test(titleLower)) continue
+    if (hardRejectRegex.test(text)) continue
+    const overlappingTokens = queryTokens.filter((t) => titleAndChannel.includes(t))
+    if (overlappingTokens.length < 2) continue
+
+    results.push({
+      ...item,
+      id: { videoId },
+      details: {
+        duration: item?.duration ?? 0,
+        description,
+        tags: Array.isArray(item?.tags) ? item.tags : [],
+      },
+      duration: item?.duration ?? null,
+      description,
+      tags: Array.isArray(item?.tags) ? item.tags : [],
+    })
+  }
+
+  return { results, hadCandidates: results.length > 0 }
+}
+
+/** 4-digit years 1960–1989 in title or description (recording-era signal for drum-break ingest). */
+function hasRecordingYear1960to1989(title: string, description: string): boolean {
+  const text = `${title} ${description}`
+  const re = /\b(196[0-9]|197[0-9]|198[0-9])\b/g
+  let m: RegExpExecArray | null
+  while ((m = re.exec(text)) !== null) {
+    const y = Number.parseInt(m[1], 10)
+    if (y >= 1960 && y <= 1989) return true
+  }
+  return false
+}
+
+/** First 1960–1989 year in the search query (e.g. `"DRUM BREAK" soul 1972`). */
+function extract1960s80sYearFromQuery(q: string): number | undefined {
+  const m = q.match(/\b(196[0-9]|197[0-9]|198[0-9])\b/)
+  if (!m) return undefined
+  const y = Number.parseInt(m[1], 10)
+  return y >= 1960 && y <= 1989 ? y : undefined
+}
+
+function recordingEraOk(title: string, description: string, queryYear?: number): boolean {
+  if (hasRecordingYear1960to1989(title, description)) return true
+  if (queryYear !== undefined) return true
+  return false
+}
+
+/** "Drum break" in title or description (search results often omit it from the title until watch page). */
+function hasDrumBreakInText(title: string, description: string): boolean {
+  const t = `${title} ${description}`
+  return /\bdrum\s+break\b|\[drum\s+break\]/i.test(t)
+}
+
+/**
+ * Drum-break populate: must have drum break in title or description; era from metadata or query year;
+ * passes shouldHardFilter + duration 30s–70min. No vinyl-rip score. No YouTube Data API (watch-page scrape only).
+ */
+async function processVideoItemsDrumBreakEra(
+  rawItems: any[],
+  excludedVideoIds: string[],
+  searchQuery: string
+): Promise<{ results: any[]; hadCandidates: boolean }> {
+  const excludedSet = excludedVideoIds.length > 0 ? new Set(excludedVideoIds) : null
+  const queryYear = extract1960s80sYearFromQuery(searchQuery)
+
+  // Do not require "drum break" in the search snippet title — YouTube often returns related clips without
+  // the phrase in the title until we open the watch page.
+  const filtered = rawItems.filter((v: any) => {
+    const id = getVideoIdFromSearchItem(v)
+    if (!id) return false
+    if (excludedSet?.has(id)) return false
+    return true
+  })
+  filtered.sort((a: any, b: any) => {
+    const ta = String(a?.snippet?.title ?? "").toLowerCase()
+    const tb = String(b?.snippet?.title ?? "").toLowerCase()
+    const sa = ta.includes("drum") || ta.includes("break") ? 1 : 0
+    const sb = tb.includes("drum") || tb.includes("break") ? 1 : 0
+    return sb - sa
+  })
+  const candidateVideos = filtered.slice(0, 40)
+
+  if (candidateVideos.length === 0) {
+    return { results: [], hadCandidates: false }
+  }
+
+  const { scrapeYouTubeVideoDetails } = await import("./youtube-scraper")
+  const { chromium } = await import("playwright")
+
+  let playwrightBrowser: import("playwright").Browser | undefined
+  let watchPage: import("playwright").Page | undefined
+
+  const getPage = async (): Promise<import("playwright").Page> => {
+    if (!playwrightBrowser) {
+      playwrightBrowser = await chromium.launch({ headless: true, args: ["--no-sandbox"] })
+      const context = await playwrightBrowser.newContext({
+        userAgent:
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+        viewport: { width: 1280, height: 720 },
+      })
+      watchPage = await context.newPage()
+    }
+    return watchPage!
+  }
+
+  const results: any[] = []
+  try {
+    for (let i = 0; i < candidateVideos.length; i++) {
+      const video = candidateVideos[i]
+      const id = video.id.videoId as string
+      let title = String(video.snippet?.title ?? "")
+      const channelTitle = String(video.snippet?.channelTitle ?? "")
+      let desc = String(video.description ?? "")
+      let duration =
+        typeof video.duration === "number" && video.duration > 0 ? video.duration : undefined
+      let tags: string[] = Array.isArray(video.tags) ? video.tags : []
+
+      const eraOkPre = recordingEraOk(title, desc, queryYear)
+      const skipWatch =
+        eraOkPre &&
+        duration !== undefined &&
+        duration >= 30 &&
+        duration <= 4200
+
+      if (!skipWatch) {
+        try {
+          const p = await getPage()
+          const d = await scrapeYouTubeVideoDetails(id, { page: p, timeoutMs: 18_000 })
+          if (d.description !== undefined) desc = d.description
+          if (typeof d.duration === "number" && d.duration > 0) duration = d.duration
+          if (d.title) {
+            title = d.title
+            video.snippet.title = d.title
+          }
+          if (d.tags && d.tags.length) tags = d.tags
+        } catch {
+          // keep search-derived fields
+        }
+        if (i < candidateVideos.length - 1) {
+          await new Promise((r) => setTimeout(r, 400))
+        }
+      }
+
+      title = String(video.snippet?.title ?? "")
+      if (!hasDrumBreakInText(title, desc)) continue
+      if (shouldHardFilter(title, channelTitle, desc, { skipModernUploadYearReject: true })) continue
+      if (!recordingEraOk(title, desc, queryYear)) continue
+      if (duration === undefined || duration < 30 || duration > 4200) continue
+
+      const details = {
+        duration,
+        description: desc,
+        tags,
+      }
+      results.push({
+        ...video,
+        details,
+        duration,
+        description: desc,
+        tags,
+      })
+    }
+  } finally {
+    await playwrightBrowser?.close().catch(() => {})
+  }
+
+  return { results, hadCandidates: results.length > 0 }
+}
+
 export async function searchWithQueryPaginated(
   query: string,
   excludedVideoIds: string[],
   publishedBeforeDate: Date | undefined,
   pageToken?: string,
-  options?: { verbose?: boolean }
+  options?: SearchWithQueryPaginatedOptions
 ): Promise<{ results: any[]; nextPageToken?: string; hadCandidates: boolean; pageStats?: PageStats }> {
   const useCrawl4ai = process.env.USE_CRAWL4AI === "true"
   const useScraper = process.env.USE_YOUTUBE_SCRAPER === "true"
+  const searchMode = options?.mode ?? "default"
+
+  /** No Data API quota: Playwright search + optional watch-page scrape only. */
+  if (searchMode === "drumBreakEra") {
+    if (pageToken) {
+      console.log("[Search] drumBreakEra: pagination not supported (one scraper page per query)")
+      return { results: [], nextPageToken: undefined, hadCandidates: false }
+    }
+    const { scrapeYouTubeSearch } = await import("./youtube-scraper")
+    const { items } = await scrapeYouTubeSearch(query, {
+      timeoutMs: 25_000,
+      headless: true,
+      enrichDetailsForFirst: 0,
+    })
+    if (!items.length) {
+      return { results: [], nextPageToken: undefined, hadCandidates: false }
+    }
+    const out = await processVideoItemsDrumBreakEra(items, excludedVideoIds, query)
+    return { results: out.results, nextPageToken: undefined, hadCandidates: out.hadCandidates }
+  }
+
   if (!useCrawl4ai && !useScraper && !getFirstYouTubeApiKey()) {
     throw new Error("No YouTube API key set. Set YOUTUBE_API_KEY or YOUTUBE_API_KEYS in .env")
   }
   const { items, nextPageToken } = await fetchSearchPage(query, publishedBeforeDate, pageToken)
   if (!items.length) {
     return { results: [], nextPageToken, hadCandidates: false }
+  }
+  if (searchMode === "acapella") {
+    const out = processVideoItemsAcapellaOnly(items, excludedVideoIds, query)
+    return { results: out.results, nextPageToken, hadCandidates: out.hadCandidates }
   }
   if (useCrawl4ai || useScraper) {
     const out = processVideoItemsScraperOnly(items, excludedVideoIds)
@@ -1638,17 +1883,34 @@ export async function searchWithQueryPaginated(
 export async function findRandomSample(
   excludedVideoIds: string[] = [],
   userId?: string,
-  options?: { databaseOnly?: boolean; genre?: string; era?: string; drumBreakOnly?: boolean; royaltyFreeOnly?: boolean }
+  options?: {
+    databaseOnly?: boolean
+    genre?: string
+    era?: string
+    drumBreakOnly?: boolean
+    royaltyFreeOnly?: boolean
+    /** General Dig: allow `(Drum Break)`-labeled rows (e.g. empty drum-break pool fallback). */
+    relaxExclusiveDrumBreakExclusion?: boolean
+  }
 ): Promise<YouTubeVideo & { genre?: string; era?: string; duration?: number; breakStartSeconds?: number }> {
   const databaseOnly = options?.databaseOnly === true
   const genre = options?.genre?.trim() || undefined
   const era = options?.era?.trim() || undefined
   const drumBreakOnly = options?.drumBreakOnly === true
   const royaltyFreeOnly = options?.royaltyFreeOnly === true
+  const relaxExclusiveDrumBreakExclusion = options?.relaxExclusiveDrumBreakExclusion === true
 
   // STEP 1: Try database first (fastest, no API calls)
   console.log(`[Dig] Step 1: Checking database for pre-populated samples...`)
-  const dbSample = await getRandomSampleFromDatabase(excludedVideoIds, userId, genre, drumBreakOnly, era, royaltyFreeOnly)
+  const dbSample = await getRandomSampleFromDatabase(
+    excludedVideoIds,
+    userId,
+    genre,
+    drumBreakOnly,
+    era,
+    royaltyFreeOnly,
+    relaxExclusiveDrumBreakExclusion ? { relaxExclusiveDrumBreakExclusion: true } : undefined
+  )
   if (dbSample) {
     console.log(`[Dig] ✓ Found sample in database: ${dbSample.id}`)
     return dbSample

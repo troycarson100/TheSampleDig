@@ -16,7 +16,7 @@ export async function GET(request: Request) {
     // When Sample Packs mode: ignore era (sample packs mostly post-1990)
     const era = (samplePacks ? undefined : (eraParam && eraParam.trim() !== "") ? eraParam.trim() : undefined)
     const drumBreak = searchParams.get("drumBreak") === "1" || searchParams.get("drumBreak") === "true"
-    
+
     // Also exclude videos the user has saved (if logged in)
     // CRITICAL: Always fetch fresh saved videos on every request to ensure they're excluded
     try {
@@ -63,12 +63,23 @@ export async function GET(request: Request) {
     try {
       console.log(`[Dig] Calling findRandomSample with ${excludedVideoIds.length} exclusions${genre ? `, genre=${genre}` : ""}${era ? `, era=${era}` : ""}${drumBreak ? ", drumBreak=true" : ""}${samplePacks ? ", samplePacks=true" : ""}...`)
       try {
-        video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, era, drumBreakOnly: drumBreak, royaltyFreeOnly: samplePacks })
+        video = await findRandomSample(excludedVideoIds, userId, {
+          databaseOnly: true,
+          genre,
+          era,
+          drumBreakOnly: drumBreak,
+          royaltyFreeOnly: samplePacks,
+        })
       } catch (noFilterErr: any) {
         // When drum break or sample packs mode has no matches, fall back to any sample so digging isn't blocked
         if ((drumBreak || samplePacks) && /no samples|no results/i.test(noFilterErr?.message ?? "")) {
           console.log(`[Dig] No matching samples found (${samplePacks ? "sample packs" : "drum break"}), falling back to any sample`)
-          video = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, era: samplePacks ? undefined : era })
+          video = await findRandomSample(excludedVideoIds, userId, {
+            databaseOnly: true,
+            genre,
+            era: samplePacks ? undefined : era,
+            relaxExclusiveDrumBreakExclusion: true,
+          })
         } else {
           throw noFilterErr
         }
@@ -328,7 +339,13 @@ export async function GET(request: Request) {
       console.error(`[Dig] ERROR: Selected video ${video.id} is in excluded list! This should never happen.`)
       console.error(`[Dig] Excluded list contains:`, excludedVideoIds.slice(0, 10).join(", "), excludedVideoIds.length > 10 ? "..." : "")
       // This is a critical error - retry with same exclusions
-      const retryVideo = await findRandomSample(excludedVideoIds, userId, { databaseOnly: true, genre, era, royaltyFreeOnly: samplePacks })
+      const retryVideo = await findRandomSample(excludedVideoIds, userId, {
+        databaseOnly: true,
+        genre,
+        era,
+        drumBreakOnly: drumBreak,
+        royaltyFreeOnly: samplePacks,
+      })
       return NextResponse.json({
         id: retryVideo.id,
         youtubeId: retryVideo.id,

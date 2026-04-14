@@ -7,7 +7,7 @@ import { useRouter } from "next/navigation"
 import HeartToggle from "@/components/HeartToggle"
 import SiteNav from "@/components/SiteNav"
 import CrateFilterPanel from "@/components/CrateFilterPanel"
-import { sampleMatchesDrumBreakFilter } from "@/lib/drum-break-title-match"
+import { sampleMatchesDrumBreakFilter, titleIsExclusiveDrumBreakUpload } from "@/lib/drum-break-title-match"
 import { getPlaylists, pruneYoutubeFromAllPlaylists } from "@/lib/user-playlists"
 import type { UserPlaylist } from "@/lib/user-playlists"
 
@@ -147,6 +147,7 @@ export default function ProfilePage() {
       if (genreFilter != null && genreFilter !== "" && s.genre !== genreFilter) return false
       if (keyFilter != null && keyFilter !== "" && s.key !== keyFilter) return false
       if (s.bpm != null && (s.bpm < tempoMin || s.bpm > tempoMax)) return false
+      if (!drumBreakOnly && titleIsExclusiveDrumBreakUpload(s.title)) return false
       if (drumBreakOnly && !sampleMatchesDrumBreakFilter(s.title, s.tags)) return false
       return true
     })

@@ -1,0 +1,14 @@
+---
+description: How to ingest more drum-break (1960s–1980s) YouTube samples without API quota
+globs:
+alwaysApply: false
+---
+
+# Drum break era populate
+
+To add more drum-break videos to the DB (Playwright only, no YouTube Data API quota):
+
+- From repo root: `npm run populate:drum-break-era` (defaults to `--target=300`).
+- Overrides: `npm run populate:drum-break-era -- --target=50` or `--dry-run --target=5`.
+
+Implementation: [`scripts/populate-drum-break-era.ts`](scripts/populate-drum-break-era.ts) uses `searchWithQueryPaginated` with `mode: "drumBreakEra"` in [`lib/youtube.ts`](lib/youtube.ts).
