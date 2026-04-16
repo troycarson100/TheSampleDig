@@ -98,6 +98,19 @@
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
 }
 
+.goProCtaSublineStrike {
+  text-decoration: line-through;
+  text-decoration-color: rgba(248, 113, 113, 0.72);
+  text-decoration-thickness: 1px;
+  opacity: 0.42;
+  margin-right: 0.35em;
+}
+
+.goProCtaSublineEm {
+  font-weight: 600;
+  color: rgba(245, 240, 232, 0.88);
+}
+
 /* Stronger default icon contrast (prelaunch .featIcon is very faint until hover) */
 .goProFeatCard {
   position: relative;

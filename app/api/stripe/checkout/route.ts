@@ -3,8 +3,22 @@ import { auth } from "@/lib/auth"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db"
 
-export async function POST() {
+const ALLOWED_TRIAL_DAYS = new Set([7, 14])
+
+export async function POST(req: Request) {
   try {
+    let trialDays = 7
+    const ct = req.headers.get("content-type")
+    if (ct?.includes("application/json")) {
+      try {
+        const body = (await req.json()) as { trialDays?: unknown }
+        const n = typeof body?.trialDays === "number" ? body.trialDays : Number(body?.trialDays)
+        if (ALLOWED_TRIAL_DAYS.has(n)) trialDays = n
+      } catch {
+        /* empty or invalid JSON — default 7 */
+      }
+    }
+
     const session = await auth()
     if (!session?.user?.id || !session?.user?.email) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -55,7 +69,7 @@ export async function POST() {
       metadata: { userId: session.user.id },
       subscription_data: {
         metadata: { userId: session.user.id },
-        trial_period_days: 7,
+        trial_period_days: trialDays,
       },
     })
 

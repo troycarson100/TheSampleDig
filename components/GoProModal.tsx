@@ -6,6 +6,7 @@ import { useSession } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
 import ProOfferingContent from "@/components/pro/ProOfferingContent"
 import localStyles from "@/components/go-pro-modal.module.css"
+import { readBonus14OfferSeen } from "@/lib/pro-bonus-trial-seen"
 
 export default function GoProModal({ open, onClose }: { open: boolean; onClose: () => void }) {
   const { data: session, status } = useSession()
@@ -49,7 +50,12 @@ export default function GoProModal({ open, onClose }: { open: boolean; onClose: 
     }
     setLoading(true)
     try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" })
+      const extended = readBonus14OfferSeen()
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: extended ? { "Content-Type": "application/json" } : undefined,
+        body: extended ? JSON.stringify({ trialDays: 14 }) : undefined,
+      })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
         setError(typeof data?.error === "string" ? data.error : "Could not start checkout")

@@ -1,0 +1,157 @@
+/* Copper → amber frame (matches .support-btn / .pro-gradient-btn fill) */
+.gradientFrame {
+  padding: 2px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
+  box-shadow: 0 18px 55px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(0, 0, 0, 0.2);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.innerPanel {
+  border-radius: 12px;
+  background: var(--ink);
+  padding: clamp(1.1rem, 2.5vw, 1.45rem) clamp(1rem, 2.2vw, 1.35rem);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.sideTabGradient {
+  padding: 2px;
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(180deg, #d9a040 0%, #a6633c 100%);
+  box-shadow: 4px 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.sideTabInner {
+  border-radius: 0 8px 8px 0;
+  background: var(--ink);
+  padding: 8px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 104px;
+  width: 100%;
+}
+
+/* Centers chevron + vertical label; writing-mode can skew flex metrics without a stack */
+.sideTabStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: auto;
+  transform: translateY(-4px);
+}
+
+.sideTabLabel {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245, 240, 232, 0.92);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.sideTabChevron {
+  color: rgba(217, 160, 64, 0.95);
+  flex-shrink: 0;
+}
+
+.strikeWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  margin-bottom: 0.65rem;
+}
+
+.strikeOld {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: clamp(22px, 5vw, 30px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(240, 235, 225, 0.35);
+  text-decoration: line-through;
+  text-decoration-color: rgba(248, 113, 113, 0.75);
+  text-decoration-thickness: 2px;
+}
+
+.headline {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: clamp(13px, 2.8vw, 15px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: center;
+  color: rgba(245, 240, 232, 0.96);
+  line-height: 1.35;
+  margin: 0 0 0.5rem;
+}
+
+.subcopy {
+  margin: 0 0 1rem;
+  text-align: center;
+  font-size: 10px;
+  line-height: 1.55;
+  letter-spacing: 0.04em;
+  color: rgba(240, 235, 225, 0.48);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.laterBtn {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(240, 235, 225, 0.55);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  transition: color 0.2s ease;
+}
+
+.laterBtn:hover {
+  color: rgba(240, 235, 225, 0.85);
+}
+
+.closeBtn {
+  position: absolute;
+  right: 6px;
+  top: 6px;
+  z-index: 2;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  background: rgba(240, 235, 225, 0.06);
+  color: var(--cream);
+  transition: opacity 0.2s ease;
+}
+
+.closeBtn:hover {
+  opacity: 0.85;
+}
+
+.panelRel {
+  position: relative;
+}

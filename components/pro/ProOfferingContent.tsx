@@ -1,9 +1,11 @@
 "use client"
 
+import { useEffect, useState } from "react"
 import type { Session } from "next-auth"
 import plStyles from "@/app/prelaunch/prelaunch.module.css"
 import localStyles from "@/components/go-pro-modal.module.css"
 import { PRO_FEATURE_CARDS } from "@/components/pro/ProOfferingShared"
+import { BONUS_14_OFFER_SEEN_EVENT, readBonus14OfferSeen } from "@/lib/pro-bonus-trial-seen"
 
 export type ProOfferingContentProps = {
   session: Session | null
@@ -30,6 +32,14 @@ export default function ProOfferingContent({
   headingId = "go-pro-offering-title",
 }: ProOfferingContentProps) {
   const HeadingTag = headingTag
+  const [bonus14OfferSeen, setBonus14OfferSeen] = useState(false)
+
+  useEffect(() => {
+    setBonus14OfferSeen(readBonus14OfferSeen())
+    const onSeen = () => setBonus14OfferSeen(true)
+    window.addEventListener(BONUS_14_OFFER_SEEN_EVENT, onSeen)
+    return () => window.removeEventListener(BONUS_14_OFFER_SEEN_EVENT, onSeen)
+  }, [])
 
   return (
     <div className={localStyles.goProShell}>
@@ -80,7 +90,23 @@ export default function ProOfferingContent({
             >
               {loading ? loadingLabel : "TRY PRO FREE"}
             </button>
-            <p className={localStyles.goProCtaSubline}>Activate Pro 7 Day Trial. Then $5.99/month</p>
+            <p
+              className={localStyles.goProCtaSubline}
+              aria-label={
+                bonus14OfferSeen
+                  ? "Activate Pro 14 day trial. Then $5.99 per month."
+                  : "Activate Pro 7 day trial. Then $5.99 per month."
+              }
+            >
+              {bonus14OfferSeen ? (
+                <>
+                  Activate Pro <span className={localStyles.goProCtaSublineStrike}>7</span>{" "}
+                  <span className={localStyles.goProCtaSublineEm}>14</span> Day Trial. Then $5.99/month
+                </>
+              ) : (
+                <>Activate Pro 7 Day Trial. Then $5.99/month</>
+              )}
+            </p>
           </>
         )}
       </div>

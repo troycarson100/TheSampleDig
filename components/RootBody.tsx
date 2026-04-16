@@ -5,6 +5,7 @@ import SessionProvider from "@/components/SessionProvider"
 import ConditionalFooter from "@/components/ConditionalFooter"
 import { GoProModalProvider } from "@/components/GoProModalContext"
 import TryProCheckoutResume from "@/components/TryProCheckoutResume"
+import ProBonusTrialDock from "@/components/ProBonusTrialDock"
 
 export default function RootBody({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
@@ -21,6 +22,7 @@ export default function RootBody({ children }: { children: React.ReactNode }) {
     <SessionProvider>
       <GoProModalProvider>
         <TryProCheckoutResume />
+        <ProBonusTrialDock />
         <div className="flex flex-col min-h-screen">
           {children}
           <ConditionalFooter />
