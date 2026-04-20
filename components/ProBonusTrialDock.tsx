@@ -17,7 +17,7 @@ const STORAGE_LEGACY_DOCKED = "sampleroll_bonus14_docked_v1"
 /** Set in pagehide when modal was open — refresh counts as dismiss for next load */
 const SESSION_PAGEHID_MODAL = "sampleroll_bonus14_pagehid_modal_v1"
 
-const THRESHOLD_MS = 5 * 60 * 1000
+const THRESHOLD_MS = 1 * 60 * 1000
 const TICK_MS = 8000
 
 const Z_MODAL = 10057
@@ -75,7 +75,7 @@ function writeModalDismissed(dismissed: boolean) {
 type UiPhase = "idle" | "modal" | "docked"
 
 /**
- * Dig + My Crate only: ~5 min visible → first modal; closing the modal → left tab immediately.
+ * Dig + My Crate only: ~1 min visible → first modal; closing the modal → left tab immediately.
  */
 export default function ProBonusTrialDock() {
   const { data: session, status } = useSession()
