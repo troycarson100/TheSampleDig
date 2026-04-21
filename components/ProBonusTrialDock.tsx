@@ -253,7 +253,8 @@ export default function ProBonusTrialDock() {
   if (phase === "idle") return null
 
   const tab = (
-    <div className="fixed left-0 top-[36%] md:top-[40%]" style={{ zIndex: Z_TAB }}>
+    // w-max: fixed block defaults to 100vw wide — invisible strip was stealing clicks (e.g. save heart).
+    <div className="fixed left-0 top-[36%] md:top-[40%] w-max" style={{ zIndex: Z_TAB }}>
       <div className={styles.sideTabGradient}>
         <button
           type="button"
