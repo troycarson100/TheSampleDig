@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useRef } from "react"
-import { useSession } from "next-auth/react"
 import {
   ADSENSE_BLOG_IN_ARTICLE_SLOT,
   ADSENSE_CLIENT_ID,
@@ -9,17 +8,14 @@ import {
 } from "@/lib/adsense-blog"
 
 /**
- * Google AdSense in-article (fluid) — one slot shared across `/blog/[slug]` posts.
- * Hidden for Pro subscribers (parity with Dig ads).
+ * Google AdSense in-article (fluid) — one slot on public `/blog/[slug]` posts (all visitors;
+ * not gated by Pro so indexable content always appears alongside ads for policy review).
  */
 export function BlogAdSenseInArticle() {
-  const { data: session, status } = useSession()
   const pushedRef = useRef(false)
 
-  const isPro = session?.user?.isPro === true
   const slot = ADSENSE_BLOG_IN_ARTICLE_SLOT
-  const show =
-    BLOG_IN_ARTICLE_ADS_ENABLED && slot && !isPro && status !== "loading"
+  const show = BLOG_IN_ARTICLE_ADS_ENABLED && slot
 
   useEffect(() => {
     if (!show || pushedRef.current) return

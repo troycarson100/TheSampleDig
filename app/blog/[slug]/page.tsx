@@ -4,7 +4,8 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import SiteNav from "@/components/SiteNav"
 import BlogCardImage from "@/components/BlogCardImage"
-import { getPostBySlug, getAllSlugs } from "@/lib/blog-posts"
+import { getPostBySlug, getAllSlugs, getBlogInArticleAdInsertIndex } from "@/lib/blog-posts"
+import { BlogAdSenseInArticle } from "@/components/BlogAdSenseInArticle"
 
 const placeholderGradients = [
   "linear-gradient(135deg, #e07c4a 0%, #d4a574 100%)",
@@ -39,6 +40,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
   if (!post) notFound()
 
   const gradientIndex = getAllSlugs().indexOf(slug) % placeholderGradients.length
+  const inArticleAdAfterIndex = getBlogInArticleAdInsertIndex(post.content)
 
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
@@ -113,9 +115,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                     {"text" in block ? block.text : null}
                   </p>
                 )}
-                {/* Blog in-article AdSense — uncomment when ready (import BlogAdSenseInArticle + getBlogInArticleAdInsertIndex; const inArticleAdAfterIndex = getBlogInArticleAdInsertIndex(post.content))
                 {inArticleAdAfterIndex === i ? <BlogAdSenseInArticle /> : null}
-                */}
               </Fragment>
             ))}
           </div>

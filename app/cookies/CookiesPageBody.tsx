@@ -115,9 +115,10 @@ export default function CookiesPageBody() {
             .
           </p>
 
-          <h2 className="text-lg font-semibold mt-6 mb-2">4. Advertising (Google AdSense on Dig)</h2>
+          <h2 className="text-lg font-semibold mt-6 mb-2">4. Advertising (Google AdSense)</h2>
           <p className="mb-4">
-            On certain pages (for example, the Dig experience), we may load <strong>Google AdSense</strong> or similar
+            On certain pages (for example, the public blog and the Dig experience for users without an ad-free plan), we may
+            load <strong>Google AdSense</strong> or similar
             display advertising for users who are not on an ad-free plan. Google and its partners may use cookies and
             similar technologies to measure delivery, limit how often you see an ad, and personalize ads where permitted.
           </p>
