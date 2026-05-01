@@ -2,11 +2,12 @@
 export const ADSENSE_CLIENT_ID = "ca-pub-7744671172843728"
 
 /**
- * Dig ad units + script on `/dig` (non‑Pro). Default on; set `NEXT_PUBLIC_DIG_ADSENSE_ENABLED=false` to disable.
+ * Dig ad units + script on `/dig` (non‑Pro). Default **off** (blog-only AdSense); set
+ * `NEXT_PUBLIC_DIG_ADSENSE_ENABLED=true` to re-enable after policy approval or when intentional.
  */
 export const DIG_ADSENSE_UNITS_ENABLED = (() => {
   const v = process.env.NEXT_PUBLIC_DIG_ADSENSE_ENABLED
-  if (v == null) return true
+  if (v == null) return false
   return v.toLowerCase() === "true"
 })()
 
