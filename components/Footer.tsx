@@ -9,6 +9,22 @@ export default function Footer() {
     >
       <div className="max-w-6xl mx-auto flex flex-wrap items-center justify-center gap-x-4 gap-y-1">
         <Link
+          href="/blog"
+          className="hover:underline focus:underline focus:outline-none"
+          style={{ color: "var(--muted)" }}
+        >
+          Blog
+        </Link>
+        <span aria-hidden>·</span>
+        <Link
+          href="/about"
+          className="hover:underline focus:underline focus:outline-none"
+          style={{ color: "var(--muted)" }}
+        >
+          About
+        </Link>
+        <span aria-hidden>·</span>
+        <Link
           href="/privacy"
           className="hover:underline focus:underline focus:outline-none"
           style={{ color: "var(--muted)" }}

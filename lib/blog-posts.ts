@@ -1411,3 +1411,11 @@ export function getPostBySlug(slug: string): BlogPost | undefined {
 export function getAllSlugs(): string[] {
   return blogPosts.map((p) => p.slug)
 }
+
+/** Latest posts for the homepage teaser (server-rendered links for crawlers). */
+export function getFeaturedBlogPostsForHome(limit = 3): Pick<BlogPost, "slug" | "title" | "excerpt" | "date">[] {
+  return [...blogPosts]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    .slice(0, limit)
+    .map((p) => ({ slug: p.slug, title: p.title, excerpt: p.excerpt, date: p.date }))
+}

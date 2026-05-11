@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useEffect, useRef, type ReactNode } from "react"
 import Link from "next/link"
 import TryProOfferingBlock from "@/components/pro/TryProOfferingBlock"
 import styles from "./prelaunch.module.css"
@@ -228,7 +228,7 @@ function FinalCtaForm({ onSuccess }: { onSuccess: () => void }) {
   )
 }
 
-export default function PrelaunchContent() {
+export default function PrelaunchContent({ children }: { children?: ReactNode }) {
   const count = useSignupCount()
   const revealRef = useRef<HTMLDivElement>(null)
   const [mockupVideoError, setMockupVideoError] = useState(false)
@@ -421,6 +421,8 @@ export default function PrelaunchContent() {
         </div>
       </section>
 
+      {children}
+
       <footer className={styles.prelaunchFooter}>
         <div className={styles.fLogoWrap}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -436,6 +438,12 @@ export default function PrelaunchContent() {
           © {new Date().getFullYear()} Sample Roll · All rights reserved
         </div>
         <ul className={styles.fLinks}>
+          <li>
+            <Link href="/blog">Blog</Link>
+          </li>
+          <li>
+            <Link href="/about">About</Link>
+          </li>
           <li>
             <Link href="/privacy">Privacy Policy</Link>
           </li>

@@ -137,6 +137,12 @@ export default function SiteNav() {
               My Crate
             </button>
           )}
+          <Link href="/blog" className={`${navLinkBase} ${pathname?.startsWith("/blog") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname?.startsWith("/blog") ? "page" : undefined}>
+            Blog
+          </Link>
+          <Link href="/about" className={`${navLinkBase} ${isActive("/about") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/about" ? "page" : undefined}>
+            About
+          </Link>
         </div>
         {/* Right: alerts + settings + Try Pro + Sign out / Sign In (bell & gear on mobile too) */}
         <div className="flex items-center justify-end shrink-0 gap-0.5 sm:gap-2">
@@ -256,6 +262,24 @@ export default function SiteNav() {
                 My Crate
               </button>
             )}
+            <Link
+              href="/blog"
+              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname?.startsWith("/blog") ? navLinkActive : ""}`}
+              style={navLinkStyle}
+              onClick={closeMenu}
+              aria-current={pathname?.startsWith("/blog") ? "page" : undefined}
+            >
+              Blog
+            </Link>
+            <Link
+              href="/about"
+              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/about" ? navLinkActive : ""}`}
+              style={navLinkStyle}
+              onClick={closeMenu}
+              aria-current={pathname === "/about" ? "page" : undefined}
+            >
+              About
+            </Link>
           </div>
           {!hideTryProCta ? (
             <div className="mt-6 flex flex-col gap-3">

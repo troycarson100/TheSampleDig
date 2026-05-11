@@ -1,4 +1,5 @@
 import PrelaunchContent from "@/app/prelaunch/PrelaunchContent"
+import HomeBlogTeaser from "@/components/HomeBlogTeaser"
 
 export const metadata = {
   title: "Sample Roll — Crate Digging, Simplified",
@@ -6,5 +7,9 @@ export const metadata = {
 }
 
 export default function HomePage() {
-  return <PrelaunchContent />
+  return (
+    <PrelaunchContent>
+      <HomeBlogTeaser />
+    </PrelaunchContent>
+  )
 }
