@@ -266,6 +266,9 @@ export default function PrelaunchContent({ children }: { children?: ReactNode })
 
   return (
     <div ref={revealRef} className={styles.wrap}>
+      <Link href="/shft" className={styles.landingPlugins} aria-label="Plugins">
+        Plugins
+      </Link>
       <Link href="/login" className={styles.landingSignIn} aria-label="Sign in">
         Sign in
       </Link>

@@ -28,6 +28,41 @@
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
 }
 
+/* Homepage-only nav entry to the plugins (shft) landing page. Ghost pill,
+   top-left, to balance the solid white Sign-in pill on the right. */
+.landingPlugins {
+  position: fixed;
+  top: 24px;
+  left: 24px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-ibm-mono, "IBM Plex Mono", monospace);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  background: transparent;
+  color: #fff;
+  padding: 12px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 4px;
+  text-decoration: none;
+  transition: background 0.2s, border-color 0.2s;
+}
+.landingPlugins::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--rust, #c9933a);
+}
+.landingPlugins:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.6);
+}
+
 .reveal {
   opacity: 0;
   transform: translateY(28px);

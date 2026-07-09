@@ -143,6 +143,9 @@ export default function SiteNav() {
           <Link href="/about" className={`${navLinkBase} ${isActive("/about") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/about" ? "page" : undefined}>
             About
           </Link>
+          <Link href="/shft" className={`${navLinkBase} ${isActive("/shft") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/shft" ? "page" : undefined}>
+            Plugins
+          </Link>
         </div>
         {/* Right: alerts + settings + Try Pro + Sign out / Sign In (bell & gear on mobile too) */}
         <div className="flex items-center justify-end shrink-0 gap-0.5 sm:gap-2">
@@ -279,6 +282,15 @@ export default function SiteNav() {
               aria-current={pathname === "/about" ? "page" : undefined}
             >
               About
+            </Link>
+            <Link
+              href="/shft"
+              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/shft" ? navLinkActive : ""}`}
+              style={navLinkStyle}
+              onClick={closeMenu}
+              aria-current={pathname === "/shft" ? "page" : undefined}
+            >
+              Plugins
             </Link>
           </div>
           {!hideTryProCta ? (
