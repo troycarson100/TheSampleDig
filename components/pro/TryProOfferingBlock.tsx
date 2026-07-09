@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useSession } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
-import ProOfferingContent from "@/components/pro/ProOfferingContent"
+import ProOfferingContent, { type ProPlan } from "@/components/pro/ProOfferingContent"
 import { readBonus14OfferSeen } from "@/lib/pro-bonus-trial-seen"
 
 export type TryProOfferingBlockProps = {
@@ -21,11 +21,11 @@ export default function TryProOfferingBlock({
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
 
-  const handleSubscribe = async () => {
+  const handleSubscribe = async (plan: ProPlan) => {
     if (!session?.user?.id) {
       const base = pathname && pathname.startsWith("/") ? pathname : "/pro"
       const join = base.includes("?") ? "&" : "?"
-      const next = `${base}${join}tryPro=1`
+      const next = `${base}${join}tryPro=1&proPlan=${plan}`
       router.push(`/login?callbackUrl=${encodeURIComponent(next)}`)
       return
     }
@@ -35,8 +35,8 @@ export default function TryProOfferingBlock({
       const extended = readBonus14OfferSeen()
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
-        headers: extended ? { "Content-Type": "application/json" } : undefined,
-        body: extended ? JSON.stringify({ trialDays: 14 }) : undefined,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(extended ? { trialDays: 14, plan } : { plan }),
       })
       const data = await res.json()
       if (!res.ok) {

@@ -7,12 +7,14 @@ import localStyles from "@/components/go-pro-modal.module.css"
 import { PRO_FEATURE_CARDS } from "@/components/pro/ProOfferingShared"
 import { BONUS_14_OFFER_SEEN_EVENT, readBonus14OfferSeen } from "@/lib/pro-bonus-trial-seen"
 
+export type ProPlan = "monthly" | "yearly"
+
 export type ProOfferingContentProps = {
   session: Session | null
   status: "loading" | "authenticated" | "unauthenticated"
   loading: boolean
   error: string
-  onCtaClick: () => void | Promise<void>
+  onCtaClick: (plan: ProPlan) => void | Promise<void>
   /** Shown while checkout / navigation is in progress */
   loadingLabel?: string
   /** Primary heading level for SEO on /pro vs modal */
@@ -33,6 +35,7 @@ export default function ProOfferingContent({
 }: ProOfferingContentProps) {
   const HeadingTag = headingTag
   const [bonus14OfferSeen, setBonus14OfferSeen] = useState(false)
+  const [plan, setPlan] = useState<ProPlan>("yearly")
 
   useEffect(() => {
     setBonus14OfferSeen(readBonus14OfferSeen())
@@ -82,9 +85,32 @@ export default function ProOfferingContent({
                 {error}
               </p>
             ) : null}
+            <div className={localStyles.goProPlanRow} role="radiogroup" aria-label="Billing plan">
+              <button
+                type="button"
+                role="radio"
+                aria-checked={plan === "yearly"}
+                className={`${localStyles.goProPlanBtn} ${plan === "yearly" ? localStyles.goProPlanBtnActive : ""}`}
+                onClick={() => setPlan("yearly")}
+              >
+                <span className={localStyles.goProPlanName}>Yearly</span>
+                <span className={localStyles.goProPlanPrice}>$49.99/yr</span>
+                <span className={localStyles.goProPlanSave}>Save 30%</span>
+              </button>
+              <button
+                type="button"
+                role="radio"
+                aria-checked={plan === "monthly"}
+                className={`${localStyles.goProPlanBtn} ${plan === "monthly" ? localStyles.goProPlanBtnActive : ""}`}
+                onClick={() => setPlan("monthly")}
+              >
+                <span className={localStyles.goProPlanName}>Monthly</span>
+                <span className={localStyles.goProPlanPrice}>$5.99/mo</span>
+              </button>
+            </div>
             <button
               type="button"
-              onClick={() => void onCtaClick()}
+              onClick={() => void onCtaClick(plan)}
               disabled={loading || status === "loading"}
               className="pro-gradient-btn pro-gradient-btn--block pro-gradient-btn--rounded w-full max-w-md font-semibold disabled:opacity-50 disabled:cursor-not-allowed text-sm py-2.5"
             >
@@ -92,20 +118,19 @@ export default function ProOfferingContent({
             </button>
             <p
               className={localStyles.goProCtaSubline}
-              aria-label={
-                bonus14OfferSeen
-                  ? "Activate Pro 14 day trial. Then $5.99 per month."
-                  : "Activate Pro 7 day trial. Then $5.99 per month."
-              }
+              aria-label={`Activate Pro ${bonus14OfferSeen ? 14 : 7} day trial. Then ${
+                plan === "yearly" ? "$49.99 per year, about $4.17 per month." : "$5.99 per month."
+              }`}
             >
               {bonus14OfferSeen ? (
                 <>
                   Activate Pro <span className={localStyles.goProCtaSublineStrike}>7</span>{" "}
-                  <span className={localStyles.goProCtaSublineEm}>14</span> Day Trial. Then $5.99/month
+                  <span className={localStyles.goProCtaSublineEm}>14</span> Day Trial. Then{" "}
                 </>
               ) : (
-                <>Activate Pro 7 Day Trial. Then $5.99/month</>
+                <>Activate Pro 7 Day Trial. Then </>
               )}
+              {plan === "yearly" ? <>$49.99/year (~$4.17/mo)</> : <>$5.99/month</>}
             </p>
           </>
         )}

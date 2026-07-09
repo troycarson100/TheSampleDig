@@ -85,6 +85,7 @@ export default function ProBonusTrialDock() {
   const [phase, setPhase] = useState<UiPhase>("idle")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [plan, setPlan] = useState<"monthly" | "yearly">("yearly")
   const lastTickRef = useRef<number>(0)
   const preModalTriggeredRef = useRef(false)
   const tabTriggeredRef = useRef(false)
@@ -216,7 +217,7 @@ export default function ProBonusTrialDock() {
     if (status !== "authenticated" || !session?.user?.id) {
       const base = pathname || "/dig"
       const join = base.includes("?") ? "&" : "?"
-      const next = `${base}${join}tryPro14=1`
+      const next = `${base}${join}tryPro14=1&proPlan=${plan}`
       writeModalDismissed(true)
       tabTriggeredRef.current = true
       setPhase("idle")
@@ -230,7 +231,7 @@ export default function ProBonusTrialDock() {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ trialDays: 14 }),
+        body: JSON.stringify({ trialDays: 14, plan }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {
@@ -307,7 +308,34 @@ export default function ProBonusTrialDock() {
           <h2 id="bonus-14-pro-title" className={styles.headline}>
             Get 14 days of Pro on the house
           </h2>
-          <p className={styles.subcopy}>Activate Pro 14 Day Trial. Then $5.99/month</p>
+          <p className={styles.subcopy}>
+            Activate Pro 14 Day Trial. Then{" "}
+            {plan === "yearly" ? "$49.99/year (~$4.17/mo)" : "$5.99/month"}
+          </p>
+
+          <div className={styles.planRow} role="radiogroup" aria-label="Billing plan">
+            <button
+              type="button"
+              role="radio"
+              aria-checked={plan === "yearly"}
+              className={`${styles.planBtn} ${plan === "yearly" ? styles.planBtnActive : ""}`}
+              onClick={() => setPlan("yearly")}
+            >
+              <span className={styles.planName}>Yearly</span>
+              <span className={styles.planPrice}>$49.99/yr</span>
+              <span className={styles.planSave}>Save 30%</span>
+            </button>
+            <button
+              type="button"
+              role="radio"
+              aria-checked={plan === "monthly"}
+              className={`${styles.planBtn} ${plan === "monthly" ? styles.planBtnActive : ""}`}
+              onClick={() => setPlan("monthly")}
+            >
+              <span className={styles.planName}>Monthly</span>
+              <span className={styles.planPrice}>$5.99/mo</span>
+            </button>
+          </div>
 
           {error ? (
             <p className="text-sm w-full text-center mb-2" style={{ color: "#f87171", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>

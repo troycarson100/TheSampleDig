@@ -8,12 +8,14 @@ const ALLOWED_TRIAL_DAYS = new Set([7, 14])
 export async function POST(req: Request) {
   try {
     let trialDays = 7
+    let plan: "monthly" | "yearly" = "monthly"
     const ct = req.headers.get("content-type")
     if (ct?.includes("application/json")) {
       try {
-        const body = (await req.json()) as { trialDays?: unknown }
+        const body = (await req.json()) as { trialDays?: unknown; plan?: unknown }
         const n = typeof body?.trialDays === "number" ? body.trialDays : Number(body?.trialDays)
         if (ALLOWED_TRIAL_DAYS.has(n)) trialDays = n
+        if (body?.plan === "yearly") plan = "yearly"
       } catch {
         /* empty or invalid JSON — default 7 */
       }
@@ -25,10 +27,14 @@ export async function POST(req: Request) {
     }
 
     const secret = process.env.STRIPE_SECRET_KEY
-    const priceId = process.env.STRIPE_PRICE_ID
+    const priceId = plan === "yearly" ? process.env.STRIPE_PRICE_ID_YEARLY : process.env.STRIPE_PRICE_ID
     if (!secret || !priceId) {
       return NextResponse.json(
-        { error: "Stripe is not configured. Set STRIPE_SECRET_KEY and STRIPE_PRICE_ID." },
+        {
+          error: `Stripe is not configured. Set STRIPE_SECRET_KEY and ${
+            plan === "yearly" ? "STRIPE_PRICE_ID_YEARLY" : "STRIPE_PRICE_ID"
+          }.`,
+        },
         { status: 500 }
       )
     }
