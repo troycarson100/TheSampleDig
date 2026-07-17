@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { createPortal } from "react-dom"
 import { useSession } from "next-auth/react"
 import { usePathname, useRouter } from "next/navigation"
-import ProOfferingContent from "@/components/pro/ProOfferingContent"
+import ProOfferingContent, { type ProPlan } from "@/components/pro/ProOfferingContent"
 import localStyles from "@/components/go-pro-modal.module.css"
 import { readBonus14OfferSeen } from "@/lib/pro-bonus-trial-seen"
 
@@ -34,7 +34,7 @@ export default function GoProModal({ open, onClose }: { open: boolean; onClose: 
     }
   }, [open])
 
-  const handleCta = async () => {
+  const handleCta = async (plan: ProPlan) => {
     setError("")
     if (session?.user?.isPro) {
       onClose()
@@ -43,7 +43,7 @@ export default function GoProModal({ open, onClose }: { open: boolean; onClose: 
     if (status !== "authenticated" || !session?.user?.id) {
       const base = pathname || "/dig"
       const join = base.includes("?") ? "&" : "?"
-      const next = `${base}${join}tryPro=1`
+      const next = `${base}${join}tryPro=1&proPlan=${plan}`
       router.push(`/login?callbackUrl=${encodeURIComponent(next)}`)
       onClose()
       return
@@ -53,8 +53,8 @@ export default function GoProModal({ open, onClose }: { open: boolean; onClose: 
       const extended = readBonus14OfferSeen()
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
-        headers: extended ? { "Content-Type": "application/json" } : undefined,
-        body: extended ? JSON.stringify({ trialDays: 14 }) : undefined,
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(extended ? { trialDays: 14, plan } : { plan }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) {

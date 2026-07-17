@@ -21,6 +21,7 @@ export default function TryProCheckoutResume() {
 
     const params = new URLSearchParams(window.location.search)
     const try14 = params.get("tryPro14") === "1"
+    const plan = params.get("proPlan") === "yearly" ? "yearly" : "monthly"
     if (params.get("tryPro") !== "1" && !try14) return
 
     if (status === "unauthenticated") {
@@ -32,6 +33,7 @@ export default function TryProCheckoutResume() {
     if (session?.user?.isPro === true) {
       params.delete("tryPro")
       params.delete("tryPro14")
+      params.delete("proPlan")
       const next = pathname + (params.toString() ? `?${params.toString()}` : "")
       window.history.replaceState(null, "", next)
       router.replace(next, { scroll: false })
@@ -41,6 +43,7 @@ export default function TryProCheckoutResume() {
     // Strip flags immediately so React Strict Mode / re-renders don’t start checkout twice
     params.delete("tryPro")
     params.delete("tryPro14")
+    params.delete("proPlan")
     const clean = pathname + (params.toString() ? `?${params.toString()}` : "")
     window.history.replaceState(null, "", clean)
     router.replace(clean, { scroll: false })
@@ -51,8 +54,8 @@ export default function TryProCheckoutResume() {
         const extended = try14 || readBonus14OfferSeen()
         const res = await fetch("/api/stripe/checkout", {
           method: "POST",
-          headers: extended ? { "Content-Type": "application/json" } : undefined,
-          body: extended ? JSON.stringify({ trialDays: 14 }) : undefined,
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(extended ? { trialDays: 14, plan } : { plan }),
         })
         const data = await res.json().catch(() => ({}))
         if (cancelled) return

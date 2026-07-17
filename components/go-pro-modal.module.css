@@ -85,6 +85,70 @@
   padding-bottom: 0.15rem;
 }
 
+.goProPlanRow {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+  max-width: 28rem;
+  margin: 0.35rem auto 0.5rem;
+}
+
+.goProPlanBtn {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 10px 8px 9px;
+  border-radius: 10px;
+  border: 1px solid rgba(240, 235, 225, 0.14);
+  background: rgba(240, 235, 225, 0.04);
+  color: rgba(240, 235, 225, 0.6);
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+}
+
+.goProPlanBtn:hover {
+  border-color: rgba(201, 147, 58, 0.4);
+}
+
+.goProPlanBtnActive {
+  border-color: rgba(201, 147, 58, 0.75);
+  background: rgba(184, 92, 56, 0.16);
+  color: rgba(245, 240, 232, 0.95);
+  box-shadow: 0 0 18px rgba(184, 92, 56, 0.18);
+}
+
+.goProPlanName {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+}
+
+.goProPlanPrice {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.goProPlanSave {
+  position: absolute;
+  top: -8px;
+  right: 8px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--rust);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(184, 92, 56, 0.4);
+}
+
 .goProCtaSubline {
   margin-top: 0.65rem;
   margin-bottom: 0;
