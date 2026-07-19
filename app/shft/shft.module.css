@@ -29,6 +29,12 @@
 }
 
 /* ---- Shared pills ------------------------------------------------------- */
+/* These are used on both <button> and (when owned) <a>; keep anchors clean. */
+.pillDark,
+.pillLight,
+.stickyBtn {
+  text-decoration: none;
+}
 .pillDark {
   display: inline-flex;
   align-items: center;
@@ -103,10 +109,38 @@
 .bannerSuccess {
   background: rgba(155, 139, 118, 0.16);
   color: var(--ink);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 12px;
+}
+.bannerNote {
+  font-weight: 400;
+  opacity: 0.8;
+}
+.bannerLink {
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
 }
 .bannerInfo {
   background: var(--paper-2);
   color: var(--ink-2);
+}
+.bannerDownload {
+  display: inline-block;
+  margin: 0 2px;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--paper);
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.15s ease;
+}
+.bannerDownload:hover {
+  opacity: 0.85;
 }
 
 /* ---- Sticky buy bar ----------------------------------------------------- */
@@ -240,6 +274,14 @@
   color: rgba(244, 239, 228, 0.9);
   margin: 14px 0 0;
   font-weight: 400;
+}
+.heroSoon {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 228, 0.58);
 }
 .heroCtaRow {
   display: flex;

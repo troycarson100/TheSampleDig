@@ -55,7 +55,18 @@ function IconGear({ className }: { className?: string }) {
   )
 }
 
+function IconDownloadBox({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+      <path d="M7 10l5 5 5-5" />
+      <path d="M12 15V3" />
+    </svg>
+  )
+}
+
 export const SITE_SETTINGS_MENU_ITEMS = [
+  { href: "/products", label: "My Products", Icon: IconDownloadBox },
   { href: "/privacy", label: "Privacy Policy", Icon: IconShieldCheck },
   { href: "/cookies", label: "Cookie Policy", Icon: IconCookie },
   { href: "/terms", label: "Terms of Service", Icon: IconDocument },

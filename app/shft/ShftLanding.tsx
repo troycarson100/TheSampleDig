@@ -27,18 +27,24 @@ function IconSwing() {
     </svg>
   )
 }
-function IconWow() {
+function IconGrain() {
   return (
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M2 12c2 0 2-5 4-5s2 10 4 10 2-10 4-10 2 5 4 5" />
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor" stroke="none" aria-hidden>
+      <circle cx="6" cy="7" r="1.15" />
+      <circle cx="11.5" cy="5.5" r="1.15" />
+      <circle cx="17" cy="8" r="1.15" />
+      <circle cx="8" cy="12" r="1.15" />
+      <circle cx="13.5" cy="11.5" r="1.15" />
+      <circle cx="18.5" cy="14.5" r="1.15" />
+      <circle cx="6.5" cy="17" r="1.15" />
+      <circle cx="12" cy="18" r="1.15" />
     </svg>
   )
 }
-function IconClock() {
+function IconChaos() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <circle cx="12" cy="12" r="9" />
-      <path d="M12 7v5l3 2" />
+      <path d="M13 3l-8 11h5l-1 7 8-11h-5z" />
     </svg>
   )
 }
@@ -58,8 +64,8 @@ const CAPS: { icon: ReactNode; title: string; desc: string }[] = [
   { icon: <IconFilter />, title: "Resonant filter", desc: "A multimode LP / BP / HP filter opens on every hit and can self-oscillate — plucky, vocal, alive." },
   { icon: <IconGrit />, title: "Grit & drive", desc: "Push resonance into saturation for anything from a gentle warmth to a snarling, broken edge." },
   { icon: <IconSwing />, title: "Swing & feel", desc: "Straight, triplet, or dotted — then push the pocket with swing for a human groove." },
-  { icon: <IconWow />, title: "Wow / flutter", desc: "Optional tape wobble smears pitch and time just enough to make the whole thing breathe." },
-  { icon: <IconClock />, title: "Phase-locked", desc: "The clock is derived per-sample from your host, so the gate never drifts on loops or jumps." },
+  { icon: <IconGrain />, title: "Granular", desc: "Freeze a step into a granular cloud — pitch, scatter and grain size reshape one slice into shimmering texture or a wall of grit." },
+  { icon: <IconChaos />, title: "Chaos", desc: "One knob of generative glitch that re-rolls every step, so fills, stutters and drop-outs never land the same way twice." },
   { icon: <IconDice />, title: "Snapshots & random", desc: "Eight instant snapshots and a one-click randomizer for happy accidents on demand." },
 ]
 
@@ -68,8 +74,8 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
     title: "Sixteen steps, endless feel",
     desc: "A host-locked step grid chops your audio in time. Each step is its own little shape — not just a dot — so you sculpt rhythm and dynamics in a single move. Click to toggle, drag to morph, drag sideways to ratchet.",
     img: "/shft/steps.png",
-    video: "/shft/steps-v2.mp4",
-    poster: "/shft/steps-poster.jpg",
+    video: "/shft/steps-v3.mp4",
+    poster: "/shft/steps-v3-poster.jpg",
     alt: "shft 16-step strip with per-step shapes",
   },
   {
@@ -79,23 +85,29 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
     alt: "shft morphable gate shape display",
   },
   {
-    title: "A finishing chain, built in",
-    desc: "Straight after the gate: a gated plate reverb with pitch-shift shimmer, a tempo-synced ping-pong delay, a compressor, and heat saturation. Everything you need to print the sound without leaving the plugin.",
-    img: "/shft/fx.png",
-    alt: "shft FX page — reverb, delay, compressor, heat",
+    title: "Chop, reverse, granulate",
+    desc: "Arm any step's repeat bar and it stutters in place — blue for tight forward rolls, red for reverse backspin fills, green for a granular cloud that smears the grain into texture. Dial pitch, scatter and grain size across the board, then add chaos for glitches that never land the same way twice.",
+    img: "/shft/sc2.png",
+    alt: "shft sequencer with colour-coded beat-repeat, reverse and granular steps",
   },
   {
-    title: "Always in motion",
-    desc: "Route four tempo-synced LFOs to any knob and let the patch evolve on its own — no automation lanes, no tedium. Mod rings on every control show exactly what's moving, live.",
+    title: "A finishing chain, built in",
+    desc: "Straight after the gate: a gated plate reverb with pitch-shift shimmer, a tempo-synced ping-pong delay that flips into a frequency-shifter echo, a compressor that swaps to 3-band OTT-style multiband, and heat saturation with ten drive models. Everything you need to print the sound without leaving the plugin.",
+    img: "/shft/fxpage.png",
+    alt: "shft FX page — OTT multiband comp, heat, frequency-shifter echo, gated reverb",
+  },
+  {
+    title: "Modulation, in lanes",
+    desc: "Four tempo-synced LFOs feed a lane-based mod matrix that routes any source to almost anything — filter, FX, pitch, auto-pan, chaos, even one LFO bending another's rate. Mod rings on every knob show exactly what's moving, live, so the patch evolves on its own.",
     img: "/shft/lfo.png",
-    alt: "shft LFO page — four modulators",
+    alt: "shft LFO page and modulation lanes with live mod rings",
   },
 ]
 
 const FAQS: { q: string; a: string }[] = [
   {
     q: "What is shft?",
-    a: "shft is a tempo-synced rhythmic gate — a trance-gate. A 16-step sequencer chops your incoming audio and fires a morphable per-step shape that drives a gate and a resonant filter, turning pads, chords, vocals or drums into a moving, rhythmic part.",
+    a: "shft is a tempo-synced rhythmic gate — a trance-gate — grown into a full gated multi-FX. A 16-step sequencer chops your audio with a morphable per-step shape, resonant filter and per-step beat-repeat (forward, reverse or granular). Then a built-in chain — gated reverb, frequency-shifter echo, OTT multiband and heat — plus a lane-based mod matrix turn pads, chords, vocals or drums into a moving, evolving part.",
   },
   {
     q: "Which formats does it come in, and will it work in my DAW?",
@@ -111,27 +123,47 @@ const FAQS: { q: string; a: string }[] = [
   },
 ]
 
-async function startCheckout(): Promise<string | null> {
+async function startCheckout(): Promise<{ url: string | null; needsAuth: boolean; alreadyOwned: boolean }> {
   try {
     const res = await fetch("/api/shft/checkout", { method: "POST" })
+    if (res.status === 401) return { url: null, needsAuth: true, alreadyOwned: false }
+    if (res.status === 409) return { url: null, needsAuth: false, alreadyOwned: true }
     const data = await res.json().catch(() => ({}))
-    if (res.ok && typeof data?.url === "string") return data.url
+    if (res.ok && typeof data?.url === "string") return { url: data.url, needsAuth: false, alreadyOwned: false }
   } catch {
-    /* fall through to null */
+    /* fall through */
   }
-  return null
+  return { url: null, needsAuth: false, alreadyOwned: false }
 }
 
 /** Buy Now button — shows the struck price inline. Kicks off Stripe checkout;
-    falls back to "Opens at launch" until STRIPE_SHFT_PRICE_ID is configured. */
-function BuyButton({ className }: { className: string }) {
+    sends logged-out users to sign in first, owners to their downloads, and falls
+    back to "Opens at launch" until STRIPE_SHFT_PRICE_ID is configured. */
+function BuyButton({ className, owned }: { className: string; owned: boolean }) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
+
+  // Already owns it → this is a download link, not a purchase.
+  if (owned) {
+    return (
+      <a className={className} href="/products">
+        You own shft — Download
+      </a>
+    )
+  }
 
   const buy = async () => {
     setBusy(true)
     setFailed(false)
-    const url = await startCheckout()
+    const { url, needsAuth, alreadyOwned } = await startCheckout()
+    if (needsAuth) {
+      window.location.href = `/login?callbackUrl=${encodeURIComponent("/shft")}`
+      return
+    }
+    if (alreadyOwned) {
+      window.location.href = "/products"
+      return
+    }
     if (url) {
       window.location.href = url
       return
@@ -156,23 +188,39 @@ function BuyButton({ className }: { className: string }) {
 }
 
 function PurchaseBanner() {
-  const [state, setState] = useState<"none" | "success" | "canceled">("none")
+  const [canceled, setCanceled] = useState(false)
+
   useEffect(() => {
-    const p = new URLSearchParams(window.location.search).get("purchase")
-    if (p === "success") setState("success")
-    else if (p === "canceled") setState("canceled")
+    const params = new URLSearchParams(window.location.search)
+    const p = params.get("purchase")
+    if (p === "canceled") {
+      setCanceled(true)
+      return
+    }
+    if (p !== "success") return
+
+    // On success, record the purchase (self-heals if the webhook is delayed),
+    // then send them to My Products — no banner to fight the fixed nav.
+    // replace() so the back button doesn't return to the success URL.
+    const sessionId = params.get("session_id")
+    if (!sessionId) {
+      window.location.replace("/products")
+      return
+    }
+    fetch("/api/shft/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ sessionId }),
+    }).finally(() => {
+      window.location.replace("/products")
+    })
   }, [])
-  if (state === "none") return null
-  return (
-    <div className={state === "success" ? styles.bannerSuccess : styles.bannerInfo}>
-      {state === "success"
-        ? "Payment complete — we'll email your download link and license shortly."
-        : "Checkout canceled — no charge was made. Grab shft whenever you're ready."}
-    </div>
-  )
+
+  if (!canceled) return null
+  return <div className={styles.bannerInfo}>Checkout canceled — no charge was made. Grab shft whenever you&apos;re ready.</div>
 }
 
-function StickyBar() {
+function StickyBar({ owned }: { owned: boolean }) {
   const [show, setShow] = useState(false)
   useEffect(() => {
     const sentinel = document.getElementById("shft-hero-sentinel")
@@ -188,7 +236,7 @@ function StickyBar() {
         <span className={styles.stickyName}>shft</span>
         <span className={styles.stickyMeta}>Trance-gate plugin</span>
         <span className={styles.stickySpacer} />
-        <BuyButton className={styles.stickyBtn} />
+        <BuyButton className={styles.stickyBtn} owned={owned} />
       </div>
     </div>
   )
@@ -212,16 +260,26 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 }
 
 export default function ShftLanding() {
+  const [owned, setOwned] = useState(false)
+  useEffect(() => {
+    fetch("/api/shft/ownership")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.owned) setOwned(true)
+      })
+      .catch(() => {})
+  }, [])
+
   return (
     <>
       <PurchaseBanner />
-      <StickyBar />
+      <StickyBar owned={owned} />
 
       {/* ---- Hero: full-bleed looping video + name + CTA ------------------ */}
       <section className={styles.hero}>
         <video
           className={styles.heroMediaLayer}
-          poster="/shft/hero-poster.jpg"
+          poster="/shft/hero-v2-poster.jpg"
           autoPlay
           muted
           loop
@@ -229,7 +287,7 @@ export default function ShftLanding() {
           preload="metadata"
           aria-hidden
         >
-          <source src="/shft/hero.mp4" type="video/mp4" />
+          <source src="/shft/hero-v2.mp4" type="video/mp4" />
         </video>
         <div className={styles.heroScrim} />
         <div className={styles.heroContent}>
@@ -237,10 +295,13 @@ export default function ShftLanding() {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img className={styles.heroLogo} src="/shft/shft-logo.png" alt="shft" />
           </h1>
-          <p className={styles.heroSubtitle}>Gated Multi-FX</p>
+          <p className={styles.heroSubtitle}>
+            Gated Multi-FX
+          </p>
           <div className={styles.heroCtaRow}>
-            <BuyButton className={styles.pillLight} />
+            <BuyButton className={styles.pillLight} owned={owned} />
             <p className={styles.heroPrice}>One-time purchase · macOS Only · VST3 / AU / Standalone</p>
+            <span className={styles.heroSoon}>Coming soon to Windows</span>
           </div>
         </div>
       </section>
@@ -251,10 +312,10 @@ export default function ShftLanding() {
       {/* ---- Intro -------------------------------------------------------- */}
       <section className={styles.intro}>
         <p className={styles.eyebrow}>Inside shft</p>
-        <h2 className={styles.introTitle}>A step grid where every step draws a curve</h2>
+        <h2 className={styles.introTitle}>Draw a curve on every step</h2>
         <p className={styles.introSub}>
-          Think of a drum-machine grid, but each step is its own little envelope — a swell, a pluck,
-          a pulse — opening and closing the gate in perfect time with your music.
+          A drum-machine grid where each step is a tiny envelope — swell, pluck, pulse. String them
+          together and any sound turns rhythmic, perfectly in time.
         </p>
       </section>
 
@@ -321,7 +382,7 @@ export default function ShftLanding() {
           One-time purchase, free updates. The $19 launch price is a limited discount off $39.
         </p>
         <div className={styles.gsForm}>
-          <BuyButton className={styles.pillDark} />
+          <BuyButton className={styles.pillDark} owned={owned} />
         </div>
       </section>
     </>

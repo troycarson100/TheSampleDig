@@ -29,8 +29,24 @@ model User {
   savedSamples                 UserSample[]
   digHistory                   UserDigHistory[]
   events                       UserEvent[]
+  purchases                    Purchase[]
 
   @@map("users")
+}
+
+model Purchase {
+  id              String   @id @default(cuid())
+  userId          String   @map("user_id")
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product         String // e.g. "shft"
+  stripeSessionId String?  @unique @map("stripe_session_id")
+  // Reserved for future plugin licensing (unused at launch — trust-based for now).
+  licenseKey      String?  @unique @map("license_key")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, product])
+  @@index([userId])
+  @@map("purchases")
 }
 
 model Channel {

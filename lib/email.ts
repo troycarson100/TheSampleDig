@@ -82,6 +82,34 @@ export async function sendVerificationEmail(email: string, token: string) {
   })
 }
 
+export async function sendShftPurchaseEmail(email: string) {
+  const url = `${APP_URL}/products`
+
+  await sendMailWithFallback({
+    from: FROM,
+    to: email,
+    subject: "Your shft download is ready",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+        <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Thanks for buying shft</h1>
+        <p style="color: #555; margin-bottom: 24px;">
+          Your purchase is complete. Head to <strong>My Products</strong> to download the macOS installer
+          (VST3 / AU / Standalone) and the user manual — any time, as many times as you need.
+        </p>
+        <a href="${url}" style="display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;">
+          Go to My Products
+        </a>
+        <p style="color: #999; font-size: 13px; margin-top: 24px;">
+          Sign in with this email address to see your download. Reply here if you hit any trouble and we'll sort you out.
+        </p>
+        <p style="color: #ccc; font-size: 12px; margin-top: 8px;">
+          Or copy this link: ${url}
+        </p>
+      </div>
+    `,
+  })
+}
+
 export async function sendPasswordResetEmail(email: string, token: string) {
   const url = `${APP_URL}/reset-password?token=${token}`
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db"
+import { sendShftPurchaseEmail } from "@/lib/email"
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -40,6 +41,30 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
+
+        // --- shft plugin: one-time purchase, recorded against the user account. ---
+        if (session.metadata?.product === "shft") {
+          const buyerId = session.client_reference_id ?? session.metadata?.userId
+          if (buyerId && typeof buyerId === "string") {
+            await prisma.purchase.upsert({
+              where: { userId_product: { userId: buyerId, product: "shft" } },
+              create: { userId: buyerId, product: "shft", stripeSessionId: session.id },
+              update: { stripeSessionId: session.id },
+            })
+          } else {
+            console.warn("[Stripe webhook] shft purchase missing userId")
+          }
+          const email = session.customer_details?.email ?? session.customer_email ?? null
+          if (email) {
+            try {
+              await sendShftPurchaseEmail(email)
+            } catch (e) {
+              console.error("[Stripe webhook] shft purchase email failed:", e)
+            }
+          }
+          break
+        }
+
         const userId = session.client_reference_id ?? session.metadata?.userId
         if (!userId || typeof userId !== "string") {
           console.warn("[Stripe webhook] checkout.session.completed missing userId")

@@ -2,8 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  // Don't bundle playwright (native/binary deps); resolve at runtime
-  serverExternalPackages: ["playwright"],
+  // Don't bundle these (native/binary deps or ESM submodules that break webpack);
+  // resolve them at runtime instead.
+  serverExternalPackages: ["playwright", "@aws-sdk/client-s3", "@aws-sdk/s3-request-presigner"],
   // Avoid PackFileCacheStrategy ENOENT rename errors (path with spaces / cache dir race)
   webpack: (config, { dev }) => {
     if (dev) config.cache = { type: "memory" };
