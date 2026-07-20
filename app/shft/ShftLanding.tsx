@@ -117,10 +117,6 @@ const FAQS: { q: string; a: string }[] = [
     q: "Is it a subscription?",
     a: "No. shft is a one-time purchase with free updates — buy it once, keep it forever. The $19 launch price is a limited discount off the regular $39.",
   },
-  {
-    q: "How does the waitlist work?",
-    a: "Drop your email and we'll send you one message the day shft launches, with the launch price locked in. No spam, and you can ignore it if the timing's not right.",
-  },
 ]
 
 async function startCheckout(): Promise<{ url: string | null; needsAuth: boolean; alreadyOwned: boolean }> {
