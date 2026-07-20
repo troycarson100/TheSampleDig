@@ -2,7 +2,7 @@
 // the storage bucket (see lib/spaces.ts). Bump the keys (or the env overrides)
 // when you ship a new version, and upload the new file with scripts/upload-shft-release.mjs.
 
-export type ProductAssetId = "installer" | "manual"
+export type ProductAssetId = "installer" | "installer-win" | "manual"
 
 export interface ProductAsset {
   id: ProductAssetId
@@ -22,13 +22,19 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone).",
+    blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     assets: [
       {
         id: "installer",
         label: "shft installer — macOS",
         key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.11.pkg",
         filename: "shft-1.0.11.pkg",
+      },
+      {
+        id: "installer-win",
+        label: "shft installer — Windows",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.11-setup.exe",
+        filename: "shft-1.0.11-setup.exe",
       },
       {
         id: "manual",

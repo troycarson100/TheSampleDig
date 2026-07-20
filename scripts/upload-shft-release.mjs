@@ -2,13 +2,14 @@
 // Upload the current shft release (installer .pkg + manual .pdf) to the storage
 // bucket so /products can serve signed download URLs. Objects are private.
 //
-// Usage:
-//   SPACES_ENDPOINT="https://nyc3.digitaloceanspaces.com" SPACES_REGION="nyc3" \
-//   SPACES_BUCKET="sample-roll-releases" SPACES_KEY="..." SPACES_SECRET="..." \
-//     node scripts/upload-shft-release.mjs <installer.pkg> <manual.pdf>
+// Usage (upload any subset — macOS installer, Windows installer, and/or manual):
+//   SPACES_ENDPOINT="https://sfo3.digitaloceanspaces.com" SPACES_REGION="sfo3" \
+//   SPACES_BUCKET="shftdownload" SPACES_KEY="..." SPACES_SECRET="..." \
+//     node scripts/upload-shft-release.mjs \
+//       [--installer <installer.pkg>] [--installer-win <setup.exe>] [--manual <manual.pdf>]
 //
-// The object keys must match lib/products.ts (SHFT_INSTALLER_KEY / SHFT_MANUAL_KEY
-// override the defaults below).
+// The object keys must match lib/products.ts (SHFT_INSTALLER_KEY / SHFT_INSTALLER_WIN_KEY /
+// SHFT_MANUAL_KEY override the defaults below).
 import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3"
 import { readFileSync, existsSync } from "node:fs"
 import { basename } from "node:path"
@@ -19,16 +20,29 @@ if (!SPACES_ENDPOINT || !SPACES_BUCKET || !SPACES_KEY || !SPACES_SECRET) {
   process.exit(1)
 }
 
-const [installerPath, manualPath] = process.argv.slice(2)
-if (!installerPath || !manualPath) {
-  console.error("Usage: node scripts/upload-shft-release.mjs <installer.pkg> <manual.pdf>")
-  process.exit(1)
+// Flag-based args, so you can (re)upload just one file. Back-compat: two bare
+// positional args are still read as <installer.pkg> <manual.pdf>.
+const argv = process.argv.slice(2)
+const opts = {}
+for (let i = 0; i < argv.length; i++) {
+  if (argv[i] === "--installer") opts.installer = argv[++i]
+  else if (argv[i] === "--installer-win") opts.installerWin = argv[++i]
+  else if (argv[i] === "--manual") opts.manual = argv[++i]
+}
+if (!opts.installer && !opts.installerWin && !opts.manual && argv.length >= 2 && !argv[0].startsWith("--")) {
+  opts.installer = argv[0]
+  opts.manual = argv[1]
 }
 
-const uploads = [
-  { path: installerPath, key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.11.pkg", type: "application/octet-stream" },
-  { path: manualPath, key: process.env.SHFT_MANUAL_KEY || "shft/shft-manual-v1.3.pdf", type: "application/pdf" },
-]
+const uploads = []
+if (opts.installer)    uploads.push({ path: opts.installer,    key: process.env.SHFT_INSTALLER_KEY     || "shft/shft-1.0.11.pkg",      type: "application/octet-stream" })
+if (opts.installerWin) uploads.push({ path: opts.installerWin, key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.11-setup.exe", type: "application/octet-stream" })
+if (opts.manual)       uploads.push({ path: opts.manual,       key: process.env.SHFT_MANUAL_KEY        || "shft/shft-manual-v1.3.pdf",  type: "application/pdf" })
+
+if (uploads.length === 0) {
+  console.error("Usage: node scripts/upload-shft-release.mjs [--installer <pkg>] [--installer-win <exe>] [--manual <pdf>]")
+  process.exit(1)
+}
 
 const s3 = new S3Client({
   region: SPACES_REGION,

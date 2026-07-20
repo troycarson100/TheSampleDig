@@ -111,7 +111,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Which formats does it come in, and will it work in my DAW?",
-    a: "shft ships as VST3, AU, and Standalone. At launch it's macOS-only (Apple Silicon and Intel), so it runs in Mac DAWs like Ableton Live, Logic Pro, FL Studio, Bitwig, Studio One and more. Windows is planned after launch.",
+    a: "shft runs on macOS (Apple Silicon and Intel) as VST3, AU, and Standalone, and on Windows as VST3 and Standalone — so it works in DAWs like Ableton Live, Logic Pro, FL Studio, Bitwig, Studio One and more.",
   },
   {
     q: "Is it a subscription?",
@@ -300,8 +300,7 @@ export default function ShftLanding() {
           </p>
           <div className={styles.heroCtaRow}>
             <BuyButton className={styles.pillLight} owned={owned} />
-            <p className={styles.heroPrice}>One-time purchase · macOS Only · VST3 / AU / Standalone</p>
-            <span className={styles.heroSoon}>Coming soon to Windows</span>
+            <p className={styles.heroPrice}>One-time purchase · macOS &amp; Windows · VST3 / AU / Standalone</p>
           </div>
         </div>
       </section>
