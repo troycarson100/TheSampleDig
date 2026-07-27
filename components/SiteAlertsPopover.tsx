@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useRef, useState } from "react"
 import { createPortal } from "react-dom"
+import Link from "next/link"
 import { SITE_ALERTS, type SiteAlert } from "@/lib/site-alerts"
 import { dismissAlertId, readDismissedAlertIds, OPEN_ALERTS_EVENT } from "@/lib/dismissed-alerts"
+import { useOwnsShft } from "@/lib/use-owns-shft"
 
 function IconBell({ className }: { className?: string }) {
   return (
@@ -29,6 +31,7 @@ export default function SiteAlertsPopover() {
   const [open, setOpen] = useState(false)
   const [mounted, setMounted] = useState(false)
   const [dismissed, setDismissed] = useState<string[]>([])
+  const { owned: ownsShft } = useOwnsShft()
   const rootRef = useRef<HTMLDivElement>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
 
@@ -69,7 +72,9 @@ export default function SiteAlertsPopover() {
     }
   }, [open])
 
-  const visible = SITE_ALERTS.filter((a) => !dismissed.includes(a.id)).sort(sortAlerts)
+  const visible = SITE_ALERTS.filter((a) => !dismissed.includes(a.id))
+    .filter((a) => !(a.hideForShftOwners && ownsShft))
+    .sort(sortAlerts)
   const hasUnread = visible.length > 0
 
   const handleDismiss = (id: string) => {
@@ -123,6 +128,16 @@ export default function SiteAlertsPopover() {
                   <p className="text-xs leading-relaxed whitespace-pre-line" style={{ color: "rgba(245,240,232,0.65)" }}>
                     {alert.body}
                   </p>
+                ) : null}
+                {alert.href && alert.ctaLabel ? (
+                  <Link
+                    href={alert.href}
+                    onClick={() => setOpen(false)}
+                    className="inline-flex items-center gap-1 mt-2 text-xs font-semibold transition-colors"
+                    style={{ color: "var(--rust, #b85c38)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                  >
+                    {alert.ctaLabel} <span aria-hidden>→</span>
+                  </Link>
                 ) : null}
               </div>
               <button

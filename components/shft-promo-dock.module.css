@@ -1,0 +1,207 @@
+/* shft $19 launch promo — non-blocking side card + collapsed right-edge tab.
+   Dark shft "hero-ink" panel, taupe gradient frame, orange sale-price accent. */
+
+@keyframes shftSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.card {
+  animation: shftSlideIn 0.34s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.frame {
+  padding: 1.5px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #b6a892 0%, #6f6250 100%);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.55), 0 0 0 1px rgba(0, 0, 0, 0.25);
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.inner {
+  position: relative;
+  border-radius: 14.5px;
+  background: #14110e;
+  padding: 1.05rem 1.1rem 1.1rem;
+  box-sizing: border-box;
+}
+
+.badge {
+  display: inline-block;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 8.5px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #14110e;
+  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
+  padding: 3px 9px;
+  border-radius: 999px;
+  margin-bottom: 0.65rem;
+}
+
+.headline {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #f4efe4;
+  margin: 0 0 0.35rem;
+  line-height: 1.15;
+}
+
+.brand {
+  text-transform: lowercase;
+  letter-spacing: -0.02em;
+}
+
+.subcopy {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgba(244, 239, 228, 0.62);
+  margin: 0 0 0.9rem;
+}
+
+.price {
+  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  font-weight: 800;
+}
+
+.priceOld {
+  color: rgba(244, 239, 228, 0.42);
+  text-decoration: line-through;
+  text-decoration-color: rgba(248, 113, 113, 0.7);
+  text-decoration-thickness: 1.5px;
+  margin-left: 5px;
+  font-weight: 400;
+}
+
+.getBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  border: none;
+  border-radius: 999px;
+  padding: 11px 18px;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: #14110e;
+  background: #f4efe4;
+  cursor: pointer;
+  text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.15s ease;
+}
+
+.getBtn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+}
+
+.getBtn:active {
+  transform: translateY(0);
+}
+
+.laterBtn {
+  display: block;
+  width: 100%;
+  margin-top: 0.5rem;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 228, 0.5);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.35rem;
+  transition: color 0.2s ease;
+}
+
+.laterBtn:hover {
+  color: rgba(244, 239, 228, 0.82);
+}
+
+.closeBtn {
+  position: absolute;
+  right: 7px;
+  top: 7px;
+  z-index: 2;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  background: rgba(244, 239, 228, 0.06);
+  color: #f4efe4;
+  transition: opacity 0.2s ease;
+}
+
+.closeBtn:hover {
+  opacity: 0.85;
+}
+
+/* ---- collapsed left-edge tab ---- */
+.sideTabGradient {
+  padding: 1.5px;
+  border-radius: 0 10px 10px 0;
+  background: linear-gradient(180deg, #b6a892 0%, #6f6250 100%);
+  box-shadow: 4px 8px 28px rgba(0, 0, 0, 0.35);
+}
+
+.sideTabInner {
+  border-radius: 0 9px 9px 0;
+  background: #14110e;
+  padding: 9px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100px;
+  width: 100%;
+  border: none;
+  cursor: pointer;
+}
+
+.sideTabStack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  margin: auto;
+}
+
+.sideTabLabel {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(244, 239, 228, 0.92);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.sideTabChevron {
+  color: rgba(217, 160, 64, 0.95);
+  flex-shrink: 0;
+}
