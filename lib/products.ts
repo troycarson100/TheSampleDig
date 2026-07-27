@@ -15,6 +15,7 @@ export interface ProductDef {
   id: string
   name: string
   blurb: string
+  version?: string
   assets: ProductAsset[]
 }
 
@@ -22,6 +23,7 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
+    version: "1.0.13",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     assets: [
       {
