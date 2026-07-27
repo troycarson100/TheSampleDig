@@ -57,9 +57,16 @@ export default async function ProductsPage() {
                   style={{ borderColor: "var(--border)" }}
                 >
                   <div className="flex items-baseline justify-between gap-3 mb-1">
-                    <h2 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
-                      {def.name}
-                    </h2>
+                    <div>
+                      <h2 className="text-lg font-semibold" style={{ color: "var(--foreground)" }}>
+                        {def.name}
+                      </h2>
+                      {def.version && (
+                        <p className="text-xs mt-0.5" style={{ color: "var(--foreground)", opacity: 0.55 }}>
+                          v{def.version}
+                        </p>
+                      )}
+                    </div>
                     <span className="text-xs" style={{ color: "var(--foreground)", opacity: 0.55 }}>
                       Purchased {purchase.createdAt.toLocaleDateString()}
                     </span>
