@@ -27,14 +27,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.11.pkg",
-        filename: "shft-1.0.11.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.13.pkg",
+        filename: "shft-1.0.13.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.11-setup.exe",
-        filename: "shft-1.0.11-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.13-setup.exe",
+        filename: "shft-1.0.13-setup.exe",
       },
       {
         id: "manual",
