@@ -23,20 +23,20 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.0.13",
+    version: "1.0.14",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     assets: [
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.13.pkg",
-        filename: "shft-1.0.13.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.14.pkg",
+        filename: "shft-1.0.14.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.13-setup.exe",
-        filename: "shft-1.0.13-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.14-setup.exe",
+        filename: "shft-1.0.14-setup.exe",
       },
       {
         id: "manual",
