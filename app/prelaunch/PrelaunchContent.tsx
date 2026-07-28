@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, type ReactNode } from "react"
 import Link from "next/link"
 import TryProOfferingBlock from "@/components/pro/TryProOfferingBlock"
 import styles from "./prelaunch.module.css"
+import { trackMeta } from "@/lib/meta-pixel"
 
 const ROTATING_WORDS = ["SIMPLIFIED", "EASY", "FREE"]
 
@@ -96,6 +97,8 @@ function HeroForm({
         setErrorMessage(typeof data?.error === "string" ? data.error : "Something went wrong. Try again.")
         return
       }
+      // Meta Pixel: prelaunch email signup conversion.
+      trackMeta("Lead", { content_name: "prelaunch" })
       setStatus("success")
       setShowSuccess(true)
       onSuccess()
@@ -180,6 +183,8 @@ function FinalCtaForm({ onSuccess }: { onSuccess: () => void }) {
         setErrorMessage(typeof data?.error === "string" ? data.error : "Something went wrong. Try again.")
         return
       }
+      // Meta Pixel: prelaunch email signup conversion.
+      trackMeta("Lead", { content_name: "prelaunch" })
       setStatus("success")
       setShowSuccess(true)
       onSuccess()

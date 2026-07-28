@@ -27,11 +27,12 @@ const nextConfig: NextConfig = {
             value: [
               "default-src 'self'",
               // AdSense: pagead2.googlesyndication.com (not covered by www.google.com)
-              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com https://www.google.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://www.googletagservices.com",
+              // Meta Pixel: connect.facebook.net (fbevents.js) + www.facebook.com (/tr beacon)
+              "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://www.youtube.com https://www.google.com https://pagead2.googlesyndication.com https://www.googleadservices.com https://www.googletagservices.com https://connect.facebook.net",
               "style-src 'self' 'unsafe-inline'",
               "img-src 'self' data: https: blob:",
               "font-src 'self' data:",
-              "connect-src 'self' https://www.googleapis.com https://www.youtube.com https://youtube.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://www.googleadservices.com https://adservice.google.com",
+              "connect-src 'self' https://www.googleapis.com https://www.youtube.com https://youtube.com https://pagead2.googlesyndication.com https://googleads.g.doubleclick.net https://www.google.com https://www.googleadservices.com https://adservice.google.com https://www.facebook.com https://connect.facebook.net",
               "frame-src 'self' https://www.youtube.com https://youtube.com https://googleads.g.doubleclick.net https://tpc.googlesyndication.com https://pagead2.googlesyndication.com",
               "media-src 'self' https://www.youtube.com",
             ].join('; '),

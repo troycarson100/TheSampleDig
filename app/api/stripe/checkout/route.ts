@@ -41,7 +41,7 @@ export async function POST(req: Request) {
 
     const stripe = new Stripe(secret)
     const baseUrl = process.env.NEXTAUTH_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
-    const successUrl = `${baseUrl}/dig?checkout_success=1`
+    const successUrl = `${baseUrl}/dig?checkout_success=1&plan=${plan}`
     const cancelUrl = `${baseUrl}/dig?checkout_canceled=1`
 
     const user = await prisma.user.findUnique({

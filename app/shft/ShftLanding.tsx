@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react"
 import styles from "./shft.module.css"
+import { trackMeta } from "@/lib/meta-pixel"
 
 /* ---- capability icons (thin-line, matching the plugin's minimal look) ---- */
 function IconFilter() {
@@ -194,6 +195,10 @@ function PurchaseBanner() {
       return
     }
     if (p !== "success") return
+
+    // Meta Pixel: shft purchase conversion ($19 launch price). Fired before the
+    // redirect below — fbq beacons survive the navigation.
+    trackMeta("Purchase", { value: 19, currency: "USD", content_name: "shft", content_type: "product" })
 
     // On success, record the purchase (self-heals if the webhook is delayed),
     // then send them to My Products — no banner to fight the fixed nav.

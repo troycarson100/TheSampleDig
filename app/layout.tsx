@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono, Halant, DM_Serif_Display, Bebas_Neue, IBM_Plex_Mono, Cormorant_Garamond } from "next/font/google"
 import "./globals.css"
 import RootBody from "@/components/RootBody"
+import MetaPixel from "@/components/analytics/MetaPixel"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -60,6 +61,7 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${halant.variable} ${dmSerif.variable} ${bebasNeue.variable} ${ibmPlexMono.variable} ${cormorantGaramond.variable} font-sans antialiased flex flex-col min-h-screen theme-vinyl`}
       >
+        <MetaPixel />
         <RootBody>{children}</RootBody>
       </body>
     </html>

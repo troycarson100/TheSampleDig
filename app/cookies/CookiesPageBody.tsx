@@ -148,7 +148,16 @@ export default function CookiesPageBody() {
             (EU) where available.
           </p>
 
-          <h2 className="text-lg font-semibold mt-6 mb-2">5. Payments (Stripe)</h2>
+          <h2 className="text-lg font-semibold mt-6 mb-2">5. Advertising measurement (Meta Pixel)</h2>
+          <p className="mb-4">
+            We use the <strong>Meta Pixel</strong> (from Meta Platforms, Inc. — Facebook and Instagram) to measure the
+            effectiveness of our advertising and understand actions people take on the Service, such as viewing pages,
+            signing up, or completing a purchase. Meta may use cookies and similar technologies to attribute these actions
+            and, where permitted, to show you relevant ads. You can manage ad personalization in your Facebook/Instagram ad
+            settings and through the industry opt-out tools linked above.
+          </p>
+
+          <h2 className="text-lg font-semibold mt-6 mb-2">6. Payments (Stripe)</h2>
           <p className="mb-4">
             If you purchase a subscription or other paid product, you may be redirected to a checkout experience hosted by{" "}
             <strong>Stripe</strong> (or processed via Stripe on our behalf). Stripe may use cookies and similar

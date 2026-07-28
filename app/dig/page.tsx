@@ -10,6 +10,7 @@ import SavedSamplesSidebar from "@/components/SavedSamplesSidebar"
 import SiteNav from "@/components/SiteNav"
 import DigFilterPanel from "@/components/DigFilterPanel"
 import { recordHistory, clearHistory, removeHistoryItem, recordHistoryServer } from "@/lib/dig-history"
+import { trackMeta } from "@/lib/meta-pixel"
 import type { HistoryItem } from "@/lib/dig-history"
 import FeatureGateModal from "@/components/FeatureGateModal"
 import { DigAdSenseUnit } from "@/components/DigAdSenseUnit"
@@ -138,11 +139,17 @@ export default function DigPage() {
   useEffect(() => {
     try {
       const q = new URLSearchParams(window.location.search)
-      if (q.get("checkout_success") === "1") setCheckoutBanner("success")
-      else if (q.get("checkout_canceled") === "1") setCheckoutBanner("canceled")
+      if (q.get("checkout_success") === "1") {
+        setCheckoutBanner("success")
+        // Meta Pixel: Pro subscription conversion. Value from the plan (if present).
+        const plan = q.get("plan")
+        const value = plan === "yearly" ? 49.99 : plan === "monthly" ? 5.99 : undefined
+        trackMeta("Subscribe", value != null ? { value, currency: "USD" } : { currency: "USD" })
+      } else if (q.get("checkout_canceled") === "1") setCheckoutBanner("canceled")
       if (q.has("checkout_success") || q.has("checkout_canceled")) {
         q.delete("checkout_success")
         q.delete("checkout_canceled")
+        q.delete("plan")
         const rest = q.toString()
         window.history.replaceState({}, "", `${window.location.pathname}${rest ? `?${rest}` : ""}${window.location.hash}`)
       }
