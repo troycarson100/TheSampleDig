@@ -11,11 +11,18 @@ export interface ProductAsset {
   filename: string
 }
 
+export interface ProductRelease {
+  version: string
+  notes: string[]
+}
+
 export interface ProductDef {
   id: string
   name: string
   blurb: string
   version?: string
+  /** Newest first. Rendered under the downloads on /products. */
+  changelog?: ProductRelease[]
   assets: ProductAsset[]
 }
 
@@ -23,20 +30,43 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.0.14",
+    version: "1.0.15",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
+    changelog: [
+      {
+        version: "1.0.15",
+        notes: [
+          "New master dry/wet bar in the bottom-left, on every page — blends the whole plugin, FX included, against your untouched input. At 0% it's a true bypass, so you can A/B the processed and unprocessed sound.",
+          "The mix knob moved into the blue GATE section, where it acts as the gate's own dry/wet, before the effects.",
+          "chaos moved to the bottom-right of the knob grid.",
+        ],
+      },
+      {
+        version: "1.0.14",
+        notes: [
+          "The export button now appears on the seq page only, instead of on the fx and lfo pages too.",
+        ],
+      },
+      {
+        version: "1.0.13",
+        notes: [
+          "Export: drag patterns straight into your DAW. The drag handle at the top-right of the step strip drops a MIDI file carrying both the notes and the CC1 shape automation in one clip.",
+          "Export popup with separate MIDI and audio drag pads — audio renders bar-snapped with ACID tempo tags, so Live and Bitwig warp it to your session.",
+        ],
+      },
+    ],
     assets: [
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.14.pkg",
-        filename: "shft-1.0.14.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.15.pkg",
+        filename: "shft-1.0.15.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.14-setup.exe",
-        filename: "shft-1.0.14-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.15-setup.exe",
+        filename: "shft-1.0.15-setup.exe",
       },
       {
         id: "manual",

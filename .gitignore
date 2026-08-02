@@ -61,3 +61,12 @@ public/prelaunch/dig-browser-recording.mov
 
 # DB backups (contain data; keep local or store elsewhere)
 /backups
+
+# iCloud evicts the tens of thousands of small files in node_modules/.next into
+# placeholders it then won't fault back, which hangs `next dev` inside require()
+# at 0% CPU. iCloud refuses to sync anything named *.nosync, so both live there
+# and are symlinked back into place.
+node_modules.nosync
+.next.nosync
+# Both are symlinks now, so the existing `/.next/` rule (directories only) misses it.
+/.next

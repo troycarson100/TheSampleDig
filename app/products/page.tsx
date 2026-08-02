@@ -86,6 +86,27 @@ export default async function ProductsPage() {
                       </a>
                     ))}
                   </div>
+
+                  {def.changelog && def.changelog.length > 0 && (
+                    <div
+                      className="mt-5 pt-4 border-t text-xs"
+                      style={{ borderColor: "var(--border)", color: "var(--foreground)", opacity: 0.55 }}
+                    >
+                      <p className="font-semibold mb-2">What&apos;s new</p>
+                      <div className="space-y-3">
+                        {def.changelog.map((release) => (
+                          <div key={release.version}>
+                            <p className="font-medium mb-1">v{release.version}</p>
+                            <ul className="list-disc pl-4 space-y-1">
+                              {release.notes.map((note, i) => (
+                                <li key={i}>{note}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </section>
               )
             })}
