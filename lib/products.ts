@@ -30,9 +30,19 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.0.15",
+    version: "1.0.16",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.0.16",
+        notes: [
+          "Skins. A gear button in the header opens a picker with four looks for the whole plugin, and your choice is remembered between sessions.",
+          "Cyber — neon on deep navy, lit panels and spun-metal knob caps.",
+          "Soviet — olive chassis, hammered brass control plate, bakelite knobs and moulded keys with lamps that read out the value.",
+          "Tokyo — an early-'80s Japanese cassette deck: brushed champagne aluminium, smoked-glass displays, amber lamps and knurled aluminium dials.",
+          "The original look is still there as Default, unchanged and selected by default.",
+        ],
+      },
       {
         version: "1.0.15",
         notes: [
@@ -59,14 +69,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.15.pkg",
-        filename: "shft-1.0.15.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.16.pkg",
+        filename: "shft-1.0.16.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.15-setup.exe",
-        filename: "shft-1.0.15-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.16-setup.exe",
+        filename: "shft-1.0.16-setup.exe",
       },
       {
         id: "manual",
