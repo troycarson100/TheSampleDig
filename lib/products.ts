@@ -30,9 +30,17 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.0.16",
+    version: "1.0.17",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.0.17",
+        notes: [
+          "New skin — Matte. A charcoal console: near-black chassis with a fine tooth to it, one electric blue for every label, and four vivid ring colours doing all the work. It sits second in the picker, right after Default.",
+          "Tokyo is now called Cassette. Same skin, clearer name — your selection carries over, nothing to redo.",
+          "Cassette: the preset name and the lane preview shapes were dark-on-dark against the deck's smoked-glass windows. Both are legible now.",
+        ],
+      },
       {
         version: "1.0.16",
         notes: [
@@ -69,14 +77,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.16.pkg",
-        filename: "shft-1.0.16.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.17.pkg",
+        filename: "shft-1.0.17.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.16-setup.exe",
-        filename: "shft-1.0.16-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.17-setup.exe",
+        filename: "shft-1.0.17-setup.exe",
       },
       {
         id: "manual",
