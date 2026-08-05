@@ -1,10 +1,15 @@
-/* Testimonial marquee for /shft — Instagram-style comment cards drifting
-   under the hero. Palette comes from .page in shft.module.css; every var()
-   carries a fallback so the component degrades rather than breaks. */
+/* Testimonial marquee for /shft — Instagram-style comment cards drifting in a
+   dark band between the cream sections. Palette comes from .page in
+   shft.module.css; every var() carries a fallback so the component degrades
+   rather than breaks.
+
+   This section inverts: --ink becomes the background and --cream the text, so
+   every colour below is the reverse of the rest of the page. */
 
 .section {
-  padding: clamp(44px, 6vw, 76px) 0 clamp(48px, 7vw, 88px);
+  padding: clamp(52px, 7vw, 86px) 0 clamp(56px, 8vw, 96px);
   overflow: hidden;
+  background: var(--ink, #24211d);
 }
 
 .head {
@@ -19,14 +24,14 @@
   letter-spacing: -0.03em;
   line-height: 1;
   margin: 0 0 8px;
-  color: var(--ink, #24211d);
+  color: var(--cream, #f4efe4);
 }
 .period {
   color: var(--accent, #9b8b76);
 }
 .sub {
   font-size: clamp(14px, 1.6vw, 17px);
-  color: var(--ink-dim, rgba(36, 33, 29, 0.62));
+  color: rgba(244, 239, 228, 0.66);
   margin: 0;
 }
 
@@ -91,8 +96,8 @@
   flex-direction: column;
   padding: 20px 22px;
   border-radius: 16px;
-  background: var(--cream, #f4efe4);
-  border: 1px solid var(--line, rgba(36, 33, 29, 0.14));
+  background: rgba(244, 239, 228, 0.06);
+  border: 1px solid rgba(244, 239, 228, 0.13);
   text-align: left;
   color: inherit;
 }
@@ -104,8 +109,8 @@
   top: 16px;
   right: 16px;
   line-height: 0;
-  color: var(--ink, #24211d);
-  opacity: 0.35;
+  color: var(--cream, #f4efe4);
+  opacity: 0.4;
 }
 
 .who {
@@ -121,7 +126,7 @@
   border-radius: 50%;
   object-fit: cover;
   flex: 0 0 auto;
-  background: var(--paper-2, #e7dfce);
+  background: rgba(244, 239, 228, 0.12);
 }
 /* Must match .avatar's box exactly so mixed rows stay aligned. */
 .monogram {
@@ -132,8 +137,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(155, 139, 118, 0.22);
-  color: var(--accent-deep, #7d6f5c);
+  background: rgba(155, 139, 118, 0.3);
+  color: #d8c9b2;
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   font-weight: 700;
   font-size: 17px;
@@ -153,7 +158,7 @@
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   font-weight: 700;
   font-size: 15px;
-  color: var(--ink, #24211d);
+  color: var(--cream, #f4efe4);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -167,14 +172,14 @@
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  color: var(--ink-dim, rgba(36, 33, 29, 0.62));
+  color: rgba(244, 239, 228, 0.62);
 }
 
 .quote {
   margin: 0;
   font-size: 15.5px;
   line-height: 1.55;
-  color: var(--ink-2, #46413a);
+  color: rgba(244, 239, 228, 0.82);
 }
 /* A reaction with no words reads as an empty card when set in quote marks,
    and as a deliberate beat when set large and bare. */
@@ -191,7 +196,7 @@
   gap: 5px;
   margin: 12px 0 0;
   font-size: 12.5px;
-  color: var(--ink-dim, rgba(36, 33, 29, 0.62));
+  color: rgba(244, 239, 228, 0.62);
 }
 
 @media (prefers-reduced-motion: reduce) {
