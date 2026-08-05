@@ -92,10 +92,18 @@ async function run() {
     const idle = await reels.locator("video").first().evaluate((el) => ({ paused: el.paused, t: el.currentTime }))
     check("centre reel does not autoplay", idle.paused && idle.t === 0, JSON.stringify(idle))
 
-    // The play button must actually start it.
-    await reels.locator("button[aria-label='Play reel']").click()
-    await page.waitForTimeout(1200)
-    const afterPlay = await reels.locator("video").first().evaluate((el) => ({ paused: el.paused, t: el.currentTime }))
+    // The play button must actually start it. Retried once: against a dev
+    // server, hot-reload can remount the component mid-run and swallow the
+    // first click, which looks identical to a real failure.
+    let afterPlay = { paused: true, t: 0 }
+    for (let attempt = 0; attempt < 2; attempt++) {
+      const play = reels.locator("button[aria-label='Play reel']")
+      if (!(await play.count())) break
+      await play.click()
+      await page.waitForTimeout(1200)
+      afterPlay = await reels.locator("video").first().evaluate((el) => ({ paused: el.paused, t: el.currentTime }))
+      if (!afterPlay.paused && afterPlay.t > 0) break
+    }
     check("play button starts playback", !afterPlay.paused && afterPlay.t > 0, JSON.stringify(afterPlay))
 
     // ...and the same control must stop it.

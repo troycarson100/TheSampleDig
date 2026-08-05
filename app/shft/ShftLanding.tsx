@@ -312,9 +312,6 @@ export default function ShftLanding() {
           Sits at the hero/intro boundary — sticky bar shows once it scrolls past. */}
       <span id="shft-hero-sentinel" aria-hidden />
 
-      {/* ---- Feedback (social proof, straight under the hero) -------------- */}
-      <TestimonialMarquee items={TESTIMONIALS} />
-
       {/* ---- Intro -------------------------------------------------------- */}
       <section className={styles.intro}>
         <p className={styles.eyebrow}>Inside shft</p>
@@ -324,6 +321,12 @@ export default function ShftLanding() {
           together and any sound turns rhythmic, perfectly in time.
         </p>
       </section>
+
+      {/* ---- Made with shft (reels) --------------------------------------- */}
+      <ReelCarousel reels={REELS} />
+
+      {/* ---- Feedback (social proof) -------------------------------------- */}
+      <TestimonialMarquee items={TESTIMONIALS} />
 
       {/* ---- Alternating feature blocks ----------------------------------- */}
       <div className={styles.blocks}>
@@ -356,9 +359,6 @@ export default function ShftLanding() {
           </section>
         ))}
       </div>
-
-      {/* ---- Made with shft (reels) --------------------------------------- */}
-      <ReelCarousel reels={REELS} />
 
       {/* ---- Capabilities ------------------------------------------------- */}
       <div className={styles.caps}>
