@@ -87,6 +87,38 @@ button.card {
   object-fit: cover;
 }
 
+/* Big, centred, unmissable while paused. Once playing it drops back so it
+   stops covering the clip, and returns on hover. */
+.playBtn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 68px;
+  height: 68px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--cream, #f4efe4);
+  background: rgba(14, 12, 10, 0.55);
+  backdrop-filter: blur(6px);
+  transition: opacity 0.2s ease, background 0.15s ease, transform 0.12s ease;
+}
+.playBtn:hover {
+  background: rgba(14, 12, 10, 0.8);
+  transform: translate(-50%, -50%) scale(1.06);
+}
+.playBtnQuiet {
+  opacity: 0;
+}
+.card:hover .playBtnQuiet,
+.playBtnQuiet:focus-visible {
+  opacity: 1;
+}
+
 .soundBtn {
   position: absolute;
   top: 12px;

@@ -87,8 +87,32 @@ async function run() {
       cards: el.querySelectorAll("[class*='card']").length,
     }))
     check("only the centre card mounts a video", shape.videos === 1, `${shape.videos} videos across ${shape.cards} cards`)
-    const v = await reels.locator("video").first().evaluate((el) => ({ muted: el.muted }))
-    check("centre reel starts muted", v.muted)
+
+    // Nothing may autoplay — the section is click-to-play.
+    const idle = await reels.locator("video").first().evaluate((el) => ({ paused: el.paused, t: el.currentTime }))
+    check("centre reel does not autoplay", idle.paused && idle.t === 0, JSON.stringify(idle))
+
+    // The play button must actually start it.
+    await reels.locator("button[aria-label='Play reel']").click()
+    await page.waitForTimeout(1200)
+    const afterPlay = await reels.locator("video").first().evaluate((el) => ({ paused: el.paused, t: el.currentTime }))
+    check("play button starts playback", !afterPlay.paused && afterPlay.t > 0, JSON.stringify(afterPlay))
+
+    // ...and the same control must stop it.
+    await reels.locator("button[aria-label='Pause reel']").click()
+    await page.waitForTimeout(400)
+    const afterPause = await reels.locator("video").first().evaluate((el) => el.paused)
+    check("pause button stops playback", afterPause)
+
+    // Scrolling away must not leave audio running.
+    await reels.locator("button[aria-label='Play reel']").click()
+    await page.waitForTimeout(600)
+    await page.evaluate(() => window.scrollTo(0, 0))
+    await page.waitForTimeout(1000)
+    const offscreen = await reels.locator("video").first().evaluate((el) => el.paused)
+    check("scrolling away pauses playback", offscreen)
+    await reels.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(600)
   } else {
     check("reel carousel absent while REELS is empty", (await reels.count()) === 0)
   }

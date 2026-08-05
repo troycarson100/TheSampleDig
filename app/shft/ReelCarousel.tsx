@@ -35,44 +35,48 @@ function SpeakerOn() {
   )
 }
 
+function PlayIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden>
+      <path d="M8 5.2v13.6a.7.7 0 0 0 1.07.6l10.5-6.8a.7.7 0 0 0 0-1.2L9.07 4.6A.7.7 0 0 0 8 5.2z" />
+    </svg>
+  )
+}
+
+function PauseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden>
+      <rect x="6.5" y="5" width="4" height="14" rx="1.2" />
+      <rect x="13.5" y="5" width="4" height="14" rx="1.2" />
+    </svg>
+  )
+}
+
 export default function ReelCarousel({ reels }: { reels: Reel[] }) {
   const [active, setActive] = useState(0)
-  const [muted, setMuted] = useState(true)
-  const [inView, setInView] = useState(false)
-  const [reduced, setReduced] = useState(false)
+  const [muted, setMuted] = useState(false)
+  const [playing, setPlaying] = useState(false)
+  /** Landscape sources would be cropped brutally by `cover` in a 9:16 frame, so
+      they letterbox instead. Real vertical reels always take the `cover` path. */
+  const [fit, setFit] = useState<"cover" | "contain">("cover")
   const deckRef = useRef<HTMLDivElement | null>(null)
   const videoRef = useRef<HTMLVideoElement | null>(null)
   const pointerStart = useRef<{ x: number; y: number } | null>(null)
 
-  useEffect(() => {
-    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
-    const apply = () => setReduced(mq.matches)
-    apply()
-    mq.addEventListener("change", apply)
-    return () => mq.removeEventListener("change", apply)
-  }, [])
-
-  // Don't play until the section is actually on screen — it sits well below a
-  // hero video that is already playing.
+  // Nothing autoplays, but audio playing on a section you've scrolled past is
+  // still wrong — pause on the way out. No auto-resume; that would be autoplay.
   useEffect(() => {
     const el = deckRef.current
     if (!el) return
-    const io = new IntersectionObserver(([entry]) => setInView(entry.isIntersecting), { threshold: 0.5 })
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) videoRef.current?.pause()
+      },
+      { threshold: 0.5 },
+    )
     io.observe(el)
     return () => io.disconnect()
   }, [])
-
-  useEffect(() => {
-    const v = videoRef.current
-    if (!v) return
-    if (inView && !reduced) {
-      // Autoplay can still be refused; the poster stays up and the catch keeps
-      // it out of the console.
-      v.play().catch(() => {})
-    } else {
-      v.pause()
-    }
-  }, [inView, reduced, active])
 
   // React's `muted` attribute doesn't reliably reach the element; set the
   // property directly.
@@ -81,18 +85,40 @@ export default function ReelCarousel({ reels }: { reels: Reel[] }) {
     if (v) v.muted = muted
   }, [muted, active])
 
-  /** The only thing that changes slides. Re-muting lives here rather than in an
-      effect keyed on `active`: a new clip must always start silent, and doing
-      it in the handler avoids a cascading render on every move. */
+  /* Aspect check can't ride on an onLoadedMetadata prop: media events don't
+     bubble, so React binds them straight to the node, and a cached file fires
+     the event before that listener exists. Read readyState first, then listen. */
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    const apply = () => setFit(v.videoWidth > v.videoHeight ? "contain" : "cover")
+    if (v.readyState >= 1) apply()
+    v.addEventListener("loadedmetadata", apply)
+    return () => v.removeEventListener("loadedmetadata", apply)
+  }, [active])
+
+  /** The only thing that changes slides. Resetting playback state lives here
+      rather than in an effect keyed on `active`: react-hooks flags that as a
+      cascading render, and a new clip must always start from a clean stop. */
   const go = useCallback(
     (next: number) => {
       const clamped = Math.max(0, Math.min(reels.length - 1, next))
       if (clamped === active) return
       setActive(clamped)
-      setMuted(true)
+      setPlaying(false)
+      setFit("cover")
     },
     [active, reels.length],
   )
+
+  const togglePlay = () => {
+    const v = videoRef.current
+    if (!v) return
+    // `playing` is driven by the element's own play/pause events, so it can
+    // never disagree with what the video is actually doing.
+    if (v.paused) v.play().catch(() => {})
+    else v.pause()
+  }
 
   const onKeyDown = (e: KeyboardEvent) => {
     if (e.key === "ArrowLeft") {
@@ -119,11 +145,7 @@ export default function ReelCarousel({ reels }: { reels: Reel[] }) {
     go(active + (dx < 0 ? 1 : -1))
   }
 
-  const toggleSound = () => {
-    const v = videoRef.current
-    if (v?.paused) v.play().catch(() => {})
-    setMuted((m) => !m)
-  }
+  const toggleSound = () => setMuted((m) => !m)
 
   if (reels.length === 0) return null
   const multi = reels.length > 1
@@ -175,13 +197,23 @@ export default function ReelCarousel({ reels }: { reels: Reel[] }) {
                 <video
                   ref={videoRef}
                   className={styles.media}
+                  style={{ objectFit: fit }}
                   src={r.src}
                   poster={r.poster}
                   loop
-                  muted
                   playsInline
                   preload="metadata"
+                  onPlay={() => setPlaying(true)}
+                  onPause={() => setPlaying(false)}
                 />
+                <button
+                  type="button"
+                  className={`${styles.playBtn}${playing ? ` ${styles.playBtnQuiet}` : ""}`}
+                  onClick={togglePlay}
+                  aria-label={playing ? "Pause reel" : "Play reel"}
+                >
+                  {playing ? <PauseIcon /> : <PlayIcon />}
+                </button>
                 <button
                   type="button"
                   className={styles.soundBtn}
