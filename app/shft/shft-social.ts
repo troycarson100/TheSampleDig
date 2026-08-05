@@ -63,16 +63,42 @@ export const TESTIMONIALS: Testimonial[] = [
   },
 ]
 
-/* ⚠️ PLACEHOLDERS — swap these for the real Instagram reels before launch.
-   These are existing UI screen recordings, not reels. They are 16:9 forced
-   into a 9:16 frame, so object-fit crops them hard — the real vertical clips
-   will fill the card properly. They're here so the section is visible while
-   the actual files are being collected.
+/* Reels from @memerymusic, in the order they should appear. Files are named by
+   their Instagram shortcode so each one maps unambiguously back to its post —
+   don't rename them to positional names, reordering this array would make the
+   filenames lie. Encoded 720x1280 H.264 +faststart from the originals.
 
-   To go live: drop the encoded reels into /public/shft/reels and replace this
-   array. Set it to [] and the whole section disappears cleanly instead of
+   Set this to [] and the whole section disappears cleanly rather than
    rendering a heading over nothing. */
 export const REELS: Reel[] = [
-  { src: "/shft/steps-v3.mp4", poster: "/shft/steps-v3-poster.jpg", handle: "@placeholder_1" },
-  { src: "/shft/hero-v2.mp4", poster: "/shft/hero-v2-poster.jpg", handle: "@placeholder_2" },
+  {
+    src: "/shft/reels/DbEpnypvPSE.mp4",
+    poster: "/shft/reels/DbEpnypvPSE.jpg",
+    handle: "@memerymusic",
+    url: "https://www.instagram.com/p/DbEpnypvPSE/",
+  },
+  {
+    src: "/shft/reels/DbmPd3dK65u.mp4",
+    poster: "/shft/reels/DbmPd3dK65u.jpg",
+    handle: "@memerymusic",
+    url: "https://www.instagram.com/p/DbmPd3dK65u/",
+  },
+  {
+    src: "/shft/reels/Da9mQfKqSwS.mp4",
+    poster: "/shft/reels/Da9mQfKqSwS.jpg",
+    handle: "@memerymusic",
+    url: "https://www.instagram.com/p/Da9mQfKqSwS/",
+  },
+  {
+    src: "/shft/reels/DbTdL6xK5tO.mp4",
+    poster: "/shft/reels/DbTdL6xK5tO.jpg",
+    handle: "@memerymusic",
+    url: "https://www.instagram.com/p/DbTdL6xK5tO/",
+  },
+  {
+    src: "/shft/reels/DbG1Q4cyvzt.mp4",
+    poster: "/shft/reels/DbG1Q4cyvzt.jpg",
+    handle: "@memerymusic",
+    url: "https://www.instagram.com/p/DbG1Q4cyvzt/",
+  },
 ]
