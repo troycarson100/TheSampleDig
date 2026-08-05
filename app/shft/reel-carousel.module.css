@@ -1,0 +1,202 @@
+/* Reel carousel for /shft — 9:16 cards in a coverflow, centre one playing.
+   Card geometry is driven by --off (signed distance from centre) and --dist
+   (absolute distance), set per card by the component. Keeping it in CSS is
+   what lets --spread change at a breakpoint without any JS. */
+
+.section {
+  padding: clamp(56px, 9vw, 104px) 20px clamp(48px, 8vw, 88px);
+  text-align: center;
+  overflow: hidden;
+}
+.title {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(34px, 5.5vw, 60px);
+  letter-spacing: -0.03em;
+  line-height: 1;
+  margin: 0 0 8px;
+  color: var(--ink, #24211d);
+}
+.period {
+  color: var(--accent, #9b8b76);
+}
+.sub {
+  font-size: clamp(14px, 1.6vw, 17px);
+  color: var(--ink-dim, rgba(36, 33, 29, 0.62));
+  margin: 0 0 clamp(30px, 4vw, 48px);
+}
+
+/* Named "deck", NOT "stage". globals.css:1082 has `.theme-vinyl [class*="tag"]`
+   and the substring "tag" hides inside "s-tag-e", so a .stage class inherits
+   IBM Plex Mono, uppercase, a border and a background from the vinyl theme.
+   Do not rename this back. */
+.deck {
+  --spread: 62%;
+  /* Shared by the cards and the nav arrows, so the arrows track the centre
+     card's edge instead of the deck's far edge. */
+  --card-w: clamp(240px, 27vw, 330px);
+  position: relative;
+  height: min(74vh, 620px);
+  max-width: 1180px;
+  margin: 0 auto;
+  outline: none;
+  /* Vertical drags scroll the page; we only claim horizontal ones. */
+  touch-action: pan-y;
+}
+.deck:focus-visible {
+  outline: 2px solid var(--accent, #9b8b76);
+  outline-offset: 6px;
+  border-radius: 20px;
+}
+
+.card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: var(--card-w);
+  aspect-ratio: 9 / 16;
+  max-height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  background: #0e0c0a;
+  box-shadow: 0 30px 70px -30px rgba(0, 0, 0, 0.55);
+  transform: translate(-50%, -50%) translateX(calc(var(--off) * var(--spread))) scale(calc(1 - var(--dist) * 0.14));
+  filter: blur(calc(var(--dist) * 2px));
+  opacity: calc(1 - var(--dist) * 0.25);
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1), filter 0.45s ease, opacity 0.45s ease;
+  will-change: transform;
+}
+button.card {
+  cursor: pointer;
+}
+.cardActive {
+  filter: none;
+}
+.cardOut {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.soundBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--cream, #f4efe4);
+  background: rgba(14, 12, 10, 0.55);
+  backdrop-filter: blur(6px);
+  transition: background 0.15s ease;
+}
+.soundBtn:hover {
+  background: rgba(14, 12, 10, 0.82);
+}
+
+.handle {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  padding: 5px 11px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--cream, #f4efe4);
+  background: rgba(14, 12, 10, 0.5);
+  backdrop-filter: blur(6px);
+}
+a.handle:hover {
+  background: rgba(14, 12, 10, 0.82);
+}
+
+.nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 60;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 1px solid var(--line, rgba(36, 33, 29, 0.14));
+  background: var(--cream, #f4efe4);
+  color: var(--ink, #24211d);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.14);
+  transition: opacity 0.15s ease, transform 0.12s ease;
+}
+.nav:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+.nav:not(:disabled):hover {
+  transform: translateY(-50%) scale(1.06);
+}
+/* Just outside the centre card, floating over the blurred neighbours. max()
+   keeps them on screen when the viewport is narrower than card + arrows. */
+.navPrev {
+  left: max(2px, calc(50% - var(--card-w) / 2 - 60px));
+}
+.navNext {
+  right: max(2px, calc(50% - var(--card-w) / 2 - 60px));
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 26px;
+}
+.dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--ink, #24211d);
+  opacity: 0.22;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.dotOn {
+  opacity: 0.85;
+  transform: scale(1.25);
+}
+
+@media (max-width: 760px) {
+  .deck {
+    /* Neighbours only peek — a wide spread wastes the narrow viewport. */
+    --spread: 84%;
+    height: min(68vh, 520px);
+  }
+  .nav {
+    width: 40px;
+    height: 40px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}

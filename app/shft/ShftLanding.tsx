@@ -4,7 +4,8 @@ import { useEffect, useState, type ReactNode } from "react"
 import styles from "./shft.module.css"
 import { trackMeta } from "@/lib/meta-pixel"
 import TestimonialMarquee from "./TestimonialMarquee"
-import { TESTIMONIALS } from "./shft-social"
+import ReelCarousel from "./ReelCarousel"
+import { TESTIMONIALS, REELS } from "./shft-social"
 
 /* ---- capability icons (thin-line, matching the plugin's minimal look) ---- */
 function IconFilter() {
@@ -355,6 +356,9 @@ export default function ShftLanding() {
           </section>
         ))}
       </div>
+
+      {/* ---- Made with shft (reels) --------------------------------------- */}
+      <ReelCarousel reels={REELS} />
 
       {/* ---- Capabilities ------------------------------------------------- */}
       <div className={styles.caps}>
