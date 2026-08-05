@@ -303,7 +303,9 @@
 .intro {
   max-width: 1000px;
   margin: 0 auto;
-  padding: clamp(64px, 10vw, 120px) 20px clamp(32px, 5vw, 56px);
+  /* Tight at the bottom — the reel carousel sits directly below with no
+     padding of its own. */
+  padding: clamp(64px, 10vw, 120px) 20px clamp(16px, 2.5vw, 28px);
   text-align: center;
 }
 .eyebrow {

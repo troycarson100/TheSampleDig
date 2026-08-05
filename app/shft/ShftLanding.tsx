@@ -316,10 +316,6 @@ export default function ShftLanding() {
       <section className={styles.intro}>
         <p className={styles.eyebrow}>Inside shft</p>
         <h2 className={styles.introTitle}>Draw a curve on every step</h2>
-        <p className={styles.introSub}>
-          A drum-machine grid where each step is a tiny envelope — swell, pluck, pulse. String them
-          together and any sound turns rhythmic, perfectly in time.
-        </p>
       </section>
 
       {/* ---- Made with shft (reels) --------------------------------------- */}

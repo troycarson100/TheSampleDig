@@ -150,13 +150,11 @@ export default function ReelCarousel({ reels }: { reels: Reel[] }) {
   if (reels.length === 0) return null
   const multi = reels.length > 1
 
+  /* No visible heading by design. The section still carries an accessible name
+     so it isn't an anonymous region to a screen reader, and data-reels gives
+     tooling a selector that doesn't depend on the copy. */
   return (
-    <section className={styles.section} aria-labelledby="shft-reels-title">
-      <h2 className={styles.title} id="shft-reels-title">
-        Made with shft<span className={styles.period}>.</span>
-      </h2>
-      <p className={styles.sub}>Tap a clip to hear it.</p>
-
+    <section className={styles.section} aria-label="Made with shft" data-reels>
       <div
         className={styles.deck}
         ref={deckRef}
