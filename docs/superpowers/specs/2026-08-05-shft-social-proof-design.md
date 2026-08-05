@@ -25,8 +25,9 @@ Visual reference: ilgranello.com's "Feedback" marquee and its centered video car
 | Question | Decision |
 | --- | --- |
 | Video delivery | Self-hosted MP4s in `/public/shft/reels/`. Not Instagram embeds (would require loosening the CSP, loads Meta JS, unstylable), not the S3/Spaces bucket. |
+| Video acquisition | Source files supplied directly by the site owner. Instagram is behind a login wall — `yt-dlp` returns "empty media response" on all five post URLs, and profile pages serve a JS shell with no `og:image`. Encoding from the owner's originals is better quality than re-compressing Instagram's copy anyway. |
 | Content volume at launch | Thin: under ~6 quotes, 1-3 reels. Both components must look intentional at that size and scale up without a rewrite. |
-| Avatars | Real Instagram profile pictures, self-hosted as 96×96 JPEGs. |
+| Avatars | Real Instagram profile pictures, self-hosted as 96×96 JPEGs, **with a monogram fallback**. The fallback is required, not optional polish: `@bwanonymous` has no profile picture at all (Instagram's default grey silhouette), so there is no asset to save. Instagram's login wall also means avatar files must be supplied by the owner rather than fetched. |
 | Section placement | Testimonials directly under the hero, before Intro. Reels after the five feature blocks, before Capabilities. |
 | Reel playback | Centered card autoplays muted and looping; a control unmutes it. Side cards are static posters. |
 | Headlines | Plain, no usage statistics. "Feedback." / "What producers are saying." and "Made with shft." / "Tap a clip to hear it." No numbers are invented. |
@@ -66,9 +67,9 @@ Both components are `"use client"`. `ShftLanding.tsx` is already a client compon
 
 ```ts
 export type Testimonial = {
-  name: string           // display name or handle, e.g. "WOLVS" / "@skome_otoh"
-  avatar: string         // "/shft/testimonials/wolvs.jpg"
+  name: string           // display name or handle, e.g. "@mikeartuso"
   quote: string          // no surrounding quote marks — the card adds them
+  avatar?: string        // "/shft/testimonials/mikeartuso.jpg"; monogram when absent
   credit?: string        // small-caps line, e.g. "MULTI-PLATINUM PRODUCER"
   verified?: boolean     // renders the blue check
   platform?: "instagram" | "tiktok"   // corner glyph; default "instagram"
@@ -83,17 +84,55 @@ export type Reel = {
   url?: string           // links the handle overlay to the post
 }
 
-export const TESTIMONIALS: Testimonial[] = [ /* strongest name first */ ]
+export const TESTIMONIALS: Testimonial[] = [ /* see Launch content */ ]
 export const REELS: Reel[] = []
 ```
 
-Every optional field must render cleanly when absent — no reserved empty space, no dangling separators. A card with only `name`, `avatar`, and `quote` is a valid, complete-looking card.
+Every optional field must render cleanly when absent — no reserved empty space, no dangling separators. A card with only `name` and `quote` is a valid, complete-looking card.
 
-`TESTIMONIALS` is ordered deliberately: the first entry is the first thing a visitor reads after the hero, so the most recognizable name leads.
+`TESTIMONIALS` is ordered deliberately: the first entry is the first thing a visitor reads after the hero. See Launch content for the launch order and the constraint governing it.
 
 ### Empty-array behavior
 
 Each component returns `null` when handed an empty array, so the page never renders a headline over nothing. This is what allows the sections to be merged before all content has been collected.
+
+## Launch content
+
+### Testimonials — 5 collected, all Instagram comments
+
+Ordered as they will appear. Rationale: lead with the verified account (blue check plus a real photo is the strongest card visually), follow immediately with the best-worded endorsement, and close on the emoji variant as a rhythm break.
+
+| # | Handle | Quote | Likes | Verified | Avatar |
+| --- | --- | --- | --- | --- | --- |
+| 1 | `@mikeartuso` | This is so sick 🔥🔥🔥 | 1 | yes | photo (2.4K followers) |
+| 2 | `@bwanonymous` | Buy this plugin. It will open up loads of new possibilities to your sound! | 2 | no | **monogram** — account has no profile picture |
+| 3 | `@spookey642` | this is perfect for IDM | 1 | no | photo |
+| 4 | `@balmoral_court_` | Absolutely awesome 🔥🔥🔥 would love to use this in Studio One 7 for a project (or many... 😗) | 1 | no | photo |
+| 5 | `@atlasmaison` | 🔥🔥🔥 | 1 | no | photo (logo mark) |
+
+**Ordering constraint:** `@mikeartuso` and `@balmoral_court_` are the same person — Mike Artuso's bio lists `🎶 @balmoral_court_` as his music project. Both comments are genuine and from distinct accounts, so both are kept, but they must never sit adjacent in the array or they can appear on screen together. Positions 1 and 4 satisfy this. Any future reordering must preserve a gap of at least two.
+
+No per-comment permalinks are available, so each card's `url` points at the commenter's profile (`https://www.instagram.com/<handle>/`).
+
+`credit` is unset for all five — none of these are recognizable names where a credit line would add anything, and inventing one is not an option.
+
+Worth doing before launch, though not a blocker for the build: a quick DM to each of the five asking if they mind their name and picture appearing on the sales page. All five comments are public and quoting public praise is ordinary practice, but a one-line ask costs nothing and avoids a takedown request later.
+
+### Reels — 5 identified, files pending
+
+The five Instagram posts destined for the carousel:
+
+```
+https://www.instagram.com/p/DbEpnypvPSE/
+https://www.instagram.com/p/DbmPd3dK65u/
+https://www.instagram.com/p/Da9mQfKqSwS/
+https://www.instagram.com/p/DbTdL6xK5tO/
+https://www.instagram.com/p/DbG1Q4cyvzt/
+```
+
+These URLs become each card's `url`. The video files themselves must be supplied as originals (see Video acquisition above).
+
+**Sequencing:** `REELS` ships empty. Because the carousel returns `null` on an empty array, the entire feature — both sections, all styling — can be built, reviewed and merged with the testimonial marquee fully live and the video section simply absent from the page. Adding the reels later is then an asset drop plus five array entries, with no component changes. This is the reason for the empty-array behavior and it should not be treated as a placeholder to fill before merging.
 
 ## Component 2 — `TestimonialMarquee`
 
@@ -128,10 +167,11 @@ Each component returns `null` when handed an empty array, so the page never rend
 
 Cream on cream: `--cream` background, 1px `--line` border, 16px radius, ~22px padding, width `clamp(300px, 34vw, 400px)`, fixed gap between cards.
 
-- 40px circular avatar, `<img>` with explicit `width`/`height` (no layout shift) and `loading="lazy"`.
+- 40px circular avatar, `<img>` with explicit `width`/`height` (no layout shift) and `loading="lazy"`. When `avatar` is absent, a 40px circle filled with `--accent` at low opacity carrying the first letter of `name` (skipping a leading `@`) in `--accent-deep`. The monogram must match the photo's dimensions exactly so mixed rows stay aligned.
 - Name at 15px/700 `--ink`; blue check inline after it when `verified`.
 - `credit` at 11px, uppercase, `letter-spacing: 0.06em`, `--ink-dim`.
 - Quote at 15-16px / 1.55 line-height, `--ink-2`, wrapped in typographic quote marks.
+- **Emoji-only variant:** when the quote contains no word characters (e.g. `🔥🔥🔥`), it renders at roughly 34px with no quote marks and extra vertical padding. A short reaction is real feedback, but set as a quotation it reads as an empty card; set as a large glyph it reads as a deliberate beat in the rhythm. Detection is a single regex on the quote — no flag in the data.
 - Platform glyph pinned top-right at 40% opacity, 100% on hover.
 - `likes` renders as a heart glyph plus the number, below the quote, only when present.
 - When `url` is set the card root is an `<a>`; otherwise a `<div>`. The link text is the person's name, not "click here".
@@ -231,7 +271,8 @@ Manual, run per new piece of content. Nothing is added to the build.
 | Case | Behavior |
 | --- | --- |
 | Empty `TESTIMONIALS` or `REELS` | Component returns `null`; no headline over an empty region. |
-| Missing avatar file | The `<img>` alt text carries the person's name, so the card stays legible. Avatar presence is verified during asset prep. |
+| `avatar` unset | Monogram circle from the first letter of `name`. A supported state, not a defect. |
+| `avatar` set but the file 404s | The `<img>` alt text carries the person's name so the card stays legible. Asset prep verifies every referenced path exists. |
 | Video fails to load or decode | The `poster` remains visible; the card reads as a still image rather than a black box. |
 | Autoplay blocked by the browser | `play()` is called with a caught rejection; the poster stays up and the play affordance remains. Never an unhandled rejection in the console. |
 | 1 or 2 testimonials | Static centered row, no animation (see Motion above). |
