@@ -70,3 +70,6 @@ node_modules.nosync
 .next.nosync
 # Both are symlinks now, so the existing `/.next/` rule (directories only) misses it.
 /.next
+
+# Screenshots from scripts/verify-shft-social.mjs
+reports/shft-social/

@@ -3,6 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react"
 import styles from "./shft.module.css"
 import { trackMeta } from "@/lib/meta-pixel"
+import TestimonialMarquee from "./TestimonialMarquee"
+import { TESTIMONIALS } from "./shft-social"
 
 /* ---- capability icons (thin-line, matching the plugin's minimal look) ---- */
 function IconFilter() {
@@ -308,6 +310,9 @@ export default function ShftLanding() {
       {/* Out of hero flow so it doesn't affect the hero's vertical centering.
           Sits at the hero/intro boundary — sticky bar shows once it scrolls past. */}
       <span id="shft-hero-sentinel" aria-hidden />
+
+      {/* ---- Feedback (social proof, straight under the hero) -------------- */}
+      <TestimonialMarquee items={TESTIMONIALS} />
 
       {/* ---- Intro -------------------------------------------------------- */}
       <section className={styles.intro}>
