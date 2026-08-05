@@ -70,10 +70,7 @@ export const TESTIMONIALS: Testimonial[] = [
   },
 ]
 
-/* TEMPORARY FIXTURES — removed before merge. These are UI screen recordings,
-   not reels; they exist only so the carousel can be exercised before the real
-   files land. Do not ship these. */
-export const REELS: Reel[] = [
-  { src: "/shft/steps-v3.mp4", poster: "/shft/steps-v3-poster.jpg", handle: "@fixture_one", url: "https://example.com/" },
-  { src: "/shft/hero-v2.mp4", poster: "/shft/hero-v2-poster.jpg", handle: "@fixture_two" },
-]
+/* Empty until the source files land. The carousel returns null on an empty
+   array, so the section is simply absent rather than broken — which is why
+   this can ship before the videos exist. */
+export const REELS: Reel[] = []
