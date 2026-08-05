@@ -54,16 +54,17 @@ function HeartGlyph() {
   )
 }
 
-/** `dupe` marks the duplicated set that makes the loop seamless: hidden from
-    assistive tech, untabbable, and removed entirely under reduced motion. */
+/** Cards are inert by design — nothing here links out. `dupe` marks the
+    duplicated set that makes the loop seamless: hidden from assistive tech and
+    removed entirely under reduced motion. */
 function Card({ t, dupe }: { t: Testimonial; dupe?: boolean }) {
   const initial = t.name.replace(/^@/, "").charAt(0).toUpperCase()
   const emoji = isEmojiOnly(t.quote)
   const Glyph = t.platform === "tiktok" ? TikTokGlyph : InstagramGlyph
   const className = `${styles.card}${dupe ? ` ${styles.dupeCard}` : ""}`
 
-  const body = (
-    <>
+  return (
+    <div className={className} data-testimonial={t.name} aria-hidden={dupe || undefined}>
       <span className={styles.glyph} aria-hidden>
         <Glyph />
       </span>
@@ -90,26 +91,6 @@ function Card({ t, dupe }: { t: Testimonial; dupe?: boolean }) {
           <HeartGlyph /> {t.likes}
         </span>
       ) : null}
-    </>
-  )
-
-  if (t.url) {
-    return (
-      <a
-        className={className}
-        href={t.url}
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-hidden={dupe || undefined}
-        tabIndex={dupe ? -1 : undefined}
-      >
-        {body}
-      </a>
-    )
-  }
-  return (
-    <div className={className} aria-hidden={dupe || undefined}>
-      {body}
     </div>
   )
 }

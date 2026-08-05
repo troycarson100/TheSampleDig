@@ -37,16 +37,21 @@ async function run() {
   await feedback.waitFor({ state: "attached", timeout: 60000 })
   check("feedback section renders", (await feedback.count()) === 1)
 
-  // Count cards by anchor, not by [aria-hidden] — the platform glyphs and
+  // Count by data attribute, not by [aria-hidden] — the platform glyphs and
   // monogram circles carry aria-hidden too and would make the count meaningless.
-  const real = await feedback.locator('a:not([aria-hidden="true"])').count()
-  const dupes = await feedback.locator('a[aria-hidden="true"]').count()
+  const real = await feedback.locator('[data-testimonial]:not([aria-hidden="true"])').count()
+  const dupes = await feedback.locator('[data-testimonial][aria-hidden="true"]').count()
   check("five testimonial cards render", real === 5, `got ${real}`)
   check("duplicate set matches and is hidden from assistive tech", dupes === real, `${dupes} dupes vs ${real} real`)
 
+  // Cards are deliberately inert. An anchor creeping back in would also break
+  // the counts above, which no longer look for one.
+  const links = await feedback.locator("a").count()
+  check("no clickable cards in the feedback section", links === 0, `found ${links} anchors`)
+
   // Emoji-only quote must not be wrapped in curly quotes. Read it off the card
   // rather than matching on the text, so a regression fails instead of throwing.
-  const atlas = (await feedback.locator('a[href*="atlasmaison"]').first().textContent()) || ""
+  const atlas = (await feedback.locator('[data-testimonial="@atlasmaison"]').first().textContent()) || ""
   check("emoji-only quote has no quote marks", atlas.includes("🔥") && !atlas.includes("“"), JSON.stringify(atlas))
 
   // Track must actually be animating. Targeted by data attribute — an nth()
@@ -71,9 +76,22 @@ async function run() {
     `half-track ${wrap.halfTrack.toFixed(1)}px vs set stride ${wrap.setStride.toFixed(1)}px`,
   )
 
-  // REELS is empty, so the carousel must be absent entirely.
+  // Carousel: present with placeholders, absent when REELS is emptied. Both are
+  // valid ship states, so assert whichever matches and prove the structure.
   const reels = page.locator('section[aria-labelledby="shft-reels-title"]')
-  check("reel carousel absent while REELS is empty", (await reels.count()) === 0)
+  if ((await reels.count()) === 1) {
+    await reels.scrollIntoViewIfNeeded()
+    await page.waitForTimeout(1200)
+    const shape = await reels.evaluate((el) => ({
+      videos: el.querySelectorAll("video").length,
+      cards: el.querySelectorAll("[class*='card']").length,
+    }))
+    check("only the centre card mounts a video", shape.videos === 1, `${shape.videos} videos across ${shape.cards} cards`)
+    const v = await reels.locator("video").first().evaluate((el) => ({ muted: el.muted }))
+    check("centre reel starts muted", v.muted)
+  } else {
+    check("reel carousel absent while REELS is empty", (await reels.count()) === 0)
+  }
 
   // The page must never scroll sideways — the marquee track is wider than the
   // viewport and must be clipped by its own overflow, not the body's.
@@ -104,7 +122,7 @@ async function run() {
   await rpage.goto(`${BASE}/shft`, { waitUntil: "domcontentloaded", timeout: 90000 })
   const rfeedback = rpage.locator('section[aria-labelledby="shft-feedback-title"]')
   await rfeedback.waitFor({ state: "attached", timeout: 60000 })
-  const rdupes = rfeedback.locator('a[aria-hidden="true"]')
+  const rdupes = rfeedback.locator('[data-testimonial][aria-hidden="true"]')
   const rdupeCount = await rdupes.count()
   const dupeVisible = rdupeCount > 0 ? await rdupes.first().isVisible() : false
   check(

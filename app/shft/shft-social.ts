@@ -15,8 +15,6 @@ export type Testimonial = {
   verified?: boolean
   /** Corner glyph. Defaults to Instagram. */
   platform?: "instagram" | "tiktok"
-  /** Links the whole card out. Profile URL when there's no comment permalink. */
-  url?: string
   likes?: number
 }
 
@@ -41,36 +39,40 @@ export const TESTIMONIALS: Testimonial[] = [
     name: "@mikeartuso",
     quote: "This is so sick 🔥🔥🔥",
     verified: true,
-    url: "https://www.instagram.com/mikeartuso/",
     likes: 1,
   },
   {
     name: "@bwanonymous",
     quote: "Buy this plugin. It will open up loads of new possibilities to your sound!",
-    url: "https://www.instagram.com/bwanonymous/",
     likes: 2,
   },
   {
     name: "@spookey642",
     quote: "this is perfect for IDM",
-    url: "https://www.instagram.com/spookey642/",
     likes: 1,
   },
   {
     name: "@balmoral_court_",
     quote: "Absolutely awesome 🔥🔥🔥 would love to use this in Studio One 7 for a project (or many... 😗)",
-    url: "https://www.instagram.com/balmoral_court_/",
     likes: 1,
   },
   {
     name: "@atlasmaison",
     quote: "🔥🔥🔥",
-    url: "https://www.instagram.com/atlasmaison/",
     likes: 1,
   },
 ]
 
-/* Empty until the source files land. The carousel returns null on an empty
-   array, so the section is simply absent rather than broken — which is why
-   this can ship before the videos exist. */
-export const REELS: Reel[] = []
+/* ⚠️ PLACEHOLDERS — swap these for the real Instagram reels before launch.
+   These are existing UI screen recordings, not reels. They are 16:9 forced
+   into a 9:16 frame, so object-fit crops them hard — the real vertical clips
+   will fill the card properly. They're here so the section is visible while
+   the actual files are being collected.
+
+   To go live: drop the encoded reels into /public/shft/reels and replace this
+   array. Set it to [] and the whole section disappears cleanly instead of
+   rendering a heading over nothing. */
+export const REELS: Reel[] = [
+  { src: "/shft/steps-v3.mp4", poster: "/shft/steps-v3-poster.jpg", handle: "@placeholder_1" },
+  { src: "/shft/hero-v2.mp4", poster: "/shft/hero-v2-poster.jpg", handle: "@placeholder_2" },
+]

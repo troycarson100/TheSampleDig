@@ -94,15 +94,11 @@
   background: var(--cream, #f4efe4);
   border: 1px solid var(--line, rgba(36, 33, 29, 0.14));
   text-align: left;
-  text-decoration: none;
   color: inherit;
-  transition: border-color 0.18s ease, transform 0.18s ease;
-}
-a.card:hover {
-  border-color: var(--accent, #9b8b76);
-  transform: translateY(-2px);
 }
 
+/* Cards don't link anywhere, so there is no hover state — a lift or a colour
+   change would imply a click target that doesn't exist. */
 .glyph {
   position: absolute;
   top: 16px;
@@ -110,10 +106,6 @@ a.card:hover {
   line-height: 0;
   color: var(--ink, #24211d);
   opacity: 0.35;
-  transition: opacity 0.18s ease;
-}
-.card:hover .glyph {
-  opacity: 1;
 }
 
 .who {
