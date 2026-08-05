@@ -68,10 +68,8 @@
   margin-right: 0;
 }
 
-.viewport:hover .trackAnimated,
-.viewport:focus-within .trackAnimated {
-  animation-play-state: paused;
-}
+/* Deliberately no hover pause. The cards carry no links and nothing inside
+   them can take focus, so there's nothing to stop and read for. */
 
 @keyframes shftMarquee {
   from {

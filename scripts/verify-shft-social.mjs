@@ -62,6 +62,18 @@ async function run() {
     .evaluate((el) => getComputedStyle(el).animationName)
   check("marquee track is animating", anim !== "none" && anim !== "", `animation-name: ${anim}`)
 
+  // Hovering must NOT stop the drift. Uses a raw mouse move rather than
+  // .hover(): the cards are perpetually animating, so Playwright's
+  // "wait for stable" actionability check can never be satisfied.
+  const trackBox = await feedback.locator("[data-marquee-track]").first().boundingBox()
+  await page.mouse.move(trackBox.x + Math.min(trackBox.width / 2, 400), trackBox.y + trackBox.height / 2)
+  await page.waitForTimeout(300)
+  const hovered = await feedback
+    .locator("[data-marquee-track]")
+    .first()
+    .evaluate((el) => getComputedStyle(el).animationPlayState)
+  check("hover does not pause the marquee", hovered === "running", `play-state: ${hovered}`)
+
   // The seamless wrap depends on -50% landing exactly one full set along. If a
   // gap ever gets added to the track, this drifts and the loop visibly jumps.
   const wrap = await feedback.locator("[data-marquee-track]").first().evaluate((el) => {
@@ -78,7 +90,7 @@ async function run() {
 
   // Carousel: present with placeholders, absent when REELS is emptied. Both are
   // valid ship states, so assert whichever matches and prove the structure.
-  const reels = page.locator('section[aria-labelledby="shft-reels-title"]')
+  const reels = page.locator("section[data-reels]")
   if ((await reels.count()) === 1) {
     await reels.scrollIntoViewIfNeeded()
     await page.waitForTimeout(1200)
@@ -87,6 +99,12 @@ async function run() {
       cards: el.querySelectorAll("[class*='card']").length,
     }))
     check("only the centre card mounts a video", shape.videos === 1, `${shape.videos} videos across ${shape.cards} cards`)
+
+    // Heading was removed by request; the region must still be named.
+    const label = await reels.getAttribute("aria-label")
+    check("reel section keeps an accessible name", !!label, `aria-label=${JSON.stringify(label)}`)
+    const strayHeading = await reels.locator("h2").count()
+    check("no visible heading in the reel section", strayHeading === 0, `${strayHeading} h2s`)
 
     // Nothing may autoplay — the section is click-to-play.
     const idle = await reels.locator("video").first().evaluate((el) => ({ paused: el.paused, t: el.currentTime }))
