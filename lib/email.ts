@@ -100,22 +100,6 @@ export async function sendShftPurchaseEmail(email: string) {
         <a href="${url}" style="display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;">
           Go to My Products
         </a>
-        <div style="border: 1px solid #e5e5e5; border-radius: 8px; padding: 16px; margin-top: 24px;">
-          <p style="color: #1a1a1a; font-size: 13px; font-weight: 600; margin: 0 0 6px;">
-            On Windows: expect a warning
-          </p>
-          <p style="color: #555; font-size: 13px; margin: 0 0 8px;">
-            Windows shows &ldquo;Windows protected your PC&rdquo; the first time you run the
-            installer. Click <strong>More info</strong> &rarr; <strong>Run anyway</strong>. Check the
-            publisher reads <strong>Troy Carson</strong> &mdash; that&rsquo;s our verified signing
-            identity.
-          </p>
-          <p style="color: #999; font-size: 12px; margin: 0;">
-            The installer is digitally signed. Microsoft still shows this prompt for independent
-            developers until a release has been downloaded enough times; it isn&rsquo;t a virus
-            detection.
-          </p>
-        </div>
         <p style="color: #999; font-size: 13px; margin-top: 24px;">
           Sign in with this email address to see your download. Reply here if you hit any trouble and we'll sort you out.
         </p>
