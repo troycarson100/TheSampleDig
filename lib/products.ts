@@ -30,9 +30,18 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.0.17",
+    version: "1.0.18",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.0.18",
+        notes: [
+          "Hover help. The strip along the bottom of the plugin now explains whatever you point at — what the control does, and one thing worth trying with it. It covers every knob on all three pages, the step strip, the lane keys and the modulation badges.",
+          "Point at a modulation badge and it spells out the gestures: drag it up or down for range, double-click to remove it, cmd-click for uni or bi-polar.",
+          "Prefer the quiet? Turn the tips off in the settings gear — the choice is remembered between sessions.",
+          "The pattern dice moved up beside the eight lane keys it rolls.",
+        ],
+      },
       {
         version: "1.0.17",
         notes: [
@@ -77,14 +86,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.17.pkg",
-        filename: "shft-1.0.17.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.18.pkg",
+        filename: "shft-1.0.18.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.17-setup.exe",
-        filename: "shft-1.0.17-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.18-setup.exe",
+        filename: "shft-1.0.18-setup.exe",
       },
       {
         id: "manual",
