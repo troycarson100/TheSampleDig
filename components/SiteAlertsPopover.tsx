@@ -130,14 +130,27 @@ export default function SiteAlertsPopover() {
                   </p>
                 ) : null}
                 {alert.href && alert.ctaLabel ? (
-                  <Link
-                    href={alert.href}
-                    onClick={() => setOpen(false)}
-                    className="inline-flex items-center gap-1 mt-2 text-xs font-semibold transition-colors"
-                    style={{ color: "var(--rust, #b85c38)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
-                  >
-                    {alert.ctaLabel} <span aria-hidden>→</span>
-                  </Link>
+                  alert.href.startsWith("http") ? (
+                    <a
+                      href={alert.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={() => setOpen(false)}
+                      className="inline-flex items-center gap-1 mt-2 text-xs font-semibold transition-colors"
+                      style={{ color: "var(--rust, #b85c38)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                    >
+                      {alert.ctaLabel} <span aria-hidden>→</span>
+                    </a>
+                  ) : (
+                    <Link
+                      href={alert.href}
+                      onClick={() => setOpen(false)}
+                      className="inline-flex items-center gap-1 mt-2 text-xs font-semibold transition-colors"
+                      style={{ color: "var(--rust, #b85c38)", fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}
+                    >
+                      {alert.ctaLabel} <span aria-hidden>→</span>
+                    </Link>
+                  )
                 ) : null}
               </div>
               <button

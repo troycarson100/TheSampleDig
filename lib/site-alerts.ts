@@ -19,6 +19,14 @@ export type SiteAlert = {
 
 export const SITE_ALERTS: SiteAlert[] = [
   {
+    id: "discord-server",
+    publishedAt: "2026-08-09",
+    title: "Join the SampleRoll Discord!",
+    body: "Discuss, ask questions, share feedback, and request new features.",
+    href: "https://discord.gg/Vzm27vmwp",
+    ctaLabel: "Join the Discord",
+  },
+  {
     id: "shft-launch-sale-19",
     publishedAt: "2026-07-27",
     title: "shft is here — launch sale $19",
