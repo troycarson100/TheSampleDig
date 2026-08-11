@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db"
 import { sendShftPurchaseEmail } from "@/lib/email"
+import { recordAffiliateReferral } from "@/lib/affiliate"
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -46,11 +47,12 @@ export async function POST(request: Request) {
         if (session.metadata?.product === "shft") {
           const buyerId = session.client_reference_id ?? session.metadata?.userId
           if (buyerId && typeof buyerId === "string") {
-            await prisma.purchase.upsert({
+            const purchase = await prisma.purchase.upsert({
               where: { userId_product: { userId: buyerId, product: "shft" } },
               create: { userId: buyerId, product: "shft", stripeSessionId: session.id },
               update: { stripeSessionId: session.id },
             })
+            await recordAffiliateReferral(session, purchase.id)
           } else {
             console.warn("[Stripe webhook] shft purchase missing userId")
           }
@@ -125,6 +127,19 @@ export async function POST(request: Request) {
             subscriptionStatus: status,
             subscriptionCurrentPeriodEnd: periodEnd ?? undefined,
           },
+        })
+        break
+      }
+
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge
+        const paymentIntentId =
+          typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id
+        if (!paymentIntentId) break
+        // Any refund (full or partial) claws back the whole commission (v1 policy).
+        await prisma.affiliateReferral.updateMany({
+          where: { stripePaymentIntentId: paymentIntentId, refundedAt: null },
+          data: { refundedAt: new Date() },
         })
         break
       }

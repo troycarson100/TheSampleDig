@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { recordAffiliateReferral } from "@/lib/affiliate"
 
 // Called by the success page with the Stripe checkout session id. Confirms the
 // session is a paid shft purchase belonging to the signed-in user, then records
@@ -38,11 +39,12 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No completed shft purchase for your account." }, { status: 403 })
     }
 
-    await prisma.purchase.upsert({
+    const purchase = await prisma.purchase.upsert({
       where: { userId_product: { userId: session.user.id, product: "shft" } },
       create: { userId: session.user.id, product: "shft", stripeSessionId: checkout.id },
       update: { stripeSessionId: checkout.id },
     })
+    await recordAffiliateReferral(checkout, purchase.id)
 
     return NextResponse.json({ ok: true })
   } catch (e) {
