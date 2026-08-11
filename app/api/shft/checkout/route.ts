@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
 import Stripe from "stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
+import { normalizeAffiliateCode } from "@/lib/affiliate-logic"
 
 // One-time checkout for the shft plugin. Requires login so the purchase can be
 // tied to an account and surfaced on the /products page.
@@ -28,6 +30,20 @@ export async function POST() {
     return NextResponse.json({ error: "already_owned" }, { status: 409 })
   }
 
+  // Affiliate attribution: forward a valid ?ref= cookie code into session
+  // metadata; the webhook re-validates it against an active affiliate.
+  let affiliateCode: string | null = null
+  try {
+    const cookieStore = await cookies()
+    const raw = normalizeAffiliateCode(cookieStore.get("shft_ref")?.value)
+    if (raw) {
+      const affiliate = await prisma.affiliate.findUnique({ where: { code: raw } })
+      if (affiliate?.active) affiliateCode = raw
+    }
+  } catch (e) {
+    console.error("[shft checkout] affiliate cookie read failed", e)
+  }
+
   try {
     const stripe = new Stripe(secret)
     const baseUrl =
@@ -45,7 +61,19 @@ export async function POST() {
       billing_address_collection: "auto",
       allow_promotion_codes: true,
       client_reference_id: session.user.id,
-      metadata: { product: "shft", userId: session.user.id },
+      metadata: {
+        product: "shft",
+        userId: session.user.id,
+        ...(affiliateCode ? { affiliateCode } : {}),
+      },
+      custom_fields: [
+        {
+          key: "creator_code",
+          label: { type: "custom", custom: "Creator code (optional)" },
+          type: "text",
+          optional: true,
+        },
+      ],
     })
 
     return NextResponse.json({ url: checkoutSession.url })
