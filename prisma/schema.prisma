@@ -30,6 +30,7 @@ model User {
   digHistory                   UserDigHistory[]
   events                       UserEvent[]
   purchases                    Purchase[]
+  affiliate                    Affiliate?
 
   @@map("users")
 }
@@ -43,6 +44,7 @@ model Purchase {
   // Reserved for future plugin licensing (unused at launch — trust-based for now).
   licenseKey      String?  @unique @map("license_key")
   createdAt       DateTime @default(now()) @map("created_at")
+  affiliateReferral AffiliateReferral?
 
   @@unique([userId, product])
   @@index([userId])
@@ -169,4 +171,71 @@ model UserEvent {
 
   @@index([userId, createdAt])
   @@map("user_events")
+}
+
+// --- shft affiliate program (invite-only) -----------------------------------
+
+model Affiliate {
+  id                String              @id @default(cuid())
+  code              String              @unique
+  name              String
+  email             String
+  commissionPercent Int                 @default(30) @map("commission_percent")
+  dashboardToken    String              @unique @map("dashboard_token")
+  userId            String?             @unique @map("user_id")
+  user              User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  active            Boolean             @default(true)
+  notes             String?
+  createdAt         DateTime            @default(now()) @map("created_at")
+  updatedAt         DateTime            @updatedAt @map("updated_at")
+  clicks            AffiliateClick[]
+  referrals         AffiliateReferral[]
+  payouts           AffiliatePayout[]
+
+  @@map("affiliates")
+}
+
+model AffiliateClick {
+  id          String    @id @default(cuid())
+  affiliateId String    @map("affiliate_id")
+  affiliate   Affiliate @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([affiliateId, createdAt])
+  @@map("affiliate_clicks")
+}
+
+model AffiliateReferral {
+  id                    String           @id @default(cuid())
+  affiliateId           String           @map("affiliate_id")
+  affiliate             Affiliate        @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  purchaseId            String           @unique @map("purchase_id")
+  purchase              Purchase         @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  stripeSessionId       String           @map("stripe_session_id")
+  stripePaymentIntentId String?          @map("stripe_payment_intent_id")
+  grossAmountCents      Int              @map("gross_amount_cents")
+  // Snapshot at sale time — later rate changes never rewrite history.
+  commissionCents       Int              @map("commission_cents")
+  currency              String
+  source                String // "link" (cookie) | "code" (typed at checkout)
+  refundedAt            DateTime?        @map("refunded_at")
+  payoutId              String?          @map("payout_id")
+  payout                AffiliatePayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+  createdAt             DateTime         @default(now()) @map("created_at")
+
+  @@index([affiliateId, createdAt])
+  @@index([stripePaymentIntentId])
+  @@map("affiliate_referrals")
+}
+
+model AffiliatePayout {
+  id          String              @id @default(cuid())
+  affiliateId String              @map("affiliate_id")
+  affiliate   Affiliate           @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  amountCents Int                 @map("amount_cents")
+  note        String?
+  paidAt      DateTime            @default(now()) @map("paid_at")
+  referrals   AffiliateReferral[]
+
+  @@map("affiliate_payouts")
 }
