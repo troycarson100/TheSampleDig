@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Halant, DM_Serif_Display, Bebas_Neue, IBM_Plex_Mono,
 import "./globals.css"
 import RootBody from "@/components/RootBody"
 import MetaPixel from "@/components/analytics/MetaPixel"
+import AffiliateRefCapture from "@/components/AffiliateRefCapture"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -62,6 +63,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${halant.variable} ${dmSerif.variable} ${bebasNeue.variable} ${ibmPlexMono.variable} ${cormorantGaramond.variable} font-sans antialiased flex flex-col min-h-screen theme-vinyl`}
       >
         <MetaPixel />
+        <AffiliateRefCapture />
         <RootBody>{children}</RootBody>
       </body>
     </html>
