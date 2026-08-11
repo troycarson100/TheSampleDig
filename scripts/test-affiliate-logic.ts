@@ -3,6 +3,7 @@ import {
   computeCommissionCents,
   attributionCandidates,
   isSelfReferral,
+  canInstantPayout,
 } from "../lib/affiliate-logic"
 
 let failures = 0
@@ -63,6 +64,21 @@ check(
   isSelfReferral({ affiliateEmail: "a@b.c", affiliateUserId: null, buyerEmail: null, buyerUserId: "u_1" }),
   false
 )
+
+// canInstantPayout: all conditions must hold; each disqualifier alone blocks
+const payable = {
+  refundedAt: null,
+  stripeTransferId: null,
+  payoutId: null,
+  stripeAccountId: "acct_1",
+  stripePayoutsEnabled: true,
+}
+check("instant payout allowed", canInstantPayout(payable), true)
+check("instant blocked: refunded", canInstantPayout({ ...payable, refundedAt: new Date(0) }), false)
+check("instant blocked: already transferred", canInstantPayout({ ...payable, stripeTransferId: "tr_1" }), false)
+check("instant blocked: already paid manually", canInstantPayout({ ...payable, payoutId: "po_1" }), false)
+check("instant blocked: no account", canInstantPayout({ ...payable, stripeAccountId: null }), false)
+check("instant blocked: payouts disabled", canInstantPayout({ ...payable, stripePayoutsEnabled: false }), false)
 
 if (failures > 0) {
   console.error(`\n${failures} failure(s)`)

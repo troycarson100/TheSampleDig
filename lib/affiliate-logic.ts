@@ -25,6 +25,25 @@ export function attributionCandidates(input: {
   return out
 }
 
+// A referral qualifies for an instant Stripe transfer only when nothing has
+// paid it yet (manually or via Stripe), it isn't refunded, and the affiliate
+// has a payout-ready Connect account.
+export function canInstantPayout(input: {
+  refundedAt: Date | null
+  stripeTransferId: string | null
+  payoutId: string | null
+  stripeAccountId: string | null
+  stripePayoutsEnabled: boolean
+}): boolean {
+  return (
+    input.refundedAt === null &&
+    input.stripeTransferId === null &&
+    input.payoutId === null &&
+    input.stripeAccountId !== null &&
+    input.stripePayoutsEnabled
+  )
+}
+
 export function isSelfReferral(input: {
   affiliateEmail: string
   affiliateUserId: string | null
