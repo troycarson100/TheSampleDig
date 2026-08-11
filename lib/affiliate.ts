@@ -2,6 +2,7 @@ import type Stripe from "stripe"
 import { randomBytes } from "crypto"
 import { prisma } from "@/lib/db"
 import { attributionCandidates, computeCommissionCents, isSelfReferral } from "@/lib/affiliate-logic"
+import { sendInstantCommission } from "@/lib/affiliate-stripe"
 
 export interface AffiliateStats {
   clicksTotal: number
@@ -63,8 +64,9 @@ export async function recordAffiliateReferral(
       const paymentIntentId =
         typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id ?? null
 
+      let referralId: string
       try {
-        await prisma.affiliateReferral.create({
+        const referral = await prisma.affiliateReferral.create({
           data: {
             affiliateId: affiliate.id,
             purchaseId,
@@ -76,11 +78,15 @@ export async function recordAffiliateReferral(
             source: candidate.source,
           },
         })
+        referralId = referral.id
       } catch (e: unknown) {
         // P2002 = referral already recorded (webhook/claim race) — success.
         if (typeof e === "object" && e !== null && (e as { code?: string }).code === "P2002") return
         throw e
       }
+      // Instant payout when the creator has a payout-ready Connect account.
+      // Only the race winner reaches this; failures just leave the sale owed.
+      await sendInstantCommission(referralId)
       return
     }
   } catch (e) {
@@ -99,6 +105,8 @@ export async function getAffiliateStats(affiliateId: string): Promise<AffiliateS
 
   const live = referrals.filter((r) => !r.refundedAt)
   const sum = (rows: { commissionCents: number }[]) => rows.reduce((s, r) => s + r.commissionCents, 0)
+  const isPaid = (r: { payoutId: string | null; stripeTransferId: string | null }) =>
+    r.payoutId !== null || r.stripeTransferId !== null
 
   return {
     clicksTotal,
@@ -106,8 +114,14 @@ export async function getAffiliateStats(affiliateId: string): Promise<AffiliateS
     salesCount: live.length,
     grossCents: live.reduce((s, r) => s + r.grossAmountCents, 0),
     commissionCents: sum(live),
-    owedCents: sum(live.filter((r) => !r.payoutId)),
-    refundedAfterPayoutCents: sum(referrals.filter((r) => r.refundedAt && r.payoutId)),
+    owedCents: sum(live.filter((r) => !isPaid(r))),
+    // Money already sent that a refund didn't recover: manual payouts, or
+    // instant transfers whose reversal didn't go through.
+    refundedAfterPayoutCents: sum(
+      referrals.filter(
+        (r) => r.refundedAt && (r.payoutId !== null || (r.stripeTransferId !== null && !r.stripeTransferReversalId))
+      )
+    ),
     payouts: payouts.map((p) => ({ id: p.id, amountCents: p.amountCents, note: p.note, paidAt: p.paidAt })),
     referrals: referrals.map((r) => ({
       id: r.id,
@@ -116,7 +130,7 @@ export async function getAffiliateStats(affiliateId: string): Promise<AffiliateS
       commissionCents: r.commissionCents,
       source: r.source,
       refundedAt: r.refundedAt,
-      paidOut: r.payoutId !== null,
+      paidOut: isPaid(r),
     })),
   }
 }
@@ -129,7 +143,7 @@ export async function recordPayout(
 ): Promise<{ id: string; amountCents: number } | null> {
   return prisma.$transaction(async (tx) => {
     const owed = await tx.affiliateReferral.findMany({
-      where: { affiliateId, payoutId: null, refundedAt: null },
+      where: { affiliateId, payoutId: null, stripeTransferId: null, refundedAt: null },
       select: { id: true, commissionCents: true },
     })
     if (owed.length === 0) return null

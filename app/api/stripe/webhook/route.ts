@@ -3,6 +3,7 @@ import Stripe from "stripe"
 import { prisma } from "@/lib/db"
 import { sendShftPurchaseEmail } from "@/lib/email"
 import { recordAffiliateReferral } from "@/lib/affiliate"
+import { reverseTransferForRefund } from "@/lib/affiliate-stripe"
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -136,11 +137,20 @@ export async function POST(request: Request) {
         const paymentIntentId =
           typeof charge.payment_intent === "string" ? charge.payment_intent : charge.payment_intent?.id
         if (!paymentIntentId) break
-        // Any refund (full or partial) claws back the whole commission (v1 policy).
-        await prisma.affiliateReferral.updateMany({
+        // Any refund (full or partial) claws back the whole commission (v1
+        // policy). Instantly-transferred commissions also get the Stripe
+        // transfer reversed; a failed reversal surfaces in the admin warning.
+        const refunded = await prisma.affiliateReferral.findMany({
           where: { stripePaymentIntentId: paymentIntentId, refundedAt: null },
-          data: { refundedAt: new Date() },
+          select: { id: true },
         })
+        for (const referral of refunded) {
+          await prisma.affiliateReferral.update({
+            where: { id: referral.id },
+            data: { refundedAt: new Date() },
+          })
+          await reverseTransferForRefund(referral.id)
+        }
         break
       }
 
