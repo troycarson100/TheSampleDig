@@ -8,6 +8,9 @@ function fmtDate(d: Date): string {
   return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
 }
 
+const mono = { fontFamily: "var(--font-ibm-mono), monospace" }
+const label = { ...mono, color: "var(--muted)" }
+
 export default function AffiliateDashboard({
   affiliate,
   stats,
@@ -18,57 +21,85 @@ export default function AffiliateDashboard({
   baseUrl: string
 }) {
   const link = `${baseUrl}/shft?ref=${affiliate.code}`
-  const tiles: [string, string][] = [
-    ["Clicks (30d / all)", `${stats.clicks30d} / ${stats.clicksTotal}`],
-    ["Sales", String(stats.salesCount)],
-    ["Revenue driven", usd(stats.grossCents)],
-    ["Commission earned", usd(stats.commissionCents)],
-    ["Owed to you", usd(stats.owedCents)],
+  const tiles: { name: string; value: string; hot?: boolean }[] = [
+    { name: "Clicks (30d / all)", value: `${stats.clicks30d} / ${stats.clicksTotal}` },
+    { name: "Sales", value: String(stats.salesCount) },
+    { name: "Revenue driven", value: usd(stats.grossCents) },
+    { name: "Commission earned", value: usd(stats.commissionCents) },
+    { name: "Owed to you", value: usd(stats.owedCents), hot: true },
   ]
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-10 text-neutral-100">
-      <h1 className="text-2xl font-semibold">shft affiliate — {affiliate.name}</h1>
-      <div className="mt-4 rounded-lg border border-neutral-700 bg-neutral-900 p-4 text-sm">
-        <p>
-          Your link: <code className="select-all break-all text-amber-300">{link}</code>
+    <>
+      <p className="text-xs uppercase tracking-widest mb-1" style={label}>
+        shft affiliate
+      </p>
+      <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
+        {affiliate.name}
+      </h1>
+      <p className="text-sm mb-8" style={{ color: "var(--foreground)", opacity: 0.7 }}>
+        Share your link or code — sales attribute automatically and show up here.
+      </p>
+
+      <div className="rounded-xl border p-4 sm:p-5 text-sm" style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
+        <p className="text-xs uppercase tracking-widest mb-2" style={label}>
+          Your link
         </p>
-        <p className="mt-1">
-          Your code (buyers can type it at checkout):{" "}
-          <code className="select-all text-amber-300">{affiliate.code}</code>
+        <p className="select-all break-all font-medium" style={{ ...mono, color: "var(--primary)" }}>
+          {link}
+        </p>
+        <p className="text-xs uppercase tracking-widest mt-4 mb-2" style={label}>
+          Your code — buyers can type it at checkout
+        </p>
+        <p className="select-all font-medium" style={{ ...mono, color: "var(--primary)" }}>
+          {affiliate.code}
         </p>
       </div>
+
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">
-        {tiles.map(([label, value]) => (
-          <div key={label} className="rounded-lg border border-neutral-700 bg-neutral-900 p-3">
-            <div className="text-xs text-neutral-400">{label}</div>
-            <div className="mt-1 text-lg font-semibold">{value}</div>
+        {tiles.map((tile) => (
+          <div key={tile.name} className="rounded-xl border p-3" style={{ borderColor: "var(--border)" }}>
+            <div className="text-[11px] uppercase tracking-wide" style={label}>
+              {tile.name}
+            </div>
+            <div
+              className="mt-1 text-lg font-bold"
+              style={{ color: tile.hot ? "var(--primary)" : "var(--foreground)" }}
+            >
+              {tile.value}
+            </div>
           </div>
         ))}
       </div>
 
-      <h2 className="mt-8 text-lg font-semibold">Sales</h2>
+      <h2 className="mt-10 text-lg font-semibold" style={{ color: "var(--foreground)" }}>
+        Sales
+      </h2>
       {stats.referrals.length === 0 ? (
-        <p className="mt-2 text-sm text-neutral-400">No attributed sales yet.</p>
+        <p className="mt-2 text-sm" style={{ color: "var(--foreground)", opacity: 0.6 }}>
+          No attributed sales yet — share your link to get started.
+        </p>
       ) : (
-        <div className="mt-2 overflow-x-auto">
-          <table className="w-full text-left text-sm">
-            <thead className="text-neutral-400">
-              <tr>
-                <th className="py-1 pr-4 font-normal">Date</th>
-                <th className="py-1 pr-4 font-normal">Sale</th>
-                <th className="py-1 pr-4 font-normal">Your cut</th>
-                <th className="py-1 pr-4 font-normal">Via</th>
-                <th className="py-1 font-normal">Status</th>
+        <div className="mt-2 overflow-x-auto rounded-xl border" style={{ borderColor: "var(--border)" }}>
+          <table className="w-full text-left text-sm" style={{ color: "var(--foreground)" }}>
+            <thead>
+              <tr className="text-[11px] uppercase tracking-wide" style={label}>
+                <th className="px-4 py-2 font-normal">Date</th>
+                <th className="px-4 py-2 font-normal">Sale</th>
+                <th className="px-4 py-2 font-normal">Your cut</th>
+                <th className="px-4 py-2 font-normal">Via</th>
+                <th className="px-4 py-2 font-normal">Status</th>
               </tr>
             </thead>
             <tbody>
               {stats.referrals.map((r) => (
-                <tr key={r.id} className="border-t border-neutral-800">
-                  <td className="py-1.5 pr-4">{fmtDate(r.createdAt)}</td>
-                  <td className="py-1.5 pr-4">{usd(r.grossAmountCents)}</td>
-                  <td className="py-1.5 pr-4">{usd(r.commissionCents)}</td>
-                  <td className="py-1.5 pr-4">{r.source === "code" ? "typed code" : "link"}</td>
-                  <td className="py-1.5">{r.refundedAt ? "refunded" : r.paidOut ? "paid" : "pending payout"}</td>
+                <tr key={r.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                  <td className="px-4 py-2">{fmtDate(r.createdAt)}</td>
+                  <td className="px-4 py-2">{usd(r.grossAmountCents)}</td>
+                  <td className="px-4 py-2 font-medium">{usd(r.commissionCents)}</td>
+                  <td className="px-4 py-2">{r.source === "code" ? "typed code" : "link"}</td>
+                  <td className="px-4 py-2" style={r.refundedAt ? { opacity: 0.55 } : undefined}>
+                    {r.refundedAt ? "refunded" : r.paidOut ? "paid" : "pending payout"}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -76,19 +107,24 @@ export default function AffiliateDashboard({
         </div>
       )}
 
-      <h2 className="mt-8 text-lg font-semibold">Payouts</h2>
+      <h2 className="mt-10 text-lg font-semibold" style={{ color: "var(--foreground)" }}>
+        Payouts
+      </h2>
       {stats.payouts.length === 0 ? (
-        <p className="mt-2 text-sm text-neutral-400">No payouts yet.</p>
+        <p className="mt-2 text-sm" style={{ color: "var(--foreground)", opacity: 0.6 }}>
+          No payouts yet.
+        </p>
       ) : (
-        <ul className="mt-2 space-y-1 text-sm">
+        <ul className="mt-2 space-y-2 text-sm" style={{ color: "var(--foreground)" }}>
           {stats.payouts.map((p) => (
-            <li key={p.id} className="rounded border border-neutral-800 bg-neutral-900 px-3 py-2">
-              {fmtDate(p.paidAt)} — {usd(p.amountCents)}
-              {p.note ? <span className="text-neutral-400"> · {p.note}</span> : null}
+            <li key={p.id} className="rounded-xl border px-4 py-3" style={{ borderColor: "var(--border)" }}>
+              <span className="font-medium">{usd(p.amountCents)}</span>
+              <span style={{ opacity: 0.6 }}> · {fmtDate(p.paidAt)}</span>
+              {p.note ? <span style={{ opacity: 0.6 }}> · {p.note}</span> : null}
             </li>
           ))}
         </ul>
       )}
-    </div>
+    </>
   )
 }

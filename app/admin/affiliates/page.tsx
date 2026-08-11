@@ -2,7 +2,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { requireAdmin } from "@/lib/admin"
 import AdminAffiliates from "@/components/affiliate/AdminAffiliates"
-import SiteNav from "@/components/SiteNav"
+import AffiliatePageShell from "@/components/affiliate/AffiliatePageShell"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = { robots: { index: false, follow: false } }
@@ -12,9 +12,8 @@ export const metadata: Metadata = { robots: { index: false, follow: false } }
 export default async function AdminAffiliatesPage() {
   if (!(await requireAdmin())) notFound()
   return (
-    <>
-      <SiteNav />
+    <AffiliatePageShell wide>
       <AdminAffiliates baseUrl={process.env.NEXTAUTH_URL || "http://localhost:3000"} />
-    </>
+    </AffiliatePageShell>
   )
 }

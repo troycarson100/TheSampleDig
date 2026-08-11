@@ -3,7 +3,7 @@ import type { Metadata } from "next"
 import { prisma } from "@/lib/db"
 import { getAffiliateStats } from "@/lib/affiliate"
 import AffiliateDashboard from "@/components/affiliate/AffiliateDashboard"
-import SiteNav from "@/components/SiteNav"
+import AffiliatePageShell from "@/components/affiliate/AffiliatePageShell"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = { robots: { index: false, follow: false } }
@@ -16,9 +16,8 @@ export default async function AffiliateTokenPage({ params }: { params: Promise<{
   const stats = await getAffiliateStats(affiliate.id)
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
   return (
-    <>
-      <SiteNav />
+    <AffiliatePageShell>
       <AffiliateDashboard affiliate={{ name: affiliate.name, code: affiliate.code }} stats={stats} baseUrl={baseUrl} />
-    </>
+    </AffiliatePageShell>
   )
 }

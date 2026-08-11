@@ -4,24 +4,23 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { getAffiliateStats } from "@/lib/affiliate"
 import AffiliateDashboard from "@/components/affiliate/AffiliateDashboard"
-import SiteNav from "@/components/SiteNav"
+import AffiliatePageShell from "@/components/affiliate/AffiliatePageShell"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = { robots: { index: false, follow: false } }
 
 function Note({ text }: { text: string }) {
   return (
-    <>
-      <SiteNav />
-      <div className="mx-auto max-w-xl px-4 py-16 text-center text-neutral-300">
-        <p>{text}</p>
+    <AffiliatePageShell>
+      <div className="mx-auto max-w-xl py-12 text-center" style={{ color: "var(--foreground)" }}>
+        <p className="text-[15px]">{text}</p>
         <p className="mt-4 text-sm">
-          <Link href="/" className="underline">
+          <Link href="/" className="underline" style={{ color: "var(--primary)" }}>
             Back home
           </Link>
         </p>
       </div>
-    </>
+    </AffiliatePageShell>
   )
 }
 
@@ -51,9 +50,8 @@ export default async function AffiliatePage() {
   const stats = await getAffiliateStats(affiliate.id)
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
   return (
-    <>
-      <SiteNav />
+    <AffiliatePageShell>
       <AffiliateDashboard affiliate={{ name: affiliate.name, code: affiliate.code }} stats={stats} baseUrl={baseUrl} />
-    </>
+    </AffiliatePageShell>
   )
 }

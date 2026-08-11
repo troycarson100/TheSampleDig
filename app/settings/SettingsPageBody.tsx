@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import SiteNav from "@/components/SiteNav"
+import SettingsAffiliateLink from "@/components/SettingsAffiliateLink"
 import SettingsMarketingPreference from "@/components/SettingsMarketingPreference"
 import SettingsPricingNavButton from "@/components/SettingsPricingNavButton"
 import SettingsSubscriptionManage from "@/components/SettingsSubscriptionManage"
@@ -39,6 +40,7 @@ export default function SettingsPageBody() {
               →
             </span>
           </Link>
+          <SettingsAffiliateLink />
           <div className="pt-4 mt-2 border-t" style={{ borderColor: "var(--border)" }}>
             <p className="text-xs uppercase tracking-wide mb-3" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
               Legal

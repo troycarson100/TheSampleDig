@@ -24,10 +24,18 @@ function fmtDate(d: Date | string): string {
   return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
 }
 
-const inputCls =
-  "rounded border border-neutral-700 bg-neutral-950 px-2 py-1.5 text-sm text-neutral-100 placeholder:text-neutral-500"
-const btnCls =
-  "rounded border border-neutral-600 bg-neutral-800 px-3 py-1.5 text-sm text-neutral-100 hover:bg-neutral-700 disabled:opacity-50"
+const mono = { fontFamily: "var(--font-ibm-mono), monospace" }
+const labelStyle = { ...mono, color: "var(--muted)" }
+const fieldStyle = {
+  borderColor: "var(--border)",
+  color: "var(--foreground)",
+  background: "rgba(255, 255, 255, 0.45)",
+}
+const btnStyle = { borderColor: "var(--border)", color: "var(--foreground)", background: "transparent" }
+const primaryBtnStyle = { borderColor: "var(--primary)", color: "var(--primary)", background: "transparent" }
+
+const inputCls = "rounded-lg border px-3 py-2 text-sm outline-none"
+const btnCls = "rounded-lg border px-3 py-1.5 text-sm font-medium transition hover:opacity-75 disabled:opacity-40 cursor-pointer"
 
 export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
   const [affiliates, setAffiliates] = useState<AdminAffiliate[]>([])
@@ -150,22 +158,36 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
     navigator.clipboard?.writeText(text).catch(() => {})
   }
 
-  if (loading) return <div className="p-8 text-neutral-300">Loading affiliates…</div>
+  if (loading)
+    return (
+      <p className="py-8 text-sm" style={{ color: "var(--foreground)", opacity: 0.7 }}>
+        Loading affiliates…
+      </p>
+    )
 
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 py-10 text-neutral-100">
-      <h1 className="text-2xl font-semibold">Affiliates — master panel</h1>
-      {error ? <p className="mt-3 rounded border border-red-800 bg-red-950 px-3 py-2 text-sm text-red-300">{error}</p> : null}
+    <div style={{ color: "var(--foreground)" }}>
+      <p className="text-xs uppercase tracking-widest mb-1" style={labelStyle}>
+        shft affiliate program
+      </p>
+      <h1 className="text-2xl font-bold mb-2">Affiliates</h1>
+      <p className="text-sm mb-8" style={{ opacity: 0.7 }}>
+        Invite creators, track their sales, and record payouts.
+      </p>
+      {error ? (
+        <p className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
+      ) : null}
 
-      <section className="mt-6 rounded-lg border border-neutral-700 bg-neutral-900 p-4">
+      <section className="rounded-xl border p-4 sm:p-5" style={{ borderColor: "var(--border)" }}>
         <h2 className="text-lg font-semibold">Invite a creator</h2>
         <div className="mt-3 flex flex-wrap gap-2">
-          <input className={inputCls} placeholder="Name" value={nName} onChange={(e) => setNName(e.target.value)} />
-          <input className={inputCls} placeholder="Email" value={nEmail} onChange={(e) => setNEmail(e.target.value)} />
-          <input className={inputCls} placeholder="Code (e.g. synthdad)" value={nCode} onChange={(e) => setNCode(e.target.value)} />
-          <label className="flex items-center gap-1 text-sm text-neutral-400">
+          <input className={inputCls} style={fieldStyle} placeholder="Name" value={nName} onChange={(e) => setNName(e.target.value)} />
+          <input className={inputCls} style={fieldStyle} placeholder="Email" value={nEmail} onChange={(e) => setNEmail(e.target.value)} />
+          <input className={inputCls} style={fieldStyle} placeholder="Code (e.g. synthdad)" value={nCode} onChange={(e) => setNCode(e.target.value)} />
+          <label className="flex items-center gap-1.5 text-sm" style={{ opacity: 0.85 }}>
             <input
               className={`${inputCls} w-16`}
+              style={fieldStyle}
               type="number"
               min={1}
               max={90}
@@ -174,16 +196,18 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
             />
             % commission
           </label>
-          <input className={`${inputCls} flex-1 min-w-40`} placeholder="Notes (optional)" value={nNotes} onChange={(e) => setNNotes(e.target.value)} />
-          <button className={btnCls} disabled={busy} onClick={createAffiliate}>
+          <input className={`${inputCls} flex-1 min-w-40`} style={fieldStyle} placeholder="Notes (optional)" value={nNotes} onChange={(e) => setNNotes(e.target.value)} />
+          <button className={btnCls} style={primaryBtnStyle} disabled={busy} onClick={createAffiliate}>
             Create
           </button>
         </div>
         {createdLink ? (
           <p className="mt-3 text-sm">
             Created. Email them their private dashboard link:{" "}
-            <code className="select-all break-all text-amber-300">{createdLink}</code>{" "}
-            <button className={`${btnCls} ml-2`} onClick={() => copy(createdLink)}>
+            <span className="select-all break-all" style={{ ...mono, color: "var(--primary)" }}>
+              {createdLink}
+            </span>{" "}
+            <button className={`${btnCls} ml-2`} style={btnStyle} onClick={() => copy(createdLink)}>
               Copy
             </button>
           </p>
@@ -192,20 +216,22 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
 
       <section className="mt-8">
         {affiliates.length === 0 ? (
-          <p className="text-sm text-neutral-400">No affiliates yet — invite your first creator above.</p>
+          <p className="text-sm" style={{ opacity: 0.6 }}>
+            No affiliates yet — invite your first creator above.
+          </p>
         ) : (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-xl border" style={{ borderColor: "var(--border)" }}>
             <table className="w-full text-left text-sm">
-              <thead className="text-neutral-400">
-                <tr>
-                  <th className="py-2 pr-4 font-normal">Creator</th>
-                  <th className="py-2 pr-4 font-normal">Code</th>
-                  <th className="py-2 pr-4 font-normal">%</th>
-                  <th className="py-2 pr-4 font-normal">Clicks 30d/all</th>
-                  <th className="py-2 pr-4 font-normal">Sales</th>
-                  <th className="py-2 pr-4 font-normal">Gross</th>
-                  <th className="py-2 pr-4 font-normal">Owed</th>
-                  <th className="py-2 font-normal"></th>
+              <thead>
+                <tr className="text-[11px] uppercase tracking-wide" style={labelStyle}>
+                  <th className="px-4 py-2.5 font-normal">Creator</th>
+                  <th className="px-4 py-2.5 font-normal">Code</th>
+                  <th className="px-4 py-2.5 font-normal">%</th>
+                  <th className="px-4 py-2.5 font-normal">Clicks 30d/all</th>
+                  <th className="px-4 py-2.5 font-normal">Sales</th>
+                  <th className="px-4 py-2.5 font-normal">Gross</th>
+                  <th className="px-4 py-2.5 font-normal">Owed</th>
+                  <th className="px-4 py-2.5 font-normal"></th>
                 </tr>
               </thead>
               <tbody>
@@ -263,42 +289,47 @@ function AffiliateRow({
 
   return (
     <>
-      <tr className={`border-t border-neutral-800 ${a.active ? "" : "opacity-50"}`}>
-        <td className="py-2 pr-4">
+      <tr className={`border-t ${a.active ? "" : "opacity-50"}`} style={{ borderColor: "var(--border)" }}>
+        <td className="px-4 py-2.5">
           {a.name}
-          <span className="block text-xs text-neutral-500">{a.email}</span>
+          <span className="block text-xs" style={{ opacity: 0.55 }}>
+            {a.email}
+          </span>
         </td>
-        <td className="py-2 pr-4">
-          <code>{a.code}</code>
+        <td className="px-4 py-2.5" style={mono}>
+          {a.code}
         </td>
-        <td className="py-2 pr-4">{a.commissionPercent}%</td>
-        <td className="py-2 pr-4">
+        <td className="px-4 py-2.5">{a.commissionPercent}%</td>
+        <td className="px-4 py-2.5">
           {a.stats.clicks30d} / {a.stats.clicksTotal}
         </td>
-        <td className="py-2 pr-4">{a.stats.salesCount}</td>
-        <td className="py-2 pr-4">{usd(a.stats.grossCents)}</td>
-        <td className="py-2 pr-4 font-semibold">{usd(a.stats.owedCents)}</td>
-        <td className="py-2 text-right">
-          <button className={btnCls} onClick={onToggle}>
+        <td className="px-4 py-2.5">{a.stats.salesCount}</td>
+        <td className="px-4 py-2.5">{usd(a.stats.grossCents)}</td>
+        <td className="px-4 py-2.5 font-semibold" style={{ color: a.stats.owedCents > 0 ? "var(--primary)" : undefined }}>
+          {usd(a.stats.owedCents)}
+        </td>
+        <td className="px-4 py-2.5 text-right">
+          <button className={btnCls} style={btnStyle} onClick={onToggle}>
             {expanded ? "Close" : "Manage"}
           </button>
         </td>
       </tr>
       {expanded ? (
-        <tr className="border-t border-neutral-800 bg-neutral-950">
-          <td colSpan={8} className="p-4">
+        <tr className="border-t" style={{ borderColor: "var(--border)", background: "rgba(255, 255, 255, 0.35)" }}>
+          <td colSpan={8} className="px-4 py-4">
             {a.stats.refundedAfterPayoutCents > 0 ? (
-              <p className="mb-3 rounded border border-amber-700 bg-amber-950 px-3 py-2 text-xs text-amber-300">
+              <p className="mb-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-900">
                 Refunded after payout: −{usd(a.stats.refundedAfterPayoutCents)} — offset this on the next payout manually.
               </p>
             ) : null}
             <div className="flex flex-wrap items-center gap-2 text-sm">
-              <input className={inputCls} value={eName} onChange={(e) => setEName(e.target.value)} />
-              <input className={inputCls} value={eEmail} onChange={(e) => setEEmail(e.target.value)} />
-              <input className={inputCls} value={eCode} onChange={(e) => setECode(e.target.value)} />
-              <label className="flex items-center gap-1 text-neutral-400">
+              <input className={inputCls} style={fieldStyle} value={eName} onChange={(e) => setEName(e.target.value)} />
+              <input className={inputCls} style={fieldStyle} value={eEmail} onChange={(e) => setEEmail(e.target.value)} />
+              <input className={inputCls} style={fieldStyle} value={eCode} onChange={(e) => setECode(e.target.value)} />
+              <label className="flex items-center gap-1.5" style={{ opacity: 0.85 }}>
                 <input
                   className={`${inputCls} w-16`}
+                  style={fieldStyle}
                   type="number"
                   min={1}
                   max={90}
@@ -307,47 +338,60 @@ function AffiliateRow({
                 />
                 %
               </label>
-              <input className={`${inputCls} flex-1 min-w-40`} placeholder="Notes" value={eNotes} onChange={(e) => setENotes(e.target.value)} />
+              <input className={`${inputCls} flex-1 min-w-40`} style={fieldStyle} placeholder="Notes" value={eNotes} onChange={(e) => setENotes(e.target.value)} />
               <button
                 className={btnCls}
+                style={btnStyle}
                 disabled={busy}
                 onClick={() => onPatch(a.id, { name: eName, email: eEmail, code: eCode, commissionPercent: ePercent, notes: eNotes })}
               >
                 Save
               </button>
-              <button className={btnCls} disabled={busy} onClick={() => onPatch(a.id, { active: !a.active })}>
+              <button className={btnCls} style={btnStyle} disabled={busy} onClick={() => onPatch(a.id, { active: !a.active })}>
                 {a.active ? "Deactivate" : "Activate"}
               </button>
             </div>
-            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-neutral-400">
+            <div className="mt-3 flex flex-wrap items-center gap-2 text-xs" style={{ opacity: 0.9 }}>
               <span>
-                Ref link: <code className="select-all text-amber-300">{refLink}</code>
+                Ref link:{" "}
+                <span className="select-all" style={{ ...mono, color: "var(--primary)" }}>
+                  {refLink}
+                </span>
               </span>
-              <button className={btnCls} onClick={() => onCopy(refLink)}>
+              <button className={btnCls} style={btnStyle} onClick={() => onCopy(refLink)}>
                 Copy
               </button>
               <span className="ml-3">
-                Dashboard: <code className="select-all break-all text-amber-300">{dashboardLink}</code>
+                Dashboard:{" "}
+                <span className="select-all break-all" style={{ ...mono, color: "var(--primary)" }}>
+                  {dashboardLink}
+                </span>
               </span>
-              <button className={btnCls} onClick={() => onCopy(dashboardLink)}>
+              <button className={btnCls} style={btnStyle} onClick={() => onCopy(dashboardLink)}>
                 Copy
               </button>
-              <button className={btnCls} disabled={busy} onClick={onRegenerate}>
+              <button className={btnCls} style={btnStyle} disabled={busy} onClick={onRegenerate}>
                 Regenerate link
               </button>
-              <button className={btnCls} disabled={busy || a.stats.owedCents === 0} onClick={onPayout}>
+              <button className={btnCls} style={primaryBtnStyle} disabled={busy || a.stats.owedCents === 0} onClick={onPayout}>
                 Record payout ({usd(a.stats.owedCents)})
               </button>
-              {a.userId ? <span className="text-emerald-400">account linked</span> : <span>no account linked</span>}
+              {a.userId ? (
+                <span style={{ color: "var(--primary)" }}>account linked</span>
+              ) : (
+                <span style={{ opacity: 0.6 }}>no account linked</span>
+              )}
             </div>
 
-            <h3 className="mt-4 text-sm font-semibold text-neutral-200">Sales</h3>
+            <h3 className="mt-4 text-sm font-semibold">Sales</h3>
             {a.stats.referrals.length === 0 ? (
-              <p className="mt-1 text-xs text-neutral-500">None yet.</p>
+              <p className="mt-1 text-xs" style={{ opacity: 0.6 }}>
+                None yet.
+              </p>
             ) : (
               <table className="mt-1 w-full text-left text-xs">
-                <thead className="text-neutral-500">
-                  <tr>
+                <thead>
+                  <tr className="text-[10px] uppercase tracking-wide" style={labelStyle}>
                     <th className="py-1 pr-4 font-normal">Date</th>
                     <th className="py-1 pr-4 font-normal">Sale</th>
                     <th className="py-1 pr-4 font-normal">Commission</th>
@@ -357,27 +401,31 @@ function AffiliateRow({
                 </thead>
                 <tbody>
                   {a.stats.referrals.map((r) => (
-                    <tr key={r.id} className="border-t border-neutral-900">
-                      <td className="py-1 pr-4">{fmtDate(r.createdAt)}</td>
-                      <td className="py-1 pr-4">{usd(r.grossAmountCents)}</td>
-                      <td className="py-1 pr-4">{usd(r.commissionCents)}</td>
-                      <td className="py-1 pr-4">{r.source === "code" ? "typed code" : "link"}</td>
-                      <td className="py-1">{r.refundedAt ? "refunded" : r.paidOut ? "paid" : "owed"}</td>
+                    <tr key={r.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                      <td className="py-1.5 pr-4">{fmtDate(r.createdAt)}</td>
+                      <td className="py-1.5 pr-4">{usd(r.grossAmountCents)}</td>
+                      <td className="py-1.5 pr-4">{usd(r.commissionCents)}</td>
+                      <td className="py-1.5 pr-4">{r.source === "code" ? "typed code" : "link"}</td>
+                      <td className="py-1.5" style={r.refundedAt ? { opacity: 0.55 } : undefined}>
+                        {r.refundedAt ? "refunded" : r.paidOut ? "paid" : "owed"}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             )}
 
-            <h3 className="mt-4 text-sm font-semibold text-neutral-200">Payouts</h3>
+            <h3 className="mt-4 text-sm font-semibold">Payouts</h3>
             {a.stats.payouts.length === 0 ? (
-              <p className="mt-1 text-xs text-neutral-500">None yet.</p>
+              <p className="mt-1 text-xs" style={{ opacity: 0.6 }}>
+                None yet.
+              </p>
             ) : (
               <ul className="mt-1 space-y-1 text-xs">
                 {a.stats.payouts.map((p) => (
                   <li key={p.id}>
                     {fmtDate(p.paidAt)} — {usd(p.amountCents)}
-                    {p.note ? <span className="text-neutral-500"> · {p.note}</span> : null}
+                    {p.note ? <span style={{ opacity: 0.6 }}> · {p.note}</span> : null}
                   </li>
                 ))}
               </ul>
