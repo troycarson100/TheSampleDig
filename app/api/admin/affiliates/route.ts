@@ -3,23 +3,31 @@ import { prisma } from "@/lib/db"
 import { requireAdmin } from "@/lib/admin"
 import { generateDashboardToken, getAffiliateStats } from "@/lib/affiliate"
 import { normalizeAffiliateCode } from "@/lib/affiliate-logic"
+import { refreshPayoutStatus } from "@/lib/affiliate-stripe"
 
 export async function GET() {
   if (!(await requireAdmin())) return NextResponse.json({ error: "forbidden" }, { status: 403 })
   const affiliates = await prisma.affiliate.findMany({ orderBy: { createdAt: "asc" } })
   const withStats = await Promise.all(
-    affiliates.map(async (a) => ({
-      id: a.id,
-      code: a.code,
-      name: a.name,
-      email: a.email,
-      commissionPercent: a.commissionPercent,
-      dashboardToken: a.dashboardToken,
-      userId: a.userId,
-      active: a.active,
-      notes: a.notes,
-      stats: await getAffiliateStats(a.id),
-    }))
+    affiliates.map(async (a) => {
+      // Keep pending Stripe statuses honest (refreshPayoutStatus never throws).
+      const stripePayoutsEnabled =
+        a.stripeAccountId && !a.stripePayoutsEnabled ? await refreshPayoutStatus(a.id) : a.stripePayoutsEnabled
+      return {
+        id: a.id,
+        code: a.code,
+        name: a.name,
+        email: a.email,
+        commissionPercent: a.commissionPercent,
+        dashboardToken: a.dashboardToken,
+        userId: a.userId,
+        active: a.active,
+        notes: a.notes,
+        stripeConnected: a.stripeAccountId !== null,
+        stripePayoutsEnabled,
+        stats: await getAffiliateStats(a.id),
+      }
+    })
   )
   return NextResponse.json({ affiliates: withStats })
 }

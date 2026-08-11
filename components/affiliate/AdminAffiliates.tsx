@@ -13,6 +13,8 @@ interface AdminAffiliate {
   userId: string | null
   active: boolean
   notes: string | null
+  stripeConnected: boolean
+  stripePayoutsEnabled: boolean
   stats: AffiliateStats
 }
 
@@ -138,6 +140,27 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
     }
   }
 
+  async function stripePayout(a: AdminAffiliate) {
+    if (
+      !window.confirm(
+        `Send ${usd(a.stats.owedCents)} to ${a.name} via Stripe?\n\nThis transfers their accrued balance to their connected Stripe account and marks those sales paid.`
+      )
+    )
+      return
+    setBusy(true)
+    setError("")
+    try {
+      const res = await fetch(`/api/admin/affiliates/${a.id}/stripe-payout`, { method: "POST" })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Stripe payout failed")
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Stripe payout failed")
+    } finally {
+      setBusy(false)
+    }
+  }
+
   async function regenerateToken(a: AdminAffiliate) {
     if (!window.confirm(`Regenerate ${a.name}'s dashboard link? The old link stops working immediately.`)) return
     setBusy(true)
@@ -245,6 +268,7 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
                     onToggle={() => setExpandedId(expandedId === a.id ? null : a.id)}
                     onPatch={patchAffiliate}
                     onPayout={() => recordPayout(a)}
+                    onStripePayout={() => stripePayout(a)}
                     onRegenerate={() => regenerateToken(a)}
                     onCopy={copy}
                   />
@@ -266,6 +290,7 @@ function AffiliateRow({
   onToggle,
   onPatch,
   onPayout,
+  onStripePayout,
   onRegenerate,
   onCopy,
 }: {
@@ -276,6 +301,7 @@ function AffiliateRow({
   onToggle: () => void
   onPatch: (id: string, patch: Record<string, unknown>) => Promise<void>
   onPayout: () => void
+  onStripePayout: () => void
   onRegenerate: () => void
   onCopy: (text: string) => void
 }) {
@@ -373,9 +399,21 @@ function AffiliateRow({
               <button className={btnCls} style={btnStyle} disabled={busy} onClick={onRegenerate}>
                 Regenerate link
               </button>
-              <button className={btnCls} style={primaryBtnStyle} disabled={busy || a.stats.owedCents === 0} onClick={onPayout}>
-                Record payout ({usd(a.stats.owedCents)})
+              {a.stripePayoutsEnabled && a.stats.owedCents > 0 ? (
+                <button className={btnCls} style={primaryBtnStyle} disabled={busy} onClick={onStripePayout}>
+                  Pay via Stripe ({usd(a.stats.owedCents)})
+                </button>
+              ) : null}
+              <button className={btnCls} style={btnStyle} disabled={busy || a.stats.owedCents === 0} onClick={onPayout}>
+                Record manual payout ({usd(a.stats.owedCents)})
               </button>
+              {a.stripePayoutsEnabled ? (
+                <span style={{ color: "var(--primary)" }}>Stripe payouts on</span>
+              ) : a.stripeConnected ? (
+                <span style={{ opacity: 0.6 }}>Stripe setup incomplete</span>
+              ) : (
+                <span style={{ opacity: 0.6 }}>Stripe not connected</span>
+              )}
               {a.userId ? (
                 <span style={{ color: "var(--primary)" }}>account linked</span>
               ) : (
