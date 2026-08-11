@@ -1,9 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useGoProModal } from "@/components/GoProModalContext"
+import { useIsAffiliate } from "@/lib/use-is-affiliate"
 
 function IconShieldCheck({ className }: { className?: string }) {
   return (
@@ -65,6 +66,15 @@ function IconDownloadBox({ className }: { className?: string }) {
   )
 }
 
+function IconMegaphone({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 11l18-5v12L3 14v-3z" />
+      <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+    </svg>
+  )
+}
+
 export const SITE_SETTINGS_MENU_ITEMS = [
   { href: "/products", label: "My Products", Icon: IconDownloadBox },
   { href: "/privacy", label: "Privacy Policy", Icon: IconShieldCheck },
@@ -84,6 +94,7 @@ export function SiteSettingsMenu() {
   const { openProModal } = useGoProModal()
   const { data: session } = useSession()
   const isProSubscriber = session?.user?.isPro === true
+  const isAffiliate = useIsAffiliate()
 
   useEffect(() => {
     if (!open) return
@@ -158,17 +169,31 @@ export function SiteSettingsMenu() {
                 </button>
               )
             ) : (
-              <Link
-                key={href}
-                href={href}
-                role="menuitem"
-                className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
-                style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
-                onClick={() => setOpen(false)}
-              >
-                <Icon className="shrink-0 opacity-85" />
-                <span>{label}</span>
-              </Link>
+              <Fragment key={href}>
+                <Link
+                  href={href}
+                  role="menuitem"
+                  className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
+                  style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
+                  onClick={() => setOpen(false)}
+                >
+                  <Icon className="shrink-0 opacity-85" />
+                  <span>{label}</span>
+                </Link>
+                {/* Invited affiliates get their dashboard right under My Products. */}
+                {href === "/products" && isAffiliate ? (
+                  <Link
+                    href="/affiliate"
+                    role="menuitem"
+                    className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
+                    style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
+                    onClick={() => setOpen(false)}
+                  >
+                    <IconMegaphone className="shrink-0 opacity-85" />
+                    <span>Affiliate</span>
+                  </Link>
+                ) : null}
+              </Fragment>
             )
           )}
         </div>

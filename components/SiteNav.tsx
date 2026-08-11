@@ -52,29 +52,8 @@ export default function SiteNav() {
   const closeBtnRef = useRef<HTMLButtonElement>(null)
   const wasMenuOpenRef = useRef(false)
   const isActive = (path: string) => pathname === path || (path !== "/dig" && pathname?.startsWith(path))
-  const signedIn = Boolean(session?.user)
-  // Affiliate link is invite-only; status is resolved once per tab and cached.
-  const [isAffiliate, setIsAffiliate] = useState(
-    () => typeof window !== "undefined" && window.sessionStorage.getItem("sr_is_affiliate") === "1"
-  )
 
   useEffect(() => setMounted(true), [])
-
-  useEffect(() => {
-    if (!signedIn) return
-    if (sessionStorage.getItem("sr_is_affiliate") !== null) return
-    let cancelled = false
-    fetch("/api/affiliate/me")
-      .then((r) => r.json())
-      .then((d) => {
-        sessionStorage.setItem("sr_is_affiliate", d.isAffiliate ? "1" : "0")
-        if (!cancelled && d.isAffiliate) setIsAffiliate(true)
-      })
-      .catch(() => {})
-    return () => {
-      cancelled = true
-    }
-  }, [signedIn])
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
@@ -157,11 +136,6 @@ export default function SiteNav() {
               <NavCrateLockIcon />
               My Crate
             </button>
-          )}
-          {signedIn && isAffiliate && (
-            <Link href="/affiliate" className={`${navLinkBase} ${isActive("/affiliate") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/affiliate" ? "page" : undefined}>
-              Affiliate
-            </Link>
           )}
           <Link href="/blog" className={`${navLinkBase} ${pathname?.startsWith("/blog") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname?.startsWith("/blog") ? "page" : undefined}>
             Blog
@@ -290,17 +264,6 @@ export default function SiteNav() {
                 <NavCrateLockIcon />
                 My Crate
               </button>
-            )}
-            {signedIn && isAffiliate && (
-              <Link
-                href="/affiliate"
-                className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/affiliate" ? navLinkActive : ""}`}
-                style={navLinkStyle}
-                onClick={closeMenu}
-                aria-current={pathname === "/affiliate" ? "page" : undefined}
-              >
-                Affiliate
-              </Link>
             )}
             <Link
               href="/blog"
