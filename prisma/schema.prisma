@@ -182,6 +182,9 @@ model Affiliate {
   email             String
   commissionPercent Int                 @default(30) @map("commission_percent")
   dashboardToken    String              @unique @map("dashboard_token")
+  // Stripe Connect Express account for instant payouts (US-only in v1).
+  stripeAccountId      String?          @unique @map("stripe_account_id")
+  stripePayoutsEnabled Boolean          @default(false) @map("stripe_payouts_enabled")
   userId            String?             @unique @map("user_id")
   user              User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
   active            Boolean             @default(true)
@@ -218,6 +221,9 @@ model AffiliateReferral {
   commissionCents       Int              @map("commission_cents")
   currency              String
   source                String // "link" (cookie) | "code" (typed at checkout)
+  // Instant payout bookkeeping: transfer sent at sale, reversal on refund.
+  stripeTransferId         String?       @unique @map("stripe_transfer_id")
+  stripeTransferReversalId String?       @map("stripe_transfer_reversal_id")
   refundedAt            DateTime?        @map("refunded_at")
   payoutId              String?          @map("payout_id")
   payout                AffiliatePayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
