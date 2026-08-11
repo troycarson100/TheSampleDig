@@ -53,28 +53,27 @@ export default function SiteNav() {
   const wasMenuOpenRef = useRef(false)
   const isActive = (path: string) => pathname === path || (path !== "/dig" && pathname?.startsWith(path))
   const signedIn = Boolean(session?.user)
-  const [isAffiliate, setIsAffiliate] = useState(false)
+  // Affiliate link is invite-only; status is resolved once per tab and cached.
+  const [isAffiliate, setIsAffiliate] = useState(
+    () => typeof window !== "undefined" && window.sessionStorage.getItem("sr_is_affiliate") === "1"
+  )
 
   useEffect(() => setMounted(true), [])
 
-  // Show the Affiliate link only for invited creators (result cached per tab).
   useEffect(() => {
-    if (!signedIn) {
-      setIsAffiliate(false)
-      return
-    }
-    const cached = sessionStorage.getItem("sr_is_affiliate")
-    if (cached !== null) {
-      setIsAffiliate(cached === "1")
-      return
-    }
+    if (!signedIn) return
+    if (sessionStorage.getItem("sr_is_affiliate") !== null) return
+    let cancelled = false
     fetch("/api/affiliate/me")
       .then((r) => r.json())
       .then((d) => {
         sessionStorage.setItem("sr_is_affiliate", d.isAffiliate ? "1" : "0")
-        setIsAffiliate(Boolean(d.isAffiliate))
+        if (!cancelled && d.isAffiliate) setIsAffiliate(true)
       })
       .catch(() => {})
+    return () => {
+      cancelled = true
+    }
   }, [signedIn])
 
   // Lock body scroll when mobile menu is open
@@ -159,7 +158,7 @@ export default function SiteNav() {
               My Crate
             </button>
           )}
-          {isAffiliate && (
+          {signedIn && isAffiliate && (
             <Link href="/affiliate" className={`${navLinkBase} ${isActive("/affiliate") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/affiliate" ? "page" : undefined}>
               Affiliate
             </Link>
@@ -292,7 +291,7 @@ export default function SiteNav() {
                 My Crate
               </button>
             )}
-            {isAffiliate && (
+            {signedIn && isAffiliate && (
               <Link
                 href="/affiliate"
                 className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/affiliate" ? navLinkActive : ""}`}
