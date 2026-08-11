@@ -1,4 +1,5 @@
 import type { AffiliateStats } from "@/lib/affiliate"
+import ConnectStripeButton from "@/components/affiliate/ConnectStripeButton"
 
 function usd(cents: number): string {
   return `$${(cents / 100).toFixed(2)}`
@@ -15,10 +16,14 @@ export default function AffiliateDashboard({
   affiliate,
   stats,
   baseUrl,
+  payout,
+  connectToken,
 }: {
   affiliate: { name: string; code: string }
   stats: AffiliateStats
   baseUrl: string
+  payout: { connected: boolean; enabled: boolean }
+  connectToken?: string
 }) {
   const link = `${baseUrl}/shft?ref=${affiliate.code}`
   const tiles: { name: string; value: string; hot?: boolean }[] = [
@@ -53,6 +58,35 @@ export default function AffiliateDashboard({
         <p className="select-all font-medium" style={{ ...mono, color: "var(--primary)" }}>
           {affiliate.code}
         </p>
+      </div>
+
+      <div className="mt-4 rounded-xl border p-4 sm:p-5 text-sm" style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
+        <p className="text-xs uppercase tracking-widest mb-2" style={label}>
+          Payouts
+        </p>
+        {payout.enabled ? (
+          <p>
+            <span className="font-semibold" style={{ color: "var(--primary)" }}>
+              Instant payouts on
+            </span>{" "}
+            — your cut is sent to your Stripe account right after each sale.
+          </p>
+        ) : payout.connected ? (
+          <>
+            <p className="mb-3">
+              Your Stripe setup isn&apos;t finished yet — until it is, earnings collect here as owed.
+            </p>
+            <ConnectStripeButton token={connectToken} label="Finish Stripe setup" />
+          </>
+        ) : (
+          <>
+            <p className="mb-3">
+              Connect Stripe once and every sale pays your cut automatically. Until then, earnings collect here as
+              owed and get paid manually.
+            </p>
+            <ConnectStripeButton token={connectToken} label="Connect Stripe to get paid automatically" />
+          </>
+        )}
       </div>
 
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-5">

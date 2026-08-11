@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { prisma } from "@/lib/db"
 import { getAffiliateStats } from "@/lib/affiliate"
+import { refreshPayoutStatus } from "@/lib/affiliate-stripe"
 import AffiliateDashboard from "@/components/affiliate/AffiliateDashboard"
 import AffiliatePageShell from "@/components/affiliate/AffiliatePageShell"
 
@@ -13,11 +14,19 @@ export default async function AffiliateTokenPage({ params }: { params: Promise<{
   const { token } = await params
   const affiliate = await prisma.affiliate.findUnique({ where: { dashboardToken: token } })
   if (!affiliate) notFound()
+  // Pick up freshly-completed Stripe onboarding (they land back here from Stripe).
+  const payoutsEnabled = affiliate.stripePayoutsEnabled || (await refreshPayoutStatus(affiliate.id))
   const stats = await getAffiliateStats(affiliate.id)
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
   return (
     <AffiliatePageShell>
-      <AffiliateDashboard affiliate={{ name: affiliate.name, code: affiliate.code }} stats={stats} baseUrl={baseUrl} />
+      <AffiliateDashboard
+        affiliate={{ name: affiliate.name, code: affiliate.code }}
+        stats={stats}
+        baseUrl={baseUrl}
+        payout={{ connected: affiliate.stripeAccountId !== null, enabled: payoutsEnabled }}
+        connectToken={token}
+      />
     </AffiliatePageShell>
   )
 }

@@ -3,6 +3,7 @@ import Link from "next/link"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { getAffiliateStats } from "@/lib/affiliate"
+import { refreshPayoutStatus } from "@/lib/affiliate-stripe"
 import AffiliateDashboard from "@/components/affiliate/AffiliateDashboard"
 import AffiliatePageShell from "@/components/affiliate/AffiliatePageShell"
 
@@ -47,11 +48,18 @@ export default async function AffiliatePage() {
       <Note text="The shft affiliate program is invite-only. If you make videos and want in, reach out via the Discord — otherwise, nothing to see here." />
     )
   }
+  // Pick up freshly-completed Stripe onboarding (they land back here from Stripe).
+  const payoutsEnabled = affiliate.stripePayoutsEnabled || (await refreshPayoutStatus(affiliate.id))
   const stats = await getAffiliateStats(affiliate.id)
   const baseUrl = process.env.NEXTAUTH_URL || "http://localhost:3000"
   return (
     <AffiliatePageShell>
-      <AffiliateDashboard affiliate={{ name: affiliate.name, code: affiliate.code }} stats={stats} baseUrl={baseUrl} />
+      <AffiliateDashboard
+        affiliate={{ name: affiliate.name, code: affiliate.code }}
+        stats={stats}
+        baseUrl={baseUrl}
+        payout={{ connected: affiliate.stripeAccountId !== null, enabled: payoutsEnabled }}
+      />
     </AffiliatePageShell>
   )
 }
