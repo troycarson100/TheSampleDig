@@ -1,3 +1,4 @@
+import Link from "next/link"
 import SiteNav from "@/components/SiteNav"
 
 export const metadata = {
@@ -59,6 +60,13 @@ export default function PrivacyPage() {
           <h2 className="text-lg font-semibold mt-6 mb-2">Information we collect and use</h2>
           <p className="mb-4">
             We collect and store: (1) account information you provide when you register (e.g. email and password, stored securely); (2) the list of samples you save (video IDs, titles, chop points, and related metadata) so we can show &quot;My Samples&quot; and sync your saved collection. We use this to run the app, personalize your experience, and persist your saved samples. We do not sell your personal information.
+          </p>
+          <p className="mb-4">
+            (3) <strong>How you found us.</strong> On your first visit we record the referring website your browser reports, any campaign tags in the link you clicked (<code>utm_source</code> and similar), the page you landed on, and the country of your request. This is stored against a random identifier, not your name. If you later create an account, we keep a copy of how you first found us on your account record so we can understand which posts and links bring people to Sample Roll. It is used only for our own reporting, is never shared with advertising networks, and is not used to track you across other websites. See our{" "}
+            <Link href="/cookies" className="underline" style={{ color: "var(--primary)" }}>
+              Cookie Policy
+            </Link>{" "}
+            for the cookies involved and how to opt out.
           </p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">Sharing</h2>

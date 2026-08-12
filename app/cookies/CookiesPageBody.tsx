@@ -17,7 +17,7 @@ export default function CookiesPageBody() {
         </h1>
         <div className="prose prose-sm max-w-none" style={{ color: "var(--foreground)" }}>
           <p className="mb-4">
-            Last updated: April 2026. This Cookie Policy explains how Sample Roll (&quot;Sample Roll&quot;, &quot;we&quot;,
+            Last updated: August 2026. This Cookie Policy explains how Sample Roll (&quot;Sample Roll&quot;, &quot;we&quot;,
             &quot;us&quot;, or &quot;our&quot;) uses cookies and similar technologies when you visit or use our website and
             services (the &quot;Service&quot;). It should be read together with our{" "}
             <Link href="/privacy" className="underline" style={{ color: "var(--primary)" }}>
@@ -60,6 +60,12 @@ export default function CookiesPageBody() {
           <p className="mb-4">
             These cookies are typically <strong>first-party</strong> (set by our domain) and may be session-based or
             short-lived persistent cookies, depending on the &quot;remember me&quot; behavior and security settings we use.
+          </p>
+          <p className="mb-4">
+            We also set <strong>sr_consent</strong>, a first-party cookie that records your cookie choice so we can honor it
+            and stop asking. It stores only the words &quot;granted&quot; or &quot;denied&quot;, lasts about 180 days, and
+            contains nothing that identifies you. Because it exists solely to remember a decision you made, we treat it as
+            strictly necessary and do not ask for consent to set it.
           </p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">2. Preferences and functionality (local storage)</h2>
@@ -161,6 +167,12 @@ export default function CookiesPageBody() {
             and, where permitted, to show you relevant ads. You can manage ad personalization in your Facebook/Instagram ad
             settings and through the industry opt-out tools linked above.
           </p>
+          <p className="mb-4">
+            <strong>Consent.</strong> If you are in the EEA, the UK, or Switzerland, the Meta Pixel does not load at all
+            until you choose &quot;Accept&quot; in our cookie banner. Nothing is sent to Meta before that, and choosing
+            &quot;Reject&quot; keeps it switched off. Elsewhere the pixel loads when you visit and the banner is
+            informational; you can still turn it off at any time using the button at the top of this page.
+          </p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">6. Payments (Stripe)</h2>
           <p className="mb-4">
@@ -189,6 +201,37 @@ export default function CookiesPageBody() {
             .
           </p>
 
+          <h2 className="text-lg font-semibold mt-6 mb-2">7. Understanding how people find us (first-party)</h2>
+          <p className="mb-4">
+            When you first arrive, we record how you got here so we can understand which posts, links, and campaigns bring
+            people to Sample Roll. This is <strong>first-party only</strong> — the information stays with us and is not
+            shared with any advertising network.
+          </p>
+          <p className="mb-4">We store, once per visitor:</p>
+          <ul className="list-disc pl-5 mb-4 space-y-2">
+            <li>
+              The <strong>referring website</strong> your browser reports (for example, that you arrived from Instagram or
+              Reddit) — the site address only, never the specific page you came from on someone else&apos;s site
+            </li>
+            <li>
+              Any <strong>campaign tags</strong> in the link you clicked (the <code>utm_source</code>,{" "}
+              <code>utm_medium</code>, <code>utm_campaign</code>, <code>utm_content</code>, and <code>utm_term</code>{" "}
+              parameters)
+            </li>
+            <li>The page you landed on, and the country your request came from</li>
+          </ul>
+          <p className="mb-4">
+            To recognize this as a single first visit rather than counting every page you open, we set{" "}
+            <strong>sr_vid</strong>, a first-party cookie holding a random identifier that lasts about 60 days. It is not
+            linked to your name or email unless you later create an account, in which case we keep a copy of how you first
+            found us on your account record. We do not use this to build advertising profiles or track you across other
+            websites.
+          </p>
+          <p className="mb-4">
+            Separately, if you follow a creator&apos;s referral link we set <strong>shft_ref</strong>, a first-party cookie
+            lasting about 60 days, so that creator is credited if you buy. It stores only the creator&apos;s referral code.
+          </p>
+
           <h2 className="text-lg font-semibold mt-6 mb-2">Retention</h2>
           <p className="mb-4">
             How long a cookie or stored value lasts depends on its purpose: session cookies expire when you close the
@@ -197,6 +240,13 @@ export default function CookiesPageBody() {
           </p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">Your choices and controls</h2>
+          <p className="mb-4">
+            <strong>Our cookie banner.</strong> When you first visit, a banner explains that we use cookies and links to this
+            policy. In the EEA, the UK, and Switzerland it offers &quot;Accept&quot; and &quot;Reject&quot;, and no
+            advertising or measurement technology loads until you accept. You can change your mind at any time with the{" "}
+            <strong>Manage cookie preferences</strong> button at the top of this page, which clears your saved choice and
+            brings the banner back.
+          </p>
           <p className="mb-4">
             <strong>Browser settings.</strong> Most browsers let you block or delete cookies and site data. Blocking all
             cookies may break sign-in or features that depend on storage.
@@ -218,6 +268,13 @@ export default function CookiesPageBody() {
             objection, and portability in some cases). See our Privacy Policy for how to exercise rights and our contact
             details. Non-essential cookies (such as some advertising cookies) may require consent under local law; essential
             cookies may be used as needed to provide the Service.
+          </p>
+          <p className="mb-4">
+            In practice, visitors we identify as being in the EEA, the UK, or Switzerland are shown a banner offering
+            &quot;Accept&quot; and &quot;Reject&quot; before any advertising or measurement technology loads. We determine
+            region from the country associated with your network request; where we cannot determine it, we apply the stricter
+            treatment and withhold those technologies by default. Your choice is remembered in the{" "}
+            <strong>sr_consent</strong> cookie and can be changed at any time from the button at the top of this page.
           </p>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">California and U.S. state privacy notices</h2>
