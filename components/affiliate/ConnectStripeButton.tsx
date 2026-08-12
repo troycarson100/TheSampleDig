@@ -37,7 +37,7 @@ export default function ConnectStripeButton({ token, label }: { token?: string; 
         {busy ? "Opening Stripe…" : label}
       </button>
       {error ? (
-        <p className="mt-2 text-xs" style={{ color: "var(--foreground)", opacity: 0.7 }}>
+        <p className="mt-3 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800" role="alert">
           {error}
         </p>
       ) : null}
