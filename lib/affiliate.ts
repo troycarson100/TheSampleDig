@@ -1,7 +1,7 @@
 import type Stripe from "stripe"
 import { randomBytes } from "crypto"
 import { prisma } from "@/lib/db"
-import { attributionCandidates, computeCommissionCents, isSelfReferral } from "@/lib/affiliate-logic"
+import { attributionCandidates, computeCommission, isSelfReferral } from "@/lib/affiliate-logic"
 import { sendInstantCommission } from "@/lib/affiliate-stripe"
 
 export interface AffiliateStats {
@@ -73,7 +73,12 @@ export async function recordAffiliateReferral(
             stripeSessionId: session.id,
             stripePaymentIntentId: paymentIntentId,
             grossAmountCents: amountTotal,
-            commissionCents: computeCommissionCents(amountTotal, affiliate.commissionPercent),
+            commissionCents: computeCommission({
+              amountTotalCents: amountTotal,
+              commissionType: affiliate.commissionType,
+              commissionPercent: affiliate.commissionPercent,
+              commissionFlatCents: affiliate.commissionFlatCents,
+            }),
             currency: session.currency ?? "usd",
             source: candidate.source,
           },

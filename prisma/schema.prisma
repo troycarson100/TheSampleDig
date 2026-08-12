@@ -190,6 +190,9 @@ model Affiliate {
   name              String
   email             String
   commissionPercent Int                 @default(30) @map("commission_percent")
+  // "percent" (uses commissionPercent) | "flat" (uses commissionFlatCents per sale)
+  commissionType      String            @default("percent") @map("commission_type")
+  commissionFlatCents Int?              @map("commission_flat_cents")
   dashboardToken    String              @unique @map("dashboard_token")
   // Stripe Connect Express account for instant payouts (US-only in v1).
   stripeAccountId      String?          @unique @map("stripe_account_id")

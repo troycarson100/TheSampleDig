@@ -4,6 +4,7 @@ import {
   attributionCandidates,
   isSelfReferral,
   canInstantPayout,
+  computeCommission,
 } from "../lib/affiliate-logic"
 
 let failures = 0
@@ -63,6 +64,38 @@ check(
   "no affiliate userId",
   isSelfReferral({ affiliateEmail: "a@b.c", affiliateUserId: null, buyerEmail: null, buyerUserId: "u_1" }),
   false
+)
+
+// computeCommission: percent vs flat, flat capped at the sale amount
+check(
+  "percent commission",
+  computeCommission({ amountTotalCents: 3900, commissionType: "percent", commissionPercent: 30, commissionFlatCents: null }),
+  1170
+)
+check(
+  "flat $5 per sale",
+  computeCommission({ amountTotalCents: 1900, commissionType: "flat", commissionPercent: 30, commissionFlatCents: 500 }),
+  500
+)
+check(
+  "flat capped at sale amount",
+  computeCommission({ amountTotalCents: 1900, commissionType: "flat", commissionPercent: 30, commissionFlatCents: 2500 }),
+  1900
+)
+check(
+  "flat unset pays nothing",
+  computeCommission({ amountTotalCents: 1900, commissionType: "flat", commissionPercent: 30, commissionFlatCents: null }),
+  0
+)
+check(
+  "zero amount pays nothing",
+  computeCommission({ amountTotalCents: 0, commissionType: "flat", commissionPercent: 30, commissionFlatCents: 500 }),
+  0
+)
+check(
+  "unknown type falls back to percent",
+  computeCommission({ amountTotalCents: 1900, commissionType: "banana", commissionPercent: 30, commissionFlatCents: 500 }),
+  570
 )
 
 // canInstantPayout: all conditions must hold; each disqualifier alone blocks

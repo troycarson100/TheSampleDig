@@ -19,6 +19,18 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
   if (typeof body.email === "string" && body.email.trim()) data.email = body.email.trim().toLowerCase()
   if (Number.isInteger(body.commissionPercent) && body.commissionPercent >= 1 && body.commissionPercent <= 90)
     data.commissionPercent = body.commissionPercent
+  if (body.commissionType === "percent" || body.commissionType === "flat") data.commissionType = body.commissionType
+  if (body.commissionFlatCents !== undefined) {
+    if (body.commissionFlatCents === null) data.commissionFlatCents = null
+    else if (Number.isInteger(body.commissionFlatCents) && body.commissionFlatCents >= 1 && body.commissionFlatCents <= 50000)
+      data.commissionFlatCents = body.commissionFlatCents
+    else return NextResponse.json({ error: "Flat rate must be between $0.01 and $500 per sale." }, { status: 400 })
+  }
+  if ((data.commissionType ?? undefined) === "flat" && data.commissionFlatCents === undefined) {
+    const existing = await prisma.affiliate.findUnique({ where: { id }, select: { commissionFlatCents: true } })
+    if (!existing?.commissionFlatCents)
+      return NextResponse.json({ error: "Set a flat $ amount when switching to flat rate." }, { status: 400 })
+  }
   if (typeof body.active === "boolean") data.active = body.active
   if (body.notes !== undefined) data.notes = typeof body.notes === "string" && body.notes.trim() ? body.notes.trim() : null
 

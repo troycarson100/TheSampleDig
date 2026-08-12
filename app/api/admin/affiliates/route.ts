@@ -19,6 +19,8 @@ export async function GET() {
         name: a.name,
         email: a.email,
         commissionPercent: a.commissionPercent,
+        commissionType: a.commissionType,
+        commissionFlatCents: a.commissionFlatCents,
         dashboardToken: a.dashboardToken,
         userId: a.userId,
         active: a.active,
@@ -39,11 +41,16 @@ export async function POST(request: Request) {
   const name = typeof body?.name === "string" ? body.name.trim() : ""
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : ""
   const commissionPercent = Number.isInteger(body?.commissionPercent) ? body.commissionPercent : 30
-  if (!code || !name || !email || commissionPercent < 1 || commissionPercent > 90) {
-    return NextResponse.json(
-      { error: "Need name, email, and a code (2-32 chars, a-z 0-9 -). Percent 1-90." },
-      { status: 400 }
-    )
+  const commissionType = body?.commissionType === "flat" ? "flat" : "percent"
+  const commissionFlatCents = Number.isInteger(body?.commissionFlatCents) ? body.commissionFlatCents : null
+  if (!code || !name || !email) {
+    return NextResponse.json({ error: "Need name, email, and a code (2-32 chars, a-z 0-9 -)." }, { status: 400 })
+  }
+  if (commissionType === "percent" && (commissionPercent < 1 || commissionPercent > 90)) {
+    return NextResponse.json({ error: "Percent must be 1-90." }, { status: 400 })
+  }
+  if (commissionType === "flat" && (!commissionFlatCents || commissionFlatCents < 1 || commissionFlatCents > 50000)) {
+    return NextResponse.json({ error: "Flat rate must be between $0.01 and $500 per sale." }, { status: 400 })
   }
   // Invite-only: if they already have a SampleRoll account, link it up front.
   const linkedUser = await prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } })
@@ -54,6 +61,8 @@ export async function POST(request: Request) {
         name,
         email,
         commissionPercent,
+        commissionType,
+        commissionFlatCents,
         dashboardToken: generateDashboardToken(),
         userId: linkedUser?.id ?? null,
         notes: typeof body?.notes === "string" && body.notes.trim() ? body.notes.trim() : null,

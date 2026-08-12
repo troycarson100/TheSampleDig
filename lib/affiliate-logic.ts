@@ -25,6 +25,22 @@ export function attributionCandidates(input: {
   return out
 }
 
+// Commission for one sale under the affiliate's deal: "flat" pays a fixed
+// amount per sale (never more than the sale itself); anything else pays a
+// percent of what the buyer paid.
+export function computeCommission(input: {
+  amountTotalCents: number
+  commissionType: string
+  commissionPercent: number
+  commissionFlatCents: number | null
+}): number {
+  if (input.amountTotalCents <= 0) return 0
+  if (input.commissionType === "flat") {
+    return Math.max(0, Math.min(input.commissionFlatCents ?? 0, input.amountTotalCents))
+  }
+  return computeCommissionCents(input.amountTotalCents, input.commissionPercent)
+}
+
 // A referral qualifies for an instant Stripe transfer only when nothing has
 // paid it yet (manually or via Stripe), it isn't refunded, and the affiliate
 // has a payout-ready Connect account.

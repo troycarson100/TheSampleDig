@@ -9,6 +9,8 @@ interface AdminAffiliate {
   name: string
   email: string
   commissionPercent: number
+  commissionType: string
+  commissionFlatCents: number | null
   dashboardToken: string
   userId: string | null
   active: boolean
@@ -24,6 +26,10 @@ function usd(cents: number): string {
 
 function fmtDate(d: Date | string): string {
   return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+}
+
+function rateLabel(a: { commissionType: string; commissionPercent: number; commissionFlatCents: number | null }): string {
+  return a.commissionType === "flat" ? `${usd(a.commissionFlatCents ?? 0)}/sale` : `${a.commissionPercent}%`
 }
 
 const mono = { fontFamily: "var(--font-ibm-mono), monospace" }
@@ -50,7 +56,9 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
   const [nName, setNName] = useState("")
   const [nEmail, setNEmail] = useState("")
   const [nCode, setNCode] = useState("")
+  const [nType, setNType] = useState<"percent" | "flat">("percent")
   const [nPercent, setNPercent] = useState(30)
+  const [nFlatDollars, setNFlatDollars] = useState("5.00")
   const [nNotes, setNNotes] = useState("")
   const [createdLink, setCreatedLink] = useState("")
 
@@ -80,7 +88,15 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
       const res = await fetch("/api/admin/affiliates", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: nName, email: nEmail, code: nCode, commissionPercent: nPercent, notes: nNotes }),
+        body: JSON.stringify({
+          name: nName,
+          email: nEmail,
+          code: nCode,
+          commissionType: nType,
+          commissionPercent: nPercent,
+          commissionFlatCents: nType === "flat" ? Math.round(parseFloat(nFlatDollars || "0") * 100) : null,
+          notes: nNotes,
+        }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Create failed")
@@ -207,18 +223,44 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
           <input className={inputCls} style={fieldStyle} placeholder="Name" value={nName} onChange={(e) => setNName(e.target.value)} />
           <input className={inputCls} style={fieldStyle} placeholder="Email" value={nEmail} onChange={(e) => setNEmail(e.target.value)} />
           <input className={inputCls} style={fieldStyle} placeholder="Code (e.g. synthdad)" value={nCode} onChange={(e) => setNCode(e.target.value)} />
-          <label className="flex items-center gap-1.5 text-sm" style={{ opacity: 0.85 }}>
-            <input
-              className={`${inputCls} w-16`}
-              style={fieldStyle}
-              type="number"
-              min={1}
-              max={90}
-              value={nPercent}
-              onChange={(e) => setNPercent(parseInt(e.target.value, 10) || 30)}
-            />
-            % commission
-          </label>
+          <select
+            className={inputCls}
+            style={fieldStyle}
+            value={nType}
+            onChange={(e) => setNType(e.target.value as "percent" | "flat")}
+            aria-label="Commission type"
+          >
+            <option value="percent">% of sale</option>
+            <option value="flat">$ per sale</option>
+          </select>
+          {nType === "percent" ? (
+            <label className="flex items-center gap-1.5 text-sm" style={{ opacity: 0.85 }}>
+              <input
+                className={`${inputCls} w-16`}
+                style={fieldStyle}
+                type="number"
+                min={1}
+                max={90}
+                value={nPercent}
+                onChange={(e) => setNPercent(parseInt(e.target.value, 10) || 30)}
+              />
+              %
+            </label>
+          ) : (
+            <label className="flex items-center gap-1.5 text-sm" style={{ opacity: 0.85 }}>
+              $
+              <input
+                className={`${inputCls} w-20`}
+                style={fieldStyle}
+                type="number"
+                min={0.01}
+                step={0.01}
+                value={nFlatDollars}
+                onChange={(e) => setNFlatDollars(e.target.value)}
+              />
+              per sale
+            </label>
+          )}
           <input className={`${inputCls} flex-1 min-w-40`} style={fieldStyle} placeholder="Notes (optional)" value={nNotes} onChange={(e) => setNNotes(e.target.value)} />
           <button className={btnCls} style={primaryBtnStyle} disabled={busy} onClick={createAffiliate}>
             Create
@@ -249,7 +291,7 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
                 <tr className="text-[11px] uppercase tracking-wide" style={labelStyle}>
                   <th className="px-4 py-2.5 font-normal">Creator</th>
                   <th className="px-4 py-2.5 font-normal">Code</th>
-                  <th className="px-4 py-2.5 font-normal">%</th>
+                  <th className="px-4 py-2.5 font-normal">Rate</th>
                   <th className="px-4 py-2.5 font-normal">Clicks 30d/all</th>
                   <th className="px-4 py-2.5 font-normal">Sales</th>
                   <th className="px-4 py-2.5 font-normal">Gross</th>
@@ -308,7 +350,9 @@ function AffiliateRow({
   const [eName, setEName] = useState(a.name)
   const [eEmail, setEEmail] = useState(a.email)
   const [eCode, setECode] = useState(a.code)
+  const [eType, setEType] = useState<"percent" | "flat">(a.commissionType === "flat" ? "flat" : "percent")
   const [ePercent, setEPercent] = useState(a.commissionPercent)
+  const [eFlatDollars, setEFlatDollars] = useState(((a.commissionFlatCents ?? 500) / 100).toFixed(2))
   const [eNotes, setENotes] = useState(a.notes ?? "")
   const dashboardLink = `${baseUrl}/affiliate/${a.dashboardToken}`
   const refLink = `${baseUrl}/shft?ref=${a.code}`
@@ -325,7 +369,7 @@ function AffiliateRow({
         <td className="px-4 py-2.5" style={mono}>
           {a.code}
         </td>
-        <td className="px-4 py-2.5">{a.commissionPercent}%</td>
+        <td className="px-4 py-2.5">{rateLabel(a)}</td>
         <td className="px-4 py-2.5">
           {a.stats.clicks30d} / {a.stats.clicksTotal}
         </td>
@@ -352,24 +396,60 @@ function AffiliateRow({
               <input className={inputCls} style={fieldStyle} value={eName} onChange={(e) => setEName(e.target.value)} />
               <input className={inputCls} style={fieldStyle} value={eEmail} onChange={(e) => setEEmail(e.target.value)} />
               <input className={inputCls} style={fieldStyle} value={eCode} onChange={(e) => setECode(e.target.value)} />
-              <label className="flex items-center gap-1.5" style={{ opacity: 0.85 }}>
-                <input
-                  className={`${inputCls} w-16`}
-                  style={fieldStyle}
-                  type="number"
-                  min={1}
-                  max={90}
-                  value={ePercent}
-                  onChange={(e) => setEPercent(parseInt(e.target.value, 10) || a.commissionPercent)}
-                />
-                %
-              </label>
+              <select
+                className={inputCls}
+                style={fieldStyle}
+                value={eType}
+                onChange={(e) => setEType(e.target.value as "percent" | "flat")}
+                aria-label="Commission type"
+              >
+                <option value="percent">% of sale</option>
+                <option value="flat">$ per sale</option>
+              </select>
+              {eType === "percent" ? (
+                <label className="flex items-center gap-1.5" style={{ opacity: 0.85 }}>
+                  <input
+                    className={`${inputCls} w-16`}
+                    style={fieldStyle}
+                    type="number"
+                    min={1}
+                    max={90}
+                    value={ePercent}
+                    onChange={(e) => setEPercent(parseInt(e.target.value, 10) || a.commissionPercent)}
+                  />
+                  %
+                </label>
+              ) : (
+                <label className="flex items-center gap-1.5" style={{ opacity: 0.85 }}>
+                  $
+                  <input
+                    className={`${inputCls} w-20`}
+                    style={fieldStyle}
+                    type="number"
+                    min={0.01}
+                    step={0.01}
+                    value={eFlatDollars}
+                    onChange={(e) => setEFlatDollars(e.target.value)}
+                  />
+                  per sale
+                </label>
+              )}
               <input className={`${inputCls} flex-1 min-w-40`} style={fieldStyle} placeholder="Notes" value={eNotes} onChange={(e) => setENotes(e.target.value)} />
               <button
                 className={btnCls}
                 style={btnStyle}
                 disabled={busy}
-                onClick={() => onPatch(a.id, { name: eName, email: eEmail, code: eCode, commissionPercent: ePercent, notes: eNotes })}
+                onClick={() =>
+                  onPatch(a.id, {
+                    name: eName,
+                    email: eEmail,
+                    code: eCode,
+                    commissionType: eType,
+                    commissionPercent: ePercent,
+                    commissionFlatCents: eType === "flat" ? Math.round(parseFloat(eFlatDollars || "0") * 100) : undefined,
+                    notes: eNotes,
+                  })
+                }
               >
                 Save
               </button>
