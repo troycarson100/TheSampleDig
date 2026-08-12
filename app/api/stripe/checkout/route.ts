@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db"
+import { readAttributionMetadata } from "@/lib/attribution-snapshot"
 
 const ALLOWED_TRIAL_DAYS = new Set([7, 14])
 
@@ -64,6 +65,8 @@ export async function POST(req: Request) {
       })
     }
 
+    const attrMetadata = await readAttributionMetadata()
+
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "subscription",
       payment_method_types: ["card"],
@@ -72,7 +75,7 @@ export async function POST(req: Request) {
       cancel_url: cancelUrl,
       customer: customerId,
       client_reference_id: session.user.id,
-      metadata: { userId: session.user.id },
+      metadata: { userId: session.user.id, ...attrMetadata },
       subscription_data: {
         metadata: { userId: session.user.id },
         trial_period_days: trialDays,

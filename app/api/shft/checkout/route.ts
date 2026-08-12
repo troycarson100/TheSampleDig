@@ -4,6 +4,7 @@ import Stripe from "stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { normalizeAffiliateCode } from "@/lib/affiliate-logic"
+import { readAttributionMetadata } from "@/lib/attribution-snapshot"
 
 // One-time checkout for the shft plugin. Requires login so the purchase can be
 // tied to an account and surfaced on the /products page.
@@ -50,6 +51,8 @@ export async function POST() {
       process.env.NEXTAUTH_URL ||
       (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000")
 
+    const attrMetadata = await readAttributionMetadata()
+
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
@@ -65,6 +68,7 @@ export async function POST() {
         product: "shft",
         userId: session.user.id,
         ...(affiliateCode ? { affiliateCode } : {}),
+        ...attrMetadata,
       },
       custom_fields: [
         {

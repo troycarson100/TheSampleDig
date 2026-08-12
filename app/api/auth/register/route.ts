@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import crypto from "crypto"
 import { prisma } from "@/lib/db"
 import { isEmailConfigured, sendVerificationEmail } from "@/lib/email"
+import { readAttributionSnapshot } from "@/lib/attribution-snapshot"
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,6 +34,9 @@ export async function POST(req: NextRequest) {
 
     const emailAvailable = isEmailConfigured()
 
+    // First-touch attribution. Never allowed to block a signup.
+    const attribution = await readAttributionSnapshot()
+
     const user = await prisma.user.create({
       data: {
         email: normalizedEmail,
@@ -42,6 +46,7 @@ export async function POST(req: NextRequest) {
         emailVerified: emailAvailable ? null : new Date(),
         emailVerificationToken: emailAvailable ? rawToken : null,
         emailVerificationExpires: emailAvailable ? expires : null,
+        ...(attribution ?? {}),
       },
     })
 
