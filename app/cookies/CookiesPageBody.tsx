@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import SiteNav from "@/components/SiteNav"
+import ManageCookiesButton from "@/components/consent/ManageCookiesButton"
 
 export default function CookiesPageBody() {
   return (
@@ -24,6 +25,10 @@ export default function CookiesPageBody() {
             </Link>
             , which describes how we handle personal data more broadly.
           </p>
+
+          <div className="mb-6">
+            <ManageCookiesButton />
+          </div>
 
           <h2 className="text-lg font-semibold mt-6 mb-2">What are cookies and similar technologies?</h2>
           <p className="mb-4">
