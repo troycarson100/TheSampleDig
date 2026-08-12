@@ -10,6 +10,7 @@ import FeatureGateModal from "@/components/FeatureGateModal"
 import SiteAlertsPopover from "@/components/SiteAlertsPopover"
 import { SiteSettingsMenu } from "@/components/SiteNavUtilities"
 import { useGoProModal } from "@/components/GoProModalContext"
+import { useIsAffiliate } from "@/lib/use-is-affiliate"
 
 const navLinkBase = "nav-tab-link relative flex items-center h-full px-5 py-0 border-none bg-transparent cursor-pointer transition-colors"
 
@@ -52,6 +53,7 @@ export default function SiteNav() {
   const closeBtnRef = useRef<HTMLButtonElement>(null)
   const wasMenuOpenRef = useRef(false)
   const isActive = (path: string) => pathname === path || (path !== "/dig" && pathname?.startsWith(path))
+  const isAffiliate = useIsAffiliate()
 
   useEffect(() => setMounted(true), [])
 
@@ -137,15 +139,15 @@ export default function SiteNav() {
               My Crate
             </button>
           )}
-          <Link href="/blog" className={`${navLinkBase} ${pathname?.startsWith("/blog") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname?.startsWith("/blog") ? "page" : undefined}>
-            Blog
-          </Link>
-          <Link href="/about" className={`${navLinkBase} ${isActive("/about") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/about" ? "page" : undefined}>
-            About
-          </Link>
           <Link href="/shft" className={`${navLinkBase} ${isActive("/shft") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/shft" ? "page" : undefined}>
             Plugins
           </Link>
+          {/* Blog + About moved to the footer; Affiliate shows only for invited creators. */}
+          {isAffiliate && (
+            <Link href="/affiliate" className={`${navLinkBase} ${isActive("/affiliate") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/affiliate" ? "page" : undefined}>
+              Affiliate
+            </Link>
+          )}
         </div>
         {/* Right: alerts + settings + Try Pro + Sign out / Sign In (bell & gear on mobile too) */}
         <div className="flex items-center justify-end shrink-0 gap-0.5 sm:gap-2">
@@ -266,24 +268,6 @@ export default function SiteNav() {
               </button>
             )}
             <Link
-              href="/blog"
-              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname?.startsWith("/blog") ? navLinkActive : ""}`}
-              style={navLinkStyle}
-              onClick={closeMenu}
-              aria-current={pathname?.startsWith("/blog") ? "page" : undefined}
-            >
-              Blog
-            </Link>
-            <Link
-              href="/about"
-              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/about" ? navLinkActive : ""}`}
-              style={navLinkStyle}
-              onClick={closeMenu}
-              aria-current={pathname === "/about" ? "page" : undefined}
-            >
-              About
-            </Link>
-            <Link
               href="/shft"
               className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/shft" ? navLinkActive : ""}`}
               style={navLinkStyle}
@@ -292,6 +276,18 @@ export default function SiteNav() {
             >
               Plugins
             </Link>
+            {/* Blog + About moved to the footer; Affiliate shows only for invited creators. */}
+            {isAffiliate && (
+              <Link
+                href="/affiliate"
+                className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/affiliate" ? navLinkActive : ""}`}
+                style={navLinkStyle}
+                onClick={closeMenu}
+                aria-current={pathname === "/affiliate" ? "page" : undefined}
+              >
+                Affiliate
+              </Link>
+            )}
           </div>
           {!hideTryProCta ? (
             <div className="mt-6 flex flex-col gap-3">
