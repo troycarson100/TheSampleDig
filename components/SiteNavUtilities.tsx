@@ -4,7 +4,7 @@ import Link from "next/link"
 import { Fragment, useEffect, useRef, useState } from "react"
 import { useSession } from "next-auth/react"
 import { useGoProModal } from "@/components/GoProModalContext"
-import { useIsAffiliate } from "@/lib/use-is-affiliate"
+import { useAffiliateStatus } from "@/lib/use-is-affiliate"
 
 function IconShieldCheck({ className }: { className?: string }) {
   return (
@@ -94,7 +94,7 @@ export function SiteSettingsMenu() {
   const { openProModal } = useGoProModal()
   const { data: session } = useSession()
   const isProSubscriber = session?.user?.isPro === true
-  const isAffiliate = useIsAffiliate()
+  const { isAffiliate, isAdmin } = useAffiliateStatus()
 
   useEffect(() => {
     if (!open) return
@@ -191,6 +191,19 @@ export function SiteSettingsMenu() {
                   >
                     <IconMegaphone className="shrink-0 opacity-85" />
                     <span>Affiliate</span>
+                  </Link>
+                ) : null}
+                {/* Program admin (ADMIN_EMAILS) gets the master panel. */}
+                {href === "/products" && isAdmin ? (
+                  <Link
+                    href="/admin/affiliates"
+                    role="menuitem"
+                    className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
+                    style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
+                    onClick={() => setOpen(false)}
+                  >
+                    <IconMegaphone className="shrink-0 opacity-85" />
+                    <span>Affiliate admin</span>
                   </Link>
                 ) : null}
               </Fragment>
