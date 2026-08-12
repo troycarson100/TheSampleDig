@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react"
 import Script from "next/script"
 import { usePathname } from "next/navigation"
 import { META_PIXEL_ID, isMetaPixelEnabled, trackMeta } from "@/lib/meta-pixel"
+import { useConsent } from "@/components/consent/ConsentProvider"
 
 /**
  * Loads the Meta (Facebook) Pixel site-wide and fires PageView on every App
@@ -14,6 +15,8 @@ import { META_PIXEL_ID, isMetaPixelEnabled, trackMeta } from "@/lib/meta-pixel"
  * client-render bailout on every route.
  */
 export default function MetaPixel() {
+  // Hook must sit above every conditional return below.
+  const { pixelAllowed } = useConsent()
   const pathname = usePathname()
   const firstRun = useRef(true)
 
@@ -28,7 +31,9 @@ export default function MetaPixel() {
     trackMeta("PageView")
   }, [pathname])
 
-  if (!isMetaPixelEnabled) return null
+  // Gates the base snippet AND the <noscript> fallback below — an ungated
+  // tracking pixel in a strict region is exactly what this must prevent.
+  if (!isMetaPixelEnabled || !pixelAllowed) return null
 
   return (
     <>

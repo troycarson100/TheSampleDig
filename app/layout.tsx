@@ -5,6 +5,8 @@ import RootBody from "@/components/RootBody"
 import MetaPixel from "@/components/analytics/MetaPixel"
 import AffiliateRefCapture from "@/components/AffiliateRefCapture"
 import AttributionCapture from "@/components/AttributionCapture"
+import ConsentProvider from "@/components/consent/ConsentProvider"
+import CookieBanner from "@/components/consent/CookieBanner"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -63,10 +65,13 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${halant.variable} ${dmSerif.variable} ${bebasNeue.variable} ${ibmPlexMono.variable} ${cormorantGaramond.variable} font-sans antialiased flex flex-col min-h-screen theme-vinyl`}
       >
-        <MetaPixel />
-        <AffiliateRefCapture />
-        <AttributionCapture />
-        <RootBody>{children}</RootBody>
+        <ConsentProvider>
+          <MetaPixel />
+          <AffiliateRefCapture />
+          <AttributionCapture />
+          <RootBody>{children}</RootBody>
+          <CookieBanner />
+        </ConsentProvider>
       </body>
     </html>
   )
