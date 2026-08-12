@@ -26,12 +26,21 @@ model User {
   passwordResetExpires         DateTime?     @map("password_reset_expires")
   // Marketing / newsletter opt-in (Mailchimp exports). Default true at signup when checkbox left on.
   emailMarketingOptIn          Boolean       @default(true) @map("email_marketing_opt_in")
+  // First-touch attribution, snapshotted at signup. Mirrors the philosophy of
+  // AffiliateReferral.commissionCents — a historical fact that later data
+  // changes (or pruning of landing_events) must never rewrite.
+  attributionVisitorId         String?       @map("attribution_visitor_id")
+  attributionReferrerHost      String?       @map("attribution_referrer_host")
+  attributionUtmSource         String?       @map("attribution_utm_source")
+  attributionUtmCampaign       String?       @map("attribution_utm_campaign")
+  attributionLandingPath       String?       @map("attribution_landing_path")
   savedSamples                 UserSample[]
   digHistory                   UserDigHistory[]
   events                       UserEvent[]
   purchases                    Purchase[]
   affiliate                    Affiliate?
 
+  @@index([attributionVisitorId])
   @@map("users")
 }
 
@@ -232,6 +241,29 @@ model AffiliateReferral {
   @@index([affiliateId, createdAt])
   @@index([stripePaymentIntentId])
   @@map("affiliate_referrals")
+}
+
+// --- traffic attribution -----------------------------------------------------
+
+// First-touch attribution for every new visitor. No PII — the visitorId is a
+// random UUID mirrored in the httpOnly sr_vid cookie, never an account id.
+model LandingEvent {
+  id           String   @id @default(cuid())
+  visitorId    String   @unique @map("visitor_id")
+  referrer     String?
+  referrerHost String?  @map("referrer_host")
+  utmSource    String?  @map("utm_source")
+  utmMedium    String?  @map("utm_medium")
+  utmCampaign  String?  @map("utm_campaign")
+  utmContent   String?  @map("utm_content")
+  utmTerm      String?  @map("utm_term")
+  landingPath  String   @map("landing_path")
+  country      String?
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt])
+  @@index([referrerHost, createdAt])
+  @@map("landing_events")
 }
 
 model AffiliatePayout {
