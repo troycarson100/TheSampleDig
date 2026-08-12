@@ -4,6 +4,7 @@ import "./globals.css"
 import RootBody from "@/components/RootBody"
 import MetaPixel from "@/components/analytics/MetaPixel"
 import AffiliateRefCapture from "@/components/AffiliateRefCapture"
+import AttributionCapture from "@/components/AttributionCapture"
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -64,6 +65,7 @@ export default function RootLayout({
       >
         <MetaPixel />
         <AffiliateRefCapture />
+        <AttributionCapture />
         <RootBody>{children}</RootBody>
       </body>
     </html>
