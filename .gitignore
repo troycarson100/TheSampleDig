@@ -74,8 +74,5 @@ node_modules.nosync
 # Screenshots from scripts/verify-shft-social.mjs
 reports/shft-social/
 
-# Local stem-splitter checkout (nested git repo, ~160MB) — not part of this repo
-drumsep/
-
 # Script progress/state files
 .populate-acapella-250-state.json
