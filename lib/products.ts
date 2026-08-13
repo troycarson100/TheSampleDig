@@ -30,9 +30,18 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.1.0",
+    version: "1.1.1",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.1.1",
+        notes: [
+          "Pattern length. A thin rail under the step strip sets where the pattern wraps — drag its caret and it snaps to step ends, with the sleeping steps greyed out above it. Anything under 16 phases against the bar: a 12-step pattern at 1/16 lands somewhere new every beat.",
+          "It's per-lane, like rate and feel — so three bands badged to lanes of different lengths drift in and out of phase with each other, and can take whole phrases to realign.",
+          "Undo for pattern edits. The small back arrow above the strip steps back through steps, ratchets, lengths, shapes, repeats and pattern length — one press per edit, and a dice roll counts as one edit.",
+          "Turning the delay's mix up no longer dips the track: the blend was sagging 4.8 dB at 50% mix, and now holds level. Same fix the reverb got in 1.1.0.",
+        ],
+      },
       {
         version: "1.1.0",
         notes: [
@@ -61,14 +70,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.1.0.pkg",
-        filename: "shft-1.1.0.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.1.1.pkg",
+        filename: "shft-1.1.1.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.1.0-setup.exe",
-        filename: "shft-1.1.0-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.1.1-setup.exe",
+        filename: "shft-1.1.1-setup.exe",
       },
       {
         id: "manual",
