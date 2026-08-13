@@ -1,0 +1,45 @@
+/* Scoped to /generate via import from app/generate/layout.tsx only */
+
+.generate-shell {
+  --generate-bg: #111110;
+  --generate-panel: #161615;
+  --generate-card: #1c1c1a;
+  --generate-text: #edede9;
+  --generate-muted: #9a9a94;
+  --generate-accent: #e4a62e;
+  --generate-border: #2c2c2a;
+}
+
+.generate-text {
+  color: var(--generate-text);
+}
+
+.generate-text-muted {
+  color: var(--generate-muted);
+}
+
+.generate-panel {
+  background-color: var(--generate-panel);
+  border: 1px solid var(--generate-border);
+}
+
+.generate-card {
+  background-color: var(--generate-card);
+  border: 1px solid var(--generate-border);
+}
+
+.generate-accent-border {
+  border-color: var(--generate-accent);
+}
+
+.generate-btn-outline {
+  border: 1px solid var(--generate-accent);
+  color: var(--generate-accent);
+  background: transparent;
+}
+
+.generate-btn-filled {
+  background-color: var(--generate-accent);
+  color: #111110;
+  border: 1px solid var(--generate-accent);
+}

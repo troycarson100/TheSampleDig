@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import ProductChangelog from "@/components/ProductChangelog"
 import SiteNav from "@/components/SiteNav"
+import WindowsInstallNote from "@/components/WindowsInstallNote"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { getProduct } from "@/lib/products"
@@ -87,6 +88,8 @@ export default async function ProductsPage() {
                       </a>
                     ))}
                   </div>
+
+                  {def.assets.some((a) => a.id === "installer-win") && <WindowsInstallNote />}
 
                   {def.changelog && def.changelog.length > 0 && (
                     <ProductChangelog releases={def.changelog} />

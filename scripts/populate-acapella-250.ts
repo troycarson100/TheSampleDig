@@ -1,0 +1,258 @@
+/**
+ * Probe/populate acapella candidates from the 250-song PDF using acapella-first search mode.
+ *
+ * Usage:
+ *   npx tsx scripts/populate-acapella-250.ts /path/to/250_acapella_songs_v2.pdf [--limit=50] [--offset=0] [--output=reports/acapella-250-retry.md]
+ *
+ * Notes:
+ * - This script currently performs search + report only (no DB writes).
+ * - It scans the first page and evaluates multiple query variants per row.
+ */
+
+import "dotenv/config"
+import { appendFileSync, readFileSync, writeFileSync } from "fs"
+import path from "path"
+import { chromium, type Browser } from "playwright"
+import { PDFParse } from "pdf-parse"
+import { parseAcapella250PdfText } from "@/lib/acapella-250"
+import { searchWithQueryPaginated } from "@/lib/youtube"
+import { scrapeYouTubeVideoDetails } from "@/lib/youtube-scraper"
+
+const DEFAULT_OUTPUT = path.join("reports", "acapella-250-retry.md")
+
+function argValue(name: string): string | undefined {
+  const prefix = `--${name}=`
+  const exact = process.argv.find((a) => a.startsWith(prefix))
+  return exact ? exact.slice(prefix.length) : undefined
+}
+
+function parseNumArg(name: string, fallback: number): number {
+  const raw = argValue(name)
+  if (!raw) return fallback
+  const n = Number.parseInt(raw, 10)
+  return Number.isFinite(n) && n >= 0 ? n : fallback
+}
+
+function videoId(v: any): string | null {
+  if (typeof v?.id?.videoId === "string") return v.id.videoId
+  if (typeof v?.id === "string") return v.id
+  return null
+}
+
+function mdCell(s: string): string {
+  return s.replace(/\|/g, "/").replace(/\r?\n/g, " ").trim()
+}
+
+async function loadPdfText(pdfPath: string): Promise<string> {
+  const buf = readFileSync(pdfPath)
+  const parser = new PDFParse({ data: new Uint8Array(buf) })
+  const result = await parser.getText()
+  await parser.destroy()
+  return result?.text ?? ""
+}
+
+/**
+ * One search query per track (saves Search API quota vs 3 separate searches).
+ * OR-groups common acapella phrasing; acapella mode still requires title signal + filters.
+ */
+function buildAcapellaSearchQuery(baseQuery: string): string {
+  const q = baseQuery.replace(/\s+/g, " ").trim()
+  return `${q} (acapella OR "a cappella" OR "vocals only")`
+}
+
+let forcedScraperSearch = false
+
+async function fetchAcapellaCandidatesPaged(baseQuery: string, maxPages: number): Promise<any[]> {
+  const q = buildAcapellaSearchQuery(baseQuery)
+  const unique = new Map<string, any>()
+  let token: string | undefined
+  const useScraper = process.env.USE_YOUTUBE_SCRAPER === "true" || forcedScraperSearch
+  const effectiveMaxPages = useScraper ? 1 : maxPages
+  for (let page = 0; page < effectiveMaxPages; page++) {
+    try {
+      const { results, nextPageToken } = await searchWithQueryPaginated(
+        q,
+        [],
+        undefined,
+        token,
+        { mode: "acapella" }
+      )
+      for (const r of results) {
+        const id = videoId(r)
+        if (!id) continue
+        if (!unique.has(id)) unique.set(id, r)
+      }
+      token = nextPageToken
+      if (!token || unique.size >= 40) break
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      if (!forcedScraperSearch && /quota|403/i.test(msg)) {
+        console.warn("[Acapella250] Search API quota issue; switching to USE_YOUTUBE_SCRAPER for remaining rows.")
+        process.env.USE_YOUTUBE_SCRAPER = "true"
+        forcedScraperSearch = true
+        token = undefined
+        unique.clear()
+        return fetchAcapellaCandidatesPaged(baseQuery, maxPages)
+      }
+      throw e
+    }
+  }
+  return Array.from(unique.values())
+}
+
+function tokens(s: string): string[] {
+  return s
+    .toLowerCase()
+    .replace(/[^\w\s]/g, " ")
+    .split(/\s+/)
+    .filter(Boolean)
+}
+
+function scoreCandidateForTrack(trackQuery: string, candidateTitle: string, candidateChannel: string, description: string, publishedAt?: string): number {
+  const qTokens = tokens(trackQuery).filter((t) => t.length >= 3)
+  const text = `${candidateTitle} ${candidateChannel} ${description}`.toLowerCase()
+  const textTokens = new Set(tokens(text))
+  const stop = new Set(["the", "and", "its", "it", "you", "your", "with", "for", "from", "that", "this"])
+  const firstUseful = qTokens.filter((t) => !stop.has(t)).slice(0, 2)
+  const focusTokens = qTokens.slice(firstUseful.length).filter((t) => !stop.has(t) && t.length >= 4)
+  const overlap = qTokens.filter((t) => textTokens.has(t))
+
+  // Must contain at least one likely artist token and enough title overlap.
+  if (firstUseful.length > 0 && !firstUseful.some((t) => textTokens.has(t))) return -999
+  if (overlap.length < 2) return -999
+  if (focusTokens.length > 0 && !focusTokens.some((t) => textTokens.has(t))) return -999
+
+  let score = overlap.length * 12
+
+  const lcTitle = candidateTitle.toLowerCase()
+  const lcDesc = description.toLowerCase()
+  if (/\ba\s*cappella\b|\bacapella\b|\bvocals?\s*only\b/i.test(candidateTitle)) score += 20
+  if (lcDesc.includes("auto-generated by youtube")) score -= 30
+  if (/\bunofficial\b|\bbootleg\b|\bremix\b|\bedit\b|\bmashup\b|\bflip\b|\btype beat\b|\bover\b|\bblend\b/.test(lcTitle + " " + lcDesc)) score -= 40
+
+  const rel = lcDesc.match(/released on:\s*(\d{4})/)
+  if (rel && Number.parseInt(rel[1], 10) >= 2000) score -= 80
+
+  const publishedYear = publishedAt?.match(/^(\d{4})/)?.[1]
+  if (publishedYear && Number.parseInt(publishedYear, 10) >= 2015) score -= 20
+
+  return score
+}
+
+async function pickBestCandidate(browser: Browser, trackQuery: string, candidates: any[]): Promise<any | null> {
+  const rows = candidates.filter((r) => !!videoId(r)).slice(0, 18)
+  if (rows.length === 0) return null
+
+  let best: { row: any; score: number } | null = null
+  const page = await browser.newPage()
+  try {
+    for (const row of rows) {
+      const id = videoId(row)
+      if (!id) continue
+      const details = await scrapeYouTubeVideoDetails(id, { page, timeoutMs: 18_000 })
+      const title = String(details.title || row?.snippet?.title || "")
+      const channel = String(row?.snippet?.channelTitle || "")
+      const desc = String(details.description || row?.snippet?.description || "")
+      const publishedAt = typeof row?.snippet?.publishedAt === "string" ? row.snippet.publishedAt : undefined
+      const score = scoreCandidateForTrack(trackQuery, title, channel, desc, publishedAt)
+      if (score < 0) continue
+      if (!best || score > best.score) {
+        row.snippet = row.snippet || {}
+        row.snippet.title = title
+        if (channel) row.snippet.channelTitle = channel
+        best = { row, score }
+      }
+      await new Promise((r) => setTimeout(r, 350))
+    }
+  } finally {
+    await page.close().catch(() => {})
+  }
+  return best?.row ?? null
+}
+
+async function main() {
+  const pdfArg = process.argv.slice(2).find((a) => !a.startsWith("--"))
+  if (!pdfArg) {
+    console.error("Usage: npx tsx scripts/populate-acapella-250.ts /path/to/250_acapella_songs_v2.pdf [--limit=50] [--offset=0]")
+    process.exit(1)
+  }
+
+  const pdfPath = path.resolve(pdfArg)
+  const outputPath = path.resolve(argValue("output") ?? DEFAULT_OUTPUT)
+  const limit = parseNumArg("limit", 250)
+  const offset = parseNumArg("offset", 0)
+
+  const rawText = await loadPdfText(pdfPath)
+  const tracks = parseAcapella250PdfText(rawText)
+  if (!tracks.length) {
+    console.error("[Acapella250] Parsed zero tracks from PDF")
+    process.exit(1)
+  }
+
+  const slice = tracks.slice(offset, offset + limit)
+  const header = [
+    "# Acapella 250 retry report",
+    "",
+    `Generated: ${new Date().toISOString()}`,
+    `Source PDF: \`${pdfPath}\``,
+    `Tracks parsed: ${tracks.length}; scanning ${slice.length} from offset ${offset}.`,
+    "",
+    "Search: one combined query per row: `track (acapella OR \"a cappella\" OR \"vocals only\")`, up to 2 YouTube Data API pages when not using the scraper (scraper mode is first-page only).",
+    "Scoring: watch-page scrape for description/title (avoids Search API quota on videos.list).",
+    "",
+    "| # | Query | Year | Match title | Channel | URL |",
+    "|---|-------|------|-------------|---------|-----|",
+  ].join("\n")
+
+  writeFileSync(outputPath, header + "\n", "utf-8")
+
+  let hits = 0
+  const misses: string[] = []
+
+  const browser = await chromium.launch({ headless: true })
+  try {
+    for (let i = 0; i < slice.length; i++) {
+      const t = slice[i]
+      const short = t.searchQuery.length > 70 ? `${t.searchQuery.slice(0, 70)}...` : t.searchQuery
+      console.log(`[Acapella250] ${offset + i + 1}/${offset + slice.length}: ${short}`)
+      let rowLine: string
+      try {
+        const candidates = await fetchAcapellaCandidatesPaged(t.searchQuery, 2)
+        const first = await pickBestCandidate(browser, t.searchQuery, candidates)
+        if (!first) {
+          misses.push(`- **${t.index}** ${t.searchQuery}`)
+          rowLine = `| ${t.index} | ${mdCell(t.searchQuery)} | ${t.year ?? ""} | — | — | — |`
+        } else {
+          const id = videoId(first)
+          const title = String(first?.snippet?.title ?? "")
+          const channel = String(first?.snippet?.channelTitle ?? "")
+          const url = id ? `https://www.youtube.com/watch?v=${id}` : "—"
+          hits++
+          rowLine = `| ${t.index} | ${mdCell(t.searchQuery)} | ${t.year ?? ""} | ${mdCell(title)} | ${mdCell(channel)} | ${url} |`
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e)
+        misses.push(`- **${t.index}** ${t.searchQuery} — error: ${msg}`)
+        rowLine = `| ${t.index} | ${mdCell(t.searchQuery)} | ${t.year ?? ""} | — | — | — |`
+      }
+      appendFileSync(outputPath, rowLine + "\n", "utf-8")
+      await new Promise((r) => setTimeout(r, 250))
+    }
+  } finally {
+    await browser.close().catch(() => {})
+  }
+
+  const tail = [
+    ...(misses.length ? ["", "## Misses", "", ...misses] : []),
+    "",
+    `**Summary:** ${hits}/${slice.length} matched.`,
+    "",
+  ].join("\n")
+  appendFileSync(outputPath, tail, "utf-8")
+  console.log(`[Acapella250] Done. Hits: ${hits}/${slice.length}. Report: ${outputPath}`)
+}
+
+main().catch((e) => {
+  console.error(e)
+  process.exit(1)
+})
