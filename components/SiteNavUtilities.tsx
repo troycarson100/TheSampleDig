@@ -75,6 +75,17 @@ function IconMegaphone({ className }: { className?: string }) {
   )
 }
 
+function IconChartBars({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 21h18" />
+      <path d="M6 21v-7" />
+      <path d="M12 21V6" />
+      <path d="M18 21v-11" />
+    </svg>
+  )
+}
+
 export const SITE_SETTINGS_MENU_ITEMS = [
   { href: "/products", label: "My Products", Icon: IconDownloadBox },
   { href: "/privacy", label: "Privacy Policy", Icon: IconShieldCheck },
@@ -204,6 +215,19 @@ export function SiteSettingsMenu() {
                   >
                     <IconMegaphone className="shrink-0 opacity-85" />
                     <span>Affiliate admin</span>
+                  </Link>
+                ) : null}
+                {/* Admin-only: where traffic and sales are coming from. */}
+                {href === "/products" && isAdmin ? (
+                  <Link
+                    href="/admin/attribution"
+                    role="menuitem"
+                    className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
+                    style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
+                    onClick={() => setOpen(false)}
+                  >
+                    <IconChartBars className="shrink-0 opacity-85" />
+                    <span>Attribution</span>
                   </Link>
                 ) : null}
               </Fragment>
