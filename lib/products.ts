@@ -30,9 +30,23 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.0.18",
+    version: "1.1.0",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.1.0",
+        notes: [
+          "The band mixer. A new bar on the seq page splits your sound into up to three frequency bands, with crossovers you drag by hand. Each band can sit at its own wet amount, skip the FX chain, or solo — so you can chop the top end and leave the low end alone.",
+          "Give every band its own rhythm. Drop one of the eight lane keys onto a band and that band plays that lane's whole patch: its own step pattern, its own rate and feel, its own filter and drive. A rolling hi-hat on top, a half-time chop underneath, something else again in the middle — all from one input.",
+          "Factory and User tabs in the preset browser. Everything shft ships with lives in Factory; everything you save lives in User, in its own place on disk. An update can rewrite the factory bank without ever touching a preset of yours.",
+          "Sixteen new factory presets, most of them built around the band mixer, with patterns that actually use accents, ratchets, tied steps and per-step shape.",
+          "Make your own folders. Use + folder in the preset browser, or right-click a folder to rename it. Deleting a folder never deletes what's in it — those presets move to Unsorted.",
+          "A new G beside cutoff ties the filter to one global setting instead of letting each band keep its own. It's non-destructive both ways: turn it off and every lane still has the filter it had.",
+          "The OTT sounds like an OTT again. Both stages now work on the same material instead of each nibbling at one end, so it squashes and lifts at once — everything from -34 dBFS up lands within a couple of dB of the same level. It also holds the stereo image where you put it (a hard-panned sound used to drift toward the centre), and no longer winds itself up during a gate's silence and slam the next note.",
+          "Turning the reverb's mix up no longer turns your track down. It was losing 4.5 dB at half mix and 6.3 dB at full; the blend now holds level across the whole sweep.",
+          "Legibility: several controls had light text on a light background depending on the skin — the Factory/User tabs, the preset rename field, the + save pill and the popup-menu highlight. Every one of them is now measured for contrast on all five skins.",
+        ],
+      },
       {
         version: "1.0.18",
         notes: [
@@ -42,64 +56,25 @@ export const PRODUCTS: Record<string, ProductDef> = {
           "The pattern dice moved up beside the eight lane keys it rolls.",
         ],
       },
-      {
-        version: "1.0.17",
-        notes: [
-          "New skin — Matte. A charcoal console: near-black chassis with a fine tooth to it, one electric blue for every label, and four vivid ring colours doing all the work. It sits second in the picker, right after Default.",
-          "Tokyo is now called Cassette. Same skin, clearer name — your selection carries over, nothing to redo.",
-          "Cassette: the preset name and the lane preview shapes were dark-on-dark against the deck's smoked-glass windows. Both are legible now.",
-        ],
-      },
-      {
-        version: "1.0.16",
-        notes: [
-          "Skins. A gear button in the header opens a picker with four looks for the whole plugin, and your choice is remembered between sessions.",
-          "Cyber — neon on deep navy, lit panels and spun-metal knob caps.",
-          "Soviet — olive chassis, hammered brass control plate, bakelite knobs and moulded keys with lamps that read out the value.",
-          "Tokyo — an early-'80s Japanese cassette deck: brushed champagne aluminium, smoked-glass displays, amber lamps and knurled aluminium dials.",
-          "The original look is still there as Default, unchanged and selected by default.",
-        ],
-      },
-      {
-        version: "1.0.15",
-        notes: [
-          "New master dry/wet bar in the bottom-left, on every page — blends the whole plugin, FX included, against your untouched input. At 0% it's a true bypass, so you can A/B the processed and unprocessed sound.",
-          "The mix knob moved into the blue GATE section, where it acts as the gate's own dry/wet, before the effects.",
-          "chaos moved to the bottom-right of the knob grid.",
-        ],
-      },
-      {
-        version: "1.0.14",
-        notes: [
-          "The export button now appears on the seq page only, instead of on the fx and lfo pages too.",
-        ],
-      },
-      {
-        version: "1.0.13",
-        notes: [
-          "Export: drag patterns straight into your DAW. The drag handle at the top-right of the step strip drops a MIDI file carrying both the notes and the CC1 shape automation in one clip.",
-          "Export popup with separate MIDI and audio drag pads — audio renders bar-snapped with ACID tempo tags, so Live and Bitwig warp it to your session.",
-        ],
-      },
     ],
     assets: [
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.0.18.pkg",
-        filename: "shft-1.0.18.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.1.0.pkg",
+        filename: "shft-1.1.0.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.0.18-setup.exe",
-        filename: "shft-1.0.18-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.1.0-setup.exe",
+        filename: "shft-1.1.0-setup.exe",
       },
       {
         id: "manual",
         label: "User manual (PDF)",
-        key: process.env.SHFT_MANUAL_KEY || "shft/shft-manual-v1.3.pdf",
-        filename: "shft-manual-v1.3.pdf",
+        key: process.env.SHFT_MANUAL_KEY || "shft/shft-manual-v1.4.pdf",
+        filename: "shft-manual-v1.4.pdf",
       },
     ],
   },
