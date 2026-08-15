@@ -30,9 +30,19 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.1.2",
+    version: "1.1.3",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.1.3",
+        notes: [
+          "Chaos, scoped. The little caret beside the CHAOS title opens a panel of chips that set exactly what the knob is allowed to roll: stutter density (x2 / x3 / x4), slice type (gate / repeat / reverse / granular), and pitch jumps by interval — octave, two octaves, fifth, fourth. Light any subset; all lit is the classic behaviour.",
+          "Chaos can now throw steps into the FX, dub style — a step hurled into the delay, bloomed into the reverb, or the filter kicked one to three octaves (aimed where you'll hear it: open filters kick down, closed ones up). Each throw lasts one step and each is its own chip, off by default.",
+          "You can see what chaos grabbed: a violet glow rides just outside a knob's value ring at the value chaos is holding it at — on cutoff for filter kicks, on the delay and reverb mix knobs for throws — swelling in and melting away rather than blinking.",
+          "The gate chip is chaos's one new trick in the other direction: rolling it un-glitches an armed step back to a plain gate hit.",
+          "Fixed: engaging a chaos delay throw from a dry mix no longer pops — the delay line stays fed while idle, so throws land on fresh audio.",
+        ],
+      },
       {
         version: "1.1.2",
         notes: [
@@ -71,14 +81,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.1.2.pkg",
-        filename: "shft-1.1.2.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.1.3.pkg",
+        filename: "shft-1.1.3.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.1.2-setup.exe",
-        filename: "shft-1.1.2-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.1.3-setup.exe",
+        filename: "shft-1.1.3-setup.exe",
       },
       {
         id: "manual",
