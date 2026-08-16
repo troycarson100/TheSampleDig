@@ -1,6 +1,7 @@
 import Link from "next/link"
 import type { Metadata } from "next"
 import { redirect } from "next/navigation"
+import LicenseSection from "@/components/LicenseSection"
 import ProductChangelog from "@/components/ProductChangelog"
 import SiteNav from "@/components/SiteNav"
 import WindowsInstallNote from "@/components/WindowsInstallNote"
@@ -22,6 +23,12 @@ export default async function ProductsPage() {
   const purchases = await prisma.purchase.findMany({
     where: { userId: session.user.id },
     orderBy: { createdAt: "desc" },
+    include: {
+      activations: {
+        where: { deactivatedAt: null },
+        orderBy: { createdAt: "asc" },
+      },
+    },
   })
 
   return (
@@ -90,6 +97,16 @@ export default async function ProductsPage() {
                   </div>
 
                   {def.assets.some((a) => a.id === "installer-win") && <WindowsInstallNote />}
+
+                  <LicenseSection
+                    licenseKey={purchase.licenseKey}
+                    activations={purchase.activations.map((a) => ({
+                      id: a.id,
+                      machineName: a.machineName,
+                      platform: a.platform,
+                      createdAt: a.createdAt.toISOString().slice(0, 10),
+                    }))}
+                  />
 
                   {def.changelog && def.changelog.length > 0 && (
                     <ProductChangelog releases={def.changelog} />
