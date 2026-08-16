@@ -50,6 +50,27 @@ export async function POST(request: Request) {
     )
   }
 
+  const payload: LicensePayload = {
+    v: 1,
+    product: purchase.product,
+    key,
+    email: purchase.user.email,
+    machines: machineIds,
+    issued: todayIssued(),
+  }
+
+  // SIGN BEFORE PERSISTING. The payload needs nothing from the write, and doing
+  // it the other way round means a malformed signing key consumes one of the
+  // buyer's three seats and hands back a 500 — a seat spent on nothing, which
+  // only support can undo. This ordering fails with the seat intact.
+  let license: string
+  try {
+    license = signLicense(payload, signingKey)
+  } catch (e) {
+    console.error("[license activate] signing failed", e)
+    return NextResponse.json({ error: "Activation is unavailable." }, { status: 503 })
+  }
+
   const data = {
     machineIds,
     machineName: body.machineName?.slice(0, 80) || null,
@@ -66,14 +87,5 @@ export async function POST(request: Request) {
     })
   }
 
-  const payload: LicensePayload = {
-    v: 1,
-    product: purchase.product,
-    key,
-    email: purchase.user.email,
-    machines: machineIds,
-    issued: todayIssued(),
-  }
-
-  return NextResponse.json({ license: signLicense(payload, signingKey) })
+  return NextResponse.json({ license })
 }
