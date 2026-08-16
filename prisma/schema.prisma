@@ -50,14 +50,33 @@ model Purchase {
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   product         String // e.g. "shft"
   stripeSessionId String?  @unique @map("stripe_session_id")
-  // Reserved for future plugin licensing (unused at launch — trust-based for now).
+  // The buyer's licence key. Minted on purchase; backfilled for purchases that
+  // predate licensing. Never regenerated — a buyer may already have it typed
+  // into the plugin, and rotating it would deactivate them silently.
   licenseKey      String?  @unique @map("license_key")
   createdAt       DateTime @default(now()) @map("created_at")
   affiliateReferral AffiliateReferral?
+  activations       LicenseActivation[]
 
   @@unique([userId, product])
   @@index([userId])
   @@map("purchases")
+}
+
+model LicenseActivation {
+  id            String    @id @default(cuid())
+  purchaseId    String    @map("purchase_id")
+  purchase      Purchase  @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  // The whole hashed set. Valid while ANY one still matches locally; there is
+  // deliberately no unique index, because "intersects" is not expressible as one.
+  machineIds    String[]  @map("machine_ids")
+  machineName   String?   @map("machine_name")
+  platform      String?
+  createdAt     DateTime  @default(now()) @map("created_at")
+  deactivatedAt DateTime? @map("deactivated_at")
+
+  @@index([purchaseId])
+  @@map("license_activations")
 }
 
 model Channel {
