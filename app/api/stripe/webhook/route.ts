@@ -3,6 +3,7 @@ import Stripe from "stripe"
 import { prisma } from "@/lib/db"
 import { sendShftPurchaseEmail } from "@/lib/email"
 import { recordAffiliateReferral } from "@/lib/affiliate"
+import { generateLicenseKey } from "@/lib/license-key"
 import { reverseTransferForRefund } from "@/lib/affiliate-stripe"
 
 export async function POST(request: Request) {
@@ -47,12 +48,35 @@ export async function POST(request: Request) {
         // --- shft plugin: one-time purchase, recorded against the user account. ---
         if (session.metadata?.product === "shft") {
           const buyerId = session.client_reference_id ?? session.metadata?.userId
+          // Hoisted: the email below is sent even when there is no buyerId, and
+          // it needs the key. Null there rather than a fake one — the template
+          // omits the block instead of printing something that cannot activate.
+          let licenseKey: string | null = null
+
           if (buyerId && typeof buyerId === "string") {
             const purchase = await prisma.purchase.upsert({
               where: { userId_product: { userId: buyerId, product: "shft" } },
-              create: { userId: buyerId, product: "shft", stripeSessionId: session.id },
+              create: {
+                userId: buyerId,
+                product: "shft",
+                stripeSessionId: session.id,
+                licenseKey: generateLicenseKey(),
+              },
+              // Never regenerate: a buyer may already have the old key in the
+              // plugin, and rotating it would deactivate them silently.
               update: { stripeSessionId: session.id },
             })
+
+            licenseKey = purchase.licenseKey
+            if (!licenseKey) {
+              // The row predates licensing, or was created by an older deploy.
+              const filled = await prisma.purchase.update({
+                where: { id: purchase.id },
+                data: { licenseKey: generateLicenseKey() },
+              })
+              licenseKey = filled.licenseKey
+            }
+
             await recordAffiliateReferral(session, purchase.id)
           } else {
             console.warn("[Stripe webhook] shft purchase missing userId")
@@ -60,7 +84,7 @@ export async function POST(request: Request) {
           const email = session.customer_details?.email ?? session.customer_email ?? null
           if (email) {
             try {
-              await sendShftPurchaseEmail(email)
+              await sendShftPurchaseEmail(email, licenseKey)
             } catch (e) {
               console.error("[Stripe webhook] shft purchase email failed:", e)
             }

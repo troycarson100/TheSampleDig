@@ -3,6 +3,7 @@ import Stripe from "stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { recordAffiliateReferral } from "@/lib/affiliate"
+import { generateLicenseKey } from "@/lib/license-key"
 
 // Called by the success page with the Stripe checkout session id. Confirms the
 // session is a paid shft purchase belonging to the signed-in user, then records
@@ -41,9 +42,22 @@ export async function POST(request: Request) {
 
     const purchase = await prisma.purchase.upsert({
       where: { userId_product: { userId: session.user.id, product: "shft" } },
-      create: { userId: session.user.id, product: "shft", stripeSessionId: checkout.id },
+      create: {
+        userId: session.user.id,
+        product: "shft",
+        stripeSessionId: checkout.id,
+        licenseKey: generateLicenseKey(),
+      },
       update: { stripeSessionId: checkout.id },
     })
+    // The webhook may have created this row before licence keys existed, or
+    // before this deploy. Fill the gap rather than leaving a keyless purchase.
+    if (!purchase.licenseKey) {
+      await prisma.purchase.update({
+        where: { id: purchase.id },
+        data: { licenseKey: generateLicenseKey() },
+      })
+    }
     await recordAffiliateReferral(checkout, purchase.id)
 
     return NextResponse.json({ ok: true })

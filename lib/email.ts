@@ -82,8 +82,24 @@ export async function sendVerificationEmail(email: string, token: string) {
   })
 }
 
-export async function sendShftPurchaseEmail(email: string) {
+export async function sendShftPurchaseEmail(email: string, licenseKey: string | null = null) {
   const url = `${APP_URL}/products`
+
+  // Omitted entirely when there is no key, rather than printing an empty box a
+  // buyer would try to activate with. /products always shows the real one.
+  const keyBlock = licenseKey
+    ? `
+        <p style="color: #555; margin-bottom: 8px; font-size: 14px;">Your licence key</p>
+        <p style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px;
+                  letter-spacing: 1px; background: #f4f4f4; border: 1px solid #e4e4e4;
+                  border-radius: 8px; padding: 12px 16px; margin: 0 0 16px;">
+          ${licenseKey}
+        </p>
+        <p style="color: #555; margin-bottom: 24px; font-size: 14px;">
+          Paste it into shft the first time you open it. It activates up to 3 machines,
+          and you can free one any time from My Products.
+        </p>`
+    : ""
 
   await sendMailWithFallback({
     from: FROM,
@@ -97,6 +113,7 @@ export async function sendShftPurchaseEmail(email: string) {
           macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone), plus the user manual —
           any time, as many times as you need.
         </p>
+        ${keyBlock}
         <a href="${url}" style="display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;">
           Go to My Products
         </a>
