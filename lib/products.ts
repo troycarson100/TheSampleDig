@@ -30,9 +30,18 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.1.3",
+    version: "1.2.0",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.2.0",
+        notes: [
+          "shft now activates with a licence key. Yours is on this page, just below the download buttons - copy it, paste it into shft the first time you open it, and that's it. It checks once, then never needs the internet again.",
+          "One key covers 3 machines. If you retire or rebuild a computer, deactivate it here to free the slot for another one. Swapping a network adapter or updating macOS won't cost you a slot.",
+          "Already running shft? Nothing breaks. Your current install keeps working exactly as it is - you'll only be asked for the key once you install this update.",
+          "Fixed: the pattern undo arrow came apart into two overlapping pieces when dimmed, showing a dark seam across the join. It fades as one shape now, and its arrowhead sits properly on the end of the arc.",
+        ],
+      },
       {
         version: "1.1.3",
         notes: [
@@ -81,14 +90,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.1.3.pkg",
-        filename: "shft-1.1.3.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.2.0.pkg",
+        filename: "shft-1.2.0.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.1.3-setup.exe",
-        filename: "shft-1.1.3-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.2.0-setup.exe",
+        filename: "shft-1.2.0-setup.exe",
       },
       {
         id: "manual",
