@@ -70,11 +70,22 @@ export async function POST(request: Request) {
             licenseKey = purchase.licenseKey
             if (!licenseKey) {
               // The row predates licensing, or was created by an older deploy.
-              const filled = await prisma.purchase.update({
-                where: { id: purchase.id },
+              //
+              // Conditional update, then re-read: this route and /api/shft/claim
+              // can run concurrently on the same purchase. A read-then-write
+              // would let the second mint overwrite the first, so the buyer gets
+              // emailed a key that is no longer on their account. With
+              // licenseKey:null in the WHERE the loser writes nothing, and the
+              // re-read returns whichever key actually won.
+              await prisma.purchase.updateMany({
+                where: { id: purchase.id, licenseKey: null },
                 data: { licenseKey: generateLicenseKey() },
               })
-              licenseKey = filled.licenseKey
+              const filled = await prisma.purchase.findUnique({
+                where: { id: purchase.id },
+                select: { licenseKey: true },
+              })
+              licenseKey = filled?.licenseKey ?? null
             }
 
             await recordAffiliateReferral(session, purchase.id)

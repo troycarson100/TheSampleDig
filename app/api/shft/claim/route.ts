@@ -52,9 +52,14 @@ export async function POST(request: Request) {
     })
     // The webhook may have created this row before licence keys existed, or
     // before this deploy. Fill the gap rather than leaving a keyless purchase.
+    //
+    // updateMany with licenseKey:null in the WHERE is what makes this safe: the
+    // webhook and this route can run concurrently on the same purchase, and a
+    // read-then-write would let the second mint overwrite the first — emailing
+    // the buyer a key that is no longer the one on their account.
     if (!purchase.licenseKey) {
-      await prisma.purchase.update({
-        where: { id: purchase.id },
+      await prisma.purchase.updateMany({
+        where: { id: purchase.id, licenseKey: null },
         data: { licenseKey: generateLicenseKey() },
       })
     }
