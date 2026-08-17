@@ -1,7 +1,8 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import { generateKeyPairSync, createVerify } from "node:crypto"
-import { signLicense, type LicensePayload } from "./license-sign"
+import { createPrivateKey } from "node:crypto"
+import { signLicense, loadSigningKey, type LicensePayload } from "./license-sign"
 
 const pair = () =>
   generateKeyPairSync("rsa", {
@@ -72,4 +73,75 @@ test("a signature from a different key does not verify", () => {
     .update(Buffer.from(b64Payload, "base64"))
     .verify(b.publicKey, Buffer.from(b64Sig, "base64"))
   assert.equal(ok, false)
+})
+
+// --- loadSigningKey: the shapes a hosting panel actually delivers ------------
+// Every case below is one a real deploy produced or plausibly produces. The
+// third is the one that broke production: DigitalOcean stored the key with its
+// -----BEGIN/END----- armour stripped, and OpenSSL answered ERR_OSSL_UNSUPPORTED.
+
+const withEnv = (value: string | undefined, fn: () => void) => {
+  const prev = process.env.LICENSE_SIGNING_PRIVATE_KEY
+  if (value === undefined) delete process.env.LICENSE_SIGNING_PRIVATE_KEY
+  else process.env.LICENSE_SIGNING_PRIVATE_KEY = value
+  try {
+    fn()
+  } finally {
+    if (prev === undefined) delete process.env.LICENSE_SIGNING_PRIVATE_KEY
+    else process.env.LICENSE_SIGNING_PRIVATE_KEY = prev
+  }
+}
+
+const goodPem = pair().privateKey.trim()
+
+test("loadSigningKey accepts a normal multi-line PEM", () => {
+  withEnv(goodPem, () => {
+    assert.doesNotThrow(() => createPrivateKey(loadSigningKey()))
+  })
+})
+
+test("loadSigningKey repairs literal \\n escapes", () => {
+  withEnv(goodPem.replace(/\n/g, "\\n"), () => {
+    assert.doesNotThrow(() => createPrivateKey(loadSigningKey()))
+  })
+})
+
+test("loadSigningKey repairs a key whose BEGIN/END armour was stripped", () => {
+  // Exactly what DigitalOcean stored: body only, real newlines, no header.
+  const body = goodPem
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .trim()
+  withEnv(body, () => {
+    assert.doesNotThrow(() => createPrivateKey(loadSigningKey()))
+  })
+})
+
+test("loadSigningKey repairs surrounding quotes", () => {
+  withEnv(`"${goodPem}"`, () => {
+    assert.doesNotThrow(() => createPrivateKey(loadSigningKey()))
+  })
+})
+
+test("loadSigningKey repairs armour-stripped AND escaped together", () => {
+  const body = goodPem
+    .replace("-----BEGIN PRIVATE KEY-----", "")
+    .replace("-----END PRIVATE KEY-----", "")
+    .trim()
+    .replace(/\n/g, "\\n")
+  withEnv(body, () => {
+    assert.doesNotThrow(() => createPrivateKey(loadSigningKey()))
+  })
+})
+
+test("loadSigningKey still fails loudly on a genuinely bad value", () => {
+  withEnv("not a key at all", () => {
+    assert.throws(() => createPrivateKey(loadSigningKey()))
+  })
+})
+
+test("loadSigningKey throws when unset", () => {
+  withEnv(undefined, () => {
+    assert.throws(() => loadSigningKey(), /not set/)
+  })
 })

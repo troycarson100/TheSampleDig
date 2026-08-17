@@ -28,7 +28,8 @@ export async function POST(request: Request) {
     signingKey = loadSigningKey()
   } catch {
     console.error("[license activate] LICENSE_SIGNING_PRIVATE_KEY is not configured")
-    return NextResponse.json({ error: "Activation is unavailable." }, { status: 503 })
+    // 500 not 503 - see the note on the signing catch below.
+    return NextResponse.json({ error: "Activation is unavailable." }, { status: 500 })
   }
 
   const purchase = await prisma.purchase.findUnique({
@@ -68,7 +69,12 @@ export async function POST(request: Request) {
     license = signLicense(payload, signingKey)
   } catch (e) {
     console.error("[license activate] signing failed", e)
-    return NextResponse.json({ error: "Activation is unavailable." }, { status: 503 })
+    // 500, NOT 503. DigitalOcean App Platform treats a 503 from the app as
+    // "instance unhealthy" and swallows the body, replacing it with its own
+    // "failed to forward this request" page - so the plugin showed a bare 504
+    // and the real reason only existed in the runtime log. A 500 reaches the
+    // caller intact.
+    return NextResponse.json({ error: "Activation is unavailable." }, { status: 500 })
   }
 
   const data = {
