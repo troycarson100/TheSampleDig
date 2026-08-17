@@ -19,12 +19,19 @@ export type SeatDecision =
  * treats them as opaque and only checks the shape, so a malformed or padded
  * request cannot bloat the row.
  */
+/** Sanity ceiling on the set size. NOT a guess: the first real machine tested
+ *  reported 14 identifiers (one per network interface, plus the filesystem and
+ *  unique-device ids), and an 8 cap rejected it outright with "Missing machine
+ *  identifiers". Machines with VPN, VM or container adapters have more still,
+ *  so this is set well clear of anything plausible while still bounding the row. */
+const MAX_MACHINE_IDS = 40
+
 export function validMachineIds(ids: unknown): ids is string[] {
   return (
     Array.isArray(ids) &&
     ids.length > 0 &&
-    ids.length <= 8 &&
-    ids.every((id) => typeof id === "string" && /^[0-9A-Za-z]{4,32}$/.test(id))
+    ids.length <= MAX_MACHINE_IDS &&
+    ids.every((id) => typeof id === "string" && /^[0-9A-Za-z*]{1,32}$/.test(id))
   )
 }
 

@@ -56,5 +56,20 @@ test("validMachineIds accepts a plausible JUCE set and rejects junk", () => {
   assert.equal(validMachineIds([""]), false)
   assert.equal(validMachineIds(["ok", 42]), false)
   assert.equal(validMachineIds(["M1A2B3C4D".repeat(10)]), false)
-  assert.equal(validMachineIds(new Array(20).fill("M1A2B3C4D")), false)
+  assert.equal(validMachineIds(new Array(50).fill("M1A2B3C4D")), false)
+})
+
+test("validMachineIds accepts what a REAL machine actually sends", () => {
+  // The first real activation failed on this: the test machine reports 14 ids,
+  // one per network interface plus filesystem and device, and the cap was 8.
+  // Unit tests using two-element arrays never came close to the limit.
+  assert.equal(validMachineIds(new Array(14).fill(0).map((_, i) => `MD768${i}FDE6`)), true)
+  assert.equal(validMachineIds(new Array(40).fill(0).map((_, i) => `M${i}A2B3C4D`)), true)
+})
+
+test("validMachineIds accepts the wildcard token", () => {
+  // A wildcard licence is signed by hand, never requested — but the validator
+  // must not reject "*" outright, or the shutdown escape hatch could not be
+  // issued through the normal path.
+  assert.equal(validMachineIds(["*"]), true)
 })
