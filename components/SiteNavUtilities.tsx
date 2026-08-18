@@ -86,6 +86,15 @@ function IconChartBars({ className }: { className?: string }) {
   )
 }
 
+function IconTicket({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M3 8a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V8z" />
+      <path d="M9 6v12" strokeDasharray="2 2" />
+    </svg>
+  )
+}
+
 export const SITE_SETTINGS_MENU_ITEMS = [
   { href: "/products", label: "My Products", Icon: IconDownloadBox },
   { href: "/privacy", label: "Privacy Policy", Icon: IconShieldCheck },
@@ -228,6 +237,19 @@ export function SiteSettingsMenu() {
                   >
                     <IconChartBars className="shrink-0 opacity-85" />
                     <span>Attribution</span>
+                  </Link>
+                ) : null}
+                {/* Admin-only: give away working shft copies via retrieval codes. */}
+                {href === "/products" && isAdmin ? (
+                  <Link
+                    href="/admin/comps"
+                    role="menuitem"
+                    className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
+                    style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
+                    onClick={() => setOpen(false)}
+                  >
+                    <IconTicket className="shrink-0 opacity-85" />
+                    <span>Comp codes</span>
                   </Link>
                 ) : null}
               </Fragment>
