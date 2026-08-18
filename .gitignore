@@ -77,6 +77,9 @@ reports/shft-social/
 # Script progress/state files
 .populate-acapella-250-state.json
 
+# Scratch workspace for subagent-driven-development plan execution
+.superpowers/
+
 # Isolated worktrees for agent-driven feature work. Named *.nosync like
 # node_modules.nosync/.next.nosync above: a worktree checkout writes a full
 # copy of the tracked tree, and doing that inside plain .worktrees/ (still
