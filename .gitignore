@@ -76,3 +76,6 @@ reports/shft-social/
 
 # Script progress/state files
 .populate-acapella-250-state.json
+
+# Isolated worktrees for agent-driven feature work
+.worktrees/
