@@ -39,6 +39,7 @@ model User {
   events                       UserEvent[]
   purchases                    Purchase[]
   affiliate                    Affiliate?
+  compCodesRedeemed            CompCode[]
 
   @@index([attributionVisitorId])
   @@map("users")
@@ -57,6 +58,7 @@ model Purchase {
   createdAt       DateTime @default(now()) @map("created_at")
   affiliateReferral AffiliateReferral?
   activations       LicenseActivation[]
+  compCode          CompCode?
 
   @@unique([userId, product])
   @@index([userId])
@@ -77,6 +79,31 @@ model LicenseActivation {
 
   @@index([purchaseId])
   @@map("license_activations")
+}
+
+model CompCode {
+  id               String    @id @default(cuid())
+  // GIFT-XXXX-XXXX-XXXX — see lib/comp-code.ts. Distinct from licenseKey on
+  // purpose: this is redeemed on the WEBSITE, never pasted into the plugin.
+  code             String    @unique
+  note             String?
+  // The admin who generated it (from requireAdmin()'s session) — cheap audit
+  // trail on a tool that hands out free product.
+  createdByEmail   String?   @map("created_by_email")
+  expiresAt        DateTime? @map("expires_at")
+  revokedAt        DateTime? @map("revoked_at")
+  redeemedAt       DateTime? @map("redeemed_at")
+  redeemedByUserId String?   @map("redeemed_by_user_id")
+  redeemedByUser   User?     @relation(fields: [redeemedByUserId], references: [id], onDelete: SetNull)
+  // The Purchase this redemption produced. Nullable/SetNull rather than
+  // Cascade: this row is the audit trail of "code X was redeemed by Y", which
+  // should survive even if the purchase it produced is ever removed.
+  purchaseId       String?   @unique @map("purchase_id")
+  purchase         Purchase? @relation(fields: [purchaseId], references: [id], onDelete: SetNull)
+  createdAt        DateTime  @default(now()) @map("created_at")
+
+  @@index([redeemedByUserId])
+  @@map("comp_codes")
 }
 
 model Channel {
