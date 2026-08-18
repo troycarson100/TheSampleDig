@@ -104,7 +104,9 @@ export default function LoginPage() {
             <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: "var(--foreground)" }}>Email</label>
             <input
               id="email"
+              name="email"
               type="email"
+              autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -121,7 +123,9 @@ export default function LoginPage() {
             </div>
             <input
               id="password"
+              name="password"
               type="password"
+              autoComplete="current-password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
