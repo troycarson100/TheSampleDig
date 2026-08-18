@@ -97,6 +97,7 @@ function IconTicket({ className }: { className?: string }) {
 
 export const SITE_SETTINGS_MENU_ITEMS = [
   { href: "/products", label: "My Products", Icon: IconDownloadBox },
+  { href: "/redeem", label: "Redeem a code", Icon: IconTicket },
   { href: "/privacy", label: "Privacy Policy", Icon: IconShieldCheck },
   { href: "/cookies", label: "Cookie Policy", Icon: IconCookie },
   { href: "/terms", label: "Terms of Service", Icon: IconDocument },
