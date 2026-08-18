@@ -36,7 +36,11 @@ export async function POST(request: Request) {
 
   let body: { count?: number; note?: string; expiresAt?: string }
   try {
-    body = await request.json()
+    // A body that is valid JSON but not an object (e.g. the literal text
+    // "null") parses without throwing; coerce it to {} so the field
+    // validation below handles it as an ordinary missing-field 400 instead
+    // of a bare property access throwing an uncaught TypeError.
+    body = (await request.json()) ?? {}
   } catch {
     return NextResponse.json({ error: "Malformed request." }, { status: 400 })
   }
@@ -54,6 +58,18 @@ export async function POST(request: Request) {
     const parsed = new Date(body.expiresAt)
     if (Number.isNaN(parsed.getTime())) {
       return NextResponse.json({ error: "Invalid expiration date." }, { status: 400 })
+    }
+    // The admin form sends a date-only string (e.g. "2026-08-20") from an
+    // <input type="date">, which Date parses as UTC MIDNIGHT — the evening
+    // before in US timezones, and compCodeStatus treats <= now as expired.
+    // Bump a date-only value to the END of that day (UTC) so "expires
+    // Aug 20" actually covers Aug 20 everywhere. This codebase doesn't track
+    // an admin's timezone anywhere, so end-of-day-UTC is simple and
+    // sufficient rather than true per-timezone handling.
+    const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(body.expiresAt.trim())
+    if (dateOnly) parsed.setUTCHours(23, 59, 59, 999)
+    if (parsed.getTime() <= Date.now()) {
+      return NextResponse.json({ error: "Expiration date is already in the past." }, { status: 400 })
     }
     expiresAt = parsed
   }

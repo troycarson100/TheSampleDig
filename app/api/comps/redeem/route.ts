@@ -2,13 +2,18 @@ import { NextResponse } from "next/server"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { normalizeCompCode } from "@/lib/comp-code"
-import { decideRedemption } from "@/lib/comp-code-redemption"
+import { decideRedemption, type RedeemRefuseReason } from "@/lib/comp-code-redemption"
 import { generateLicenseKey } from "@/lib/license-key"
 import { sendShftPurchaseEmail } from "@/lib/email"
 
 const PRODUCT = "shft"
 
-const MESSAGES: Record<string, string> = {
+// Keyed off RedeemRefuseReason (not a generic Record<string, ...>) so a
+// reason added to decideRedemption's union without a matching entry here is
+// a compile error. Left as a runtime lookup miss, STATUS[reason] would be
+// undefined and NextResponse.json({..., status: undefined}) silently
+// defaults to 200 - a refused redemption reported to the client as success.
+const MESSAGES: Record<RedeemRefuseReason, string> = {
   not_found: "We don't recognize that code.",
   revoked: "That code has been cancelled.",
   expired: "That code has expired.",
@@ -16,7 +21,7 @@ const MESSAGES: Record<string, string> = {
   already_owned: "You already own shft - see My Products.",
 }
 
-const STATUS: Record<string, number> = {
+const STATUS: Record<RedeemRefuseReason, number> = {
   not_found: 404,
   revoked: 410,
   expired: 410,
@@ -32,7 +37,11 @@ export async function POST(request: Request) {
 
   let body: { code?: string }
   try {
-    body = await request.json()
+    // A body that is valid JSON but not an object (e.g. the literal text
+    // "null") parses without throwing; coerce it to {} so the field
+    // validation below handles it as an ordinary missing-field 400 instead
+    // of a bare property access throwing an uncaught TypeError.
+    body = (await request.json()) ?? {}
   } catch {
     return NextResponse.json({ error: "Malformed request." }, { status: 400 })
   }
@@ -62,9 +71,13 @@ export async function POST(request: Request) {
   // Claim the CODE first, atomically: only the request whose conditional
   // update actually matches a row (redeemedAt still null) wins. This closes
   // the same race claim/route.ts already closes for the license-key backfill
-  // - a conditional updateMany, never a read-then-write.
+  // - a conditional updateMany, never a read-then-write. revokedAt is
+  // re-checked here too (not just against the earlier decideRedemption read
+  // above) so this update is the single authoritative gate against a code
+  // revoked in the narrow window between that read and this claim, not just
+  // a cross-check against a stale read.
   const claimed = await prisma.compCode.updateMany({
-    where: { id: row!.id, redeemedAt: null },
+    where: { id: row!.id, redeemedAt: null, revokedAt: null },
     data: { redeemedAt: new Date(), redeemedByUserId: session.user.id },
   })
   if (claimed.count === 0) {

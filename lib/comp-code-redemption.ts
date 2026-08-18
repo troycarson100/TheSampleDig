@@ -19,6 +19,12 @@ export type RedeemDecision =
   | { action: "redeem" }
   | { action: "refuse"; reason: "not_found" | "revoked" | "expired" | "already_redeemed" | "already_owned" }
 
+// Standalone export of just the refuse reasons so call sites that map every
+// reason to a message/status (the redeem route) can key their objects off
+// this union — an unmapped reason then fails to compile instead of falling
+// through to `undefined` at runtime.
+export type RedeemRefuseReason = Extract<RedeemDecision, { action: "refuse" }>["reason"]
+
 /**
  * Pure decision, no I/O — the route (Task 8) does the lookups and hands the
  * results in. Code-level problems (revoked/expired/already redeemed) are

@@ -32,6 +32,10 @@ function fmtDate(d: string): string {
   return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
 }
 
+function fmtOptionalDate(d: string | null): string {
+  return d ? fmtDate(d) : ""
+}
+
 function statusLabel(status: CompCodeStatus): string {
   if (status === "open") return "open"
   if (status === "redeemed") return "redeemed"
@@ -203,6 +207,7 @@ export default function AdminComps() {
                   <th className="px-4 py-2.5 font-normal">Status</th>
                   <th className="px-4 py-2.5 font-normal">Redeemed by</th>
                   <th className="px-4 py-2.5 font-normal">Created</th>
+                  <th className="px-4 py-2.5 font-normal">Expires</th>
                   <th className="px-4 py-2.5 font-normal"></th>
                 </tr>
               </thead>
@@ -216,6 +221,7 @@ export default function AdminComps() {
                     <td className="px-4 py-2.5">{statusLabel(c.status)}</td>
                     <td className="px-4 py-2.5">{c.redeemedByEmail ?? ""}</td>
                     <td className="px-4 py-2.5">{fmtDate(c.createdAt)}</td>
+                    <td className="px-4 py-2.5">{fmtOptionalDate(c.expiresAt)}</td>
                     <td className="px-4 py-2.5 text-right">
                       {c.status === "open" ? (
                         <button className={btnCls} style={btnStyle} disabled={busy} onClick={() => revoke(c.id)}>
