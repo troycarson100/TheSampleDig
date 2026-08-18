@@ -1,11 +1,8 @@
 -- Applied by hand with `prisma db execute` — this deploy pipeline runs only
 -- `prisma generate`, never `prisma migrate deploy`.
 --
--- NOT YET APPLIED TO PRODUCTION. This file is a committed artifact of the
--- schema change, matching the convention started by
--- 20260816_license_activations.sql; running it against the real Supabase
--- database is a separate, explicit step for the site owner to trigger by
--- hand, not part of this change.
+-- Applied to production Supabase on 2026-08-18. Verified: table + indexes +
+-- FKs match this file, RLS enabled, anon/authenticated grants revoked.
 
 CREATE TABLE "comp_codes" (
     "id"                    TEXT NOT NULL,
