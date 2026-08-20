@@ -5,6 +5,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { normalizeAffiliateCode } from "@/lib/affiliate-logic"
 import { readAttributionMetadata } from "@/lib/attribution-snapshot"
+import { PRICING } from "@/lib/products"
 
 // One-time checkout for the shft plugin. Requires login so the purchase can be
 // tied to an account and surfaced on the /products page.
@@ -31,6 +32,17 @@ export async function POST() {
     return NextResponse.json({ error: "already_owned" }, { status: 409 })
   }
 
+  // Crossgrade: owning drft earns the $15 complete-the-pair price. Ownership is
+  // checked server-side here — nothing client-controlled picks the price.
+  const ownsDrft = Boolean(
+    await prisma.purchase.findUnique({
+      where: { userId_product: { userId: session.user.id, product: "drft" } },
+    })
+  )
+  const crossgradeId = process.env.STRIPE_SHFT_CROSSGRADE_PRICE_ID
+  const chosenPriceId = ownsDrft && crossgradeId ? crossgradeId : priceId
+  const paidValue = ownsDrft && crossgradeId ? PRICING.crossgrade.price : PRICING.shft.price
+
   // Affiliate attribution: forward a valid ?ref= cookie code into session
   // metadata; the webhook re-validates it against an active affiliate.
   let affiliateCode: string | null = null
@@ -56,8 +68,8 @@ export async function POST() {
     const checkoutSession = await stripe.checkout.sessions.create({
       mode: "payment",
       payment_method_types: ["card"],
-      line_items: [{ price: priceId, quantity: 1 }],
-      success_url: `${baseUrl}/shft?purchase=success&session_id={CHECKOUT_SESSION_ID}`,
+      line_items: [{ price: chosenPriceId, quantity: 1 }],
+      success_url: `${baseUrl}/shft?purchase=success&session_id={CHECKOUT_SESSION_ID}&paid=${paidValue}`,
       cancel_url: `${baseUrl}/shft?purchase=canceled`,
       customer_creation: "always",
       customer_email: session.user.email || undefined,
