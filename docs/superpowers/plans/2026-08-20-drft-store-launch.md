@@ -19,7 +19,8 @@
 - **No test framework exists in this repo** (verified: package.json has no jest/vitest). Verification per task = `npm run lint` + `npm run build` (runs tsc) + the manual checks written into each task. Do not introduce a test framework.
 - **License keys are never regenerated** on an existing Purchase row — preserve the upsert + `updateMany where licenseKey: null` pattern everywhere it appears.
 - **drft copy:** platform line separators are plain ASCII `" - "` (e.g. `One-time purchase - macOS & Windows - VST3 / AU / Standalone`). drft ships macOS (VST3 / AU / Standalone) + Windows (VST3 / Standalone).
-- **Knob/capability titles are lowercase** in the plugin's silk-screen style — monospace, lowercase, letter-spaced (`tape speed`, `bass mono`, never `Tape speed`) — matching the drft wordmark treatment (Troy's request).
+- **Knob/capability titles are UPPERCASE mono** in the plugin's silk-screen style — monospace, uppercase, letter-spaced (`TAPE SPEED`, `BASS MONO`, never `Tape speed`) — matching the chassis silk labels (Troy's request, confirmed against the real UI).
+- **The six character knobs are BURN, DRIFT, BEND, DROPOUT, WASH, NOISE** (verified against the rendered plugin UI). Never write "bend, drift, burn, wash, drop" in copy — those are `trak_snapshot` CLI arg names, and the CLI order (`bend drift burn wash drop`) differs from the UI panel order. drift's visual is a blurred echo trail (2026-08-20 change), not a shake — copy may lean on that.
 - Commit after every task with the message given in the task.
 
 ---
@@ -64,7 +65,7 @@ Inside `PRODUCTS`, after the `shft` entry:
       {
         version: "1.0.0",
         notes: [
-          "First release. Five character knobs — bend, drift, burn, wash, drop — over a true-16:9 CRT that plays your video, a GIF, or your live camera through the effect.",
+          "First release. Six character knobs — burn, drift, bend, dropout, wash, noise — over a true-16:9 CRT that plays your video, a GIF, or your live camera through the effect.",
           "Dropouts tear the picture and the sound in the same instant, feed lets the picture drive the sound, and REC exports what you see and hear as a real MP4.",
           "Your licence key is on this page, just below the download buttons — paste it into drft the first time you open it. One key covers 3 machines.",
         ],
@@ -881,7 +882,7 @@ import styles from "./drft.module.css"
 export const metadata: Metadata = {
   title: "drft — VHS / CRT Circuit-Bend FX Plugin | Sample Roll",
   description:
-    "drft is a VHS / CRT circuit-bend effect. Five character knobs — bend, drift, burn, wash, drop — run your sound through a dying tape machine while a true-16:9 CRT plays your video, a GIF, or your live camera through the same damage. Press REC and export what you see and hear as a real MP4. VST3 / AU / Standalone for macOS & Windows.",
+    "drft is a VHS / CRT circuit-bend effect. Six character knobs — burn, drift, bend, dropout, wash, noise — run your sound through a dying tape machine while a true-16:9 CRT plays your video, a GIF, or your live camera through the same damage. Press REC and export what you see and hear as a real MP4. VST3 / AU / Standalone for macOS & Windows.",
   openGraph: {
     title: "drft — VHS / CRT Circuit-Bend FX",
     description:
@@ -968,14 +969,14 @@ function IconPower() {
   )
 }
 
-// Titles stay lowercase — silk-screen style, like the labels on the chassis.
+// Titles stay UPPERCASE — silk-screen style, like the labels on the chassis.
 const CAPS: { icon: ReactNode; title: string; desc: string }[] = [
-  { icon: <IconTape />, title: "tape speed", desc: "Slow the whole machine down. Pitch, picture and damage all follow, like a deck running on a dying motor." },
-  { icon: <IconDice />, title: "dice", desc: "One click re-rolls the character knobs into a new broken machine. Keep rolling until you find the one." },
-  { icon: <IconPreset />, title: "presets", desc: "A factory bank of broken machines, plus your own saves - user presets live in a plain folder on disk." },
-  { icon: <IconMono />, title: "bass mono", desc: "All the wobble and smear stays up top - the low end folds to mono so the bottom never goes seasick." },
-  { icon: <IconSync />, title: "video sync", desc: "The tube locks to your host transport, so the picture scrubs, loops and lands exactly with the session." },
-  { icon: <IconPower />, title: "power switch", desc: "A real rocker on the chassis. Flip it and the tube snaps to black while the sound passes clean." },
+  { icon: <IconTape />, title: "TAPE SPEED", desc: "Slow the whole machine down. Pitch, picture and damage all follow, like a deck running on a dying motor." },
+  { icon: <IconDice />, title: "DICE", desc: "One click re-rolls the character knobs into a new broken machine. Keep rolling until you find the one." },
+  { icon: <IconPreset />, title: "PRESETS", desc: "A factory bank of broken machines, plus your own saves - user presets live in a plain folder on disk." },
+  { icon: <IconMono />, title: "BASS MONO", desc: "All the wobble and smear stays up top - the low end folds to mono so the bottom never goes seasick." },
+  { icon: <IconSync />, title: "VIDEO SYNC", desc: "The tube locks to your host transport, so the picture scrubs, loops and lands exactly with the session." },
+  { icon: <IconPower />, title: "POWER SWITCH", desc: "A real rocker on the chassis. Flip it and the tube snaps to black while the sound passes clean." },
 ]
 
 const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: string; poster?: string }[] = [
@@ -986,10 +987,10 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
     alt: "drft's CRT tube playing video through the effect",
   },
   {
-    title: "Five knobs of character",
-    desc: "bend warps and skews the signal, drift lets the tape speed wander, burn scorches it hot, wash smears everything soft, and drop punches holes in the take. Sound and picture ride the same five knobs - turn one and you hear it and see it move together.",
+    title: "Six knobs of character",
+    desc: "BURN scorches it hot, DRIFT lets the tape wander and leaves a blurred echo smearing behind the picture, BEND warps and skews, DROPOUT punches holes in the take, WASH softens everything to mush, NOISE buries it in snow. Sound and picture ride the same knobs - turn one and you hear it and see it move together.",
     img: "/drft/knobs.png",
-    alt: "drft character knobs - bend, drift, burn, wash, drop",
+    alt: "drft character knobs - burn, drift, bend, dropout, wash, noise",
   },
   {
     title: "When it drops, it drops everywhere",
@@ -1016,7 +1017,7 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
 const FAQS: { q: string; a: string }[] = [
   {
     q: "What is drft?",
-    a: "drft is a VHS / CRT circuit-bend effect. Five character knobs - bend, drift, burn, wash, drop - run your audio through a dying tape machine, while a true-16:9 CRT on the panel plays your video, a GIF or your live camera through the same damage. Dropouts tear picture and sound together, feed lets the picture push back into the audio, and REC exports what you see and hear as a real MP4.",
+    a: "drft is a VHS / CRT circuit-bend effect. Six character knobs - burn, drift, bend, dropout, wash, noise - run your audio through a dying tape machine, while a true-16:9 CRT on the panel plays your video, a GIF or your live camera through the same damage. Dropouts tear picture and sound together, feed lets the picture push back into the audio, and REC exports what you see and hear as a real MP4.",
   },
   {
     q: "Which formats does it come in, and will it work in my DAW?",
@@ -1232,8 +1233,8 @@ export default function DrftLanding() {
         <p className={styles.eyebrow}>INSIDE DRFT</p>
         <h2 className={styles.introTitle}>A dying machine you can play</h2>
         <p className={styles.introSub}>
-          Tape wow, head burn, tracking wash, dropouts - five knobs of damage over a
-          CRT that shows you everything it does to the sound.
+          Tape wow, head burn, tracking wash, dropouts, snow - six knobs of damage
+          over a CRT that shows you everything it does to the sound.
         </p>
       </section>
 
@@ -1586,8 +1587,8 @@ Structural skeleton mirrors `app/shft/shft.module.css` (open it side-by-side for
   gap: 2.6rem 2.2rem;
 }
 .capIcon { color: var(--led-green); margin-bottom: 0.7rem; }
-/* Silk-screen label: lowercase mono, letter-spaced — same family as the
-   wordmark and OSD chrome. Titles are authored lowercase; no text-transform. */
+/* Silk-screen label: UPPERCASE mono, letter-spaced — same treatment as the
+   knob labels on the chassis. Titles are authored uppercase; no transform. */
 .capTitle {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0.08em;

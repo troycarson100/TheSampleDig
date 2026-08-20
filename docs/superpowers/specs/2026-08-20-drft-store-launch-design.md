@@ -77,7 +77,9 @@ Windows - VST3 / AU / Standalone".
 
 1. **The tube** — load a video (or live camera) and the picture plays through
    the effect on a true-16:9 CRT.
-2. **Five character knobs** — bend, drift, burn, wash, drop.
+2. **Six character knobs** — burn, drift, bend, dropout, wash, noise (the
+   real UI panel names; the `trak_snapshot` CLI arg order differs). Titles
+   render UPPERCASE mono, like the chassis silk labels.
 3. **Dropouts** — picture and sound tear together (audio↔visual lock).
 4. **Feed** — the picture drives the sound.
 5. **REC** — export what you see and hear as a real MP4.
