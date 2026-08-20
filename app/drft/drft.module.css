@@ -1,0 +1,403 @@
+/* drft landing — CRT dark, "the page is the device".
+   Palette comes from the plugin's own chassis tokens (Source/ui/UiTokens.h). */
+
+.page {
+  --chassis: #191714;
+  --panel: #221f1a;
+  --seam: #0a0908;
+  --cream: #efe9dc;
+  --silk: #a89c86;
+  --silk-dim: #6e6557;
+  --led-green: #7fae4a;
+  --led-amber: #d99a2b;
+  --led-red: #c8402e;
+  --line: rgba(168, 156, 134, 0.16);
+  background: var(--chassis);
+  color: var(--silk);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+/* ---- OSD chrome (monospace, like the plugin's on-screen display) -------- */
+.eyebrow,
+.heroOsd,
+.blockOsd {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  letter-spacing: 0.18em;
+  color: var(--led-green);
+  text-shadow: 0 0 8px rgba(127, 174, 74, 0.5);
+  text-transform: uppercase;
+}
+
+.recDot {
+  display: inline-block;
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: var(--led-red);
+  box-shadow: 0 0 8px rgba(200, 64, 46, 0.8);
+  margin-right: 0.45em;
+  animation: recBlink 1.2s steps(1) infinite;
+}
+@keyframes recBlink {
+  50% { opacity: 0.15; }
+}
+
+/* ---- Shared pills ------------------------------------------------------- */
+.pillLight,
+.pillDark,
+.stickyBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.85rem 1.6rem;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  transition: filter 0.15s, transform 0.1s;
+}
+.pillLight {
+  color: #10130a;
+  background: var(--led-green);
+  box-shadow: 0 0 18px rgba(127, 174, 74, 0.35);
+}
+.pillLight:hover { filter: brightness(1.08); transform: translateY(-1px); }
+.pillDark {
+  color: var(--cream);
+  background: var(--panel);
+  border: 1px solid var(--line);
+  box-shadow: inset 0 1px 0 rgba(239, 233, 220, 0.06);
+}
+.pillDark:hover { filter: brightness(1.12); }
+.pillLight:disabled, .pillDark:disabled, .stickyBtn:disabled { opacity: 0.6; cursor: default; }
+.pillLight s, .pillDark s, .stickyBtn s { opacity: 0.55; font-weight: 400; }
+.priceSale { color: inherit; }
+.pillDark .priceSale, .stickyBtn .priceSale { color: var(--led-amber); }
+
+.bannerInfo {
+  background: var(--panel);
+  color: var(--cream);
+  border-bottom: 1px solid var(--seam);
+  text-align: center;
+  padding: 0.7rem 1rem;
+  font-size: 0.92rem;
+}
+
+/* ---- Hero --------------------------------------------------------------- */
+.hero {
+  position: relative;
+  min-height: 88vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+  border-bottom: 1px solid var(--seam);
+}
+.heroMediaLayer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+/* Scanlines + vignette over the video — the CRT glass. */
+.heroScanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.22) 3px
+  );
+  mix-blend-mode: multiply;
+}
+.heroScrim {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(ellipse at center, rgba(0, 0, 0, 0) 40%, rgba(0, 0, 0, 0.55) 100%),
+    linear-gradient(to top, rgba(10, 9, 8, 0.85) 0%, rgba(10, 9, 8, 0) 35%);
+}
+.heroContent {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 2rem 1.25rem;
+}
+.heroOsd { margin-bottom: 1.2rem; }
+.heroWordmark {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: clamp(4rem, 14vw, 8.5rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  line-height: 0.9;
+  color: var(--cream);
+  text-shadow:
+    0 0 24px rgba(239, 233, 220, 0.35),
+    2px 0 0 rgba(200, 64, 46, 0.35),
+    -2px 0 0 rgba(74, 144, 174, 0.35);
+  margin: 0 0 0.6rem;
+}
+.heroSubtitle {
+  color: var(--silk);
+  font-size: 1.15rem;
+  margin-bottom: 2rem;
+}
+.heroCtaRow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.9rem;
+}
+.heroPrice {
+  color: var(--silk-dim);
+  font-size: 0.9rem;
+}
+
+/* ---- Intro -------------------------------------------------------------- */
+.intro {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 5.5rem 1.5rem 3.5rem;
+  text-align: center;
+}
+.introTitle {
+  color: var(--cream);
+  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0.9rem 0 1rem;
+}
+.introSub {
+  color: var(--silk);
+  font-size: 1.08rem;
+  line-height: 1.65;
+}
+
+/* ---- Feature blocks ----------------------------------------------------- */
+.blocks {
+  display: flex;
+  flex-direction: column;
+}
+.block {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3.5rem;
+  align-items: center;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 4rem 1.5rem;
+}
+.blockAlt { direction: rtl; }
+.blockAlt > * { direction: ltr; }
+.blockMedia { min-width: 0; }
+/* Every screenshot sits behind CRT glass: bezel, scanlines, glow. */
+.shotFrame {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #000;
+  border: 1px solid var(--seam);
+  box-shadow:
+    0 0 0 6px var(--panel),
+    0 0 0 7px var(--seam),
+    0 18px 50px rgba(0, 0, 0, 0.55),
+    0 0 40px rgba(127, 174, 74, 0.06);
+}
+.shotFrame::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.16) 3px
+  );
+}
+.shotImg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.blockOsd { margin-bottom: 0.7rem; }
+.blockTitle {
+  color: var(--cream);
+  font-size: clamp(1.5rem, 3.2vw, 2rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  margin-bottom: 0.9rem;
+}
+.blockDesc {
+  color: var(--silk);
+  font-size: 1.02rem;
+  line-height: 1.7;
+}
+
+/* ---- Capabilities grid --------------------------------------------------- */
+.caps {
+  border-top: 1px solid var(--seam);
+  background: var(--panel);
+  padding: 5rem 1.5rem;
+}
+.capsHead {
+  max-width: 72rem;
+  margin: 0 auto 2.8rem;
+}
+.capsTitle {
+  color: var(--cream);
+  font-size: clamp(1.6rem, 3.6vw, 2.2rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.capsGrid {
+  max-width: 72rem;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2.6rem 2.2rem;
+}
+.capIcon { color: var(--led-green); margin-bottom: 0.7rem; }
+/* Silk-screen label: UPPERCASE mono, letter-spaced — same treatment as the
+   knob labels on the chassis. Titles are authored uppercase; no transform. */
+.capTitle {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: 0.08em;
+  color: var(--cream);
+  font-weight: 600;
+  margin-bottom: 0.35rem;
+}
+.capDesc {
+  color: var(--silk);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* ---- FAQ ----------------------------------------------------------------- */
+.faq {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: 5rem 1.5rem;
+}
+.faqTitle {
+  color: var(--cream);
+  font-size: clamp(1.6rem, 3.6vw, 2.2rem);
+  font-weight: 700;
+  margin-bottom: 1.6rem;
+}
+.faqItem { border-bottom: 1px solid var(--line); }
+.faqQ {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  background: none;
+  border: 0;
+  color: var(--cream);
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 600;
+  text-align: left;
+  padding: 1.1rem 0;
+  cursor: pointer;
+}
+.faqPlus {
+  color: var(--led-green);
+  font-size: 1.3rem;
+  transition: transform 0.2s;
+}
+.faqOpen .faqPlus { transform: rotate(45deg); }
+.faqA {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+.faqOpen .faqA { grid-template-rows: 1fr; }
+.faqAInner {
+  overflow: hidden;
+  color: var(--silk);
+  line-height: 1.7;
+  padding-bottom: 0;
+}
+.faqOpen .faqAInner { padding-bottom: 1.1rem; }
+
+/* ---- Final CTA ----------------------------------------------------------- */
+.getStarted {
+  border-top: 1px solid var(--seam);
+  background: var(--panel);
+  text-align: center;
+  padding: 5rem 1.5rem 6rem;
+}
+.gsTitle {
+  color: var(--cream);
+  font-size: clamp(1.8rem, 4.5vw, 2.6rem);
+  font-weight: 700;
+  margin-bottom: 0.8rem;
+}
+.gsSub {
+  color: var(--silk);
+  margin-bottom: 1.8rem;
+}
+.gsForm { display: flex; justify-content: center; }
+
+/* ---- Sticky buy bar ------------------------------------------------------ */
+.stickyBar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  transform: translateY(110%);
+  transition: transform 0.25s ease;
+  background: rgba(25, 23, 20, 0.92);
+  backdrop-filter: blur(10px);
+  border-top: 1px solid var(--seam);
+}
+.stickyBarShow { transform: translateY(0); }
+.stickyInner {
+  max-width: 72rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.7rem 1.25rem;
+}
+.stickyName {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: var(--cream);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+.stickyMeta { color: var(--silk-dim); font-size: 0.85rem; }
+.stickySpacer { flex: 1; }
+.stickyBtn {
+  color: #10130a;
+  background: var(--led-green);
+  padding: 0.6rem 1.2rem;
+  font-size: 0.92rem;
+}
+
+/* ---- Responsive ---------------------------------------------------------- */
+@media (max-width: 860px) {
+  .block { grid-template-columns: 1fr; gap: 1.8rem; padding: 2.8rem 1.25rem; }
+  .blockAlt { direction: ltr; }
+  .capsGrid { grid-template-columns: 1fr 1fr; }
+  .hero { min-height: 72vh; }
+}
+@media (max-width: 560px) {
+  .capsGrid { grid-template-columns: 1fr; }
+  .stickyMeta { display: none; }
+}
