@@ -612,15 +612,45 @@ git commit -m "feat: bundle checkout with own-one/own-both guard rails + claim g
 
 ---
 
-### Task 5: Webhook product map + product-aware purchase email
+### Task 5: Webhook product map + product-aware purchase email + product-aware license keys
 
 **Files:**
+- Modify: `lib/license-key.ts` (both functions)
+- Modify: `app/api/drft/claim/route.ts` (two `generateLicenseKey()` call sites)
+- Modify: `app/api/bundle/claim/route.ts` (the per-product `generateLicenseKey()` call sites inside the grant transaction)
 - Modify: `lib/email.ts` (the `sendShftPurchaseEmail` function, ~line 85)
 - Modify: `app/api/stripe/webhook/route.ts` (the shft branch inside `checkout.session.completed`, ~lines 48–104)
 
 **Interfaces:**
-- Consumes: `sendMailWithFallback`, `FROM`, `APP_URL` already defined in `lib/email.ts`.
-- Produces: `sendPluginPurchaseEmail(email: string, items: { product: "shft" | "drft"; licenseKey: string | null }[])` in `lib/email.ts`. Webhook grants via `PLUGIN_GRANTS` map: `shft` → `["shft"]`, `drft` → `["drft"]`, `bundle` → `["shft", "drft"]`.
+- Consumes: `sendMailWithFallback`, `FROM`, `APP_URL` already defined in `lib/email.ts`; `generateKeycode`/`normalizeKeycode` in `lib/keycode.ts`.
+- Produces: `generateLicenseKey(product?: "shft" | "drft", pick?)` (defaults `"shft"` — existing call sites stay valid); `normalizeLicenseKey` accepting both `SHFT-` and `DRFT-` keys; `sendPluginPurchaseEmail(email: string, items: { product: "shft" | "drft"; licenseKey: string | null }[])` in `lib/email.ts`. Webhook grants via `PLUGIN_GRANTS` map: `shft` → `["shft"]`, `drft` → `["drft"]`, `bundle` → `["shft", "drft"]`.
+
+- [ ] **Step 0: Product-aware license keys**
+
+Replace the two functions in `lib/license-key.ts`:
+
+```ts
+const KEY_PREFIX: Record<string, string> = { shft: "SHFT", drft: "DRFT" }
+
+export function generateLicenseKey(
+  product: "shft" | "drft" = "shft",
+  pick: (max: number) => number = randomInt
+): string {
+  return generateKeycode(KEY_PREFIX[product], pick)
+}
+
+/** Accepts keys of either product — the caller resolves which product via the
+    Purchase row the key belongs to. */
+export function normalizeLicenseKey(input: string): string | null {
+  return normalizeKeycode("SHFT", input) ?? normalizeKeycode("DRFT", input)
+}
+```
+
+Then update the drft-minting call sites so drft keys read `DRFT-…`:
+- `app/api/drft/claim/route.ts`: both `generateLicenseKey()` → `generateLicenseKey("drft")`.
+- `app/api/bundle/claim/route.ts`: both per-product calls inside the grant loop → `generateLicenseKey(product)`.
+
+Untouched on purpose: `app/api/shft/claim/route.ts` and `app/api/comps/redeem/route.ts` (default `"shft"` keeps their behavior identical).
 
 - [ ] **Step 1: Confirm the only caller**
 
@@ -725,19 +755,25 @@ import { sendPluginPurchaseEmail } from "@/lib/email"
 
           if (buyerId && typeof buyerId === "string") {
             let referralPurchaseId: string | null = null
+            let first = true
             for (const product of grantProducts) {
+              // stripeSessionId is @unique on Purchase: one checkout session
+              // cannot stamp two rows, so only the FIRST granted product
+              // carries it (bundle: shft — the same row the referral hangs
+              // off). The second row is created with null, like comp grants.
               const purchase = await prisma.purchase.upsert({
                 where: { userId_product: { userId: buyerId, product } },
                 create: {
                   userId: buyerId,
                   product,
-                  stripeSessionId: session.id,
-                  licenseKey: generateLicenseKey(),
+                  stripeSessionId: first ? session.id : null,
+                  licenseKey: generateLicenseKey(product),
                 },
                 // Never regenerate: a buyer may already have the old key in the
                 // plugin, and rotating it would deactivate them silently.
-                update: { stripeSessionId: session.id },
+                update: first ? { stripeSessionId: session.id } : {},
               })
+              first = false
 
               let licenseKey = purchase.licenseKey
               if (!licenseKey) {
@@ -751,7 +787,7 @@ import { sendPluginPurchaseEmail } from "@/lib/email"
                 // nothing, and the re-read returns whichever key actually won.
                 await prisma.purchase.updateMany({
                   where: { id: purchase.id, licenseKey: null },
-                  data: { licenseKey: generateLicenseKey() },
+                  data: { licenseKey: generateLicenseKey(product) },
                 })
                 const filled = await prisma.purchase.findUnique({
                   where: { id: purchase.id },
