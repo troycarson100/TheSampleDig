@@ -39,28 +39,35 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "No completed bundle purchase for your account." }, { status: 403 })
     }
 
-    // Grant both plugins. Upsert never regenerates an existing key, and the
-    // updateMany-with-null-WHERE key fill is race-safe against the webhook.
+    // Grant both plugins transactionally. stripeSessionId is @unique and can
+    // only be written to the shft row (which also carries the affiliate
+    // referral); drft row is created with null and left untouched. Upsert
+    // never regenerates an existing key; updateMany-with-null-WHERE key fill
+    // is race-safe against the webhook.
     let shftPurchaseId: string | null = null
-    for (const product of ["shft", "drft"] as const) {
-      const purchase = await prisma.purchase.upsert({
-        where: { userId_product: { userId: session.user.id, product } },
-        create: {
-          userId: session.user.id,
-          product,
-          stripeSessionId: checkout.id,
-          licenseKey: generateLicenseKey(),
-        },
-        update: { stripeSessionId: checkout.id },
-      })
-      if (!purchase.licenseKey) {
-        await prisma.purchase.updateMany({
-          where: { id: purchase.id, licenseKey: null },
-          data: { licenseKey: generateLicenseKey() },
+    shftPurchaseId = await prisma.$transaction(async (tx) => {
+      let shftId: string | null = null
+      for (const product of ["shft", "drft"] as const) {
+        const purchase = await tx.purchase.upsert({
+          where: { userId_product: { userId: session.user.id, product } },
+          create: {
+            userId: session.user.id,
+            product,
+            stripeSessionId: product === "shft" ? checkout.id : null,
+            licenseKey: generateLicenseKey(),
+          },
+          update: product === "shft" ? { stripeSessionId: checkout.id } : {},
         })
+        if (!purchase.licenseKey) {
+          await tx.purchase.updateMany({
+            where: { id: purchase.id, licenseKey: null },
+            data: { licenseKey: generateLicenseKey() },
+          })
+        }
+        if (product === "shft") shftId = purchase.id
       }
-      if (product === "shft") shftPurchaseId = purchase.id
-    }
+      return shftId
+    })
     // One referral per checkout session — against the shft row only (the
     // relation is one-to-one; crediting both rows would double-pay).
     if (shftPurchaseId) {
