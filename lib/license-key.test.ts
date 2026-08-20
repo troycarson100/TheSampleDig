@@ -9,8 +9,13 @@ const seq = (values: number[]) => {
 }
 
 test("generateLicenseKey returns the grouped SHFT- form", () => {
-  const key = generateLicenseKey(seq([0]))
+  const key = generateLicenseKey("shft", seq([0]))
   assert.equal(key, "SHFT-0000-0000-0000")
+})
+
+test("generateLicenseKey returns the grouped DRFT- form", () => {
+  const key = generateLicenseKey("drft", seq([0]))
+  assert.equal(key, "DRFT-0000-0000-0000")
 })
 
 test("generateLicenseKey output always survives normalize", () => {

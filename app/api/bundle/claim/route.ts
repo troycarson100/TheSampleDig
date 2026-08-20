@@ -54,14 +54,14 @@ export async function POST(request: Request) {
             userId: session.user.id,
             product,
             stripeSessionId: product === "shft" ? checkout.id : null,
-            licenseKey: generateLicenseKey(),
+            licenseKey: generateLicenseKey(product),
           },
           update: product === "shft" ? { stripeSessionId: checkout.id } : {},
         })
         if (!purchase.licenseKey) {
           await tx.purchase.updateMany({
             where: { id: purchase.id, licenseKey: null },
-            data: { licenseKey: generateLicenseKey() },
+            data: { licenseKey: generateLicenseKey(product) },
           })
         }
         if (product === "shft") shftId = purchase.id

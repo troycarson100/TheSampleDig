@@ -11,7 +11,7 @@
  */
 import { prisma } from "../lib/db"
 import { generateLicenseKey } from "../lib/license-key"
-import { sendShftPurchaseEmail } from "../lib/email"
+import { sendPluginPurchaseEmail } from "../lib/email"
 
 const commit = process.argv.includes("--commit")
 const sendEmail = process.argv.includes("--email")
@@ -26,15 +26,16 @@ async function main() {
   console.log(`${keyless.length} purchase(s) without a licence key`)
   if (keyless.length === 0) return
 
-  const minted: { email: string; key: string }[] = []
+  const minted: { email: string; key: string; product: "shft" | "drft" }[] = []
 
   for (const purchase of keyless) {
-    const key = generateLicenseKey()
+    const product = purchase.product === "drft" ? "drft" : "shft"
+    const key = generateLicenseKey(product)
     console.log(`  ${purchase.product.padEnd(8)} ${purchase.user.email.padEnd(34)} ${key}`)
     if (commit) {
       await prisma.purchase.update({ where: { id: purchase.id }, data: { licenseKey: key } })
     }
-    minted.push({ email: purchase.user.email, key })
+    minted.push({ email: purchase.user.email, key, product })
   }
 
   if (!commit) {
@@ -49,7 +50,7 @@ async function main() {
   }
   for (const m of minted) {
     try {
-      await sendShftPurchaseEmail(m.email, m.key)
+      await sendPluginPurchaseEmail(m.email, [{ product: m.product, licenseKey: m.key }])
       console.log(`  mailed ${m.email}`)
     } catch (e) {
       // Keep going: the key is already saved and visible on /products, so a

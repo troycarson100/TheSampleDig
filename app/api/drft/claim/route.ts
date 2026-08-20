@@ -46,7 +46,7 @@ export async function POST(request: Request) {
         userId: session.user.id,
         product: "drft",
         stripeSessionId: checkout.id,
-        licenseKey: generateLicenseKey(),
+        licenseKey: generateLicenseKey("drft"),
       },
       update: { stripeSessionId: checkout.id },
     })
@@ -56,7 +56,7 @@ export async function POST(request: Request) {
     if (!purchase.licenseKey) {
       await prisma.purchase.updateMany({
         where: { id: purchase.id, licenseKey: null },
-        data: { licenseKey: generateLicenseKey() },
+        data: { licenseKey: generateLicenseKey("drft") },
       })
     }
     await recordAffiliateReferral(checkout, purchase.id)

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db"
-import { sendShftPurchaseEmail } from "@/lib/email"
+import { sendPluginPurchaseEmail } from "@/lib/email"
 import { recordAffiliateReferral } from "@/lib/affiliate"
 import { generateLicenseKey } from "@/lib/license-key"
 import { reverseTransferForRefund } from "@/lib/affiliate-stripe"
@@ -45,59 +45,85 @@ export async function POST(request: Request) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session
 
-        // --- shft plugin: one-time purchase, recorded against the user account. ---
-        if (session.metadata?.product === "shft") {
+        // --- Plugin purchases: single products and the bundle. -----------------
+        // metadata.product → which Purchase rows to grant.
+        const PLUGIN_GRANTS: Record<string, ("shft" | "drft")[]> = {
+          shft: ["shft"],
+          drft: ["drft"],
+          bundle: ["shft", "drft"],
+        }
+        const grantProducts = PLUGIN_GRANTS[session.metadata?.product ?? ""]
+        if (grantProducts) {
           const buyerId = session.client_reference_id ?? session.metadata?.userId
           // Hoisted: the email below is sent even when there is no buyerId, and
-          // it needs the key. Null there rather than a fake one — the template
-          // omits the block instead of printing something that cannot activate.
-          let licenseKey: string | null = null
+          // it needs the keys. Missing keys are omitted from the template rather
+          // than printing something that cannot activate.
+          const emailItems: { product: "shft" | "drft"; licenseKey: string | null }[] = []
 
           if (buyerId && typeof buyerId === "string") {
-            const purchase = await prisma.purchase.upsert({
-              where: { userId_product: { userId: buyerId, product: "shft" } },
-              create: {
-                userId: buyerId,
-                product: "shft",
-                stripeSessionId: session.id,
-                licenseKey: generateLicenseKey(),
-              },
-              // Never regenerate: a buyer may already have the old key in the
-              // plugin, and rotating it would deactivate them silently.
-              update: { stripeSessionId: session.id },
-            })
+            let referralPurchaseId: string | null = null
+            let first = true
+            for (const product of grantProducts) {
+              // stripeSessionId is @unique on Purchase: one checkout session
+              // cannot stamp two rows, so only the FIRST granted product
+              // carries it (bundle: shft — the same row the referral hangs
+              // off). The second row is created with null, like comp grants.
+              const purchase = await prisma.purchase.upsert({
+                where: { userId_product: { userId: buyerId, product } },
+                create: {
+                  userId: buyerId,
+                  product,
+                  stripeSessionId: first ? session.id : null,
+                  licenseKey: generateLicenseKey(product),
+                },
+                // Never regenerate: a buyer may already have the old key in the
+                // plugin, and rotating it would deactivate them silently.
+                update: first ? { stripeSessionId: session.id } : {},
+              })
+              first = false
 
-            licenseKey = purchase.licenseKey
-            if (!licenseKey) {
-              // The row predates licensing, or was created by an older deploy.
-              //
-              // Conditional update, then re-read: this route and /api/shft/claim
-              // can run concurrently on the same purchase. A read-then-write
-              // would let the second mint overwrite the first, so the buyer gets
-              // emailed a key that is no longer on their account. With
-              // licenseKey:null in the WHERE the loser writes nothing, and the
-              // re-read returns whichever key actually won.
-              await prisma.purchase.updateMany({
-                where: { id: purchase.id, licenseKey: null },
-                data: { licenseKey: generateLicenseKey() },
-              })
-              const filled = await prisma.purchase.findUnique({
-                where: { id: purchase.id },
-                select: { licenseKey: true },
-              })
-              licenseKey = filled?.licenseKey ?? null
+              let licenseKey = purchase.licenseKey
+              if (!licenseKey) {
+                // The row predates licensing, or was created by an older deploy.
+                //
+                // Conditional update, then re-read: this route and the claim
+                // routes can run concurrently on the same purchase. A
+                // read-then-write would let the second mint overwrite the first,
+                // so the buyer gets emailed a key that is no longer on their
+                // account. With licenseKey:null in the WHERE the loser writes
+                // nothing, and the re-read returns whichever key actually won.
+                await prisma.purchase.updateMany({
+                  where: { id: purchase.id, licenseKey: null },
+                  data: { licenseKey: generateLicenseKey(product) },
+                })
+                const filled = await prisma.purchase.findUnique({
+                  where: { id: purchase.id },
+                  select: { licenseKey: true },
+                })
+                licenseKey = filled?.licenseKey ?? null
+              }
+              emailItems.push({ product, licenseKey })
+              // One referral per checkout session — first granted product only
+              // (the AffiliateReferral↔Purchase relation is one-to-one).
+              if (!referralPurchaseId) referralPurchaseId = purchase.id
             }
-
-            await recordAffiliateReferral(session, purchase.id)
+            if (referralPurchaseId) {
+              await recordAffiliateReferral(session, referralPurchaseId)
+            }
           } else {
-            console.warn("[Stripe webhook] shft purchase missing userId")
+            console.warn("[Stripe webhook] plugin purchase missing userId")
           }
           const email = session.customer_details?.email ?? session.customer_email ?? null
           if (email) {
             try {
-              await sendShftPurchaseEmail(email, licenseKey)
+              await sendPluginPurchaseEmail(
+                email,
+                emailItems.length
+                  ? emailItems
+                  : grantProducts.map((product) => ({ product, licenseKey: null }))
+              )
             } catch (e) {
-              console.error("[Stripe webhook] shft purchase email failed:", e)
+              console.error("[Stripe webhook] plugin purchase email failed:", e)
             }
           }
           break

@@ -82,38 +82,54 @@ export async function sendVerificationEmail(email: string, token: string) {
   })
 }
 
-export async function sendShftPurchaseEmail(email: string, licenseKey: string | null = null) {
-  const url = `${APP_URL}/products`
+const PLUGIN_EMAIL_COPY: Record<string, { formats: string }> = {
+  shft: { formats: "macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone)" },
+  drft: { formats: "macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone)" },
+}
 
-  // Omitted entirely when there is no key, rather than printing an empty box a
-  // buyer would try to activate with. /products always shows the real one.
-  const keyBlock = licenseKey
-    ? `
-        <p style="color: #555; margin-bottom: 8px; font-size: 14px;">Your licence key</p>
+/** Purchase receipt for one or more plugins (a bundle purchase sends one email
+    covering both keys). Key blocks are omitted when a key is missing rather
+    than printing an empty box — /products always shows the real one. */
+export async function sendPluginPurchaseEmail(
+  email: string,
+  items: { product: "shft" | "drft"; licenseKey: string | null }[]
+) {
+  const url = `${APP_URL}/products`
+  const names = items.map((i) => i.product).join(" + ")
+
+  const keyBlocks = items
+    .filter((i) => i.licenseKey)
+    .map(
+      (i) => `
+        <p style="color: #555; margin-bottom: 8px; font-size: 14px;">Your ${i.product} licence key</p>
         <p style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px;
                   letter-spacing: 1px; background: #f4f4f4; border: 1px solid #e4e4e4;
                   border-radius: 8px; padding: 12px 16px; margin: 0 0 16px;">
-          ${licenseKey}
+          ${i.licenseKey}
         </p>
         <p style="color: #555; margin-bottom: 24px; font-size: 14px;">
-          Paste it into shft the first time you open it. It activates up to 3 machines,
+          Paste it into ${i.product} the first time you open it. It activates up to 3 machines,
           and you can free one any time from My Products.
         </p>`
-    : ""
+    )
+    .join("")
+
+  const downloadLines = items
+    .map((i) => `<strong>${i.product}</strong> for ${PLUGIN_EMAIL_COPY[i.product]?.formats ?? "macOS & Windows"}`)
+    .join(" and ")
 
   await sendMailWithFallback({
     from: FROM,
     to: email,
-    subject: "Your shft download is ready",
+    subject: `Your ${names} download is ready`,
     html: `
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
-        <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Thanks for buying shft</h1>
+        <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Thanks for buying ${names}</h1>
         <p style="color: #555; margin-bottom: 24px;">
-          Your purchase is complete. Head to <strong>My Products</strong> to download shft for
-          macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone), plus the user manual —
-          any time, as many times as you need.
+          Your purchase is complete. Head to <strong>My Products</strong> to download ${downloadLines},
+          plus the user manual — any time, as many times as you need.
         </p>
-        ${keyBlock}
+        ${keyBlocks}
         <a href="${url}" style="display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;">
           Go to My Products
         </a>

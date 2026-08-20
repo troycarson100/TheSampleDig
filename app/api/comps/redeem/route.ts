@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db"
 import { normalizeCompCode } from "@/lib/comp-code"
 import { decideRedemption, type RedeemRefuseReason } from "@/lib/comp-code-redemption"
 import { generateLicenseKey } from "@/lib/license-key"
-import { sendShftPurchaseEmail } from "@/lib/email"
+import { sendPluginPurchaseEmail } from "@/lib/email"
 
 const PRODUCT = "shft"
 
@@ -107,7 +107,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    await sendShftPurchaseEmail(session.user.email!, purchase.licenseKey)
+    await sendPluginPurchaseEmail(session.user.email!, [{ product: PRODUCT, licenseKey: purchase.licenseKey }])
   } catch (e) {
     console.error("[comps redeem] purchase email failed", e)
   }
