@@ -4,6 +4,17 @@
 
 export type ProductAssetId = "installer" | "installer-win" | "manual"
 
+// Display prices for the store pages. Stripe charges whatever the price IDs in
+// the env are configured to — keep these in sync with the Stripe dashboard.
+export const PRICING = {
+  shft: { price: 19, msrp: 39 },
+  drft: { price: 19, msrp: 39 },
+  // struck $38 = the two sale prices; "$78 MSRP" is secondary context only.
+  bundle: { price: 34, compareAt: 38, msrp: 78 },
+  // Own one plugin, buy the other: $19 + $15 = $34 — exactly the bundle deal.
+  crossgrade: { price: 15, compareAt: 19 },
+} as const
+
 export interface ProductAsset {
   id: ProductAssetId
   label: string
@@ -104,6 +115,42 @@ export const PRODUCTS: Record<string, ProductDef> = {
         label: "User manual (PDF)",
         key: process.env.SHFT_MANUAL_KEY || "shft/shft-manual-v1.4.pdf",
         filename: "shft-manual-v1.4.pdf",
+      },
+    ],
+  },
+  drft: {
+    id: "drft",
+    name: "drft",
+    version: "1.0.0",
+    blurb: "VHS / CRT circuit-bend video-sound effect — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
+    changelog: [
+      {
+        version: "1.0.0",
+        notes: [
+          "First release. Six character knobs — burn, drift, bend, dropout, wash, noise — over a true-16:9 CRT that plays your video, a GIF, or your live camera through the effect.",
+          "Dropouts tear the picture and the sound in the same instant, feed lets the picture drive the sound, and REC exports what you see and hear as a real MP4.",
+          "Your licence key is on this page, just below the download buttons — paste it into drft the first time you open it. One key covers 3 machines.",
+        ],
+      },
+    ],
+    assets: [
+      {
+        id: "installer",
+        label: "drft installer — macOS",
+        key: process.env.DRFT_INSTALLER_KEY || "drft/drft-1.0.0.pkg",
+        filename: "drft-1.0.0.pkg",
+      },
+      {
+        id: "installer-win",
+        label: "drft installer — Windows",
+        key: process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-1.0.0-setup.exe",
+        filename: "drft-1.0.0-setup.exe",
+      },
+      {
+        id: "manual",
+        label: "User manual (PDF)",
+        key: process.env.DRFT_MANUAL_KEY || "drft/drft-manual-v1.0.pdf",
+        filename: "drft-manual-v1.0.pdf",
       },
     ],
   },
