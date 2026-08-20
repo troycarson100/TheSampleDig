@@ -79,7 +79,7 @@
 .pillLight:disabled, .pillDark:disabled, .stickyBtn:disabled { opacity: 0.6; cursor: default; }
 .pillLight s, .pillDark s, .stickyBtn s { opacity: 0.55; font-weight: 400; }
 .priceSale { color: inherit; }
-.pillDark .priceSale, .stickyBtn .priceSale { color: var(--led-amber); }
+.pillDark .priceSale { color: var(--led-amber); }
 
 .bannerInfo {
   background: var(--panel);
@@ -361,12 +361,13 @@
   bottom: 0;
   z-index: 40;
   transform: translateY(110%);
-  transition: transform 0.25s ease;
+  visibility: hidden;
+  transition: transform 0.25s ease, visibility 0.25s;
   background: rgba(25, 23, 20, 0.92);
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--seam);
 }
-.stickyBarShow { transform: translateY(0); }
+.stickyBarShow { transform: translateY(0); visibility: visible; }
 .stickyInner {
   max-width: 72rem;
   margin: 0 auto;
