@@ -19,9 +19,11 @@ test("generateLicenseKey returns the grouped DRFT- form", () => {
 })
 
 test("generateLicenseKey output always survives normalize", () => {
-  for (let i = 0; i < 200; i++) {
-    const key = generateLicenseKey()
-    assert.equal(normalizeLicenseKey(key), key, `round trip failed for ${key}`)
+  for (const product of ["shft", "drft"] as const) {
+    for (let i = 0; i < 200; i++) {
+      const key = generateLicenseKey(product)
+      assert.equal(normalizeLicenseKey(key), key, `round trip failed for ${key}`)
+    }
   }
 })
 
