@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { requireAdmin } from "@/lib/admin"
 import AdminComps from "@/components/comps/AdminComps"
+import SiteNav from "@/components/SiteNav"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = { robots: { index: false, follow: false } }
@@ -12,7 +13,10 @@ export default async function AdminCompsPage() {
 
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
-      <main className="max-w-4xl mx-auto px-3 sm:px-4 py-8">
+      <header className="site-header w-full">
+        <SiteNav />
+      </header>
+      <main className="max-w-4xl mx-auto px-3 sm:px-4 mt-[56px] py-8">
         <AdminComps />
       </main>
     </div>

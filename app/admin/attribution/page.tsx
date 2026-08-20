@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/db"
+import SiteNav from "@/components/SiteNav"
 
 export const dynamic = "force-dynamic"
 export const metadata: Metadata = { robots: { index: false, follow: false } }
@@ -109,7 +110,10 @@ export default async function AdminAttributionPage({
 
   return (
     <div className="min-h-screen theme-vinyl" style={{ background: "var(--background)" }}>
-      <main className="max-w-5xl mx-auto px-4 py-8" style={{ color: "var(--foreground)" }}>
+      <header className="site-header w-full">
+        <SiteNav />
+      </header>
+      <main className="max-w-5xl mx-auto px-4 mt-[56px] py-8" style={{ color: "var(--foreground)" }}>
         <h1 className="text-2xl font-bold mb-1">Attribution</h1>
         <p className="text-sm opacity-70 mb-6">
           First-touch, last {days} days. Times in Pacific.{" "}

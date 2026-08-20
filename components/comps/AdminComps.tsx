@@ -43,6 +43,12 @@ function statusLabel(status: CompCodeStatus): string {
   return "expired"
 }
 
+// Only codes whose expiration can still matter (compCodeStatus checks
+// redeemed/revoked before expired, so a settled code's date is inert).
+function isDateEditable(status: CompCodeStatus): boolean {
+  return status === "open" || status === "expired"
+}
+
 export default function AdminComps() {
   const [codes, setCodes] = useState<AdminCompCode[]>([])
   const [loading, setLoading] = useState(true)
@@ -53,6 +59,9 @@ export default function AdminComps() {
   const [note, setNote] = useState("")
   const [expiresAt, setExpiresAt] = useState("")
   const [justGenerated, setJustGenerated] = useState<AdminCompCode[]>([])
+
+  const [selected, setSelected] = useState<Set<string>>(new Set())
+  const [bulkExpiresAt, setBulkExpiresAt] = useState("")
 
   const load = useCallback(async () => {
     setError("")
@@ -114,6 +123,44 @@ export default function AdminComps() {
 
   function copy(text: string) {
     navigator.clipboard?.writeText(text).catch(() => {})
+  }
+
+  const eligibleIds = codes.filter((c) => isDateEditable(c.status)).map((c) => c.id)
+  const allEligibleSelected = eligibleIds.length > 0 && eligibleIds.every((id) => selected.has(id))
+
+  function toggleSelected(id: string) {
+    setSelected((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  function toggleSelectAllEligible() {
+    setSelected(allEligibleSelected ? new Set() : new Set(eligibleIds))
+  }
+
+  async function bulkSetExpiration(nextExpiresAt: string | null) {
+    if (selected.size === 0) return
+    setBusy(true)
+    setError("")
+    try {
+      const res = await fetch("/api/admin/comps", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ids: Array.from(selected), expiresAt: nextExpiresAt }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Bulk edit failed")
+      setSelected(new Set())
+      setBulkExpiresAt("")
+      await load()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Bulk edit failed")
+    } finally {
+      setBusy(false)
+    }
   }
 
   if (loading)
@@ -198,42 +245,91 @@ export default function AdminComps() {
             No comp codes yet - generate your first one above.
           </p>
         ) : (
-          <div className="overflow-x-auto rounded-xl border" style={{ borderColor: "var(--border)" }}>
-            <table className="w-full text-left text-sm">
-              <thead>
-                <tr className="text-[11px] uppercase tracking-wide" style={labelStyle}>
-                  <th className="px-4 py-2.5 font-normal">Code</th>
-                  <th className="px-4 py-2.5 font-normal">Note</th>
-                  <th className="px-4 py-2.5 font-normal">Status</th>
-                  <th className="px-4 py-2.5 font-normal">Redeemed by</th>
-                  <th className="px-4 py-2.5 font-normal">Created</th>
-                  <th className="px-4 py-2.5 font-normal">Expires</th>
-                  <th className="px-4 py-2.5 font-normal"></th>
-                </tr>
-              </thead>
-              <tbody>
-                {codes.map((c) => (
-                  <tr key={c.id} className="border-t" style={{ borderColor: "var(--border)" }}>
-                    <td className="px-4 py-2.5" style={mono}>
-                      {c.code}
-                    </td>
-                    <td className="px-4 py-2.5">{c.note ?? ""}</td>
-                    <td className="px-4 py-2.5">{statusLabel(c.status)}</td>
-                    <td className="px-4 py-2.5">{c.redeemedByEmail ?? ""}</td>
-                    <td className="px-4 py-2.5">{fmtDate(c.createdAt)}</td>
-                    <td className="px-4 py-2.5">{fmtOptionalDate(c.expiresAt)}</td>
-                    <td className="px-4 py-2.5 text-right">
-                      {c.status === "open" ? (
-                        <button className={btnCls} style={btnStyle} disabled={busy} onClick={() => revoke(c.id)}>
-                          Revoke
-                        </button>
-                      ) : null}
-                    </td>
+          <>
+            {selected.size > 0 ? (
+              <div
+                className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border p-3 text-sm"
+                style={{ borderColor: "var(--primary)", background: "rgba(255, 255, 255, 0.35)" }}
+              >
+                <span style={{ opacity: 0.85 }}>{selected.size} selected</span>
+                <input
+                  className={inputCls}
+                  style={fieldStyle}
+                  type="date"
+                  value={bulkExpiresAt}
+                  onChange={(e) => setBulkExpiresAt(e.target.value)}
+                />
+                <button
+                  className={btnCls}
+                  style={primaryBtnStyle}
+                  disabled={busy || !bulkExpiresAt}
+                  onClick={() => bulkSetExpiration(bulkExpiresAt)}
+                >
+                  Apply expiration
+                </button>
+                <button className={btnCls} style={btnStyle} disabled={busy} onClick={() => bulkSetExpiration(null)}>
+                  Clear expiration
+                </button>
+                <button className={`${btnCls} ml-auto`} style={btnStyle} disabled={busy} onClick={() => setSelected(new Set())}>
+                  Deselect all
+                </button>
+              </div>
+            ) : null}
+            <div className="overflow-x-auto rounded-xl border" style={{ borderColor: "var(--border)" }}>
+              <table className="w-full text-left text-sm">
+                <thead>
+                  <tr className="text-[11px] uppercase tracking-wide" style={labelStyle}>
+                    <th className="px-4 py-2.5 font-normal">
+                      <input
+                        type="checkbox"
+                        checked={allEligibleSelected}
+                        onChange={toggleSelectAllEligible}
+                        aria-label="Select all eligible codes"
+                      />
+                    </th>
+                    <th className="px-4 py-2.5 font-normal">Code</th>
+                    <th className="px-4 py-2.5 font-normal">Note</th>
+                    <th className="px-4 py-2.5 font-normal">Status</th>
+                    <th className="px-4 py-2.5 font-normal">Redeemed by</th>
+                    <th className="px-4 py-2.5 font-normal">Created</th>
+                    <th className="px-4 py-2.5 font-normal">Expires</th>
+                    <th className="px-4 py-2.5 font-normal"></th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {codes.map((c) => (
+                    <tr key={c.id} className="border-t" style={{ borderColor: "var(--border)" }}>
+                      <td className="px-4 py-2.5">
+                        {isDateEditable(c.status) ? (
+                          <input
+                            type="checkbox"
+                            checked={selected.has(c.id)}
+                            onChange={() => toggleSelected(c.id)}
+                            aria-label={`Select ${c.code}`}
+                          />
+                        ) : null}
+                      </td>
+                      <td className="px-4 py-2.5" style={mono}>
+                        {c.code}
+                      </td>
+                      <td className="px-4 py-2.5">{c.note ?? ""}</td>
+                      <td className="px-4 py-2.5">{statusLabel(c.status)}</td>
+                      <td className="px-4 py-2.5">{c.redeemedByEmail ?? ""}</td>
+                      <td className="px-4 py-2.5">{fmtDate(c.createdAt)}</td>
+                      <td className="px-4 py-2.5">{fmtOptionalDate(c.expiresAt)}</td>
+                      <td className="px-4 py-2.5 text-right">
+                        {c.status === "open" ? (
+                          <button className={btnCls} style={btnStyle} disabled={busy} onClick={() => revoke(c.id)}>
+                            Revoke
+                          </button>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
         )}
       </section>
     </div>
