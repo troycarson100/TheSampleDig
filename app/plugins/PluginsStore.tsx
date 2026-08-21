@@ -13,7 +13,7 @@ const PLUGINS: { id: PluginId; name: string; tagline: string; img: string; theme
     id: "shft",
     name: "shft",
     tagline: "Tempo-synced trance-gate multi-FX. Sixteen steps chop your audio into living rhythm.",
-    img: "/shft/sc2.png",
+    img: "/shft/card.jpg",
     theme: "cardShft",
     href: "/shft",
   },
@@ -136,6 +136,115 @@ export default function PluginsStore() {
         <p className={styles.sub}>Instruments of damage and rhythm. One-time purchase, free updates, macOS &amp; Windows.</p>
       </div>
 
+      {/* ---- The offer leads the page: both plugins, one price. State depends
+              on how much of the pair you already own. ------------------------ */}
+      <section className={styles.bundle}>
+        <div className={styles.bundleSheen} aria-hidden />
+        <div className={styles.bundleInner}>
+          <div className={styles.bundleCopy}>
+            {ownCount === 0 && (
+              <>
+                <p className={styles.bundleTag}>
+                  <span className={styles.liveDot} aria-hidden />
+                  LIMITED TIME
+                </p>
+                <h2 className={styles.bundleTitle}>
+                  Get <span className={styles.markShft}>shft</span> <span className={styles.plus}>+</span>{" "}
+                  <span className={styles.markDrft}>drft</span>
+                </h2>
+                <p className={styles.bundleSub}>
+                  One chops your sound into rhythm. The other drags it through a dying tape machine.
+                  Take both for less than one at full price.
+                </p>
+                <div className={styles.priceRow}>
+                  <span className={styles.bigPrice}>${PRICING.bundle.price}</span>
+                  <span className={styles.priceMeta}>
+                    <s>${PRICING.bundle.compareAt}</s>
+                    <span className={styles.saveBadge}>
+                      Save ${PRICING.bundle.msrp - PRICING.bundle.price} off ${PRICING.bundle.msrp} MSRP
+                    </span>
+                  </span>
+                </div>
+                <BuyBtn endpoint="/api/bundle/checkout" className={styles.bundleBuy}>
+                  Get the bundle - ${PRICING.bundle.price}
+                </BuyBtn>
+              </>
+            )}
+            {ownCount === 1 && missingCrossgradeOn && (
+              <>
+                <p className={styles.bundleTag}>
+                  <span className={styles.liveDot} aria-hidden />
+                  COMPLETE THE PAIR
+                </p>
+                <h2 className={styles.bundleTitle}>
+                  You own {owned.shft ? "shft" : "drft"} - take {missing} for ${PRICING.crossgrade.price}
+                </h2>
+                <p className={styles.bundleSub}>
+                  The same deal as the bundle, kept open for you: ${PRICING.crossgrade.price} brings your pair
+                  to ${PRICING.bundle.price} total.
+                </p>
+                <div className={styles.priceRow}>
+                  <span className={styles.bigPrice}>${PRICING.crossgrade.price}</span>
+                  <span className={styles.priceMeta}>
+                    <s>${PRICING.crossgrade.compareAt}</s>
+                    <span className={styles.saveBadge}>Owner price</span>
+                  </span>
+                </div>
+                <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy}>
+                  Get {missing} - ${PRICING.crossgrade.price}
+                </BuyBtn>
+              </>
+            )}
+            {ownCount === 1 && !missingCrossgradeOn && (
+              <>
+                <p className={styles.bundleTag}>
+                  <span className={styles.liveDot} aria-hidden />
+                  COMPLETE THE PAIR
+                </p>
+                <h2 className={styles.bundleTitle}>
+                  You own {owned.shft ? "shft" : "drft"} - complete the pair
+                </h2>
+                <p className={styles.bundleSub}>
+                  {missing} is the other half of the rack, at its launch price.
+                </p>
+                <div className={styles.priceRow}>
+                  <span className={styles.bigPrice}>${PRICING[missing].price}</span>
+                  <span className={styles.priceMeta}>
+                    <s>${PRICING[missing].msrp}</s>
+                  </span>
+                </div>
+                <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy}>
+                  Get {missing} - ${PRICING[missing].price}
+                </BuyBtn>
+              </>
+            )}
+            {ownCount === 2 && (
+              <>
+                <p className={styles.bundleTag}>
+                  <span className={styles.liveDot} aria-hidden />
+                  THE WHOLE RACK
+                </p>
+                <h2 className={styles.bundleTitle}>Both plugins are yours</h2>
+                <p className={styles.bundleSub}>
+                  Downloads and licence keys live in My Products - grab them any time, as many times as you need.
+                </p>
+                <a href="/products" className={styles.bundleBuy}>
+                  Go to My Products
+                </a>
+              </>
+            )}
+          </div>
+
+          {/* Both plugins, stacked like a boxed pair. */}
+          <div className={styles.bundleArt} aria-hidden>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className={styles.artBack} src="/shft/card.jpg" alt="" />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className={styles.artFront} src="/drft/field.jpg" alt="" />
+          </div>
+        </div>
+      </section>
+
       <div className={styles.cards}>
         {PLUGINS.map((p) => (
           <article key={p.id} className={`${styles.card} ${styles[p.theme]}`}>
@@ -166,55 +275,6 @@ export default function PluginsStore() {
         ))}
       </div>
 
-      {/* ---- Bundle banner: state depends on how much of the pair you own --- */}
-      <section className={styles.bundle}>
-        {ownCount === 0 && (
-          <>
-            <p className={styles.bundleTag}>LIMITED TIME</p>
-            <h2 className={styles.bundleTitle}>shft + drft — the pair</h2>
-            <p className={styles.bundleSub}>
-              Both plugins for <strong>${PRICING.bundle.price}</strong> <s>${PRICING.bundle.compareAt}</s>
-              <span className={styles.bundleMsrp}> (${PRICING.bundle.msrp} MSRP)</span>
-            </p>
-            <BuyBtn endpoint="/api/bundle/checkout" className={styles.bundleBuy}>
-              Get the bundle — ${PRICING.bundle.price}
-            </BuyBtn>
-          </>
-        )}
-        {ownCount === 1 && missingCrossgradeOn && (
-          <>
-            <p className={styles.bundleTag}>COMPLETE THE PAIR</p>
-            <h2 className={styles.bundleTitle}>You own {owned.shft ? "shft" : "drft"} — get {missing} for ${PRICING.crossgrade.price}</h2>
-            <p className={styles.bundleSub}>
-              Same deal as the bundle: <strong>${PRICING.crossgrade.price}</strong> <s>${PRICING.crossgrade.compareAt}</s> brings your pair to ${PRICING.bundle.price} total.
-            </p>
-            <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy}>
-              Get {missing} — ${PRICING.crossgrade.price}
-            </BuyBtn>
-          </>
-        )}
-        {ownCount === 1 && !missingCrossgradeOn && (
-          <>
-            <p className={styles.bundleTag}>COMPLETE THE PAIR</p>
-            <h2 className={styles.bundleTitle}>You own {owned.shft ? "shft" : "drft"} - complete the pair</h2>
-            <p className={styles.bundleSub}>
-              Get {missing} for ${PRICING[missing].price} (was ${PRICING[missing].msrp}).
-            </p>
-            <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy}>
-              Get {missing} - ${PRICING[missing].price}
-            </BuyBtn>
-          </>
-        )}
-        {ownCount === 2 && (
-          <>
-            <h2 className={styles.bundleTitle}>You own the whole rack</h2>
-            <p className={styles.bundleSub}>Both plugins are yours — downloads and licence keys live in My Products.</p>
-            <a href="/products" className={styles.bundleBuy}>
-              Go to My Products
-            </a>
-          </>
-        )}
-      </section>
     </main>
   )
 }

@@ -49,11 +49,12 @@
   border-color: #0a0908;
 }
 .cardMedia { display: block; background: #000; }
+/* Natural height, never cropped: these are plugin UIs, and cropping one cuts
+   off the controls that are the whole point of showing it. */
 .cardImg {
   display: block;
   width: 100%;
-  aspect-ratio: 16 / 10;
-  object-fit: cover;
+  height: auto;
 }
 .cardBody { padding: 1.4rem 1.5rem 1.6rem; display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
 .cardName {
@@ -82,53 +83,203 @@
 .cardBuy:hover { filter: brightness(1.15); }
 .cardBuy:disabled { opacity: 0.6; cursor: default; }
 .cardBuy s { opacity: 0.55; font-weight: 400; }
-.cardDrft .cardBuy { background: #7fae4a; color: #10130a; }
+/* Same lit-key ramp the drft page uses for its buy buttons. */
+.cardDrft .cardBuy {
+  color: #1b1206;
+  background: linear-gradient(180deg, #f6c65d 0%, #e0912f 48%, #c4551d 100%);
+  text-shadow: 0 1px 0 rgba(255, 232, 194, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 224, 0.6),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 2px 0 #75320f;
+}
 .cardMore { font-size: 0.92rem; text-decoration: underline; opacity: 0.8; color: inherit; }
 
-/* ---- Bundle banner ------------------------------------------------------- */
+/* ---- Bundle hero: leads the page, sells the pair ------------------------- */
 .bundle {
-  margin-top: 2rem;
-  border-radius: 16px;
-  padding: 2.4rem 1.8rem;
-  text-align: center;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 2.5rem;
+  border-radius: 20px;
+  padding: 2.6rem 2.2rem;
   color: #efe9dc;
   background:
-    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0) 0 2px, rgba(0, 0, 0, 0.18) 2px 3px),
-    linear-gradient(120deg, #191714 0%, #221f1a 55%, #2a2015 100%);
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0) 0 2px, rgba(0, 0, 0, 0.16) 2px 3px),
+    radial-gradient(120% 140% at 85% 0%, rgba(224, 145, 47, 0.22) 0%, rgba(224, 145, 47, 0) 55%),
+    linear-gradient(120deg, #14120f 0%, #221f1a 55%, #2b2016 100%);
   border: 1px solid #0a0908;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
 }
+/* Slow highlight travelling across the panel, like light on a tape sleeve. */
+.bundleSheen {
+  position: absolute;
+  inset: -40% -60%;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 240, 214, 0.09) 50%,
+    rgba(255, 255, 255, 0) 58%
+  );
+  animation: sheen 7s ease-in-out infinite;
+}
+@keyframes sheen {
+  0%, 100% { transform: translateX(-28%); }
+  50%      { transform: translateX(28%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bundleSheen { animation: none; }
+}
+
+.bundleInner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.85fr);
+  gap: 2.5rem;
+  align-items: center;
+}
+.bundleCopy { min-width: 0; }
+
 .bundleTag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: 0.78rem;
-  letter-spacing: 0.18em;
-  color: #d99a2b;
+  font-size: 0.74rem;
+  letter-spacing: 0.2em;
+  color: #f0b13f;
+  padding: 0.35em 0.85em;
+  border: 1px solid rgba(240, 177, 63, 0.35);
+  border-radius: 999px;
+  background: rgba(240, 177, 63, 0.08);
+  margin-bottom: 1rem;
+}
+.liveDot {
+  display: block;
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e0912f;
+  box-shadow: 0 0 8px rgba(224, 145, 47, 0.9);
+  animation: livePulse 2s ease-in-out infinite;
+}
+@keyframes livePulse {
+  50% { opacity: 0.25; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .liveDot { animation: none; }
+}
+
+.bundleTitle {
+  font-size: clamp(1.9rem, 4.6vw, 3rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.05;
   margin-bottom: 0.7rem;
 }
-.bundleTitle {
-  font-size: clamp(1.4rem, 3.5vw, 2rem);
-  font-weight: 700;
-  letter-spacing: -0.015em;
-  margin-bottom: 0.5rem;
+/* Each product wears its own face inside the headline. */
+.markShft { font-weight: 700; }
+.markDrft {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: -0.04em;
 }
-.bundleSub { opacity: 0.85; margin-bottom: 1.4rem; }
-.bundleSub s { opacity: 0.55; }
-.bundleMsrp { opacity: 0.55; font-size: 0.9em; }
+.plus { opacity: 0.45; font-weight: 400; }
+
+.bundleSub {
+  opacity: 0.8;
+  line-height: 1.6;
+  max-width: 34rem;
+  margin-bottom: 1.5rem;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.6rem;
+}
+.bigPrice {
+  font-size: clamp(2.6rem, 6vw, 3.6rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+}
+.priceMeta { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+.priceMeta s { opacity: 0.5; font-size: 1.15rem; }
+.saveBadge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.35em 0.75em;
+  border-radius: 999px;
+  color: #10130a;
+  background: #7fae4a;
+  white-space: nowrap;
+}
+
 .bundleBuy {
   display: inline-flex;
   border: 0;
   border-radius: 999px;
-  padding: 0.85rem 1.7rem;
-  font-size: 1rem;
-  font-weight: 600;
+  padding: 0.95rem 2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
   cursor: pointer;
   text-decoration: none;
-  background: #d99a2b;
-  color: #191714;
-  transition: filter 0.15s;
+  color: #1b1206;
+  background: linear-gradient(180deg, #f6c65d 0%, #e0912f 48%, #c4551d 100%);
+  text-shadow: 0 1px 0 rgba(255, 232, 194, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 224, 0.62),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 2px 0 #75320f,
+    0 0 30px rgba(224, 145, 47, 0.45);
+  transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
 }
-.bundleBuy:hover { filter: brightness(1.08); }
+.bundleBuy:hover {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 224, 0.7),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 3px 0 #75320f,
+    0 0 40px rgba(224, 145, 47, 0.6);
+}
+.bundleBuy:active { transform: translateY(1px); }
 .bundleBuy:disabled { opacity: 0.6; cursor: default; }
 
+/* Two plugins, stacked and tilted like a boxed pair. */
+.bundleArt {
+  position: relative;
+  min-width: 0;
+  aspect-ratio: 4 / 3;
+}
+.artBack,
+.artFront {
+  position: absolute;
+  width: 78%;
+  border-radius: 10px;
+  border: 1px solid #0a0908;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+}
+.artBack {
+  top: 2%;
+  right: 0;
+  transform: rotate(4deg);
+}
+.artFront {
+  bottom: 2%;
+  left: 0;
+  transform: rotate(-4deg);
+}
+
+@media (max-width: 860px) {
+  .bundleInner { grid-template-columns: 1fr; gap: 1.8rem; }
+  .bundleArt { order: -1; aspect-ratio: 16 / 9; }
+  .bundle { padding: 2rem 1.4rem; }
+}
 @media (max-width: 760px) {
   .cards { grid-template-columns: 1fr; }
   .cardRow { flex-wrap: wrap; }

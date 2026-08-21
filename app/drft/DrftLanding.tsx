@@ -321,9 +321,6 @@ export default function DrftLanding() {
         <div className={styles.heroScanlines} aria-hidden />
         <div className={styles.heroScrim} />
         <div className={styles.heroContent}>
-          <p className={styles.heroOsd} aria-hidden>
-            <span className={styles.recDot} /> REC - SP 00:00:19
-          </p>
           <h1 className={styles.heroWordmark}>drft</h1>
           <p className={styles.heroSubtitle}>VHS / CRT circuit-bend FX</p>
           <div className={styles.heroCtaRow}>
