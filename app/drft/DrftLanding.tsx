@@ -91,8 +91,8 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
   {
     title: "Twenty generators when you have no footage",
     desc: "The FIELD page makes its own picture: twenty generators - flow, plasma, tunnel, kaleido, aurora, caustic, cells and more - shaped by hue, zoom, glow and flow, with FOLLOW setting how hard they ride your audio. Then blend them: the BLEND fader luma-keys the generator against your video or your live camera, so your footage comes through the pattern instead of replacing it.",
-    img: "/drft/field.jpg",
-    alt: "drft's field page - a generated colour field with the waveform riding it",
+    img: "/drft/generators.jpg",
+    alt: "drft's field generator filling the tube with a moving colour field",
   },
   {
     title: "The picture plays the sound",
@@ -327,7 +327,10 @@ export default function DrftLanding() {
         <div className={styles.heroScanlines} aria-hidden />
         <div className={styles.heroScrim} />
         <div className={styles.heroContent}>
-          <h1 className={styles.heroWordmark}>drft</h1>
+          <h1 className={styles.heroLogoWrap}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img className={styles.heroLogo} src="/drft/logo.png" alt="drft" />
+          </h1>
           <p className={styles.heroSubtitle}>VHS / CRT circuit-bend FX</p>
           <div className={styles.heroCtaRow}>
             <BuyButton className={styles.pillLight} owned={owned} crossgrade={crossgradeOn} />

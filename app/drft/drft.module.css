@@ -147,20 +147,18 @@
   padding: 2rem 1.25rem;
 }
 .heroOsd { margin-bottom: 1.2rem; }
-.heroWordmark {
-  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: clamp(4rem, 14vw, 8.5rem);
-  font-weight: 700;
-  letter-spacing: -0.04em;
-  line-height: 0.9;
-  /* Hero text is white, not the chassis cream the rest of the page uses: it
-     sits over full-bleed video, where cream reads as dirty and silk vanishes. */
-  color: #fff;
-  text-shadow:
-    0 0 24px rgba(255, 255, 255, 0.4),
-    2px 0 0 rgba(200, 64, 46, 0.35),
-    -2px 0 0 rgba(74, 144, 174, 0.35);
-  margin: 0 0 0.6rem;
+/* The wordmark is the real logo art, so the h1 is just a frame for it. */
+.heroLogoWrap {
+  margin: 0 0 0.9rem;
+  line-height: 0;
+}
+.heroLogo {
+  display: block;
+  width: clamp(15rem, 42vw, 30rem);
+  height: auto;
+  margin: 0 auto;
+  /* Lifts the dark keyline off the footage without washing out the stripes. */
+  filter: drop-shadow(0 6px 24px rgba(0, 0, 0, 0.7));
 }
 .heroSubtitle {
   color: #fff;

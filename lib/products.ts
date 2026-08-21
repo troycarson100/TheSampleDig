@@ -9,8 +9,9 @@ export type ProductAssetId = "installer" | "installer-win" | "manual"
 export const PRICING = {
   shft: { price: 19, msrp: 39 },
   drft: { price: 19, msrp: 39 },
-  // struck $38 = the two sale prices; "$78 MSRP" is secondary context only.
-  bundle: { price: 34, compareAt: 38, msrp: 78 },
+  // Struck against the combined MSRP ($39 x 2), like every other price on the
+  // site strikes list price - not against the two sale prices.
+  bundle: { price: 34, compareAt: 78, msrp: 78 },
   // Own one plugin, buy the other: $19 + $15 = $34 — exactly the bundle deal.
   // compareAt is the MSRP, matching how every other price on the site is
   // struck ($19 against $39), so the saving reads off the real list price.

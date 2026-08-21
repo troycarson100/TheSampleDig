@@ -235,7 +235,7 @@ export default function OffersView() {
           sub="One chops your sound into rhythm. The other drags it through a dying tape machine. Take both for less than one at full price."
           price={PRICING.bundle.price}
           was={PRICING.bundle.compareAt}
-          badge={`Save $${PRICING.bundle.msrp - PRICING.bundle.price} off $${PRICING.bundle.msrp} MSRP`}
+          badge={`Save $${PRICING.bundle.compareAt - PRICING.bundle.price}`}
           art="/drft/field.jpg"
         >
           <BuyBtn endpoint="/api/bundle/checkout">Get the bundle - ${PRICING.bundle.price}</BuyBtn>

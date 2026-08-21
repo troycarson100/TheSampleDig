@@ -161,7 +161,7 @@ export default function PluginsStore() {
                   <span className={styles.priceMeta}>
                     <s>${PRICING.bundle.compareAt}</s>
                     <span className={styles.saveBadge}>
-                      Save ${PRICING.bundle.msrp - PRICING.bundle.price} off ${PRICING.bundle.msrp} MSRP
+                      Save ${PRICING.bundle.compareAt - PRICING.bundle.price}
                     </span>
                   </span>
                 </div>
