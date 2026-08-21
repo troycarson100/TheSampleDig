@@ -119,7 +119,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Is it a subscription?",
-    a: "No. drft is a one-time purchase with free updates - buy it once, keep it forever. The $19 launch price is a limited discount off the regular $39. Already own shft? You get drft for $15.",
+    a: "No. drft is a one-time purchase with free updates - buy it once, keep it forever. The $19 launch price is a limited discount off the regular $39.",
   },
 ]
 
@@ -291,6 +291,14 @@ export default function DrftLanding() {
   // price actually exists in Stripe. Never advertise a price checkout can't charge.
   const crossgradeOn = ownsShft && drftCrossgrade
 
+  // Same gating for the FAQ's crossgrade claim - append it only when the $15
+  // price can actually be charged, so the copy never contradicts the button.
+  const faqs = FAQS.map((f) =>
+    f.q === "Is it a subscription?" && crossgradeOn
+      ? { ...f, a: `${f.a} Already own shft? You get drft for $${PRICING.crossgrade.price}.` }
+      : f
+  )
+
   return (
     <>
       <PurchaseBanner />
@@ -389,7 +397,7 @@ export default function DrftLanding() {
       {/* ---- FAQ ---------------------------------------------------------- */}
       <div className={styles.faq}>
         <h2 className={styles.faqTitle}>Questions</h2>
-        {FAQS.map((f) => (
+        {faqs.map((f) => (
           <FaqItem key={f.q} q={f.q} a={f.a} />
         ))}
       </div>
