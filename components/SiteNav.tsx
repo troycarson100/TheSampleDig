@@ -142,6 +142,12 @@ export default function SiteNav() {
           <Link href="/plugins" className={`${navLinkBase} ${isActive("/plugins") || isActive("/shft") || isActive("/drft") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/plugins" ? "page" : undefined}>
             Plugins
           </Link>
+          {/* Offers are tied to what you own, so they only mean anything signed in. */}
+          {session?.user && (
+            <Link href="/offers" className={`${navLinkBase} ${isActive("/offers") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/offers" ? "page" : undefined}>
+              My Offers
+            </Link>
+          )}
           {/* Blog + About moved to the footer; Affiliate shows only for invited creators. */}
           {isAffiliate && (
             <Link href="/affiliate" className={`${navLinkBase} ${isActive("/affiliate") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/affiliate" ? "page" : undefined}>
@@ -276,6 +282,17 @@ export default function SiteNav() {
             >
               Plugins
             </Link>
+            {session?.user && (
+              <Link
+                href="/offers"
+                className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/offers" ? navLinkActive : ""}`}
+                style={navLinkStyle}
+                onClick={closeMenu}
+                aria-current={pathname === "/offers" ? "page" : undefined}
+              >
+                My Offers
+              </Link>
+            )}
             {/* Blog + About moved to the footer; Affiliate shows only for invited creators. */}
             {isAffiliate && (
               <Link

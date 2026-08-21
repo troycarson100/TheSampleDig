@@ -1,0 +1,200 @@
+/* /offers - deals tied to what the signed-in visitor already owns. Shares the
+   lit-chassis language of the /plugins bundle hero. */
+
+.page {
+  flex: 1;
+  width: 100%;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 3rem 1.5rem 5rem;
+}
+
+.head { text-align: center; margin-bottom: 2.5rem; }
+.title {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+.sub { opacity: 0.7; margin-top: 0.5rem; }
+
+.loading { text-align: center; opacity: 0.6; padding: 3rem 0; }
+
+/* ---- Offer panel --------------------------------------------------------- */
+.offer {
+  position: relative;
+  overflow: hidden;
+  border-radius: 20px;
+  padding: 2.6rem 2.2rem;
+  color: #efe9dc;
+  background:
+    repeating-linear-gradient(to bottom, rgba(0, 0, 0, 0) 0 2px, rgba(0, 0, 0, 0.16) 2px 3px),
+    radial-gradient(120% 140% at 85% 0%, rgba(224, 145, 47, 0.22) 0%, rgba(224, 145, 47, 0) 55%),
+    linear-gradient(120deg, #14120f 0%, #221f1a 55%, #2b2016 100%);
+  border: 1px solid #0a0908;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.35);
+}
+.sheen {
+  position: absolute;
+  inset: -40% -60%;
+  pointer-events: none;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 42%,
+    rgba(255, 240, 214, 0.09) 50%,
+    rgba(255, 255, 255, 0) 58%
+  );
+  animation: sheen 7s ease-in-out infinite;
+}
+@keyframes sheen {
+  0%, 100% { transform: translateX(-28%); }
+  50%      { transform: translateX(28%); }
+}
+
+.offerInner {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 0.8fr);
+  gap: 2.5rem;
+  align-items: center;
+}
+.copy { min-width: 0; }
+
+/* Class name deliberately avoids the substring "tag": a global
+   .theme-vinyl [class*="tag"] rule hijacks anything containing it. */
+.flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.74rem;
+  letter-spacing: 0.2em;
+  color: #f0b13f;
+  padding: 0.35em 0.85em;
+  border: 1px solid rgba(240, 177, 63, 0.35);
+  border-radius: 999px;
+  background: rgba(240, 177, 63, 0.08);
+  margin-bottom: 1rem;
+}
+.liveDot {
+  display: block;
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #e0912f;
+  box-shadow: 0 0 8px rgba(224, 145, 47, 0.9);
+  animation: livePulse 2s ease-in-out infinite;
+}
+@keyframes livePulse {
+  50% { opacity: 0.25; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sheen, .liveDot { animation: none; }
+}
+
+.offerTitle {
+  font-size: clamp(1.7rem, 4vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.08;
+  margin-bottom: 0.7rem;
+}
+.mark {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: -0.04em;
+}
+.offerSub {
+  opacity: 0.8;
+  line-height: 1.6;
+  max-width: 34rem;
+  margin-bottom: 1.5rem;
+}
+
+.priceRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.9rem;
+  flex-wrap: wrap;
+  margin-bottom: 1.6rem;
+}
+.bigPrice {
+  font-size: clamp(2.4rem, 5.5vw, 3.4rem);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+  color: #fff;
+}
+.priceMeta { display: flex; align-items: center; gap: 0.7rem; flex-wrap: wrap; }
+.priceMeta s { opacity: 0.5; font-size: 1.15rem; }
+.saveBadge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 0.35em 0.75em;
+  border-radius: 999px;
+  color: #10130a;
+  background: #7fae4a;
+  white-space: nowrap;
+}
+
+.buy {
+  display: inline-flex;
+  border: 0;
+  border-radius: 999px;
+  padding: 0.95rem 2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  text-decoration: none;
+  color: #1b1206;
+  background: linear-gradient(180deg, #f6c65d 0%, #e0912f 48%, #c4551d 100%);
+  text-shadow: 0 1px 0 rgba(255, 232, 194, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 224, 0.62),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 2px 0 #75320f,
+    0 0 30px rgba(224, 145, 47, 0.45);
+  transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
+}
+.buy:hover {
+  filter: brightness(1.07);
+  transform: translateY(-1px);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 246, 224, 0.7),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.3),
+    0 3px 0 #75320f,
+    0 0 40px rgba(224, 145, 47, 0.6);
+}
+.buy:active { transform: translateY(1px); }
+.buy:disabled { opacity: 0.6; cursor: default; }
+
+.foot { margin-top: 1rem; font-size: 0.88rem; opacity: 0.6; }
+.footLink { color: inherit; text-decoration: underline; }
+
+.art { position: relative; min-width: 0; }
+.artImg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  border: 1px solid #0a0908;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.55);
+  transform: rotate(-3deg);
+}
+
+/* ---- Nothing to offer ---------------------------------------------------- */
+.empty {
+  text-align: center;
+  border-radius: 20px;
+  padding: 3.5rem 2rem;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.03);
+}
+.emptyTitle { font-size: 1.6rem; font-weight: 700; margin-bottom: 0.6rem; }
+.emptySub { opacity: 0.7; max-width: 32rem; margin: 0 auto 1.6rem; line-height: 1.6; }
+
+@media (max-width: 860px) {
+  .offerInner { grid-template-columns: 1fr; gap: 1.8rem; }
+  .art { order: -1; }
+  .artImg { transform: none; }
+  .offer { padding: 2rem 1.4rem; }
+}
