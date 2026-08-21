@@ -2,9 +2,12 @@
    Palette comes from the plugin's own chassis tokens (Source/ui/UiTokens.h). */
 
 .page {
-  --chassis: #191714;
-  --panel: #221f1a;
-  --seam: #0a0908;
+  /* Charcoal rather than the plugin's warm chassis brown: the screenshots run
+     warm, and a neutral, darker ground makes them sit forward instead of
+     blending into the page. */
+  --chassis: #121212;
+  --panel: #1a1a19;
+  --seam: #070707;
   --cream: #efe9dc;
   --silk: #a89c86;
   --silk-dim: #6e6557;
