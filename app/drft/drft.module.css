@@ -222,17 +222,14 @@
 .blockAlt > * { direction: ltr; }
 .blockMedia { min-width: 0; }
 /* Every screenshot sits behind CRT glass: bezel, scanlines, glow. */
+/* No ring and no glow: the shots already carry the plugin's own chassis and
+   bezel, so anything added around them reads as a halo on the dark ground. */
 .shotFrame {
   position: relative;
   border-radius: 14px;
   overflow: hidden;
   background: #000;
   border: 1px solid var(--seam);
-  box-shadow:
-    0 0 0 6px var(--panel),
-    0 0 0 7px var(--seam),
-    0 18px 50px rgba(0, 0, 0, 0.55),
-    0 0 40px rgba(127, 174, 74, 0.06);
 }
 .shotFrame::after {
   content: "";
