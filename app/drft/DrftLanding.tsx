@@ -73,8 +73,8 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
   {
     title: "A picture behind the sound",
     desc: "Drop a video, a GIF or a still onto the tube - or go live from your camera - and it plays through the same circuit as your audio. The screen is a true 16:9 CRT, so what you see in the plugin is exactly what an export frames at 1920x1080.",
-    img: "/drft/tube.png",
-    alt: "drft's CRT tube playing video through the effect",
+    img: "/drft/live.jpg",
+    alt: "drft's CRT tube showing a live camera feed run through the effect",
   },
   {
     title: "Six knobs of character",
@@ -91,8 +91,8 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
   {
     title: "The picture plays the sound",
     desc: "feed reads the frame - how bright, how busy, how broken - and pushes it back into the audio. A hot white flash leans on the sound; a dead channel goes quiet. Run a music video through it and the mix starts breathing with the footage.",
-    img: "/drft/feed.png",
-    alt: "drft feed - frame statistics modulating the audio",
+    img: "/drft/field.jpg",
+    alt: "drft's field page - the waveform riding a drifting colour field",
   },
   {
     title: "Press REC, keep the take",

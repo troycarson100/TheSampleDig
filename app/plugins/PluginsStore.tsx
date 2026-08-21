@@ -21,7 +21,7 @@ const PLUGINS: { id: PluginId; name: string; tagline: string; img: string; theme
     id: "drft",
     name: "drft",
     tagline: "VHS / CRT circuit-bend FX. Your sound through a dying tape machine, picture and all.",
-    img: "/drft/tube.png",
+    img: "/drft/field.jpg",
     theme: "cardDrft",
     href: "/drft",
   },
