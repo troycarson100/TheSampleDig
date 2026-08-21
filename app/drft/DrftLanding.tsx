@@ -50,11 +50,11 @@ function IconSync() {
     </svg>
   )
 }
-function IconPower() {
+function IconAspect() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-      <path d="M12 3v8" />
-      <path d="M6.2 6.2a8 8 0 1 0 11.6 0" />
+      <rect x="2" y="7" width="20" height="10" rx="1.5" />
+      <rect x="8.5" y="4" width="7" height="16" rx="1.5" />
     </svg>
   )
 }
@@ -66,13 +66,13 @@ const CAPS: { icon: ReactNode; title: string; desc: string }[] = [
   { icon: <IconPreset />, title: "PRESETS", desc: "A factory bank of broken machines, plus your own saves - user presets live in a plain folder on disk." },
   { icon: <IconMono />, title: "BASS MONO", desc: "All the wobble and smear stays up top - the low end folds to mono so the bottom never goes seasick." },
   { icon: <IconSync />, title: "VIDEO SYNC", desc: "The tube locks to your host transport, so the picture scrubs, loops and lands exactly with the session." },
-  { icon: <IconPower />, title: "POWER SWITCH", desc: "A real rocker on the chassis. Flip it and the tube snaps to black while the sound passes clean." },
+  { icon: <IconAspect />, title: "ASPECT", desc: "16:9, vertical 9:16 for phones, or ultrawide - the tube reframes and the export follows it." },
 ]
 
 const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: string; poster?: string }[] = [
   {
     title: "A picture behind the sound",
-    desc: "Drop a video, a GIF or a still onto the tube - or go live from your camera - and it plays through the same circuit as your audio. The screen is a true 16:9 CRT, so what you see in the plugin is exactly what an export frames at 1920x1080.",
+    desc: "Drop a video, a GIF or a still onto the tube and it plays through the same circuit as your audio. Or go live: any camera the Mac can see, including your iPhone over Continuity Camera - point it at your hands, your desk, the room, and that becomes the picture.",
     img: "/drft/live.jpg",
     alt: "drft's CRT tube showing a live camera feed run through the effect",
   },
@@ -89,14 +89,20 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
     alt: "drft dropout tearing the picture and the audio together",
   },
   {
+    title: "Twenty generators when you have no footage",
+    desc: "The FIELD page makes its own picture: twenty generators - flow, plasma, tunnel, kaleido, aurora, caustic, cells and more - shaped by hue, zoom, glow and flow, with FOLLOW setting how hard they ride your audio. Then blend them: the BLEND fader luma-keys the generator against your video or your live camera, so your footage comes through the pattern instead of replacing it.",
+    img: "/drft/field.jpg",
+    alt: "drft's field page - a generated colour field with the waveform riding it",
+  },
+  {
     title: "The picture plays the sound",
     desc: "feed reads the frame - how bright, how busy, how broken - and pushes it back into the audio. A hot white flash leans on the sound; a dead channel goes quiet. Run a music video through it and the mix starts breathing with the footage.",
-    img: "/drft/field.jpg",
-    alt: "drft's field page - the waveform riding a drifting colour field",
+    img: "/drft/nosignal.png",
+    alt: "drft on a dead channel - snow filling the tube",
   },
   {
     title: "Press REC, keep the take",
-    desc: "The REC key captures the tube and the sound together and writes a real MP4 - the export re-renders every frame through the same pipeline, so the file matches what you watched. Circuit-bent music videos straight out of the plugin.",
+    desc: "The REC key captures the tube and the sound together and writes a real MP4 - the export re-renders every frame through the same pipeline, so the file matches what you watched. Frame it 16:9, vertical 9:16 for phones and reels, or ultrawide, and cut circuit-bent music videos straight out of the plugin.",
     img: "/drft/drop.png",
     video: "/drft/rec.mp4",
     poster: "/drft/rec-poster.jpg",
@@ -107,7 +113,7 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
 const FAQS: { q: string; a: string }[] = [
   {
     q: "What is drft?",
-    a: "drft is a VHS / CRT circuit-bend effect. Six character knobs - burn, drift, bend, dropout, wash, noise - run your audio through a dying tape machine, while a true-16:9 CRT on the panel plays your video, a GIF or your live camera through the same damage. Dropouts tear picture and sound together, feed lets the picture push back into the audio, and REC exports what you see and hear as a real MP4.",
+    a: "drft is a VHS / CRT circuit-bend effect you put in your chain. Six character knobs - burn, drift, bend, dropout, wash, noise - run your audio through a dying tape machine, while a CRT on the panel shows the same damage on a picture: your video, a GIF, a live camera, or one of twenty built-in generators you can blend with your footage. Dropouts tear picture and sound together, feed lets the picture push back into the audio, and REC exports what you see and hear as a real MP4 in 16:9, 9:16 or ultrawide.",
   },
   {
     q: "Which formats does it come in, and will it work in my DAW?",
@@ -115,7 +121,7 @@ const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "Do I need to use video?",
-    a: "No. drft is a full audio effect on its own - the tube just shows the dead channel until you feed it something. Load media or a camera when you want the picture, and press REC when you want to keep it.",
+    a: "No. drft is a full audio effect on its own. If you never load a thing, the FIELD page still generates its own picture from your audio - the tube is never empty. Load footage or a camera when you want your own image, and press REC when you want to keep it.",
   },
   {
     q: "Is it a subscription?",
@@ -335,10 +341,11 @@ export default function DrftLanding() {
       {/* ---- Intro -------------------------------------------------------- */}
       <section className={styles.intro}>
         <p className={styles.eyebrow}>INSIDE DRFT</p>
-        <h2 className={styles.introTitle}>A dying machine you can play</h2>
+        <h2 className={styles.introTitle}>A dying deck in your chain</h2>
         <p className={styles.introSub}>
-          Tape wow, head burn, tracking wash, dropouts, snow - six knobs of damage
-          over a CRT that shows you everything it does to the sound.
+          Tape wow, head burn, tracking wash, dropouts and snow - six knobs of damage
+          on whatever you run through it, over a CRT that shows you every bit of what
+          it does.
         </p>
       </section>
 

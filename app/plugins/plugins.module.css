@@ -278,7 +278,14 @@
 
 @media (max-width: 860px) {
   .bundleInner { grid-template-columns: 1fr; gap: 1.8rem; }
-  .bundleArt { order: -1; aspect-ratio: 16 / 9; }
+  /* Taller than the desktop box and with room top and bottom: the two shots
+     are tilted and ~0.62x the container width tall, so a short box lets them
+     spill over the panel edge and onto the flag below. */
+  .bundleArt {
+    order: -1;
+    aspect-ratio: 6 / 5;
+    margin: 0.75rem 0 1.25rem;
+  }
   .bundle { padding: 2rem 1.4rem; }
 }
 @media (max-width: 760px) {
