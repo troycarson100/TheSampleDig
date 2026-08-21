@@ -139,7 +139,7 @@ export default function SiteNav() {
               My Crate
             </button>
           )}
-          <Link href="/shft" className={`${navLinkBase} ${isActive("/shft") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/shft" ? "page" : undefined}>
+          <Link href="/plugins" className={`${navLinkBase} ${isActive("/plugins") || isActive("/shft") || isActive("/drft") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/plugins" ? "page" : undefined}>
             Plugins
           </Link>
           {/* Blog + About moved to the footer; Affiliate shows only for invited creators. */}
@@ -268,11 +268,11 @@ export default function SiteNav() {
               </button>
             )}
             <Link
-              href="/shft"
-              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/shft" ? navLinkActive : ""}`}
+              href="/plugins"
+              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/plugins" || pathname === "/shft" || pathname === "/drft" ? navLinkActive : ""}`}
               style={navLinkStyle}
               onClick={closeMenu}
-              aria-current={pathname === "/shft" ? "page" : undefined}
+              aria-current={pathname === "/plugins" ? "page" : undefined}
             >
               Plugins
             </Link>

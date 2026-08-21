@@ -3,6 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react"
 import styles from "./shft.module.css"
 import { trackMeta } from "@/lib/meta-pixel"
+import { PRICING } from "@/lib/products"
 import TestimonialMarquee from "./TestimonialMarquee"
 import ReelCarousel from "./ReelCarousel"
 import { TESTIMONIALS, REELS } from "./shft-social"
@@ -139,7 +140,7 @@ async function startCheckout(): Promise<{ url: string | null; needsAuth: boolean
 /** Buy Now button — shows the struck price inline. Kicks off Stripe checkout;
     sends logged-out users to sign in first, owners to their downloads, and falls
     back to "Opens at launch" until STRIPE_SHFT_PRICE_ID is configured. */
-function BuyButton({ className, owned }: { className: string; owned: boolean }) {
+function BuyButton({ className, owned, ownsDrft }: { className: string; owned: boolean; ownsDrft: boolean }) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
@@ -180,7 +181,8 @@ function BuyButton({ className, owned }: { className: string; owned: boolean }) 
         "Opens at launch"
       ) : (
         <>
-          Buy Now — <span className={styles.priceSale}>$19</span> <s>$39</s>
+          Buy Now — <span className={styles.priceSale}>${ownsDrft ? PRICING.crossgrade.price : PRICING.shft.price}</span>{" "}
+          <s>${ownsDrft ? PRICING.crossgrade.compareAt : PRICING.shft.msrp}</s>
         </>
       )}
     </button>
@@ -199,9 +201,11 @@ function PurchaseBanner() {
     }
     if (p !== "success") return
 
-    // Meta Pixel: shft purchase conversion ($19 launch price). Fired before the
-    // redirect below — fbq beacons survive the navigation.
-    trackMeta("Purchase", { value: 19, currency: "USD", content_name: "shft", content_type: "product" })
+    // Meta Pixel: shft purchase conversion ($19 launch price, or the crossgrade
+    // price if `paid` is stamped on the success URL). Fired before the redirect
+    // below — fbq beacons survive the navigation.
+    const paid = Number(params.get("paid")) || PRICING.shft.price
+    trackMeta("Purchase", { value: paid, currency: "USD", content_name: "shft", content_type: "product" })
 
     // On success, record the purchase (self-heals if the webhook is delayed),
     // then send them to My Products — no banner to fight the fixed nav.
@@ -224,7 +228,7 @@ function PurchaseBanner() {
   return <div className={styles.bannerInfo}>Checkout canceled — no charge was made. Grab shft whenever you&apos;re ready.</div>
 }
 
-function StickyBar({ owned }: { owned: boolean }) {
+function StickyBar({ owned, ownsDrft }: { owned: boolean; ownsDrft: boolean }) {
   const [show, setShow] = useState(false)
   useEffect(() => {
     const sentinel = document.getElementById("shft-hero-sentinel")
@@ -240,7 +244,7 @@ function StickyBar({ owned }: { owned: boolean }) {
         <span className={styles.stickyName}>shft</span>
         <span className={styles.stickyMeta}>Trance-gate plugin</span>
         <span className={styles.stickySpacer} />
-        <BuyButton className={styles.stickyBtn} owned={owned} />
+        <BuyButton className={styles.stickyBtn} owned={owned} ownsDrft={ownsDrft} />
       </div>
     </div>
   )
@@ -265,6 +269,7 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 
 export default function ShftLanding() {
   const [owned, setOwned] = useState(false)
+  const [ownsDrft, setOwnsDrft] = useState(false)
   useEffect(() => {
     fetch("/api/shft/ownership")
       .then((r) => (r.ok ? r.json() : null))
@@ -272,12 +277,18 @@ export default function ShftLanding() {
         if (d?.owned) setOwned(true)
       })
       .catch(() => {})
+    fetch("/api/drft/ownership")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => {
+        if (d?.owned) setOwnsDrft(true)
+      })
+      .catch(() => {})
   }, [])
 
   return (
     <>
       <PurchaseBanner />
-      <StickyBar owned={owned} />
+      <StickyBar owned={owned} ownsDrft={ownsDrft} />
 
       {/* ---- Hero: full-bleed looping video + name + CTA ------------------ */}
       <section className={styles.hero}>
@@ -303,7 +314,7 @@ export default function ShftLanding() {
             Gated Multi-FX
           </p>
           <div className={styles.heroCtaRow}>
-            <BuyButton className={styles.pillLight} owned={owned} />
+            <BuyButton className={styles.pillLight} owned={owned} ownsDrft={ownsDrft} />
             <p className={styles.heroPrice}>One-time purchase · macOS &amp; Windows · VST3 / AU / Standalone</p>
           </div>
         </div>
@@ -391,7 +402,7 @@ export default function ShftLanding() {
           One-time purchase, free updates. The $19 launch price is a limited discount off $39.
         </p>
         <div className={styles.gsForm}>
-          <BuyButton className={styles.pillDark} owned={owned} />
+          <BuyButton className={styles.pillDark} owned={owned} ownsDrft={ownsDrft} />
         </div>
       </section>
     </>
