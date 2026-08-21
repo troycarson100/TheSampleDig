@@ -12,7 +12,9 @@ export const PRICING = {
   // struck $38 = the two sale prices; "$78 MSRP" is secondary context only.
   bundle: { price: 34, compareAt: 38, msrp: 78 },
   // Own one plugin, buy the other: $19 + $15 = $34 — exactly the bundle deal.
-  crossgrade: { price: 15, compareAt: 19 },
+  // compareAt is the MSRP, matching how every other price on the site is
+  // struck ($19 against $39), so the saving reads off the real list price.
+  crossgrade: { price: 15, compareAt: 39 },
 } as const
 
 export interface ProductAsset {

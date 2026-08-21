@@ -187,7 +187,9 @@ export default function PluginsStore() {
                   <span className={styles.bigPrice}>${PRICING.crossgrade.price}</span>
                   <span className={styles.priceMeta}>
                     <s>${PRICING.crossgrade.compareAt}</s>
-                    <span className={styles.saveBadge}>Owner price</span>
+                    <span className={styles.saveBadge}>
+                      Save ${PRICING.crossgrade.compareAt - PRICING.crossgrade.price}
+                    </span>
                   </span>
                 </div>
                 <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy}>
