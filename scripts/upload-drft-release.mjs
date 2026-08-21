@@ -4,7 +4,7 @@
 //
 // Usage (upload any subset — macOS installer, Windows installer, and/or manual):
 //   SPACES_ENDPOINT="https://sfo3.digitaloceanspaces.com" SPACES_REGION="sfo3" \
-//   SPACES_BUCKET="drftdownload" SPACES_KEY="..." SPACES_SECRET="..." \
+//   SPACES_BUCKET="shftdownload" SPACES_KEY="..." SPACES_SECRET="..." \
 //     node scripts/upload-drft-release.mjs \
 //       [--installer <installer.pkg>] [--installer-win <setup.exe>] [--manual <manual.pdf>]
 //

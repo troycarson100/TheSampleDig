@@ -108,6 +108,9 @@ function PurchaseBanner() {
 
 export default function PluginsStore() {
   const [owned, setOwned] = useState<Record<PluginId, boolean>>({ shft: false, drft: false })
+  // Whether each product's crossgrade price actually exists in Stripe - the UI
+  // must never advertise a $15 price the checkout route cannot actually charge.
+  const [crossgradeAvailable, setCrossgradeAvailable] = useState<Record<PluginId, boolean>>({ shft: false, drft: false })
 
   useEffect(() => {
     for (const id of ["shft", "drft"] as const) {
@@ -115,6 +118,7 @@ export default function PluginsStore() {
         .then((r) => (r.ok ? r.json() : null))
         .then((d) => {
           if (d?.owned) setOwned((o) => ({ ...o, [id]: true }))
+          setCrossgradeAvailable((c) => ({ ...c, [id]: Boolean(d?.crossgrade) }))
         })
         .catch(() => {})
     }
@@ -122,6 +126,7 @@ export default function PluginsStore() {
 
   const ownCount = Number(owned.shft) + Number(owned.drft)
   const missing: PluginId = owned.shft ? "drft" : "shft"
+  const missingCrossgradeOn = ownCount === 1 && crossgradeAvailable[missing]
 
   return (
     <main className={styles.store}>
@@ -148,8 +153,8 @@ export default function PluginsStore() {
                   </a>
                 ) : (
                   <BuyBtn endpoint={`/api/${p.id}/checkout`} className={styles.cardBuy}>
-                    Buy — <strong>${ownCount === 1 && p.id === missing ? PRICING.crossgrade.price : PRICING[p.id].price}</strong>{" "}
-                    <s>${ownCount === 1 && p.id === missing ? PRICING.crossgrade.compareAt : PRICING[p.id].msrp}</s>
+                    Buy — <strong>${p.id === missing && missingCrossgradeOn ? PRICING.crossgrade.price : PRICING[p.id].price}</strong>{" "}
+                    <s>${p.id === missing && missingCrossgradeOn ? PRICING.crossgrade.compareAt : PRICING[p.id].msrp}</s>
                   </BuyBtn>
                 )}
                 <Link href={p.href} className={styles.cardMore}>
@@ -176,7 +181,7 @@ export default function PluginsStore() {
             </BuyBtn>
           </>
         )}
-        {ownCount === 1 && (
+        {ownCount === 1 && missingCrossgradeOn && (
           <>
             <p className={styles.bundleTag}>COMPLETE THE PAIR</p>
             <h2 className={styles.bundleTitle}>You own {owned.shft ? "shft" : "drft"} — get {missing} for ${PRICING.crossgrade.price}</h2>
@@ -185,6 +190,18 @@ export default function PluginsStore() {
             </p>
             <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy}>
               Get {missing} — ${PRICING.crossgrade.price}
+            </BuyBtn>
+          </>
+        )}
+        {ownCount === 1 && !missingCrossgradeOn && (
+          <>
+            <p className={styles.bundleTag}>COMPLETE THE PAIR</p>
+            <h2 className={styles.bundleTitle}>You own {owned.shft ? "shft" : "drft"} - complete the pair</h2>
+            <p className={styles.bundleSub}>
+              Get {missing} for ${PRICING[missing].price} (was ${PRICING[missing].msrp}).
+            </p>
+            <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy}>
+              Get {missing} - ${PRICING[missing].price}
             </BuyBtn>
           </>
         )}

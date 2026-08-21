@@ -50,8 +50,8 @@ export default async function ProductsPage() {
             style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
           >
             <p className="mb-3">You don&apos;t have any products yet.</p>
-            <Link href="/shft" className="underline font-medium" style={{ color: "var(--primary)" }}>
-              Check out shft →
+            <Link href="/plugins" className="underline font-medium" style={{ color: "var(--primary)" }}>
+              Check out our plugins →
             </Link>
           </div>
         ) : (

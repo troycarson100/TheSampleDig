@@ -140,7 +140,7 @@ async function startCheckout(): Promise<{ url: string | null; needsAuth: boolean
 /** Buy Now button — shows the struck price inline. Kicks off Stripe checkout;
     sends logged-out users to sign in first, owners to their downloads, and falls
     back to "Opens at launch" until STRIPE_SHFT_PRICE_ID is configured. */
-function BuyButton({ className, owned, ownsDrft }: { className: string; owned: boolean; ownsDrft: boolean }) {
+function BuyButton({ className, owned, crossgrade }: { className: string; owned: boolean; crossgrade: boolean }) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
@@ -181,8 +181,8 @@ function BuyButton({ className, owned, ownsDrft }: { className: string; owned: b
         "Opens at launch"
       ) : (
         <>
-          Buy Now — <span className={styles.priceSale}>${ownsDrft ? PRICING.crossgrade.price : PRICING.shft.price}</span>{" "}
-          <s>${ownsDrft ? PRICING.crossgrade.compareAt : PRICING.shft.msrp}</s>
+          Buy Now — <span className={styles.priceSale}>${crossgrade ? PRICING.crossgrade.price : PRICING.shft.price}</span>{" "}
+          <s>${crossgrade ? PRICING.crossgrade.compareAt : PRICING.shft.msrp}</s>
         </>
       )}
     </button>
@@ -228,7 +228,7 @@ function PurchaseBanner() {
   return <div className={styles.bannerInfo}>Checkout canceled — no charge was made. Grab shft whenever you&apos;re ready.</div>
 }
 
-function StickyBar({ owned, ownsDrft }: { owned: boolean; ownsDrft: boolean }) {
+function StickyBar({ owned, crossgrade }: { owned: boolean; crossgrade: boolean }) {
   const [show, setShow] = useState(false)
   useEffect(() => {
     const sentinel = document.getElementById("shft-hero-sentinel")
@@ -244,7 +244,7 @@ function StickyBar({ owned, ownsDrft }: { owned: boolean; ownsDrft: boolean }) {
         <span className={styles.stickyName}>shft</span>
         <span className={styles.stickyMeta}>Trance-gate plugin</span>
         <span className={styles.stickySpacer} />
-        <BuyButton className={styles.stickyBtn} owned={owned} ownsDrft={ownsDrft} />
+        <BuyButton className={styles.stickyBtn} owned={owned} crossgrade={crossgrade} />
       </div>
     </div>
   )
@@ -270,11 +270,15 @@ function FaqItem({ q, a }: { q: string; a: string }) {
 export default function ShftLanding() {
   const [owned, setOwned] = useState(false)
   const [ownsDrft, setOwnsDrft] = useState(false)
+  // Whether STRIPE_SHFT_CROSSGRADE_PRICE_ID is actually configured - the $15
+  // price can only be shown (and charged) when this is true.
+  const [shftCrossgrade, setShftCrossgrade] = useState(false)
   useEffect(() => {
     fetch("/api/shft/ownership")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d?.owned) setOwned(true)
+        setShftCrossgrade(Boolean(d?.crossgrade))
       })
       .catch(() => {})
     fetch("/api/drft/ownership")
@@ -285,10 +289,14 @@ export default function ShftLanding() {
       .catch(() => {})
   }, [])
 
+  // The $15 display requires BOTH: the visitor owns drft, AND shft's crossgrade
+  // price actually exists in Stripe. Never advertise a price checkout can't charge.
+  const crossgradeOn = ownsDrft && shftCrossgrade
+
   return (
     <>
       <PurchaseBanner />
-      <StickyBar owned={owned} ownsDrft={ownsDrft} />
+      <StickyBar owned={owned} crossgrade={crossgradeOn} />
 
       {/* ---- Hero: full-bleed looping video + name + CTA ------------------ */}
       <section className={styles.hero}>
@@ -314,7 +322,7 @@ export default function ShftLanding() {
             Gated Multi-FX
           </p>
           <div className={styles.heroCtaRow}>
-            <BuyButton className={styles.pillLight} owned={owned} ownsDrft={ownsDrft} />
+            <BuyButton className={styles.pillLight} owned={owned} crossgrade={crossgradeOn} />
             <p className={styles.heroPrice}>One-time purchase · macOS &amp; Windows · VST3 / AU / Standalone</p>
           </div>
         </div>
@@ -399,10 +407,14 @@ export default function ShftLanding() {
       <section className={styles.getStarted} id="shft-buy">
         <h2 className={styles.gsTitle}>Get shft</h2>
         <p className={styles.gsSub}>
-          One-time purchase, free updates. The $19 launch price is a limited discount off $39.
+          {crossgradeOn ? (
+            <>One-time purchase, free updates. You own drft, so shft is ${PRICING.crossgrade.price} - the same deal as the bundle.</>
+          ) : (
+            "One-time purchase, free updates. The $19 launch price is a limited discount off $39."
+          )}
         </p>
         <div className={styles.gsForm}>
-          <BuyButton className={styles.pillDark} owned={owned} ownsDrft={ownsDrft} />
+          <BuyButton className={styles.pillDark} owned={owned} crossgrade={crossgradeOn} />
         </div>
       </section>
     </>
