@@ -72,7 +72,7 @@ const CAPS: { icon: ReactNode; title: string; desc: string }[] = [
 const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: string; poster?: string }[] = [
   {
     title: "A picture behind the sound",
-    desc: "Drop a video, a GIF or a still onto the tube and it plays through the same circuit as your audio. Or go live: any camera the Mac can see, including your iPhone over Continuity Camera - point it at your hands, your desk, the room, and that becomes the picture.",
+    desc: "Drop a video, a GIF or a still onto the tube and it plays through the same circuit as your audio. Or go live: any camera your machine can see - a webcam, a capture card, or on a Mac your iPhone over Continuity Camera - point it at your hands, your desk, the room, and that becomes the picture.",
     img: "/drft/live.jpg",
     alt: "drft's CRT tube showing a live camera feed run through the effect",
   },
