@@ -1,19 +1,25 @@
-/* drft landing — CRT dark, "the page is the device".
-   Palette comes from the plugin's own chassis tokens (Source/ui/UiTokens.h). */
+/* drft landing — ink on the wordmark's own cream. Hero (video) and sticky bar
+   stay dark chassis; the rest of the page is paper, not a CRT. */
 
 .page {
-  /* Warm graphite rather than a flat neutral black: lighter, and pulls the
-     same warmth as the cream/gold accents instead of fighting them. */
-  --chassis: #1f1a15;
-  --panel: #2a2219;
-  --seam: #0f0b08;
+  /* Body sections run a warm tan, ink-on-paper instead of a dark chassis. The
+     hero (video) and sticky bar stay dark on their own - see the notes on
+     --cream/--silk-dim further down. --cream stays the lighter value because
+     it doubles as light text on those dark surfaces. */
+  --chassis: #e0c69f;
+  --panel: #e6dcc5;
+  --seam: rgba(28, 20, 15, 0.14);
   --cream: #efe9dc;
-  --silk: #a89c86;
+  --ink: #1c140f;
+  --silk: #5c5344;
   --silk-dim: #6e6557;
-  --led-gold: #e7b563;
+  --led-gold: #b5641f;
+  /* OSD label colour. Separate from --led-gold, which still lights the
+     capability icons and the FAQ toggles. */
+  --led-pink: #ef1f71;
   --led-amber: #d99a2b;
   --led-red: #c8402e;
-  --line: rgba(168, 156, 134, 0.16);
+  --line: var(--seam);
   background: var(--chassis);
   color: var(--silk);
   min-height: 100vh;
@@ -28,8 +34,7 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.78rem;
   letter-spacing: 0.18em;
-  color: var(--led-gold);
-  text-shadow: 0 0 8px rgba(231, 181, 99, 0.5);
+  color: var(--led-pink);
   text-transform: uppercase;
 }
 
@@ -38,7 +43,7 @@
 
 .bannerInfo {
   background: var(--panel);
-  color: var(--cream);
+  color: var(--ink);
   border-bottom: 1px solid var(--seam);
   text-align: center;
   padding: 0.7rem 1rem;
@@ -202,6 +207,285 @@
   font-weight: 700;
 }
 
+/* ---- A/B compare --------------------------------------------------------
+   Sits between the hero and the intro. The page is paper, so the section
+   background stays cream and only the scope itself is a lit CRT - the one
+   place on the body where a dark panel earns its keep, because the traces
+   need somewhere to glow. */
+.ab {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 4.5rem 1.5rem 1rem;
+}
+.abHead {
+  text-align: center;
+  max-width: 40rem;
+  margin: 0 auto 2.4rem;
+}
+.abTitle {
+  color: var(--ink);
+  font-size: clamp(1.6rem, 4vw, 2.3rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+/* The unit reads as a piece of gear set down on the page - same hard-offset
+   chassis language as the hero's buy key. */
+.abUnit {
+  border: 3px solid var(--ink);
+  border-radius: 12px;
+  background: var(--panel);
+  box-shadow: 6px 7px 0 0 var(--ink);
+  padding: 1rem;
+}
+
+.abScope {
+  --trace: #f2953f;
+  position: relative;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #0b0908;
+  border: 1px solid #000;
+  height: clamp(120px, 22vw, 190px);
+}
+.abScopeSvg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  touch-action: none;
+}
+.abScopeSvg:focus-visible {
+  outline: 2px solid var(--trace);
+  outline-offset: -2px;
+}
+/* The scope is split at the centre line: bypassed above, drft'd below. The two
+   halves are drawn in deliberately different languages - the clean signal is a
+   single flat cream trace, the engaged one is split into colour and bloomed -
+   so the damage reads before you've pressed anything. */
+.abScopeBg {
+  fill: #0b0908;
+}
+
+/* Bypassed: one colour, no glow, nothing happening to it. */
+.abDryLit {
+  fill: rgba(239, 233, 220, 0.34);
+}
+.abDryPlayed {
+  fill: #efe9dc;
+}
+.abDryIdle {
+  fill: rgba(239, 233, 220, 0.14);
+}
+
+/* Engaged: the wordmark's orange -> coral -> pink ramp, offset into a chroma
+   fringe the way colour bleeds off a worn tape. The offsets screen so their
+   edges glow; the core sits on top at normal blend so the body of the trace
+   stays a solid readable orange instead of washing to white wherever all
+   three overlap. */
+.abChromaA {
+  fill: #e63d94;
+  mix-blend-mode: screen;
+}
+.abChromaB {
+  fill: #ea4a4a;
+  mix-blend-mode: screen;
+}
+.abChromaCore {
+  fill: #f2953f;
+}
+/* isolate keeps the three layers screening against each other and not against
+   the scanlines and backdrop underneath. */
+.abWetLit,
+.abWetIdle {
+  isolation: isolate;
+}
+.abWetLit {
+  opacity: 0.45;
+}
+.abWetIdle {
+  opacity: 0.22;
+}
+
+.abCentre {
+  stroke: rgba(239, 233, 220, 0.3);
+  stroke-width: 1;
+}
+.abPlayhead {
+  stroke: #efe9dc;
+  stroke-width: 1.5;
+}
+/* Which half is which. Lights with the switch. */
+.abScopeTag {
+  position: absolute;
+  left: 10px;
+  pointer-events: none;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  color: rgba(239, 233, 220, 0.4);
+}
+.abScopeTagTop {
+  top: 8px;
+}
+.abScopeTagBottom {
+  bottom: 8px;
+}
+/* Each tag lights in its own half's colour. */
+.abScopeTagLitDry {
+  color: #efe9dc;
+}
+.abScopeTagLitWet {
+  color: var(--trace);
+}
+.abScanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0) 0px,
+    rgba(0, 0, 0, 0) 2px,
+    rgba(0, 0, 0, 0.28) 3px
+  );
+}
+
+.abTransport {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.9rem 0.2rem 0.2rem;
+}
+/* Transport key: the hero button's construction at key size. */
+.abPlay {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 54px;
+  height: 48px;
+  padding-left: 2px;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  background: linear-gradient(180deg, #fbf6ea 0%, #f3ecdc 55%, #e9dfc8 100%);
+  box-shadow: 4px 5px 0 0 var(--ink);
+  color: var(--ink);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+.abPlay:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 3px 4px 0 0 var(--ink);
+}
+.abPlay:active {
+  transform: translate(3px, 4px);
+  box-shadow: 1px 1px 0 0 var(--ink);
+}
+/* Shown while the pair is still being fetched on first press. */
+.abSpinner {
+  width: 17px;
+  height: 17px;
+  border: 2.5px solid rgba(28, 20, 15, 0.25);
+  border-top-color: var(--ink);
+  border-radius: 50%;
+  animation: abSpin 0.7s linear infinite;
+}
+@keyframes abSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+/* The only decorative motion in the section - the playhead stays, since it
+   carries meaning rather than flourish. */
+@media (prefers-reduced-motion: reduce) {
+  .abSpinner {
+    animation: none;
+    border-top-color: rgba(28, 20, 15, 0.25);
+    border-left-color: var(--ink);
+  }
+  .abPlay,
+  .abPlay:hover,
+  .abPlay:active {
+    transition: none;
+  }
+}
+
+.abTime {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  letter-spacing: 0.1em;
+  color: var(--silk-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+/* OFF | ON as one two-position switch rather than two loose buttons. */
+.abToggle {
+  display: flex;
+  margin-left: auto;
+  border: 3px solid var(--ink);
+  border-radius: 8px;
+  overflow: hidden;
+}
+.abToggleBtn {
+  min-width: 72px;
+  padding: 0.6rem 0.9rem;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+}
+.abToggleBtn + .abToggleBtn {
+  border-left: 3px solid var(--ink);
+}
+.abToggleOn {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+.abChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding: 0.9rem 0.2rem 0.2rem;
+  border-top: 1px solid var(--seam);
+  margin-top: 0.9rem;
+}
+.abChip {
+  padding: 0.45rem 0.85rem;
+  border: 2px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  cursor: pointer;
+}
+.abChipOn {
+  background: var(--ink);
+  color: var(--cream);
+}
+
+@media (max-width: 560px) {
+  .abTransport {
+    flex-wrap: wrap;
+  }
+  .abToggle {
+    margin-left: 0;
+    width: 100%;
+  }
+  .abToggleBtn {
+    flex: 1;
+  }
+}
+
 /* ---- Intro -------------------------------------------------------------- */
 .intro {
   max-width: 44rem;
@@ -210,7 +494,7 @@
   text-align: center;
 }
 .introTitle {
-  color: var(--cream);
+  color: var(--ink);
   font-size: clamp(1.8rem, 4.5vw, 2.6rem);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -241,7 +525,7 @@
 .blockMedia { min-width: 0; }
 /* Every screenshot sits behind CRT glass: bezel, scanlines, glow. */
 /* No ring and no glow: the shots already carry the plugin's own chassis and
-   bezel, so anything added around them reads as a halo on the dark ground. */
+   bezel, so anything added around them just competes with it. */
 .shotFrame {
   position: relative;
   border-radius: 14px;
@@ -268,7 +552,7 @@
 }
 .blockOsd { margin-bottom: 0.7rem; }
 .blockTitle {
-  color: var(--cream);
+  color: var(--ink);
   font-size: clamp(1.5rem, 3.2vw, 2rem);
   font-weight: 700;
   letter-spacing: -0.015em;
@@ -291,7 +575,7 @@
   margin: 0 auto 2.8rem;
 }
 .capsTitle {
-  color: var(--cream);
+  color: var(--ink);
   font-size: clamp(1.6rem, 3.6vw, 2.2rem);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -309,7 +593,7 @@
 .capTitle {
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   letter-spacing: 0.08em;
-  color: var(--cream);
+  color: var(--ink);
   font-weight: 600;
   margin-bottom: 0.35rem;
 }
@@ -326,7 +610,7 @@
   padding: 5rem 1.5rem;
 }
 .faqTitle {
-  color: var(--cream);
+  color: var(--ink);
   font-size: clamp(1.6rem, 3.6vw, 2.2rem);
   font-weight: 700;
   margin-bottom: 1.6rem;
@@ -340,7 +624,7 @@
   gap: 1rem;
   background: none;
   border: 0;
-  color: var(--cream);
+  color: var(--ink);
   font-family: inherit;
   font-size: 1.05rem;
   font-weight: 600;
@@ -376,7 +660,7 @@
   padding: 5rem 1.5rem 6rem;
 }
 .gsTitle {
-  color: var(--cream);
+  color: var(--ink);
   font-size: clamp(1.8rem, 4.5vw, 2.6rem);
   font-weight: 700;
   margin-bottom: 0.8rem;
@@ -418,11 +702,53 @@
 }
 .stickyMeta { color: var(--silk-dim); font-size: 0.85rem; }
 .stickySpacer { flex: 1; }
-/* Colour comes from the shared buy-button ramp above; only the size differs. */
+/* Compact retro switch, same recipe as the hero button - the bar itself stays
+   dark regardless of page theme, so this keeps its own cream-on-ink look. */
 .stickyBtn {
-  padding: 0.6rem 1.2rem;
-  font-size: 0.92rem;
+  --btn-ink: #1c140f;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35em;
+  border: 2px solid var(--btn-ink);
+  border-radius: 8px;
+  padding: 0.55rem 1.1rem 0.8rem;
+  background: linear-gradient(180deg, #fbf6ea 0%, #f3ecdc 55%, #e9dfc8 100%);
+  box-shadow: 3px 4px 0 0 var(--btn-ink);
+  color: var(--btn-ink);
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-weight: 600;
+  font-size: 0.8rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
+.stickyBtn::after {
+  content: "";
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  bottom: 2px;
+  height: 6px;
+  border-radius: 0 0 5px 5px;
+  background: linear-gradient(
+    to bottom,
+    #f2953f 0%, #f2953f 33%,
+    #ea4a4a 33%, #ea4a4a 66%,
+    #e63d94 66%, #e63d94 100%
+  );
+}
+.stickyBtn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 3px 0 0 var(--btn-ink);
+}
+.stickyBtn:active { transform: translate(3px, 4px); box-shadow: 0 0 0 0 var(--btn-ink); }
+.stickyBtn:disabled { opacity: 0.7; cursor: default; }
+.stickyBtn s { opacity: 0.6; font-weight: 400; margin-left: 0.3em; }
 
 /* ---- Responsive ---------------------------------------------------------- */
 @media (max-width: 860px) {

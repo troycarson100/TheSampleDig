@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type ReactNode } from "react"
 import styles from "./drft.module.css"
+import DrftAbSection from "./DrftAbSection"
 import { trackMeta } from "@/lib/meta-pixel"
 import { PRICING } from "@/lib/products"
 
@@ -366,6 +367,9 @@ export default function DrftLanding() {
       </section>
       {/* Out of hero flow so it doesn't affect the hero's vertical centering. */}
       <span id="drft-hero-sentinel" aria-hidden />
+
+      {/* ---- A/B compare: the proof, before any of the claims ------------- */}
+      <DrftAbSection />
 
       {/* ---- Intro -------------------------------------------------------- */}
       <section className={styles.intro}>

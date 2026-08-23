@@ -87,3 +87,7 @@ reports/shft-social/
 # write - iCloud won't sync anything named *.nosync, so this location is left
 # alone entirely.
 .worktrees.nosync/
+
+# drft A/B masters. The 24-bit OFF/ON pairs are ~33MB; only the MP3s that
+# scripts/build-drft-ab-peaks.mjs derives from them ever get committed.
+/public/drft/ab/_src/

@@ -29,7 +29,8 @@
     "export-samples-list": "tsx scripts/export-samples-for-bpm-key.ts",
     "populate-300-japanese": "USE_YOUTUBE_SCRAPER=true tsx scripts/populate-300-rare-japanese-tracks.ts",
     "populate-500-jazz": "USE_YOUTUBE_SCRAPER=true tsx scripts/populate-500-rare-vintage-jazz.ts",
-    "populate:drum-break-era": "tsx scripts/populate-drum-break-era.ts --target=300"
+    "populate:drum-break-era": "tsx scripts/populate-drum-break-era.ts --target=300",
+    "drft:ab-peaks": "node scripts/build-drft-ab-peaks.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1090.0",
