@@ -10,7 +10,7 @@ const DEFAULT_STRIPE_PORTAL_LOGIN_URL = "https://billing.stripe.com/p/login/8x29
 const linkClass =
   "flex items-center justify-between gap-3 rounded-lg border px-4 py-3 w-full text-left no-underline transition hover:opacity-90"
 const btnClass =
-  `${linkClass} cursor-pointer font-[inherit]`
+  `${linkClass} nav-tab-link cursor-pointer font-[inherit]`
 
 function portalLoginUrl() {
   return (

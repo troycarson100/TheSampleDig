@@ -30,7 +30,7 @@ export default function SettingsPricingNavButton() {
   return (
     <button
       type="button"
-      className={linkClass}
+      className={`${linkClass} nav-tab-link`}
       style={{ borderColor: "var(--border)", color: "var(--foreground)", background: "transparent" }}
       onClick={() => openProModal()}
     >

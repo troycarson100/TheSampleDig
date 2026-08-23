@@ -178,7 +178,7 @@ export function SiteSettingsMenu() {
                   key={href}
                   type="button"
                   role="menuitem"
-                  className="flex w-full items-center gap-3 px-3.5 py-2.5 text-[13px] text-left transition-colors hover:bg-white/6 border-0 cursor-pointer"
+                  className="nav-tab-link flex w-full items-center gap-3 px-3.5 py-2.5 text-left transition-colors hover:bg-white/6 border-0 cursor-pointer"
                   style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace", background: "transparent" }}
                   onClick={() => {
                     setOpen(false)
