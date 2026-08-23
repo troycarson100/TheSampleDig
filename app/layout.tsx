@@ -47,7 +47,7 @@ const cormorantGaramond = Cormorant_Garamond({
 const ibmPlexMono = IBM_Plex_Mono({
   variable: "--font-ibm-mono",
   subsets: ["latin"],
-  weight: ["300", "400", "500"],
+  weight: ["300", "400", "500", "600"],
 })
 
 export const metadata: Metadata = {

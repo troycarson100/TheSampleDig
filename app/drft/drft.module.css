@@ -2,16 +2,15 @@
    Palette comes from the plugin's own chassis tokens (Source/ui/UiTokens.h). */
 
 .page {
-  /* Charcoal rather than the plugin's warm chassis brown: the screenshots run
-     warm, and a neutral, darker ground makes them sit forward instead of
-     blending into the page. */
-  --chassis: #121212;
-  --panel: #1a1a19;
-  --seam: #070707;
+  /* Warm graphite rather than a flat neutral black: lighter, and pulls the
+     same warmth as the cream/gold accents instead of fighting them. */
+  --chassis: #1f1a15;
+  --panel: #2a2219;
+  --seam: #0f0b08;
   --cream: #efe9dc;
   --silk: #a89c86;
   --silk-dim: #6e6557;
-  --led-green: #7fae4a;
+  --led-gold: #e7b563;
   --led-amber: #d99a2b;
   --led-red: #c8402e;
   --line: rgba(168, 156, 134, 0.16);
@@ -29,73 +28,11 @@
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.78rem;
   letter-spacing: 0.18em;
-  color: var(--led-green);
-  text-shadow: 0 0 8px rgba(127, 174, 74, 0.5);
+  color: var(--led-gold);
+  text-shadow: 0 0 8px rgba(231, 181, 99, 0.5);
   text-transform: uppercase;
 }
 
-/* ---- Shared pills ------------------------------------------------------- */
-.pillLight,
-.pillDark,
-.stickyBtn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4em;
-  border: 0;
-  border-radius: 999px;
-  padding: 0.85rem 1.6rem;
-  font-family: var(--font-geist-sans), system-ui, sans-serif;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  transition: filter 0.15s, transform 0.1s;
-}
-/* Buy buttons run the wordmark's own stripe ramp - peach, orange, red, into
-   the magenta at the bottom of the logo - with the logo's cream as the top
-   highlight and its near-black keyline as the ink. */
-.pillLight,
-.pillDark,
-.stickyBtn {
-  color: #1a0f0a;
-  background: linear-gradient(
-    180deg,
-    #f8c89a 0%,
-    #f4913f 30%,
-    #f0592a 58%,
-    #ea3c56 80%,
-    #e8318c 100%
-  );
-  text-shadow: 0 1px 0 rgba(255, 238, 210, 0.45);
-  box-shadow:
-    inset 0 1px 0 rgba(234, 221, 192, 0.75),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.32),
-    0 2px 0 #7d1440,
-    0 0 26px rgba(240, 89, 42, 0.45);
-}
-.pillLight:hover,
-.pillDark:hover,
-.stickyBtn:hover {
-  filter: brightness(1.07);
-  transform: translateY(-1px);
-  box-shadow:
-    inset 0 1px 0 rgba(234, 221, 192, 0.85),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.32),
-    0 3px 0 #7d1440,
-    0 0 36px rgba(232, 49, 140, 0.5);
-}
-/* Pressed: the key travels down onto its own shadow. */
-.pillLight:active,
-.pillDark:active,
-.stickyBtn:active {
-  transform: translateY(1px);
-  box-shadow:
-    inset 0 1px 0 rgba(234, 221, 192, 0.45),
-    inset 0 2px 6px rgba(0, 0, 0, 0.32),
-    0 0 18px rgba(240, 89, 42, 0.35);
-}
-.pillLight:disabled, .pillDark:disabled, .stickyBtn:disabled { opacity: 0.6; cursor: default; }
-.pillLight s, .pillDark s, .stickyBtn s { opacity: 0.55; font-weight: 400; }
 /* Price inherits the button's dark ink - never a second colour on the ramp. */
 .priceSale { color: inherit; }
 
@@ -169,19 +106,100 @@
 }
 .heroSubtitle {
   color: #fff;
-  font-size: 1.15rem;
-  margin-bottom: 2rem;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 1rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  margin-bottom: 2.5rem;
 }
 .heroCtaRow {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.9rem;
 }
+
+/* ---- Hero CTA: retro hardware button --------------------------------------
+   The hero's own buy/download control - a physical-feeling switch rather than
+   a web pill. Scoped to the hero only; the sticky bar and the closing "Get
+   drft" section keep the original lit-key pill above. */
+.heroBuyBtn {
+  --btn-ink: #1c140f;
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(280px, 88vw, 410px);
+  min-height: 80px;
+  padding: 1rem 1.75rem 1.4rem;
+  border: 3px solid var(--btn-ink);
+  border-radius: 10px;
+  background: linear-gradient(180deg, #fbf6ea 0%, #f3ecdc 55%, #e9dfc8 100%);
+  box-shadow: 6px 7px 0 0 var(--btn-ink);
+  color: var(--btn-ink);
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-weight: 600;
+  font-size: clamp(1.05rem, 2.3vw, 1.35rem);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+/* Three accent stripes along the bottom inside edge, lifted from the wordmark's
+   own orange -> coral -> pink ramp. */
+.heroBuyBtn::after {
+  content: "";
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  bottom: 3px;
+  height: 11px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(
+    to bottom,
+    #f2953f 0%, #f2953f 33%,
+    #ea4a4a 33%, #ea4a4a 66%,
+    #e63d94 66%, #e63d94 100%
+  );
+}
+.heroBuyBtn:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 5px 6px 0 0 var(--btn-ink);
+}
+.heroBuyBtn:active {
+  transform: translate(4px, 5px);
+  box-shadow: 2px 2px 0 0 var(--btn-ink);
+}
+.heroBuyBtn:disabled { opacity: 0.7; cursor: default; }
+.heroBuyBtn s { opacity: 0.6; font-weight: 400; margin-left: 0.35em; }
+
+/* Ownership status: quiet, sits under the button rather than inside it. */
+.heroOwned {
+  margin-top: 28px;
+  color: var(--cream);
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+.heroOwnedCheck {
+  color: #f2953f;
+  margin-right: 0.5em;
+}
+
 .heroPrice {
   /* Slightly held back from the headline white so the hierarchy survives. */
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 0.9rem;
+  color: rgba(239, 233, 220, 0.78);
+  font-size: clamp(0.95rem, 1.6vw, 1.05rem);
+  letter-spacing: 0.02em;
+  margin-top: 24px;
+}
+.heroDot {
+  color: #f2953f;
+  margin: 0 0.55em;
+  font-weight: 700;
 }
 
 /* ---- Intro -------------------------------------------------------------- */
@@ -285,7 +303,7 @@
   grid-template-columns: repeat(3, 1fr);
   gap: 2.6rem 2.2rem;
 }
-.capIcon { color: var(--led-green); margin-bottom: 0.7rem; }
+.capIcon { color: var(--led-gold); margin-bottom: 0.7rem; }
 /* Silk-screen label: UPPERCASE mono, letter-spaced — same treatment as the
    knob labels on the chassis. Titles are authored uppercase; no transform. */
 .capTitle {
@@ -331,7 +349,7 @@
   cursor: pointer;
 }
 .faqPlus {
-  color: var(--led-green);
+  color: var(--led-gold);
   font-size: 1.3rem;
   transition: transform 0.2s;
 }

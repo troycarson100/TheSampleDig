@@ -146,14 +146,24 @@ async function startCheckout(): Promise<{ url: string | null; needsAuth: boolean
     crossgrade price actually exists in Stripe). Kicks off Stripe checkout;
     sends logged-out users to sign in first, owners to their downloads, and
     falls back to "Opens at launch" until the price env is set. */
-function BuyButton({ className, owned, crossgrade }: { className: string; owned: boolean; crossgrade: boolean }) {
+function BuyButton({
+  className,
+  owned,
+  crossgrade,
+  ownedLabel,
+}: {
+  className: string
+  owned: boolean
+  crossgrade: boolean
+  ownedLabel?: string
+}) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
   if (owned) {
     return (
       <a className={className} href="/products">
-        You own drft — Download
+        {ownedLabel ?? "You own drft — Download"}
       </a>
     )
   }
@@ -333,8 +343,24 @@ export default function DrftLanding() {
           </h1>
           <p className={styles.heroSubtitle}>VHS / CRT circuit-bend FX</p>
           <div className={styles.heroCtaRow}>
-            <BuyButton className={styles.pillLight} owned={owned} crossgrade={crossgradeOn} />
-            <p className={styles.heroPrice}>One-time purchase - macOS &amp; Windows - VST3 / AU / Standalone</p>
+            <BuyButton
+              className={styles.heroBuyBtn}
+              owned={owned}
+              crossgrade={crossgradeOn}
+              ownedLabel="Download drft"
+            />
+            {owned ? (
+              <p className={styles.heroOwned}>
+                <span className={styles.heroOwnedCheck} aria-hidden>
+                  ✓
+                </span>
+                You own drft
+              </p>
+            ) : null}
+            <p className={styles.heroPrice}>
+              One-time purchase <span className={styles.heroDot}>•</span> macOS &amp; Windows{" "}
+              <span className={styles.heroDot}>•</span> VST3 / AU / Standalone
+            </p>
           </div>
         </div>
       </section>
@@ -420,7 +446,7 @@ export default function DrftLanding() {
           )}
         </p>
         <div className={styles.gsForm}>
-          <BuyButton className={styles.pillDark} owned={owned} crossgrade={crossgradeOn} />
+          <BuyButton className={styles.heroBuyBtn} owned={owned} crossgrade={crossgradeOn} />
         </div>
       </section>
     </>
