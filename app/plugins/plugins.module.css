@@ -71,7 +71,9 @@
   align-items: center;
   gap: 0.35em;
   border: 0;
-  border-radius: 999px;
+  /* Squared off to match the drft card's key below - shape only; the fill and
+     type stay this card's own. */
+  border-radius: 8px;
   padding: 0.65rem 1.2rem;
   font-size: 0.95rem;
   font-weight: 600;
