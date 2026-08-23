@@ -2,10 +2,12 @@
 
 import { useCallback, useEffect, useState } from "react"
 import type { CompCodeStatus } from "@/lib/comp-code-redemption"
+import { COMP_PRODUCTS, PRODUCT_LABEL, type CompProduct } from "@/lib/plugin-products"
 
 interface AdminCompCode {
   id: string
   code: string
+  product: CompProduct
   note: string | null
   createdByEmail: string | null
   createdAt: string
@@ -27,6 +29,23 @@ const primaryBtnStyle = { borderColor: "var(--primary)", color: "var(--primary)"
 
 const inputCls = "rounded-lg border px-3 py-2 text-sm outline-none"
 const btnCls = "rounded-lg border px-3 py-1.5 text-sm font-medium transition hover:opacity-75 disabled:opacity-40 cursor-pointer"
+
+// A crashed route (or any 500 that returns an HTML error page) has an empty or
+// non-JSON body, and res.json() then throws "Unexpected end of JSON input" -
+// which tells an admin nothing about what actually went wrong. Read the body as
+// text first and surface the status when it will not parse.
+async function readJson(res: Response): Promise<{ ok: boolean; data: any; message: string }> {
+  const text = await res.text()
+  if (!text) {
+    return { ok: res.ok, data: null, message: `Server returned ${res.status} with an empty response.` }
+  }
+  try {
+    const data = JSON.parse(text)
+    return { ok: res.ok, data, message: typeof data?.error === "string" ? data.error : "" }
+  } catch {
+    return { ok: false, data: null, message: `Server returned ${res.status} (not JSON). Check the server log.` }
+  }
+}
 
 function fmtDate(d: string): string {
   return new Date(d).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
@@ -56,6 +75,10 @@ export default function AdminComps() {
   const [busy, setBusy] = useState(false)
 
   const [count, setCount] = useState(1)
+  // No default that silently works: minting comps for the wrong plugin gives
+  // away the wrong product, and the server rejects a missing value too.
+  const [product, setProduct] = useState<CompProduct | "">("")
+  const [tab, setTab] = useState<CompProduct | "all">("all")
   const [note, setNote] = useState("")
   const [expiresAt, setExpiresAt] = useState("")
   const [justGenerated, setJustGenerated] = useState<AdminCompCode[]>([])
@@ -67,8 +90,8 @@ export default function AdminComps() {
     setError("")
     try {
       const res = await fetch("/api/admin/comps")
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Load failed")
+      const { ok, data, message } = await readJson(res)
+      if (!ok || !data) throw new Error(message || "Load failed")
       setCodes(data.codes)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Load failed")
@@ -89,10 +112,10 @@ export default function AdminComps() {
       const res = await fetch("/api/admin/comps", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ count, note, expiresAt: expiresAt || undefined }),
+        body: JSON.stringify({ count, product, note, expiresAt: expiresAt || undefined }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Generate failed")
+      const { ok, data, message } = await readJson(res)
+      if (!ok || !data) throw new Error(message || "Generate failed")
       setJustGenerated(data.codes)
       setNote("")
       setExpiresAt("")
@@ -111,8 +134,8 @@ export default function AdminComps() {
     setError("")
     try {
       const res = await fetch(`/api/admin/comps/${id}/revoke`, { method: "POST" })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Revoke failed")
+      const { ok, message } = await readJson(res)
+      if (!ok) throw new Error(message || "Revoke failed")
       await load()
     } catch (e) {
       setError(e instanceof Error ? e.message : "Revoke failed")
@@ -125,7 +148,11 @@ export default function AdminComps() {
     navigator.clipboard?.writeText(text).catch(() => {})
   }
 
-  const eligibleIds = codes.filter((c) => isDateEditable(c.status)).map((c) => c.id)
+  const visible = tab === "all" ? codes : codes.filter((c) => c.product === tab)
+
+  // Scoped to what is on screen: a "select all" that also grabbed rows hidden
+  // by the current tab would apply bulk edits the admin never saw.
+  const eligibleIds = visible.filter((c) => isDateEditable(c.status)).map((c) => c.id)
   const allEligibleSelected = eligibleIds.length > 0 && eligibleIds.every((id) => selected.has(id))
 
   function toggleSelected(id: string) {
@@ -135,6 +162,11 @@ export default function AdminComps() {
       else next.add(id)
       return next
     })
+  }
+
+  function switchTab(next: CompProduct | "all") {
+    setTab(next)
+    setSelected(new Set())
   }
 
   function toggleSelectAllEligible() {
@@ -151,8 +183,8 @@ export default function AdminComps() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ids: Array.from(selected), expiresAt: nextExpiresAt }),
       })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error || "Bulk edit failed")
+      const { ok, message } = await readJson(res)
+      if (!ok) throw new Error(message || "Bulk edit failed")
       setSelected(new Set())
       setBulkExpiresAt("")
       await load()
@@ -177,7 +209,7 @@ export default function AdminComps() {
       </p>
       <h1 className="text-2xl font-bold mb-2">Comp codes</h1>
       <p className="text-sm mb-8" style={{ opacity: 0.7 }}>
-        Generate one-time retrieval codes to give away working copies of shft. A code is redeemed
+        Generate one-time retrieval codes to give away working copies of a plugin. A code is redeemed
         at /redeem by whoever submits it first.
       </p>
       {error ? (
@@ -187,6 +219,22 @@ export default function AdminComps() {
       <section className="rounded-xl border p-4 sm:p-5" style={{ borderColor: "var(--border)" }}>
         <h2 className="text-lg font-semibold">Generate</h2>
         <div className="mt-3 flex flex-wrap items-center gap-2">
+          <label className="flex items-center gap-1.5 text-sm" style={{ opacity: 0.85 }}>
+            Product
+            <select
+              className={inputCls}
+              style={fieldStyle}
+              value={product}
+              onChange={(e) => setProduct(e.target.value as CompProduct | "")}
+            >
+              <option value="">Pick one</option>
+              {COMP_PRODUCTS.map((p) => (
+                <option key={p} value={p}>
+                  {PRODUCT_LABEL[p]}
+                </option>
+              ))}
+            </select>
+          </label>
           <label className="flex items-center gap-1.5 text-sm" style={{ opacity: 0.85 }}>
             Count
             <input
@@ -216,7 +264,7 @@ export default function AdminComps() {
               onChange={(e) => setExpiresAt(e.target.value)}
             />
           </label>
-          <button className={btnCls} style={primaryBtnStyle} disabled={busy} onClick={generate}>
+          <button className={btnCls} style={primaryBtnStyle} disabled={busy || !product} onClick={generate}>
             Generate
           </button>
         </div>
@@ -246,6 +294,22 @@ export default function AdminComps() {
           </p>
         ) : (
           <>
+            <div className="mb-3 flex flex-wrap items-center gap-1.5">
+              {(["all", ...COMP_PRODUCTS] as const).map((t) => {
+                const count = t === "all" ? codes.length : codes.filter((c) => c.product === t).length
+                const active = tab === t
+                return (
+                  <button
+                    key={t}
+                    className={btnCls}
+                    style={active ? primaryBtnStyle : btnStyle}
+                    onClick={() => switchTab(t)}
+                  >
+                    {t === "all" ? "All" : PRODUCT_LABEL[t]} ({count})
+                  </button>
+                )
+              })}
+            </div>
             {selected.size > 0 ? (
               <div
                 className="mb-3 flex flex-wrap items-center gap-2 rounded-xl border p-3 text-sm"
@@ -288,6 +352,7 @@ export default function AdminComps() {
                       />
                     </th>
                     <th className="px-4 py-2.5 font-normal">Code</th>
+                    <th className="px-4 py-2.5 font-normal">Product</th>
                     <th className="px-4 py-2.5 font-normal">Note</th>
                     <th className="px-4 py-2.5 font-normal">Status</th>
                     <th className="px-4 py-2.5 font-normal">Redeemed by</th>
@@ -297,7 +362,7 @@ export default function AdminComps() {
                   </tr>
                 </thead>
                 <tbody>
-                  {codes.map((c) => (
+                  {visible.map((c) => (
                     <tr key={c.id} className="border-t" style={{ borderColor: "var(--border)" }}>
                       <td className="px-4 py-2.5">
                         {isDateEditable(c.status) ? (
@@ -312,6 +377,7 @@ export default function AdminComps() {
                       <td className="px-4 py-2.5" style={mono}>
                         {c.code}
                       </td>
+                      <td className="px-4 py-2.5">{PRODUCT_LABEL[c.product]}</td>
                       <td className="px-4 py-2.5">{c.note ?? ""}</td>
                       <td className="px-4 py-2.5">{statusLabel(c.status)}</td>
                       <td className="px-4 py-2.5">{c.redeemedByEmail ?? ""}</td>

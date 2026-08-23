@@ -5,8 +5,12 @@ import { normalizeCompCode } from "@/lib/comp-code"
 import { decideRedemption, type RedeemRefuseReason } from "@/lib/comp-code-redemption"
 import { generateLicenseKey } from "@/lib/license-key"
 import { sendPluginPurchaseEmail } from "@/lib/email"
-
-const PRODUCT = "shft"
+import {
+  PLUGIN_GRANTS,
+  PRODUCT_LABEL,
+  asCompProduct,
+  type PluginProduct,
+} from "@/lib/plugin-products"
 
 // Keyed off RedeemRefuseReason (not a generic Record<string, ...>) so a
 // reason added to decideRedemption's union without a matching entry here is
@@ -18,7 +22,9 @@ const MESSAGES: Record<RedeemRefuseReason, string> = {
   revoked: "That code has been cancelled.",
   expired: "That code has expired.",
   already_redeemed: "That code has already been redeemed.",
-  already_owned: "You already own shft - see My Products.",
+  // Generic fallback only: the route replaces this with a message naming the
+  // code's own product, which it knows and this static map cannot.
+  already_owned: "You already own that - see My Products.",
 }
 
 const STATUS: Record<RedeemRefuseReason, number> = {
@@ -52,20 +58,30 @@ export async function POST(request: Request) {
   }
 
   const row = await prisma.compCode.findUnique({ where: { code } })
-  const alreadyOwns = row
-    ? Boolean(
-        await prisma.purchase.findUnique({
-          where: { userId_product: { userId: session.user.id, product: PRODUCT } },
-        }),
-      )
-    : false
 
-  const decision = decideRedemption(row, alreadyOwns)
+  // What this code grants. A bundle grants two products, so ownership is only
+  // a refusal when the redeemer already owns EVERY product it would grant -
+  // someone who bought shft can still redeem a bundle comp and get drft from
+  // it, rather than being told "you already own that" and losing the code.
+  const compProduct = asCompProduct(row?.product)
+  const grantProducts = PLUGIN_GRANTS[compProduct]
+
+  const owned = row
+    ? await prisma.purchase.findMany({
+        where: { userId: session.user.id, product: { in: [...grantProducts] } },
+        select: { product: true },
+      })
+    : []
+  const ownedSet = new Set(owned.map((p) => p.product))
+  const missing = grantProducts.filter((p) => !ownedSet.has(p))
+
+  const decision = decideRedemption(row, missing.length === 0)
   if (decision.action === "refuse") {
-    return NextResponse.json(
-      { error: MESSAGES[decision.reason], reason: decision.reason },
-      { status: STATUS[decision.reason] },
-    )
+    const error =
+      decision.reason === "already_owned"
+        ? `You already own ${PRODUCT_LABEL[compProduct]} - see My Products.`
+        : MESSAGES[decision.reason]
+    return NextResponse.json({ error, reason: decision.reason }, { status: STATUS[decision.reason] })
   }
 
   // Claim the CODE first, atomically: only the request whose conditional
@@ -87,27 +103,44 @@ export async function POST(request: Request) {
     )
   }
 
-  // Upsert, not create: if this same account somehow double-submits before
-  // the first request's write lands, the second call reuses the existing
-  // purchase and mints no second key, matching the "never regenerate" rule
-  // the paid path already follows.
-  const purchase = await prisma.purchase.upsert({
-    where: { userId_product: { userId: session.user.id, product: PRODUCT } },
-    create: { userId: session.user.id, product: PRODUCT, stripeSessionId: null, licenseKey: generateLicenseKey() },
-    update: {},
-  })
+  // Grant every product the code covers. Upsert, not create: if this same
+  // account somehow double-submits before the first request's write lands, the
+  // second call reuses the existing purchase and mints no second key, matching
+  // the "never regenerate" rule the paid path already follows. Only `missing`
+  // is granted, so a partially-owned bundle tops up rather than touching the
+  // product the buyer already paid for.
+  const emailItems: { product: PluginProduct; licenseKey: string | null }[] = []
+  let linkPurchaseId: string | null = null
+
+  for (const product of missing) {
+    const purchase = await prisma.purchase.upsert({
+      where: { userId_product: { userId: session.user.id, product } },
+      create: {
+        userId: session.user.id,
+        product,
+        stripeSessionId: null,
+        licenseKey: generateLicenseKey(product),
+      },
+      update: {},
+    })
+    linkPurchaseId ??= purchase.id
+    emailItems.push({ product, licenseKey: purchase.licenseKey })
+  }
 
   // Best-effort link for the admin audit view. If this fails the grant has
   // already happened - the user already has their purchase and key - so it
-  // is logged, not surfaced as an error.
+  // is logged, not surfaced as an error. purchaseId is @unique and singular,
+  // so a bundle links to the first row it created; the code's own `product`
+  // column is what records that it granted both.
   try {
-    await prisma.compCode.update({ where: { id: row!.id }, data: { purchaseId: purchase.id } })
+    if (linkPurchaseId)
+      await prisma.compCode.update({ where: { id: row!.id }, data: { purchaseId: linkPurchaseId } })
   } catch (e) {
     console.error("[comps redeem] failed to link purchase to comp code", e)
   }
 
   try {
-    await sendPluginPurchaseEmail(session.user.email!, [{ product: PRODUCT, licenseKey: purchase.licenseKey }])
+    await sendPluginPurchaseEmail(session.user.email!, emailItems)
   } catch (e) {
     console.error("[comps redeem] purchase email failed", e)
   }

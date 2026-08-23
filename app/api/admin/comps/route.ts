@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db"
 import { requireAdmin } from "@/lib/admin"
 import { generateCompCode } from "@/lib/comp-code"
 import { compCodeStatus } from "@/lib/comp-code-redemption"
+import { asCompProduct, isCompProduct } from "@/lib/plugin-products"
 
 const MAX_BATCH = 100
 const MAX_NOTE_LEN = 200
@@ -43,6 +44,7 @@ export async function GET() {
   const codes = rows.map((r) => ({
     id: r.id,
     code: r.code,
+    product: asCompProduct(r.product),
     note: r.note,
     createdByEmail: r.createdByEmail,
     createdAt: r.createdAt,
@@ -59,7 +61,7 @@ export async function POST(request: Request) {
   const session = await requireAdmin()
   if (!session) return NextResponse.json({ error: "forbidden" }, { status: 403 })
 
-  let body: { count?: number; note?: string; expiresAt?: string }
+  let body: { count?: number; note?: string; expiresAt?: string; product?: unknown }
   try {
     // A body that is valid JSON but not an object (e.g. the literal text
     // "null") parses without throwing; coerce it to {} so the field
@@ -73,6 +75,17 @@ export async function POST(request: Request) {
   const count = Number.isInteger(body.count) && (body.count as number) > 0
     ? Math.min(body.count as number, MAX_BATCH)
     : 1
+
+  // Explicit, not defaulted: an admin minting comps for the wrong product is
+  // the expensive mistake here (free product handed to the wrong plugin), so
+  // an unrecognised or missing value is a 400 rather than a silent "shft".
+  if (!isCompProduct(body.product)) {
+    return NextResponse.json(
+      { error: "Pick a product: shft, drft, or bundle." },
+      { status: 400 },
+    )
+  }
+  const product = body.product
 
   const note = typeof body.note === "string" && body.note.trim()
     ? body.note.trim().slice(0, MAX_NOTE_LEN)
@@ -91,11 +104,12 @@ export async function POST(request: Request) {
   const created = []
   for (let i = 0; i < count; i++) {
     const row = await prisma.compCode.create({
-      data: { code: generateCompCode(), note, expiresAt, createdByEmail },
+      data: { code: generateCompCode(), product, note, expiresAt, createdByEmail },
     })
     created.push({
       id: row.id,
       code: row.code,
+      product,
       note: row.note,
       createdByEmail: row.createdByEmail,
       createdAt: row.createdAt,

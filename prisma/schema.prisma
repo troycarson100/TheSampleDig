@@ -86,6 +86,10 @@ model CompCode {
   // GIFT-XXXX-XXXX-XXXX — see lib/comp-code.ts. Distinct from licenseKey on
   // purpose: this is redeemed on the WEBSITE, never pasted into the plugin.
   code             String    @unique
+  // What redeeming this code grants: "shft", "drft", or "bundle" (both).
+  // Defaults to shft so codes minted before this column existed - all of
+  // which were shft - keep granting exactly what they always did.
+  product          String    @default("shft")
   note             String?
   // The admin who generated it (from requireAdmin()'s session) — cheap audit
   // trail on a tool that hands out free product.
