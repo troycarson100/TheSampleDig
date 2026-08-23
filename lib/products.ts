@@ -4,6 +4,17 @@
 
 export type ProductAssetId = "installer" | "installer-win" | "manual"
 
+// The object keys drft is served from. Named here rather than inline so the
+// download filename can be DERIVED from the key: the key was env-overridable
+// and the filename was not, so pointing at a new build used to hand buyers a
+// file still labelled with the old version. Deriving it makes that class of
+// mismatch impossible - whatever object is served, the name matches it.
+const DRFT_INSTALLER_KEY     = process.env.DRFT_INSTALLER_KEY     || "drft/drft-1.0.1.pkg"
+const DRFT_INSTALLER_WIN_KEY = process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-1.0.1-setup.exe"
+const DRFT_MANUAL_KEY        = process.env.DRFT_MANUAL_KEY        || "drft/drft-manual-v1.0.pdf"
+
+const basename = (key: string) => key.slice(key.lastIndexOf("/") + 1)
+
 // Display prices for the store pages. Stripe charges whatever the price IDs in
 // the env are configured to — keep these in sync with the Stripe dashboard.
 export const PRICING = {
@@ -124,9 +135,17 @@ export const PRODUCTS: Record<string, ProductDef> = {
   drft: {
     id: "drft",
     name: "drft",
-    version: "1.0.0",
+    version: "1.0.1",
     blurb: "VHS / CRT circuit-bend video-sound effect — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.0.1",
+        notes: [
+          "Live camera now works on Windows - any webcam, capture card or virtual camera the system exposes shows up in the channel list.",
+          "BEND's bit reduction no longer swamps quiet material: it backs off as the signal falls, so decays and silences stay clean instead of turning to crackle. Loud material is unchanged.",
+          "New E key on the FIELD page - an endless zoom that falls inward forever with no seam.",
+        ],
+      },
       {
         version: "1.0.0",
         notes: [
@@ -140,20 +159,20 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "drft installer — macOS",
-        key: process.env.DRFT_INSTALLER_KEY || "drft/drft-1.0.0.pkg",
-        filename: "drft-1.0.0.pkg",
+        key: DRFT_INSTALLER_KEY,
+        filename: basename(DRFT_INSTALLER_KEY),
       },
       {
         id: "installer-win",
         label: "drft installer — Windows",
-        key: process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-1.0.0-setup.exe",
-        filename: "drft-1.0.0-setup.exe",
+        key: DRFT_INSTALLER_WIN_KEY,
+        filename: basename(DRFT_INSTALLER_WIN_KEY),
       },
       {
         id: "manual",
         label: "User manual (PDF)",
-        key: process.env.DRFT_MANUAL_KEY || "drft/drft-manual-v1.0.pdf",
-        filename: "drft-manual-v1.0.pdf",
+        key: DRFT_MANUAL_KEY,
+        filename: basename(DRFT_MANUAL_KEY),
       },
     ],
   },
