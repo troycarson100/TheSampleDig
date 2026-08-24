@@ -5,7 +5,7 @@ import styles from "./shft.module.css"
 import { trackMeta } from "@/lib/meta-pixel"
 import { PRICING } from "@/lib/products"
 import TestimonialMarquee from "./TestimonialMarquee"
-import ReelCarousel from "./ReelCarousel"
+import ReelCarousel from "@/components/ReelCarousel"
 import { TESTIMONIALS, REELS } from "./shft-social"
 
 /* ---- capability icons (thin-line, matching the plugin's minimal look) ---- */

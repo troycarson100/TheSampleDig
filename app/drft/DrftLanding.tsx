@@ -3,6 +3,8 @@
 import { useEffect, useState, type ReactNode } from "react"
 import styles from "./drft.module.css"
 import DrftAbSection from "./DrftAbSection"
+import ReelCarousel from "@/components/ReelCarousel"
+import { REELS } from "./drft-reels"
 import { trackMeta } from "@/lib/meta-pixel"
 import { PRICING } from "@/lib/products"
 
@@ -381,6 +383,9 @@ export default function DrftLanding() {
           it does.
         </p>
       </section>
+
+      {/* ---- Made with drft: same carousel /shft uses -------------------- */}
+      <ReelCarousel reels={REELS} label="Made with drft" />
 
       {/* ---- Alternating feature blocks ----------------------------------- */}
       <div className={styles.blocks}>

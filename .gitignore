@@ -94,3 +94,7 @@ reports/shft-social/
 
 # Ableton analysis files, written next to any audio dragged into a set.
 *.asd
+
+# drft reel masters. Full-res camera/screen captures; only the encoded
+# 720x1280 mp4s derived from them get committed.
+/public/drft/reels/_src/

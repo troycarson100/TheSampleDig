@@ -9,8 +9,20 @@ import {
   type KeyboardEvent,
   type PointerEvent,
 } from "react"
-import type { Reel } from "./shft-social"
 import styles from "./reel-carousel.module.css"
+
+/** One vertical clip in the carousel. Shared by /shft and /drft - the type
+    lives with the component rather than with either page's content file. */
+export type Reel = {
+  /** H.264 MP4 under /public — 720x1280, +faststart. */
+  src: string
+  /** Poster frame beside the mp4, same basename. */
+  poster: string
+  /** "@handle" overlaid bottom-left on the playing card. */
+  handle?: string
+  /** Permalink behind the handle overlay. */
+  url?: string
+}
 
 /** Cards further than this from centre are fully transparent and inert. */
 const VISIBLE_SPAN = 2
@@ -52,7 +64,16 @@ function PauseIcon() {
   )
 }
 
-export default function ReelCarousel({ reels }: { reels: Reel[] }) {
+export default function ReelCarousel({
+  reels,
+  label = "Made with shft",
+}: {
+  reels: Reel[]
+  /** Accessible name for the section. The deck has no visible heading, so this
+      is the only thing naming it to a screen reader - it must say which
+      product the clips belong to. */
+  label?: string
+}) {
   const [active, setActive] = useState(0)
   const [muted, setMuted] = useState(false)
   const [playing, setPlaying] = useState(false)
@@ -154,14 +175,14 @@ export default function ReelCarousel({ reels }: { reels: Reel[] }) {
      so it isn't an anonymous region to a screen reader, and data-reels gives
      tooling a selector that doesn't depend on the copy. */
   return (
-    <section className={styles.section} aria-label="Made with shft" data-reels>
+    <section className={styles.section} aria-label={label} data-reels>
       <div
         className={styles.deck}
         ref={deckRef}
         tabIndex={0}
         role="group"
         aria-roledescription="carousel"
-        aria-label="Reels made with shft"
+        aria-label={label}
         onKeyDown={onKeyDown}
         onPointerDown={onPointerDown}
         onPointerUp={onPointerUp}

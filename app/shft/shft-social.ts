@@ -3,6 +3,9 @@
    Adding a quote or a video means editing this file and dropping assets into
    /public/shft/testimonials or /public/shft/reels. Nothing else changes. */
 
+/* Reel lives with the carousel component, which /drft shares. */
+import type { Reel } from "@/components/ReelCarousel"
+
 export type Testimonial = {
   /** Display name or handle exactly as it should read on the card. */
   name: string
@@ -16,17 +19,6 @@ export type Testimonial = {
   /** Corner glyph. Defaults to Instagram. */
   platform?: "instagram" | "tiktok"
   likes?: number
-}
-
-export type Reel = {
-  /** H.264 MP4 under /shft/reels — 720x1280, +faststart. */
-  src: string
-  /** Poster frame beside the mp4, same basename. */
-  poster: string
-  /** "@handle" overlaid bottom-left on the playing card. */
-  handle?: string
-  /** Instagram permalink behind the handle overlay. */
-  url?: string
 }
 
 /* Order is deliberate. Card 1 is the first thing read after the hero, so the
