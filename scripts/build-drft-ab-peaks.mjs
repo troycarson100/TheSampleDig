@@ -32,8 +32,9 @@ const BUCKETS = 400
 /** Source stem -> slug + chip label. Order here is the order of the chips on
     the page. See resolvePair for how the stem maps onto filenames. */
 const EXAMPLES = [
-  { stem: "Full Mix 01", slug: "full-mix-01", label: "FULL MIX 01" },
-  { stem: "Bounce", slug: "full-mix-02", label: "FULL MIX 02" },
+  // Slug stays full-mix-01 so the shipped mp3s keep their names; the label is
+  // what a visitor reads, and a lone "01" implies a sibling that isn't there.
+  { stem: "Full Mix 01", slug: "full-mix-01", label: "FULL MIX" },
   { stem: "Guitar 01", slug: "guitar", label: "GUITAR" },
   { stem: "Keys 01", slug: "keys-01", label: "KEYS 01" },
   { stem: "Keys 02", slug: "keys-02", label: "KEYS 02" },
@@ -133,11 +134,12 @@ function main() {
   for (const ex of EXAMPLES) {
     const { off: offSrc, on: onSrc } = resolvePair(ex.stem)
 
-    // A pair is only ever as long as its shorter half. The engaged render can
-    // ring out well past the bypassed one - the FULL MIX 02 pair is ~922ms
-    // longer on ON, all of it drift smear decaying after the last hit.
-    // Clamping keeps the two players locked and stops the scope from drawing
-    // past the end of one of them; the cost is that the tail gets cut.
+    // A pair is only ever as long as its shorter half. Every pair currently in
+    // the folder matches its partner exactly, so this clamp is defensive - but
+    // an engaged render can easily ring out past its bypassed twin, because
+    // drift smear keeps decaying after the last hit. Two earlier pairs ran
+    // 149ms and 922ms long that way. Without the clamp the two players wrap at
+    // different moments and walk apart; with it, the tail gets cut instead.
     const duration = Math.min(probeDuration(offSrc), probeDuration(onSrc))
 
     const offPcm = decodeMono(offSrc)

@@ -91,3 +91,6 @@ reports/shft-social/
 # drft A/B masters. The 24-bit OFF/ON pairs are ~33MB; only the MP3s that
 # scripts/build-drft-ab-peaks.mjs derives from them ever get committed.
 /public/drft/ab/_src/
+
+# Ableton analysis files, written next to any audio dragged into a set.
+*.asd
