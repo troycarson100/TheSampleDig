@@ -33,33 +33,41 @@ const BUCKETS = 400
     the page. See resolvePair for how the stem maps onto filenames. */
 const EXAMPLES = [
   { stem: "Full Mix 01", slug: "full-mix-01", label: "FULL MIX 01" },
-  { stem: "Track 2", slug: "full-mix-02", label: "FULL MIX 02" },
+  { stem: "Bounce", slug: "full-mix-02", label: "FULL MIX 02" },
   { stem: "Guitar 01", slug: "guitar", label: "GUITAR" },
   { stem: "Keys 01", slug: "keys-01", label: "KEYS 01" },
   { stem: "Keys 02", slug: "keys-02", label: "KEYS 02" },
 ]
 
-/** Finds a pair's two source files by stem and OFF/ON marker, letting whatever
-    sits between them vary - exports have arrived named both
-    "<stem> - DRFT OFF.wav" and "<stem> - EFFECT OFF.wav", and the next batch
-    will probably invent a third. Matching loosely beats renaming by hand. */
+/** Finds a pair's two source files: any .wav starting with the stem, then
+    split by an OFF/ON word appearing anywhere in the name.
+
+    Deliberately loose, because every batch so far has invented its own
+    convention - "Keys 01 - DRFT OFF.wav", "Full Mix 01 - EFFECT OFF.wav",
+    "Bounce EFFECT OFF [2026-08-20 221508]-1.wav". Matching on word boundaries
+    survives all three and whatever comes next; renaming exports by hand does
+    not. Anything ambiguous fails loudly rather than building the wrong clip. */
 function resolvePair(stem) {
-  const files = readdirSync(SRC_DIR)
   const escaped = stem.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const stemRe = new RegExp(`^${escaped}\\b`, "i")
+  const candidates = readdirSync(SRC_DIR).filter((f) => /\.wav$/i.test(f) && stemRe.test(f))
+
   const find = (side) => {
-    const re = new RegExp(`^${escaped} - .*${side}\\.wav$`, "i")
-    const hits = files.filter((f) => re.test(f))
+    // \bON\b cannot match the word "OFF", but exclude it explicitly anyway so
+    // a name carrying both markers can never be silently misfiled.
+    const hits = candidates.filter((f) =>
+      new RegExp(`\\b${side}\\b`, "i").test(f) && (side === "OFF" || !/\bOFF\b/i.test(f))
+    )
     if (hits.length !== 1) {
       console.error(
         hits.length
-          ? `Ambiguous ${side} file for "${stem}": ${hits.join(", ")}`
+          ? `Ambiguous ${side} file for "${stem}":\n  ${hits.join("\n  ")}`
           : `No ${side} file for "${stem}" in ${SRC_DIR}`
       )
       process.exit(1)
     }
     return join(SRC_DIR, hits[0])
   }
-  // "OFF.wav" cannot satisfy /ON\.wav$/, so the two never cross-match.
   return { off: find("OFF"), on: find("ON") }
 }
 
@@ -125,9 +133,11 @@ function main() {
   for (const ex of EXAMPLES) {
     const { off: offSrc, on: onSrc } = resolvePair(ex.stem)
 
-    // A pair is only ever as long as its shorter half. Track 2's ON render is
-    // ~149ms shorter than its OFF; clamping keeps the two players locked and
-    // stops the scope from drawing past the end of one of them.
+    // A pair is only ever as long as its shorter half. The engaged render can
+    // ring out well past the bypassed one - the FULL MIX 02 pair is ~922ms
+    // longer on ON, all of it drift smear decaying after the last hit.
+    // Clamping keeps the two players locked and stops the scope from drawing
+    // past the end of one of them; the cost is that the tail gets cut.
     const duration = Math.min(probeDuration(offSrc), probeDuration(onSrc))
 
     const offPcm = decodeMono(offSrc)
