@@ -16,7 +16,7 @@
  */
 
 import { execFileSync } from "node:child_process"
-import { mkdirSync, writeFileSync, existsSync } from "node:fs"
+import { mkdirSync, writeFileSync, existsSync, readdirSync } from "node:fs"
 import { join, dirname } from "node:path"
 import { fileURLToPath } from "node:url"
 
@@ -29,14 +29,39 @@ const PEAKS_OUT = join(ROOT, "app/drft/ab-peaks.json")
     ~900px-wide waveform shows any more detail, and keeps the JSON small. */
 const BUCKETS = 400
 
-/** Source stem -> slug + chip label. Files are "<stem> - DRFT OFF.wav" /
-    "<stem> - DRFT ON.wav". Order here is the order of the chips on the page. */
+/** Source stem -> slug + chip label. Order here is the order of the chips on
+    the page. See resolvePair for how the stem maps onto filenames. */
 const EXAMPLES = [
-  { stem: "Track 2", slug: "full-mix", label: "FULL MIX" },
+  { stem: "Full Mix 01", slug: "full-mix-01", label: "FULL MIX 01" },
+  { stem: "Track 2", slug: "full-mix-02", label: "FULL MIX 02" },
   { stem: "Guitar 01", slug: "guitar", label: "GUITAR" },
   { stem: "Keys 01", slug: "keys-01", label: "KEYS 01" },
   { stem: "Keys 02", slug: "keys-02", label: "KEYS 02" },
 ]
+
+/** Finds a pair's two source files by stem and OFF/ON marker, letting whatever
+    sits between them vary - exports have arrived named both
+    "<stem> - DRFT OFF.wav" and "<stem> - EFFECT OFF.wav", and the next batch
+    will probably invent a third. Matching loosely beats renaming by hand. */
+function resolvePair(stem) {
+  const files = readdirSync(SRC_DIR)
+  const escaped = stem.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  const find = (side) => {
+    const re = new RegExp(`^${escaped} - .*${side}\\.wav$`, "i")
+    const hits = files.filter((f) => re.test(f))
+    if (hits.length !== 1) {
+      console.error(
+        hits.length
+          ? `Ambiguous ${side} file for "${stem}": ${hits.join(", ")}`
+          : `No ${side} file for "${stem}" in ${SRC_DIR}`
+      )
+      process.exit(1)
+    }
+    return join(SRC_DIR, hits[0])
+  }
+  // "OFF.wav" cannot satisfy /ON\.wav$/, so the two never cross-match.
+  return { off: find("OFF"), on: find("ON") }
+}
 
 function probeDuration(file) {
   const out = execFileSync(
@@ -98,14 +123,7 @@ function main() {
   const manifest = []
 
   for (const ex of EXAMPLES) {
-    const offSrc = join(SRC_DIR, `${ex.stem} - DRFT OFF.wav`)
-    const onSrc = join(SRC_DIR, `${ex.stem} - DRFT ON.wav`)
-    for (const f of [offSrc, onSrc]) {
-      if (!existsSync(f)) {
-        console.error(`Missing source: ${f}`)
-        process.exit(1)
-      }
-    }
+    const { off: offSrc, on: onSrc } = resolvePair(ex.stem)
 
     // A pair is only ever as long as its shorter half. Track 2's ON render is
     // ~149ms shorter than its OFF; clamping keeps the two players locked and
