@@ -473,9 +473,31 @@ Leave `dashboardLink` on the line above unchanged. Do not add a Product column t
 
 - [ ] **Step 4: Confirm no shft-only affiliate copy remains**
 
-Run: `rg -n "shft affiliate|/shft\?ref=" app components lib`
+Two separate checks — do not merge them into one pattern.
 
-Expected: no matches. Any hit is a spot this plan missed — fix it before committing.
+Stale copy, which must be gone entirely:
+
+```
+rg -n "shft affiliate" app components lib
+```
+
+Expected: no matches.
+
+Ref links, which must survive in exactly one place. `/shft?ref=` is a
+**required feature**, not stale copy: Task 3 deliberately added it as the
+per-plugin link for creators promoting shft specifically. Only the admin
+ref link moved to `/plugins`.
+
+```
+rg -n '/shft\?ref=' app components lib
+```
+
+Expected: exactly one match — the `pluginLinks` entry in
+`components/affiliate/AffiliateDashboard.tsx`. Zero matches means the
+per-plugin link was wrongly deleted; two or more means a spot was missed.
+Do not "fix" the dashboard's `/shft?ref=` link — repointing it at `/plugins`
+would make the shft and drft links identical to each other and to the store
+link, destroying the feature.
 
 - [ ] **Step 5: Typecheck**
 
@@ -502,7 +524,11 @@ git commit -m "feat: rename the affiliate program to the creator program"
 
 - [ ] `npx tsx scripts/test-affiliate-logic.ts` → `All affiliate-logic tests passed`
 - [ ] `npx tsc --noEmit` → clean
-- [ ] `rg -n "shft affiliate|/shft\?ref=" app components lib` → no matches
+- [ ] `rg -n "shft affiliate" app components lib` → no matches
+- [ ] `rg -n '/shft\?ref=' app components lib` → exactly one match, the
+      `pluginLinks` entry in `components/affiliate/AffiliateDashboard.tsx`
+- [ ] `/affiliate` shows three distinct links: `/plugins?ref=`, `/shft?ref=`,
+      and `/drft?ref=` — if any two are identical, the per-plugin links are broken
 - [ ] `/affiliate` renders the store link, both plugin links, and the Product column
 - [ ] `/admin/affiliates` eyebrow reads `creator program` and Manage shows a `/plugins?ref=` link
 - [ ] `git diff main --stat` touches only the eight files in the spec's "Files touched" list
