@@ -98,3 +98,7 @@ reports/shft-social/
 # drft reel masters. Full-res camera/screen captures; only the encoded
 # 720x1280 mp4s derived from them get committed.
 /public/drft/reels/_src/
+
+# macOS AppleDouble sidecars. ._ls-spaces.mjs is a scratch Spaces-listing
+# script that picked up the prefix; nothing named this way belongs in the repo.
+._*
