@@ -11,29 +11,29 @@ datasource db {
 }
 
 model User {
-  id                           String        @id @default(cuid())
-  email                        String        @unique
-  passwordHash                 String        @map("password_hash")
+  id                           String           @id @default(cuid())
+  email                        String           @unique
+  passwordHash                 String           @map("password_hash")
   name                         String?
-  stripeCustomerId             String?       @map("stripe_customer_id")
-  subscriptionStatus           String?       @map("subscription_status")
-  subscriptionCurrentPeriodEnd DateTime?     @map("subscription_current_period_end")
-  createdAt                    DateTime      @default(now()) @map("created_at")
-  emailVerified                DateTime?     @map("email_verified")
-  emailVerificationToken       String?       @unique @map("email_verification_token")
-  emailVerificationExpires     DateTime?     @map("email_verification_expires")
-  passwordResetToken           String?       @unique @map("password_reset_token")
-  passwordResetExpires         DateTime?     @map("password_reset_expires")
+  stripeCustomerId             String?          @map("stripe_customer_id")
+  subscriptionStatus           String?          @map("subscription_status")
+  subscriptionCurrentPeriodEnd DateTime?        @map("subscription_current_period_end")
+  createdAt                    DateTime         @default(now()) @map("created_at")
+  emailVerified                DateTime?        @map("email_verified")
+  emailVerificationToken       String?          @unique @map("email_verification_token")
+  emailVerificationExpires     DateTime?        @map("email_verification_expires")
+  passwordResetToken           String?          @unique @map("password_reset_token")
+  passwordResetExpires         DateTime?        @map("password_reset_expires")
   // Marketing / newsletter opt-in (Mailchimp exports). Default true at signup when checkbox left on.
-  emailMarketingOptIn          Boolean       @default(true) @map("email_marketing_opt_in")
+  emailMarketingOptIn          Boolean          @default(true) @map("email_marketing_opt_in")
   // First-touch attribution, snapshotted at signup. Mirrors the philosophy of
   // AffiliateReferral.commissionCents — a historical fact that later data
   // changes (or pruning of landing_events) must never rewrite.
-  attributionVisitorId         String?       @map("attribution_visitor_id")
-  attributionReferrerHost      String?       @map("attribution_referrer_host")
-  attributionUtmSource         String?       @map("attribution_utm_source")
-  attributionUtmCampaign       String?       @map("attribution_utm_campaign")
-  attributionLandingPath       String?       @map("attribution_landing_path")
+  attributionVisitorId         String?          @map("attribution_visitor_id")
+  attributionReferrerHost      String?          @map("attribution_referrer_host")
+  attributionUtmSource         String?          @map("attribution_utm_source")
+  attributionUtmCampaign       String?          @map("attribution_utm_campaign")
+  attributionLandingPath       String?          @map("attribution_landing_path")
   savedSamples                 UserSample[]
   digHistory                   UserDigHistory[]
   events                       UserEvent[]
@@ -46,16 +46,16 @@ model User {
 }
 
 model Purchase {
-  id              String   @id @default(cuid())
-  userId          String   @map("user_id")
-  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  product         String // e.g. "shft"
-  stripeSessionId String?  @unique @map("stripe_session_id")
+  id                String              @id @default(cuid())
+  userId            String              @map("user_id")
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product           String // e.g. "shft"
+  stripeSessionId   String?             @unique @map("stripe_session_id")
   // The buyer's licence key. Minted on purchase; backfilled for purchases that
   // predate licensing. Never regenerated — a buyer may already have it typed
   // into the plugin, and rotating it would deactivate them silently.
-  licenseKey      String?  @unique @map("license_key")
-  createdAt       DateTime @default(now()) @map("created_at")
+  licenseKey        String?             @unique @map("license_key")
+  createdAt         DateTime            @default(now()) @map("created_at")
   affiliateReferral AffiliateReferral?
   activations       LicenseActivation[]
   compCode          CompCode?
@@ -119,61 +119,61 @@ model Channel {
   skipCount   Int      @default(0) @map("skip_count")
   createdAt   DateTime @default(now()) @map("created_at")
   updatedAt   DateTime @updatedAt @map("updated_at")
-  
-  samples     Sample[]
-  
+
+  samples Sample[]
+
   @@map("channels")
 }
 
 model Sample {
-  id             String        @id @default(cuid())
-  youtubeId      String        @unique @map("youtube_id")
-  title          String
-  channel        String
-  channelId      String?       @map("channel_id")
-  thumbnailUrl   String        @map("thumbnail_url")
-  genre          String?
-  era            String?
-  bpm            Int?          @map("bpm")
-  key            String?       @map("key")
-  analysisStatus String?       @default("pending") @map("analysis_status")
-  duration       Int?          @map("duration_seconds")
-  qualityScore   Float?        @map("quality_score")
-  source         String?       // "search" | "playlist" | "channel"
-  tags           String?       // e.g. "post-5.5k"; "drum-break-curated" (PDF drum breaks)
-  breakStartSeconds Int?       @map("break_start_seconds") // curated PDF: seconds to drum break; Dig seeks here when set
-  embeddable     Boolean?       @map("embeddable") // false = blocked on external sites
-  dateAddedDb    DateTime?     @map("date_added_db") // when added from YouTube API (for batch delete)
-  createdAt      DateTime      @default(now()) @map("created_at")
-  userSamples    UserSample[]
-  channelRel     Channel?      @relation(fields: [channelId], references: [id])
+  id                String       @id @default(cuid())
+  youtubeId         String       @unique @map("youtube_id")
+  title             String
+  channel           String
+  channelId         String?      @map("channel_id")
+  thumbnailUrl      String       @map("thumbnail_url")
+  genre             String?
+  era               String?
+  bpm               Int?         @map("bpm")
+  key               String?      @map("key")
+  analysisStatus    String?      @default("pending") @map("analysis_status")
+  duration          Int?         @map("duration_seconds")
+  qualityScore      Float?       @map("quality_score")
+  source            String? // "search" | "playlist" | "channel"
+  tags              String? // e.g. "post-5.5k"; "drum-break-curated" (PDF drum breaks)
+  breakStartSeconds Int?         @map("break_start_seconds") // curated PDF: seconds to drum break; Dig seeks here when set
+  embeddable        Boolean?     @map("embeddable") // false = blocked on external sites
+  dateAddedDb       DateTime?    @map("date_added_db") // when added from YouTube API (for batch delete)
+  createdAt         DateTime     @default(now()) @map("created_at")
+  userSamples       UserSample[]
+  channelRel        Channel?     @relation(fields: [channelId], references: [id])
 
   @@map("samples")
 }
 
 model Candidate {
-  id             String    @id @default(cuid())
-  youtubeId      String    @unique @map("youtube_id")
-  source         String    // "playlist" | "channel" | "manual"
-  sourceId       String?   @map("source_id") // playlist ID or channel ID
-  addedAt        DateTime  @default(now()) @map("added_at")
-  title          String?
-  description    String?   @db.Text
-  channelId      String?   @map("channel_id")
-  channelTitle   String?   @map("channel_title")
-  thumbnailUrl   String?   @map("thumbnail_url")
-  duration       Int?      @map("duration_seconds")
-  tags           String?   @db.Text // JSON array as string
-  publishedAt    DateTime? @map("published_at")
-  enrichedAt     DateTime? @map("enriched_at")
-  qualityScore   Float?    @map("quality_score")
-  genre          String?
-  era            String?
-  embeddable     Boolean?  @map("embeddable") // false = uploader disabled embedding
-  processedAt    DateTime? @map("processed_at")
-  sampleId       String?   @map("sample_id") // set when promoted to Sample
-  createdAt      DateTime  @default(now()) @map("created_at")
-  updatedAt      DateTime  @updatedAt @map("updated_at")
+  id           String    @id @default(cuid())
+  youtubeId    String    @unique @map("youtube_id")
+  source       String // "playlist" | "channel" | "manual"
+  sourceId     String?   @map("source_id") // playlist ID or channel ID
+  addedAt      DateTime  @default(now()) @map("added_at")
+  title        String?
+  description  String?   @db.Text
+  channelId    String?   @map("channel_id")
+  channelTitle String?   @map("channel_title")
+  thumbnailUrl String?   @map("thumbnail_url")
+  duration     Int?      @map("duration_seconds")
+  tags         String?   @db.Text // JSON array as string
+  publishedAt  DateTime? @map("published_at")
+  enrichedAt   DateTime? @map("enriched_at")
+  qualityScore Float?    @map("quality_score")
+  genre        String?
+  era          String?
+  embeddable   Boolean?  @map("embeddable") // false = uploader disabled embedding
+  processedAt  DateTime? @map("processed_at")
+  sampleId     String?   @map("sample_id") // set when promoted to Sample
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   @@map("candidates")
 }
@@ -183,7 +183,7 @@ model UserSample {
   userId    String   @map("user_id")
   sampleId  String   @map("sample_id")
   startTime Int?     @map("start_time")
-  notes     String?  // Chop points stored as JSON: [{ key, time, color, index }]
+  notes     String? // Chop points stored as JSON: [{ key, time, color, index }]
   createdAt DateTime @default(now()) @map("created_at")
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   sample    Sample   @relation(fields: [sampleId], references: [id], onDelete: Cascade)
@@ -226,7 +226,7 @@ model UserEvent {
   metadata  Json?
   createdAt DateTime @default(now()) @map("created_at")
 
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, createdAt])
   @@map("user_events")
@@ -235,27 +235,27 @@ model UserEvent {
 // --- shft affiliate program (invite-only) -----------------------------------
 
 model Affiliate {
-  id                String              @id @default(cuid())
-  code              String              @unique
-  name              String
-  email             String
-  commissionPercent Int                 @default(30) @map("commission_percent")
+  id                   String              @id @default(cuid())
+  code                 String              @unique
+  name                 String
+  email                String
+  commissionPercent    Int                 @default(30) @map("commission_percent")
   // "percent" (uses commissionPercent) | "flat" (uses commissionFlatCents per sale)
-  commissionType      String            @default("percent") @map("commission_type")
-  commissionFlatCents Int?              @map("commission_flat_cents")
-  dashboardToken    String              @unique @map("dashboard_token")
+  commissionType       String              @default("percent") @map("commission_type")
+  commissionFlatCents  Int?                @map("commission_flat_cents")
+  dashboardToken       String              @unique @map("dashboard_token")
   // Stripe Connect Express account for instant payouts (US-only in v1).
-  stripeAccountId      String?          @unique @map("stripe_account_id")
-  stripePayoutsEnabled Boolean          @default(false) @map("stripe_payouts_enabled")
-  userId            String?             @unique @map("user_id")
-  user              User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
-  active            Boolean             @default(true)
-  notes             String?
-  createdAt         DateTime            @default(now()) @map("created_at")
-  updatedAt         DateTime            @updatedAt @map("updated_at")
-  clicks            AffiliateClick[]
-  referrals         AffiliateReferral[]
-  payouts           AffiliatePayout[]
+  stripeAccountId      String?             @unique @map("stripe_account_id")
+  stripePayoutsEnabled Boolean             @default(false) @map("stripe_payouts_enabled")
+  userId               String?             @unique @map("user_id")
+  user                 User?               @relation(fields: [userId], references: [id], onDelete: SetNull)
+  active               Boolean             @default(true)
+  notes                String?
+  createdAt            DateTime            @default(now()) @map("created_at")
+  updatedAt            DateTime            @updatedAt @map("updated_at")
+  clicks               AffiliateClick[]
+  referrals            AffiliateReferral[]
+  payouts              AffiliatePayout[]
 
   @@map("affiliates")
 }
@@ -271,25 +271,29 @@ model AffiliateClick {
 }
 
 model AffiliateReferral {
-  id                    String           @id @default(cuid())
-  affiliateId           String           @map("affiliate_id")
-  affiliate             Affiliate        @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
-  purchaseId            String           @unique @map("purchase_id")
-  purchase              Purchase         @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
-  stripeSessionId       String           @map("stripe_session_id")
-  stripePaymentIntentId String?          @map("stripe_payment_intent_id")
-  grossAmountCents      Int              @map("gross_amount_cents")
+  id                       String           @id @default(cuid())
+  affiliateId              String           @map("affiliate_id")
+  affiliate                Affiliate        @relation(fields: [affiliateId], references: [id], onDelete: Cascade)
+  purchaseId               String           @unique @map("purchase_id")
+  purchase                 Purchase         @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  stripeSessionId          String           @map("stripe_session_id")
+  stripePaymentIntentId    String?          @map("stripe_payment_intent_id")
+  grossAmountCents         Int              @map("gross_amount_cents")
   // Snapshot at sale time — later rate changes never rewrite history.
-  commissionCents       Int              @map("commission_cents")
-  currency              String
-  source                String // "link" (cookie) | "code" (typed at checkout)
+  commissionCents          Int              @map("commission_cents")
+  currency                 String
+  source                   String // "link" (cookie) | "code" (typed at checkout)
+  // What this sale was for: "shft" | "drft" | "bundle". Snapshot at sale time,
+  // like commissionCents — the purchase row can't answer this, because a bundle
+  // referral hangs off the shft purchase to keep the relation one-to-one.
+  product                  String           @default("shft")
   // Instant payout bookkeeping: transfer sent at sale, reversal on refund.
-  stripeTransferId         String?       @unique @map("stripe_transfer_id")
-  stripeTransferReversalId String?       @map("stripe_transfer_reversal_id")
-  refundedAt            DateTime?        @map("refunded_at")
-  payoutId              String?          @map("payout_id")
-  payout                AffiliatePayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
-  createdAt             DateTime         @default(now()) @map("created_at")
+  stripeTransferId         String?          @unique @map("stripe_transfer_id")
+  stripeTransferReversalId String?          @map("stripe_transfer_reversal_id")
+  refundedAt               DateTime?        @map("refunded_at")
+  payoutId                 String?          @map("payout_id")
+  payout                   AffiliatePayout? @relation(fields: [payoutId], references: [id], onDelete: SetNull)
+  createdAt                DateTime         @default(now()) @map("created_at")
 
   @@index([affiliateId, createdAt])
   @@index([stripePaymentIntentId])

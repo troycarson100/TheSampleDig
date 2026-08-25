@@ -1,7 +1,12 @@
 import type Stripe from "stripe"
 import { randomBytes } from "crypto"
 import { prisma } from "@/lib/db"
-import { attributionCandidates, computeCommission, isSelfReferral } from "@/lib/affiliate-logic"
+import {
+  attributionCandidates,
+  computeCommission,
+  isSelfReferral,
+  normalizeReferralProduct,
+} from "@/lib/affiliate-logic"
 import { sendInstantCommission } from "@/lib/affiliate-stripe"
 
 export interface AffiliateStats {
@@ -16,6 +21,7 @@ export interface AffiliateStats {
   referrals: {
     id: string
     createdAt: Date
+    product: string
     grossAmountCents: number
     commissionCents: number
     source: string
@@ -81,6 +87,8 @@ export async function recordAffiliateReferral(
             }),
             currency: session.currency ?? "usd",
             source: candidate.source,
+            // All three checkouts set metadata.product (shft | drft | bundle).
+            product: normalizeReferralProduct(session.metadata?.product),
           },
         })
         referralId = referral.id
@@ -131,6 +139,7 @@ export async function getAffiliateStats(affiliateId: string): Promise<AffiliateS
     referrals: referrals.map((r) => ({
       id: r.id,
       createdAt: r.createdAt,
+      product: r.product,
       grossAmountCents: r.grossAmountCents,
       commissionCents: r.commissionCents,
       source: r.source,
