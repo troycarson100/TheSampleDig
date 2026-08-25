@@ -459,7 +459,7 @@ export default function PrelaunchContent({ children }: { children?: ReactNode })
             <Link href="/terms">Terms and Conditions</Link>
           </li>
           <li>
-            <a href="mailto:hello@sampleroll.com">Contact</a>
+            <a href="mailto:troy@sampleroll.com">Contact</a>
           </li>
         </ul>
       </footer>
