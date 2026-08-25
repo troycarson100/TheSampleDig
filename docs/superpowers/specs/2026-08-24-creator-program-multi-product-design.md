@@ -52,20 +52,33 @@ model AffiliateReferral {
 }
 ```
 
-Migration `prisma/migrations/20260824000000_add_referral_product/migration.sql`:
+Migration `prisma/migrations/manual/20260824_affiliate_referral_product.sql`,
+following the `manual/` convention this repo uses for column additions:
 
 ```sql
 ALTER TABLE "affiliate_referrals"
-  ADD COLUMN "product" TEXT NOT NULL DEFAULT 'shft';
+  ADD COLUMN IF NOT EXISTS "product" TEXT NOT NULL DEFAULT 'shft';
+```
+
+Applied with:
+
+```
+npx prisma db execute --file prisma/migrations/manual/20260824_affiliate_referral_product.sql --schema prisma/schema.prisma
 ```
 
 The default is the backfill, and it is correct: every existing referral
 predates the 2026-08-20 drft launch, so all of them were shft. This mirrors
-`CompCode.product`, which solved the same problem the same way.
+`CompCode.product` (`prisma/migrations/manual/20260821_comp_code_product.sql`),
+which solved the same problem the same way three days earlier.
 
-This is an ordinary forward migration — applied with `prisma migrate deploy`,
-no `migrate resolve` and no data script. It does not touch the repaired
-`_prisma_migrations` history, and no historical backfill is re-run.
+`manual/` + `db execute` rather than a tracked migration folder + `migrate dev`
+is deliberate. Local `DATABASE_URL` points at the same Supabase database as
+production (`docs/DEPLOYMENT-DIGITALOCEAN.md`), so `migrate dev` would run
+drift detection against prod — the hazard that required repairing
+`_prisma_migrations` in August. `db execute` runs the one statement and touches
+no migration history. `IF NOT EXISTS` makes re-running it a no-op.
+
+Adding a column to an existing table needs no new RLS grants.
 
 ### Why stamp rather than derive
 
@@ -186,7 +199,7 @@ dashboard at `/affiliate` and the admin page at `/admin/affiliates`.
 ## Files touched
 
 1. `prisma/schema.prisma` — `product` on `AffiliateReferral`
-2. `prisma/migrations/20260824000000_add_referral_product/migration.sql`
+2. `prisma/migrations/manual/20260824_affiliate_referral_product.sql`
 3. `lib/affiliate-logic.ts` — `normalizeReferralProduct`
 4. `lib/affiliate.ts` — stamp on write, expose on read
 5. `components/affiliate/AffiliateDashboard.tsx` — links, product column, copy
