@@ -5,6 +5,7 @@ import {
   isSelfReferral,
   canInstantPayout,
   computeCommission,
+  normalizeReferralProduct,
 } from "../lib/affiliate-logic"
 
 let failures = 0
@@ -112,6 +113,21 @@ check("instant blocked: already transferred", canInstantPayout({ ...payable, str
 check("instant blocked: already paid manually", canInstantPayout({ ...payable, payoutId: "po_1" }), false)
 check("instant blocked: no account", canInstantPayout({ ...payable, stripeAccountId: null }), false)
 check("instant blocked: payouts disabled", canInstantPayout({ ...payable, stripePayoutsEnabled: false }), false)
+
+// normalizeReferralProduct: the product a referral was earned on. Permissive —
+// a future product slug must survive without editing a list here.
+check("referral product shft", normalizeReferralProduct("shft"), "shft")
+check("referral product drft", normalizeReferralProduct("drft"), "drft")
+check("referral product bundle", normalizeReferralProduct("bundle"), "bundle")
+check("referral product lowercases + trims", normalizeReferralProduct("  DRFT  "), "drft")
+check("referral product keeps unknown but valid slug", normalizeReferralProduct("pro"), "pro")
+check("referral product falls back on null", normalizeReferralProduct(null), "shft")
+check("referral product falls back on undefined", normalizeReferralProduct(undefined), "shft")
+check("referral product falls back on empty", normalizeReferralProduct(""), "shft")
+check("referral product falls back on whitespace", normalizeReferralProduct("   "), "shft")
+check("referral product falls back on symbols", normalizeReferralProduct("!!"), "shft")
+check("referral product falls back on one char", normalizeReferralProduct("x"), "shft")
+check("referral product falls back on 40 chars", normalizeReferralProduct("a".repeat(40)), "shft")
 
 if (failures > 0) {
   console.error(`\n${failures} failure(s)`)

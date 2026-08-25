@@ -1,5 +1,6 @@
-// Pure attribution/commission logic for the shft affiliate program.
-// No DB or Stripe imports — tested standalone by scripts/test-affiliate-logic.ts.
+// Pure attribution/commission logic for the creator program (shft, drft, and
+// the bundle). No DB or Stripe imports — tested standalone by
+// scripts/test-affiliate-logic.ts.
 
 export function normalizeAffiliateCode(raw: string | null | undefined): string | null {
   if (!raw) return null
@@ -69,4 +70,14 @@ export function isSelfReferral(input: {
   if (input.buyerEmail && input.buyerEmail.toLowerCase() === input.affiliateEmail.toLowerCase()) return true
   if (input.buyerUserId && input.affiliateUserId && input.buyerUserId === input.affiliateUserId) return true
   return false
+}
+
+// The product a referral was earned on, taken from Stripe session metadata:
+// "shft" | "drft" | "bundle". Permissive on purpose — a future product slug
+// labels itself correctly without anyone remembering to edit a list here.
+// Falls back to "shft", matching the column default, for the legacy/missing
+// case: every referral recorded before this column existed was a shft sale.
+export function normalizeReferralProduct(raw: string | null | undefined): string {
+  const product = (raw ?? "").toLowerCase().trim()
+  return /^[a-z0-9-]{2,16}$/.test(product) ? product : "shft"
 }
