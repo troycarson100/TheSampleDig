@@ -25,7 +25,14 @@ export default function AffiliateDashboard({
   payout: { connected: boolean; enabled: boolean }
   connectToken?: string
 }) {
-  const link = `${baseUrl}/shft?ref=${affiliate.code}`
+  // /plugins is the storefront listing both plugins and the bundle. The
+  // per-plugin links are for creators making a video about one specific plugin;
+  // ?ref= is captured in the root layout, so any page URL would work.
+  const storeLink = `${baseUrl}/plugins?ref=${affiliate.code}`
+  const pluginLinks = [
+    { name: "shft", url: `${baseUrl}/shft?ref=${affiliate.code}` },
+    { name: "drft", url: `${baseUrl}/drft?ref=${affiliate.code}` },
+  ]
   const tiles: { name: string; value: string; hot?: boolean }[] = [
     { name: "Clicks (30d / all)", value: `${stats.clicks30d} / ${stats.clicksTotal}` },
     { name: "Sales", value: String(stats.salesCount) },
@@ -36,13 +43,13 @@ export default function AffiliateDashboard({
   return (
     <>
       <p className="text-xs uppercase tracking-widest mb-1" style={label}>
-        shft affiliate
+        creator program
       </p>
       <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
         {affiliate.name}
       </h1>
       <p className="text-sm mb-8" style={{ color: "var(--foreground)", opacity: 0.7 }}>
-        Share your link or code — sales attribute automatically and show up here.
+        Share your link or code — sales on any plugin attribute automatically and show up here.
       </p>
 
       <div className="rounded-xl border p-4 sm:p-5 text-sm" style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
@@ -50,8 +57,23 @@ export default function AffiliateDashboard({
           Your link
         </p>
         <p className="select-all break-all font-medium" style={{ ...mono, color: "var(--primary)" }}>
-          {link}
+          {storeLink}
         </p>
+        <p className="text-xs uppercase tracking-widest mt-4 mb-2" style={label}>
+          Linking to one plugin?
+        </p>
+        <ul className="space-y-1">
+          {pluginLinks.map((plugin) => (
+            <li key={plugin.name} className="flex flex-wrap items-baseline gap-x-3">
+              <span className="w-10 shrink-0" style={{ ...mono, color: "var(--muted)" }}>
+                {plugin.name}
+              </span>
+              <span className="select-all break-all font-medium" style={{ ...mono, color: "var(--primary)" }}>
+                {plugin.url}
+              </span>
+            </li>
+          ))}
+        </ul>
         <p className="text-xs uppercase tracking-widest mt-4 mb-2" style={label}>
           Your code — buyers can type it at checkout
         </p>
@@ -118,6 +140,7 @@ export default function AffiliateDashboard({
             <thead>
               <tr className="text-[11px] uppercase tracking-wide" style={label}>
                 <th className="px-4 py-2 font-normal">Date</th>
+                <th className="px-4 py-2 font-normal">Product</th>
                 <th className="px-4 py-2 font-normal">Sale</th>
                 <th className="px-4 py-2 font-normal">Your cut</th>
                 <th className="px-4 py-2 font-normal">Via</th>
@@ -128,6 +151,9 @@ export default function AffiliateDashboard({
               {stats.referrals.map((r) => (
                 <tr key={r.id} className="border-t" style={{ borderColor: "var(--border)" }}>
                   <td className="px-4 py-2">{fmtDate(r.createdAt)}</td>
+                  <td className="px-4 py-2" style={mono}>
+                    {r.product}
+                  </td>
                   <td className="px-4 py-2">{usd(r.grossAmountCents)}</td>
                   <td className="px-4 py-2 font-medium">{usd(r.commissionCents)}</td>
                   <td className="px-4 py-2">{r.source === "code" ? "typed code" : "link"}</td>
