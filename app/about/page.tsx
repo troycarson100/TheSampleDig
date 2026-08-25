@@ -44,8 +44,8 @@ export default function AboutPage() {
           </h2>
           <p>
             Questions, partnerships, or feedback:{" "}
-            <a href="mailto:hello@sampleroll.com" className="underline" style={{ color: "var(--primary)" }}>
-              hello@sampleroll.com
+            <a href="mailto:troy@sampleroll.com" className="underline" style={{ color: "var(--primary)" }}>
+              troy@sampleroll.com
             </a>
             .
           </p>
