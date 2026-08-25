@@ -232,7 +232,7 @@ model UserEvent {
   @@map("user_events")
 }
 
-// --- shft affiliate program (invite-only) -----------------------------------
+// --- creator program (invite-only) ------------------------------------------
 
 model Affiliate {
   id                   String              @id @default(cuid())

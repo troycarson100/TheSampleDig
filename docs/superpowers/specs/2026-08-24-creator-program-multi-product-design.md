@@ -66,8 +66,14 @@ Applied with:
 npx prisma db execute --file prisma/migrations/manual/20260824_affiliate_referral_product.sql --schema prisma/schema.prisma
 ```
 
-The default is the backfill, and it is correct: every existing referral
-predates the 2026-08-20 drft launch, so all of them were shft. This mirrors
+The default is the backfill. Verified against production rather than assumed:
+at migration time exactly one referral row existed, dated 2026-08-12 — eight
+days before the 2026-08-20 drft launch — for a $19.00 shft sale, so `'shft'`
+is the correct label for it. (An earlier draft of this spec justified the
+default by asserting that every referral predated the drft launch. That
+reasoning was unsound: drft and bundle checkout went live *on* 2026-08-20 and
+this column was added on the 24th, leaving a four-day window the claim did not
+cover. The data happened to be clean; the argument was not.) This mirrors
 `CompCode.product` (`prisma/migrations/manual/20260821_comp_code_product.sql`),
 which solved the same problem the same way three days earlier.
 
