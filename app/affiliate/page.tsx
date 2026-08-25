@@ -45,7 +45,7 @@ export default async function AffiliatePage() {
   }
   if (!affiliate) {
     return (
-      <Note text="The shft affiliate program is invite-only. If you make videos and want in, reach out via the Discord — otherwise, nothing to see here." />
+      <Note text="The creator program is invite-only. If you make videos and want in, reach out via the Discord — otherwise, nothing to see here." />
     )
   }
   // Pick up freshly-completed Stripe onboarding (they land back here from Stripe).

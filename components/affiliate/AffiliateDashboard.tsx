@@ -30,8 +30,8 @@ export default function AffiliateDashboard({
   // ?ref= is captured in the root layout, so any page URL would work.
   const storeLink = `${baseUrl}/plugins?ref=${affiliate.code}`
   const pluginLinks = [
-    { name: "shft", url: `${baseUrl}/shft?ref=${affiliate.code}` },
-    { name: "drft", url: `${baseUrl}/drft?ref=${affiliate.code}` },
+    { name: "shft", url: `${baseUrl}/plugins?ref=${affiliate.code}` },
+    { name: "drft", url: `${baseUrl}/plugins?ref=${affiliate.code}` },
   ]
   const tiles: { name: string; value: string; hot?: boolean }[] = [
     { name: "Clicks (30d / all)", value: `${stats.clicks30d} / ${stats.clicksTotal}` },

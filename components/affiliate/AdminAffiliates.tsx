@@ -207,7 +207,7 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
   return (
     <div style={{ color: "var(--foreground)" }}>
       <p className="text-xs uppercase tracking-widest mb-1" style={labelStyle}>
-        shft affiliate program
+        creator program
       </p>
       <h1 className="text-2xl font-bold mb-2">Affiliates</h1>
       <p className="text-sm mb-8" style={{ opacity: 0.7 }}>
@@ -355,7 +355,7 @@ function AffiliateRow({
   const [eFlatDollars, setEFlatDollars] = useState(((a.commissionFlatCents ?? 500) / 100).toFixed(2))
   const [eNotes, setENotes] = useState(a.notes ?? "")
   const dashboardLink = `${baseUrl}/affiliate/${a.dashboardToken}`
-  const refLink = `${baseUrl}/shft?ref=${a.code}`
+  const refLink = `${baseUrl}/plugins?ref=${a.code}`
 
   return (
     <>
