@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db"
+import { PLUGIN_GRANTS, isCompProduct } from "@/lib/plugin-products"
 import { sendPluginPurchaseEmail } from "@/lib/email"
 import { recordAffiliateReferral } from "@/lib/affiliate"
 import { generateLicenseKey } from "@/lib/license-key"
@@ -46,13 +47,12 @@ export async function POST(request: Request) {
         const session = event.data.object as Stripe.Checkout.Session
 
         // --- Plugin purchases: single products and the bundle. -----------------
-        // metadata.product → which Purchase rows to grant.
-        const PLUGIN_GRANTS: Record<string, ("shft" | "drft")[]> = {
-          shft: ["shft"],
-          drft: ["drft"],
-          bundle: ["shft", "drft"],
-        }
-        const grantProducts = PLUGIN_GRANTS[session.metadata?.product ?? ""]
+        // metadata.product → which Purchase rows to grant. The map lives in
+        // lib/plugin-products so comp codes grant exactly what a purchase does;
+        // it used to be defined here while comps hardcoded "shft", and two
+        // copies of a grant map is how the wrong product gets handed out.
+        const metaProduct = session.metadata?.product ?? ""
+        const grantProducts = isCompProduct(metaProduct) ? PLUGIN_GRANTS[metaProduct] : undefined
         if (grantProducts) {
           const buyerId = session.client_reference_id ?? session.metadata?.userId
           // Hoisted: the email below is sent even when there is no buyerId, and

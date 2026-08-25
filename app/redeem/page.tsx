@@ -25,7 +25,7 @@ export default async function RedeemPage() {
           Redeem a code
         </h1>
         <p className="text-[15px] mb-8" style={{ color: "var(--foreground)", opacity: 0.75 }}>
-          Got a comp code for shft? Enter it below - it will be added to {session.user.email}.
+          Got a comp code? Enter it below - whatever it covers will be added to {session.user.email}.
         </p>
         <RedeemForm />
       </main>
