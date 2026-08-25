@@ -60,11 +60,34 @@ ALTER TABLE "affiliate_referrals"
   ADD COLUMN IF NOT EXISTS "product" TEXT NOT NULL DEFAULT 'shft';
 ```
 
-Applied with:
+**This project has two databases, and a migration must be applied to both.**
+They are selected by different env-file loaders, which is easy to miss:
+
+| File | `DATABASE_URL` | Loaded by |
+| --- | --- | --- |
+| `.env.local` | `127.0.0.1:5432/sampleroll_dev` | Next.js (takes precedence) — so **the running app** |
+| `.env` | `…pooler.supabase.com/postgres` | Prisma CLI, and any bare `tsx` script — so **production** |
+
+Production (Prisma CLI reads `.env`, so no override needed):
 
 ```
 npx prisma db execute --file prisma/migrations/manual/20260824_affiliate_referral_product.sql --schema prisma/schema.prisma
 ```
+
+Local dev (must be run separately, or `npm run dev` throws
+`The column affiliate_referrals.product does not exist in the current database`):
+
+```
+psql "$(rg -N '^DATABASE_URL=' .env.local | head -1 | sed 's/^DATABASE_URL=//' | tr -d '\"')" \
+  -v ON_ERROR_STOP=1 -f prisma/migrations/manual/20260824_affiliate_referral_product.sql
+```
+
+Applying to production alone is exactly the mistake made during this
+branch's implementation: every automated check passed — the migration ran,
+`tsc` passed, and a read-only script confirmed the column — because all of
+them read `.env` and hit production. The dev server, reading `.env.local`,
+was the only thing pointed at the database that still lacked the column, and
+it failed on first page load.
 
 The default is the backfill. Verified against production rather than assumed:
 at migration time exactly one referral row existed, dated 2026-08-12 — eight
@@ -78,11 +101,16 @@ cover. The data happened to be clean; the argument was not.) This mirrors
 which solved the same problem the same way three days earlier.
 
 `manual/` + `db execute` rather than a tracked migration folder + `migrate dev`
-is deliberate. Local `DATABASE_URL` points at the same Supabase database as
-production (`docs/DEPLOYMENT-DIGITALOCEAN.md`), so `migrate dev` would run
-drift detection against prod — the hazard that required repairing
-`_prisma_migrations` in August. `db execute` runs the one statement and touches
-no migration history. `IF NOT EXISTS` makes re-running it a no-op.
+is deliberate. The Prisma CLI resolves `DATABASE_URL` from `.env`, which is the
+production Supabase database, so `migrate dev` would run drift detection
+against prod — the hazard that required repairing `_prisma_migrations` in
+August. `db execute` runs the one statement and touches no migration history.
+`IF NOT EXISTS` makes re-running it a no-op.
+
+(`docs/DEPLOYMENT-DIGITALOCEAN.md` says local and production should share one
+database. That is no longer true of the app: `.env.local` points it at a local
+`sampleroll_dev`. The doc still holds for the Prisma CLI, which is what makes
+the split so easy to trip over.)
 
 Adding a column to an existing table needs no new RLS grants.
 
