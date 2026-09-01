@@ -92,10 +92,22 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
     alt: "drft dropout tearing the picture and the audio together",
   },
   {
-    title: "Twenty generators when you have no footage",
-    desc: "The FIELD page makes its own picture: twenty generators - flow, plasma, tunnel, kaleido, aurora, caustic, cells and more - shaped by hue, zoom, glow and flow, with FOLLOW setting how hard they ride your audio. Then blend them: the BLEND fader luma-keys the generator against your video or your live camera, so your footage comes through the pattern instead of replacing it.",
+    title: "23 generators when you have no footage",
+    desc: "The FIELD page makes its own picture: 23 generators - flow, plasma, tunnel, kaleido, aurora, caustic, cells, mandala and more - shaped by hue, zoom, glow, tint and flow, with FOLLOW setting how hard they ride your audio. Then blend them: the BLEND fader luma-keys the generator against your video or your live camera, so your footage comes through the pattern instead of replacing it.",
     img: "/drft/generators.jpg",
     alt: "drft's field generator filling the tube with a moving colour field",
+  },
+  {
+    title: "Break the television, not the tape",
+    desc: "The CIRCUIT page is six knobs that damage the set itself - and it runs on whatever is already on the tube, so it bends your footage and your camera the same way it bends the generators. The deflection coil pins and bows the raster. The colour reference dies, so the picture stops knowing what colour anything is and reads brightness as hue instead. INJECT puts your waveform into the video line, where bass draws slow curves down the screen and hats comb it into ripples. One DEPTH fader rides all of it at once.",
+    img: "/drft/circuit.jpg",
+    alt: "drft's CIRCUIT page - the colour reference dying, brightness turned into hue",
+  },
+  {
+    title: "A canvas that remembers what you played",
+    desc: "PAINT is the FIELD page's other half, and a different instrument entirely. Nothing is generated fresh each frame - a buffer is redrawn into itself, turning and drifting and fading, while the transients in your track stamp new marks on top. What you played a few seconds ago is still up there, smeared and rotated away from what you are playing now. Six kinds of mark, including ink marbling that pushes the whole picture outward into nested contours.",
+    img: "/drft/paint.jpg",
+    alt: "drft's PAINT page - ink marbling stamped onto a feedback canvas by the audio",
   },
   {
     title: "The picture plays the sound",
@@ -116,7 +128,7 @@ const BLOCKS: { title: string; desc: string; img: string; alt: string; video?: s
 const FAQS: { q: string; a: string }[] = [
   {
     q: "What is drft?",
-    a: "drft is a VHS / CRT circuit-bend effect you put in your chain. Six character knobs - burn, drift, bend, dropout, wash, noise - run your audio through a dying tape machine, while a CRT on the panel shows the same damage on a picture: your video, a GIF, a live camera, or one of twenty built-in generators you can blend with your footage. Dropouts tear picture and sound together, feed lets the picture push back into the audio, and REC exports what you see and hear as a real MP4 in 16:9, 9:16 or ultrawide.",
+    a: "drft is a VHS / CRT circuit-bend effect you put in your chain. Six character knobs - burn, drift, bend, dropout, wash, noise - run your audio through a dying tape machine, while a CRT on the panel shows the same damage on a picture: your video, a GIF, a live camera, or one of 23 built-in generators you can blend with your footage. Dropouts tear picture and sound together, feed lets the picture push back into the audio, and REC exports what you see and hear as a real MP4 in 16:9, 9:16 or ultrawide.",
   },
   {
     q: "Which formats does it come in, and will it work in my DAW?",

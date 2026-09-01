@@ -9,9 +9,11 @@ export type ProductAssetId = "installer" | "installer-win" | "manual"
 // and the filename was not, so pointing at a new build used to hand buyers a
 // file still labelled with the old version. Deriving it makes that class of
 // mismatch impossible - whatever object is served, the name matches it.
-const DRFT_INSTALLER_KEY     = process.env.DRFT_INSTALLER_KEY     || "drft/drft-1.0.1.pkg"
-const DRFT_INSTALLER_WIN_KEY = process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-1.0.1-setup.exe"
-const DRFT_MANUAL_KEY        = process.env.DRFT_MANUAL_KEY        || "drft/drft-manual-v1.0.pdf"
+const DRFT_INSTALLER_KEY     = process.env.DRFT_INSTALLER_KEY     || "drft/drft-1.1.3.pkg"
+const DRFT_INSTALLER_WIN_KEY = process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-1.1.3-setup.exe"
+// The manual tracks the MINOR line, not the patch - it only needs rebuilding
+// when controls change. v1.1 is the manual for every 1.1.x build.
+const DRFT_MANUAL_KEY        = process.env.DRFT_MANUAL_KEY        || "drft/drft-manual-v1.1.pdf"
 
 const basename = (key: string) => key.slice(key.lastIndexOf("/") + 1)
 
@@ -135,9 +137,25 @@ export const PRODUCTS: Record<string, ProductDef> = {
   drft: {
     id: "drft",
     name: "drft",
-    version: "1.0.1",
+    version: "1.1.3",
     blurb: "VHS / CRT circuit-bend video-sound effect — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      // 1.1.0 and 1.1.2 were never published here - the store went straight
+      // from 1.0.1 to 1.1.3 - so this entry covers everything since 1.0.1
+      // rather than making a 1.0.1 owner read three sets of notes.
+      {
+        version: "1.1.3",
+        notes: [
+          "A whole new page: CIRCUIT. Six knobs that break the television rather than the tape - the deflection coil bending the raster, the colour reference dying so brightness turns into hue, the video amp overdriving, the picture resolving onto the tube's phosphor triads, and discrete failures that freeze, invert, colour-kill or bury the frame in snow. INJECT rides your waveform down the picture as rows that shift and brighten, so the bass draws slow curves and the hats comb it into ripples.",
+          "One DEPTH fader rides the whole circuit bank at once, so you can automate all of it on a single lane, and a power key bypasses the bank while keeping your settings. None of it touches your audio - it is the picture, completely.",
+          "A second FIELD page: PAINT. Instead of a generator you tune, it is a canvas with a memory - the transients in your track stamp marks onto it, and a feedback loop turns, drifts and decays what is already there. Six kinds of mark, including suminagashi ink marbling that pushes the whole picture outward into nested contours, and an attractor plotter that snaps to a new shape on every hit.",
+          "Three more generators - mandala, warp and dots - taking the FIELD page to 23. All three posterise into flat plateaus of colour rather than smooth gradients, so they read like print instead of light.",
+          "TINT, next to HUE on the FIELD page: it turns every colour on the tube round the wheel together, keeping their relationships, the way the TINT knob on a real set did. HUE still spins the palette so shapes recolour independently - now you have both.",
+          "Fullscreen. A key in the header throws the picture onto its own borderless window filling the display, for when you want to watch it rather than drive it. Escape brings it back.",
+          "A gain match key beside OUTPUT holds the output at the level the input arrived at, so bypassing compares character instead of loudness.",
+          "Presets now show you when you have unsaved changes, and the manual has been rewritten to cover all of it - two new chapters and a full parameter reference.",
+        ],
+      },
       {
         version: "1.0.1",
         notes: [
