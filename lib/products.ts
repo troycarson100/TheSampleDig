@@ -57,9 +57,18 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.2.0",
+    version: "1.2.1",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.2.1",
+        notes: [
+          "Fixed: the LFO destination menu drove the wrong control. Choosing \"dly fb\" modulated the output volume — so it came out as tremolo rather than as delay feedback — and \"dly tone\", \"dly mix\", \"rv size\" and \"rv decay\" were each pointed one place away in the same manner. Choosing \"swing\" did nothing at all. Every destination now moves the control it names.",
+          "Your existing sessions will sound exactly as they did. The LFO was always moving the control you could hear; only the label was wrong. Now that the menu names it correctly, an LFO you set up before this update may read as a different destination than you remember — that is the label catching up with the sound, not a change to it.",
+          "Fixed: double-clicking a modulation badge to remove it looked like it did nothing until you started playback. It clears the moment you click now.",
+          "shft is now filed under SampleRoll in your plugin list, alongside our other plugins, instead of sitting in a folder of its own. You may need to rescan your plugins for it to move.",
+        ],
+      },
       {
         version: "1.2.0",
         notes: [
@@ -117,14 +126,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.2.0.pkg",
-        filename: "shft-1.2.0.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.2.1.pkg",
+        filename: "shft-1.2.1.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.2.0-setup.exe",
-        filename: "shft-1.2.0-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.2.1-setup.exe",
+        filename: "shft-1.2.1-setup.exe",
       },
       {
         id: "manual",
