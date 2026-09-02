@@ -12,6 +12,12 @@ import type { Reel } from "@/components/ReelCarousel"
    positional names - reordering this array would make the filenames lie. */
 export const REELS: Reel[] = [
   {
+    src: "/drft/reels/b5X47LMx3FQ.mp4",
+    poster: "/drft/reels/b5X47LMx3FQ.jpg",
+    handle: "@Sample-Roll",
+    url: "https://www.youtube.com/shorts/b5X47LMx3FQ",
+  },
+  {
     src: "/drft/reels/K8_CuGDqh-Y.mp4",
     poster: "/drft/reels/K8_CuGDqh-Y.jpg",
     handle: "@Sample-Roll",
