@@ -57,9 +57,19 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.2.1",
+    version: "1.3.0",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.3.0",
+        notes: [
+          "Drop a loop onto shft and it reads the groove into a lane. Drag any audio file - a break, a hat loop, a picked guitar - anywhere onto the plugin, and its rhythm lands in the first empty lane, named after the file. Rhythm only: it never touches pitch, so the lane is the feel of that loop, ready to run on anything.",
+          "It keeps the timing a grid cannot hold. Every hit's drag off the beat is stored per step, flams stay tight and swung pairs stay wide, and a hit that sits deep into its step still lands where it was. Measured against the original loops, the gates open within a few milliseconds of the hits.",
+          "You can see it, and nudge it by hand. Each step now draws exactly what it plays: flat while the gate is shut, then the shape from the point it opens. Shift-drag a step sideways to move that point - a full cell is one step - and shift-double-click to put it back on the grid. It undoes like any other pattern edit.",
+          "It tells you when a loop will not line up. Drop a loop cut at another tempo, or one that is not a whole number of bars, and the footer says so in plain terms - \"loop is 88 BPM and 5 beats, session is 100\" - so you know exactly how to warp the clip.",
+          "Fixed: init on the preset bar now clears all eight lanes as well as the knobs. It used to leave every lane standing, with the active one still active, so the next edit quietly wrote the reset pattern back into it.",
+        ],
+      },
       {
         version: "1.2.1",
         notes: [
@@ -126,14 +136,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.2.1.pkg",
-        filename: "shft-1.2.1.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.3.0.pkg",
+        filename: "shft-1.3.0.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.2.1-setup.exe",
-        filename: "shft-1.2.1-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.3.0-setup.exe",
+        filename: "shft-1.3.0-setup.exe",
       },
       {
         id: "manual",
