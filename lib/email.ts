@@ -144,6 +144,129 @@ export async function sendPluginPurchaseEmail(
   })
 }
 
+/** Placeholder in a stored ReleaseAnnouncement.bodyHtml. The body is snapshotted
+ *  once per blast, but the unsubscribe link is per-recipient, so it is
+ *  substituted at send time rather than baked in. */
+export const UNSUBSCRIBE_PLACEHOLDER = "{{UNSUBSCRIBE_URL}}"
+
+/** Subject line. " - " rather than an em dash, matching how the plugins' own
+ *  UI strings are written. */
+export function releaseAnnouncementSubject(product: string, version: string) {
+  return `${product} v${version} - Out Now`
+}
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+
+/** The release email body, with UNSUBSCRIBE_PLACEHOLDER where the per-recipient
+ *  link goes. Notes come from PRODUCTS[product].changelog - the same prose that
+ *  renders on /products, so there is nothing extra to write per release. */
+export function renderReleaseAnnouncementHtml(opts: {
+  product: string
+  version: string
+  notes: string[]
+}) {
+  const url = `${APP_URL}/products`
+
+  // Cap the list: a changelog can run to ten items and an email that long
+  // does not get read. The rest are one click away on /products.
+  const MAX_NOTES = 5
+  const shown = opts.notes.slice(0, MAX_NOTES)
+  const overflow = opts.notes.length - shown.length
+
+  const noteItems = shown
+    .map(
+      (n) =>
+        `<li style="color: #555; margin-bottom: 12px; line-height: 1.5;">${escapeHtml(n)}</li>`
+    )
+    .join("")
+
+  const overflowLine = overflow > 0
+    ? `<p style="color: #999; font-size: 13px; margin: 0 0 24px;">
+         Plus ${overflow} more ${overflow === 1 ? "change" : "changes"} - the full notes are on My Products.
+       </p>`
+    : ""
+
+  return `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+        <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">
+          ${escapeHtml(opts.product)} v${escapeHtml(opts.version)} - Out Now
+        </h1>
+        <p style="color: #555; margin-bottom: 24px;">
+          You own ${escapeHtml(opts.product)}, so this update is free. Download it from
+          <strong>My Products</strong> - your licence key is unchanged and the new build
+          activates with the key you already have.
+        </p>
+        <ul style="padding-left: 20px; margin: 0 0 24px;">${noteItems}</ul>
+        ${overflowLine}
+        <a href="${url}" style="display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;">
+          Go to My Products
+        </a>
+        <p style="color: #999; font-size: 13px; margin-top: 24px;">
+          Sign in with this email address to see your download. Reply here if you hit any trouble and we'll sort you out.
+        </p>
+        <p style="color: #ccc; font-size: 12px; margin-top: 8px;">
+          Or copy this link: ${url}
+        </p>
+        <p style="color: #ccc; font-size: 12px; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+          You're getting this because you own ${escapeHtml(opts.product)}.
+          <a href="${UNSUBSCRIBE_PLACEHOLDER}" style="color: #999;">Unsubscribe from update emails</a>
+          - you'll still get receipts and account emails.
+        </p>
+      </div>
+    `
+}
+
+/** A POOLED transporter for a blast. The one-shot path above opens a fresh
+ *  connection per message, which is fine for a single receipt and ruinous for
+ *  several hundred: most SMTP hosts throttle or drop on connection churn.
+ *  Callers MUST close() when the batch is done. */
+export function createBulkTransporter() {
+  if (!isEmailConfigured()) {
+    throw new Error("SMTP is not configured. Set SMTP_HOST, SMTP_USER, and SMTP_PASS.")
+  }
+  // No secure-fallback loop here: the fallback exists for one-shot sends where
+  // a wrong guess costs one retry. A pool that guesses wrong fails every
+  // message, so the batch caller surfaces the error instead of quietly
+  // retrying hundreds of times.
+  const [secure] = getSecureCandidates()
+  return nodemailer.createTransport({
+    host: SMTP_HOST,
+    port: SMTP_PORT,
+    secure,
+    auth: { user: SMTP_USER, pass: SMTP_PASS },
+    pool: true,
+    maxConnections: 3,
+    maxMessages: 100,
+    connectionTimeout: 10000,
+    greetingTimeout: 10000,
+    socketTimeout: 20000,
+  })
+}
+
+/** Sends one release email over an already-open pooled transporter. Throws on
+ *  failure so the caller can record which address failed and carry on. */
+export async function sendReleaseAnnouncementEmail(
+  transporter: nodemailer.Transporter,
+  email: string,
+  opts: { subject: string; html: string; unsubscribeUrl: string }
+) {
+  await transporter.sendMail({
+    from: FROM,
+    to: email,
+    subject: opts.subject,
+    html: opts.html.split(UNSUBSCRIBE_PLACEHOLDER).join(opts.unsubscribeUrl),
+    // Gmail/Outlook render a native "Unsubscribe" control from these and treat
+    // its absence on bulk mail as a spam signal. One-Click means the client
+    // POSTs the URL itself, so /api/unsubscribe accepts POST as well as the
+    // human-facing GET page.
+    headers: {
+      "List-Unsubscribe": `<${opts.unsubscribeUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  })
+}
+
 export async function sendPasswordResetEmail(email: string, token: string) {
   const url = `${APP_URL}/reset-password?token=${token}`
 

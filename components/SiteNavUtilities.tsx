@@ -95,6 +95,15 @@ function IconTicket({ className }: { className?: string }) {
   )
 }
 
+function IconPaperPlane({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <path d="M22 2 11 13" />
+      <path d="M22 2 15 22l-4-9-9-4 20-7z" />
+    </svg>
+  )
+}
+
 export const SITE_SETTINGS_MENU_ITEMS = [
   { href: "/products", label: "My Products", Icon: IconDownloadBox },
   { href: "/redeem", label: "Redeem a code", Icon: IconTicket },
@@ -251,6 +260,19 @@ export function SiteSettingsMenu() {
                   >
                     <IconTicket className="shrink-0 opacity-85" />
                     <span>Comp codes</span>
+                  </Link>
+                ) : null}
+                {/* Admin-only: email every owner when a plugin ships a new version. */}
+                {href === "/products" && isAdmin ? (
+                  <Link
+                    href="/admin/releases"
+                    role="menuitem"
+                    className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
+                    style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
+                    onClick={() => setOpen(false)}
+                  >
+                    <IconPaperPlane className="shrink-0 opacity-85" />
+                    <span>Release emails</span>
                   </Link>
                 ) : null}
               </Fragment>

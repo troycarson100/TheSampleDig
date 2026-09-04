@@ -4,6 +4,7 @@ import Link from "next/link"
 import SiteNav from "@/components/SiteNav"
 import SettingsAffiliateLink from "@/components/SettingsAffiliateLink"
 import SettingsMarketingPreference from "@/components/SettingsMarketingPreference"
+import SettingsReleasePreference from "@/components/SettingsReleasePreference"
 import SettingsPricingNavButton from "@/components/SettingsPricingNavButton"
 import SettingsSubscriptionManage from "@/components/SettingsSubscriptionManage"
 
@@ -26,6 +27,7 @@ export default function SettingsPageBody() {
         </p>
         <nav className="flex flex-col gap-3" aria-label="Settings sections">
           <SettingsMarketingPreference />
+          <SettingsReleasePreference />
           <SettingsSubscriptionManage />
           <Link href="/profile" className={linkClass} style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
             <span style={{ fontFamily: "var(--font-geist-sans), system-ui, sans-serif" }}>My Crate & profile</span>

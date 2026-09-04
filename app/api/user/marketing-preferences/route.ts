@@ -12,10 +12,11 @@ export async function GET() {
   }
   const user = await prisma.user.findUnique({
     where: { id: session.user.id },
-    select: { emailMarketingOptIn: true },
+    select: { emailMarketingOptIn: true, productUpdateOptIn: true },
   })
   return NextResponse.json({
     emailMarketingOptIn: user?.emailMarketingOptIn ?? true,
+    productUpdateOptIn: user?.productUpdateOptIn ?? true,
   })
 }
 
@@ -26,14 +27,24 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
     const body = await req.json()
-    if (typeof body.emailMarketingOptIn !== "boolean") {
-      return NextResponse.json({ error: "emailMarketingOptIn must be a boolean" }, { status: 400 })
+
+    // Two consents, either or both settable in one call. emailMarketingOptIn
+    // is the master switch for anything non-transactional; productUpdateOptIn
+    // narrows it further to "drft v1.1.3 - Out Now" release notices, which go
+    // out only when both are on (see lib/release-recipients.ts).
+    const data: { emailMarketingOptIn?: boolean; productUpdateOptIn?: boolean } = {}
+    if (typeof body.emailMarketingOptIn === "boolean") data.emailMarketingOptIn = body.emailMarketingOptIn
+    if (typeof body.productUpdateOptIn === "boolean") data.productUpdateOptIn = body.productUpdateOptIn
+
+    if (Object.keys(data).length === 0) {
+      return NextResponse.json(
+        { error: "emailMarketingOptIn or productUpdateOptIn must be a boolean" },
+        { status: 400 },
+      )
     }
-    await prisma.user.update({
-      where: { id: session.user.id },
-      data: { emailMarketingOptIn: body.emailMarketingOptIn },
-    })
-    return NextResponse.json({ emailMarketingOptIn: body.emailMarketingOptIn })
+
+    await prisma.user.update({ where: { id: session.user.id }, data })
+    return NextResponse.json(data)
   } catch (e) {
     console.error("[marketing-preferences]", e)
     return NextResponse.json({ error: "Failed to update preferences" }, { status: 500 })

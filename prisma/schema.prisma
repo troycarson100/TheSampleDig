@@ -26,6 +26,14 @@ model User {
   passwordResetExpires         DateTime?        @map("password_reset_expires")
   // Marketing / newsletter opt-in (Mailchimp exports). Default true at signup when checkbox left on.
   emailMarketingOptIn          Boolean          @default(true) @map("email_marketing_opt_in")
+  // "drft v1.1.3 - Out Now" release notices. A narrower opt-out layered on
+  // top of emailMarketingOptIn, not independent of it: release emails go only
+  // to owners with BOTH flags on (see lib/release-recipients.ts), so turning
+  // off marketing email suppresses these too, while this flag alone lets
+  // someone keep the newsletter and drop version notices. Neither flag ever
+  // suppresses a receipt, a verification or a password reset — those are
+  // transactional and are sent regardless of both.
+  productUpdateOptIn           Boolean          @default(true) @map("product_update_opt_in")
   // First-touch attribution, snapshotted at signup. Mirrors the philosophy of
   // AffiliateReferral.commissionCents — a historical fact that later data
   // changes (or pruning of landing_events) must never rewrite.
@@ -108,6 +116,37 @@ model CompCode {
 
   @@index([redeemedByUserId])
   @@map("comp_codes")
+}
+
+// One row per (product, version) announcement blast. The unique constraint IS
+// the safety mechanism: the row is claimed BEFORE the first email goes out, so
+// a second attempt — a double-clicked button, a retried request, a redeploy —
+// collides and refuses instead of mailing every customer twice. There is no
+// unsending, so this errs hard toward refusing.
+//
+// sentEmails/failedEmails make a blast resumable at the recipient level: the
+// admin UI sends in small batches and each batch skips addresses already in
+// sentEmails, so a crash or a closed tab halfway through costs nothing and
+// resuming never double-sends. Same String[] shape as LicenseActivation.
+model ReleaseAnnouncement {
+  id             String    @id @default(cuid())
+  product        String
+  version        String
+  // Snapshotted at claim time rather than read from lib/products.ts at send
+  // time: the changelog is edited between releases, and this row is the record
+  // of what was ACTUALLY mailed, which must not change afterwards. Same
+  // philosophy as AffiliateReferral.commissionCents.
+  subject        String
+  bodyHtml       String    @map("body_html")
+  sentByEmail    String?   @map("sent_by_email")
+  sentEmails     String[]  @map("sent_emails")
+  failedEmails   String[]  @map("failed_emails")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  // Null while a blast is mid-flight or was abandoned partway.
+  completedAt    DateTime? @map("completed_at")
+
+  @@unique([product, version])
+  @@map("release_announcements")
 }
 
 model Channel {
