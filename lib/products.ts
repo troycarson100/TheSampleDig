@@ -57,9 +57,15 @@ export const PRODUCTS: Record<string, ProductDef> = {
   shft: {
     id: "shft",
     name: "shft",
-    version: "1.3.0",
+    version: "1.3.1",
     blurb: "Tempo-synced trance-gate multi-FX — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.3.1",
+        notes: [
+          "Fixed: deleting a lane (right-click a state box) now takes everything that lane was modulating with it - its knob routes, the band it was badged onto, and the copies other lanes had stored. Before this, the lane was gone but its badges stayed drawn on the knob and the band bar, came back the moment you recalled another lane, and re-armed as soon as you saved a new pattern into the empty slot.",
+        ],
+      },
       {
         version: "1.3.0",
         notes: [
@@ -136,14 +142,14 @@ export const PRODUCTS: Record<string, ProductDef> = {
       {
         id: "installer",
         label: "shft installer — macOS",
-        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.3.0.pkg",
-        filename: "shft-1.3.0.pkg",
+        key: process.env.SHFT_INSTALLER_KEY || "shft/shft-1.3.1.pkg",
+        filename: "shft-1.3.1.pkg",
       },
       {
         id: "installer-win",
         label: "shft installer — Windows",
-        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.3.0-setup.exe",
-        filename: "shft-1.3.0-setup.exe",
+        key: process.env.SHFT_INSTALLER_WIN_KEY || "shft/shft-1.3.1-setup.exe",
+        filename: "shft-1.3.1-setup.exe",
       },
       {
         id: "manual",
