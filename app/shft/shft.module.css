@@ -350,6 +350,34 @@
   height: auto;
 }
 
+/* ---- Walkthrough (long-form YouTube) ----------------------------------- */
+.walkthrough {
+  max-width: 1000px;
+  margin: 0 auto;
+  /* Short at the bottom: the feature blocks below bring their own top padding,
+     and the two together should read as one block-gap, not two sections. */
+  padding: clamp(48px, 8vw, 88px) 20px clamp(16px, 3vw, 54px);
+}
+.walkthroughHead {
+  text-align: center;
+  margin-bottom: clamp(28px, 4vw, 44px);
+}
+.walkthroughTitle {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(32px, 5vw, 58px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0;
+}
+.walkthroughSub {
+  font-size: clamp(16px, 2vw, 20px);
+  line-height: 1.5;
+  color: var(--ink-dim);
+  max-width: 600px;
+  margin: 18px auto 0;
+}
+
 /* ---- Alternating feature blocks ---------------------------------------- */
 .blocks {
   max-width: 1180px;

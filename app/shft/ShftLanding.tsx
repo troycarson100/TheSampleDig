@@ -6,6 +6,7 @@ import { trackMeta } from "@/lib/meta-pixel"
 import { PRICING } from "@/lib/products"
 import TestimonialMarquee from "./TestimonialMarquee"
 import ReelCarousel from "@/components/ReelCarousel"
+import YouTubeEmbed from "@/components/YouTubeEmbed"
 import { TESTIMONIALS, REELS } from "./shft-social"
 
 /* ---- capability icons (thin-line, matching the plugin's minimal look) ---- */
@@ -123,6 +124,18 @@ const FAQS: { q: string; a: string }[] = [
     a: "No. shft is a one-time purchase with free updates — buy it once, keep it forever. The $19 launch price is a limited discount off the regular $39.",
   },
 ]
+
+/* The long-form walkthrough on the Sample Roll YouTube channel. Only the id is
+   load-bearing; the title names the player for screen readers, the duration is
+   the chip on the poster, and the poster is a 1600x900 JPEG cut from the
+   video's thumbnail source, so update all four together when the video is
+   replaced. */
+const WALKTHROUGH = {
+  id: "KdBNYHwnRtI",
+  title: "I Made a Glitch Plugin That Turns Any Sound Into a Rhythm",
+  duration: "9:36",
+  poster: "/shft/walkthrough-poster.jpg",
+}
 
 async function startCheckout(): Promise<{ url: string | null; needsAuth: boolean; alreadyOwned: boolean }> {
   try {
@@ -346,6 +359,28 @@ export default function ShftLanding() {
 
       {/* ---- Feedback (social proof) -------------------------------------- */}
       <TestimonialMarquee items={TESTIMONIALS} />
+
+      {/* ---- Walkthrough (long-form YouTube) ------------------------------ */}
+      <section className={styles.walkthrough} aria-labelledby="shft-walkthrough-title">
+        <div className={styles.walkthroughHead}>
+          <p className={styles.eyebrow}>Walkthrough</p>
+          <h2 className={styles.walkthroughTitle} id="shft-walkthrough-title">
+            See how it all works
+          </h2>
+          <p className={styles.walkthroughSub}>
+            A ten-minute tour of shft from the person who built it — lanes and shapes,
+            beat repeat and granular, building a rhythm from a sample, dragging MIDI
+            out, the FX page and the LFOs.
+          </p>
+        </div>
+        <YouTubeEmbed
+          className={styles.shotFrame}
+          id={WALKTHROUGH.id}
+          title={WALKTHROUGH.title}
+          duration={WALKTHROUGH.duration}
+          poster={WALKTHROUGH.poster}
+        />
+      </section>
 
       {/* ---- Alternating feature blocks ----------------------------------- */}
       <div className={styles.blocks}>

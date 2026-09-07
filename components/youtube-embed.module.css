@@ -1,0 +1,105 @@
+/* Click-to-load YouTube player — see YouTubeEmbed.tsx. The frame is a bare
+   16:9 dark box; whichever page uses it passes radius, border and shadow in
+   via className so the player sits in that page's own screenshot frame.
+   Play-button look mirrors the reel carousel's (dark glass, cream glyph). */
+
+.frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: #0e0c0a;
+}
+
+.facade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: none;
+  display: block;
+  cursor: pointer;
+}
+/* The frame clips an outside outline, so draw the focus ring inset. */
+.facade:focus-visible {
+  outline: 3px solid var(--accent, #9b8b76);
+  outline-offset: -3px;
+}
+
+.poster {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.facade:hover .poster {
+  transform: scale(1.025);
+}
+
+.playBtn {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--cream, #f4efe4);
+  background: rgba(14, 12, 10, 0.55);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
+  transition: background 0.15s ease, transform 0.12s ease;
+}
+.facade:hover .playBtn {
+  background: rgba(14, 12, 10, 0.8);
+  transform: translate(-50%, -50%) scale(1.06);
+}
+/* Nudge the triangle right so it sits at the optical centre of the circle. */
+.playBtn svg {
+  margin-left: 4px;
+}
+
+.duration {
+  position: absolute;
+  right: 14px;
+  bottom: 14px;
+  padding: 4px 9px;
+  border-radius: 6px;
+  color: var(--cream, #f4efe4);
+  background: rgba(14, 12, 10, 0.72);
+  backdrop-filter: blur(6px);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.2;
+}
+
+.player {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+  display: block;
+}
+
+@media (max-width: 520px) {
+  .playBtn {
+    width: 64px;
+    height: 64px;
+  }
+  .playBtn svg {
+    width: 28px;
+    height: 28px;
+  }
+}
