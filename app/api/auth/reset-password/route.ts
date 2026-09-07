@@ -32,8 +32,14 @@ export async function POST(req: NextRequest) {
       where: { id: user.id },
       data: {
         passwordHash,
+        passwordSetAt: new Date(),
         passwordResetToken: null,
         passwordResetExpires: null,
+        // Completing a reset proves control of the inbox, which is exactly
+        // what email verification proves. This is also what rescues a buyer
+        // whose guest purchase landed on an old, never-verified account: the
+        // reset link goes to their inbox, and once used they can sign in.
+        emailVerified: user.emailVerified ?? new Date(),
       },
     })
 

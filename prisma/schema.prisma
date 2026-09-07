@@ -24,6 +24,12 @@ model User {
   emailVerificationExpires     DateTime?        @map("email_verification_expires")
   passwordResetToken           String?          @unique @map("password_reset_token")
   passwordResetExpires         DateTime?        @map("password_reset_expires")
+  // When a human last chose a password for this account. NULL means nobody
+  // has: the account was created by a guest plugin purchase (see
+  // lib/plugin-purchase-grant.ts) and the buyer has not set one yet. The
+  // receipt email and the login page key off this to say "set a password"
+  // rather than "sign in". Register and reset-password both stamp it.
+  passwordSetAt                DateTime?        @map("password_set_at")
   // Marketing / newsletter opt-in (Mailchimp exports). Default true at signup when checkbox left on.
   emailMarketingOptIn          Boolean          @default(true) @map("email_marketing_opt_in")
   // "drft v1.1.3 - Out Now" release notices. A narrower opt-out layered on
