@@ -18,6 +18,11 @@ import { mintSetPasswordUrl } from "@/lib/set-password"
 //     unguessable token Stripe hands only to the buyer's browser on the
 //     success redirect, and the same pattern Stripe's own success pages use.
 //
+// What a claim reveals: keys, download links and the set-password link only
+// when the account was created by this checkout or the viewer is signed in
+// as its owner; otherwise `withheld: true` and the buyer is pointed at the
+// receipt email.
+//
 // It never sends email. The webhook does that, once.
 export async function POST(request: Request) {
   const secret = process.env.STRIPE_SECRET_KEY
@@ -54,17 +59,38 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Could not verify your purchase." }, { status: 500 })
     }
 
+    // What the holder of the session id may see. Keys and the set-password
+    // link are revealed only when the account was born from this very
+    // checkout (there is nothing on it the session id did not just buy) or
+    // the viewer is signed in as its owner. An account that predates the
+    // session belongs to someone already here: a guest typing that email
+    // into Stripe has proven nothing about owning it, so they learn only
+    // where the receipt went. The receipt itself still goes to the inbox.
+    const signedIn = viewerId === result.userId
+    if (!signedIn && !result.accountFromThisPurchase) {
+      return NextResponse.json({
+        ok: true,
+        product,
+        email: result.email,
+        signedIn: false,
+        withheld: true,
+        needsPassword: false,
+        setPasswordUrl: null,
+        duplicates: [],
+        items: [],
+      })
+    }
+
     // Only an account with no human-chosen password gets a set-password link
-    // here. That account was created by this very purchase and holds nothing
-    // the session id does not already reveal. An account with a real password
-    // is never handed one - that would be a takeover path.
+    // here, and only when it was created by this purchase (checked above).
     const setPasswordUrl = result.needsPassword ? await mintSetPasswordUrl(result.userId) : null
 
     return NextResponse.json({
       ok: true,
       product,
       email: result.email,
-      signedIn: viewerId === result.userId,
+      signedIn,
+      withheld: false,
       needsPassword: result.needsPassword,
       setPasswordUrl,
       duplicates: result.duplicates,

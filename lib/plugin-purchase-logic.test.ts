@@ -3,6 +3,7 @@ import assert from "node:assert/strict"
 import {
   buyerLookupFor,
   isDuplicateGrant,
+  isAccountFromSession,
   setPasswordPath,
   downloadHref,
   downloadsFor,
@@ -40,6 +41,17 @@ test("isDuplicateGrant: a row older than the session is a duplicate", () => {
 test("isDuplicateGrant: a row created after the session began is this purchase", () => {
   const sessionCreated = 1_700_000_000
   assert.equal(isDuplicateGrant(new Date(sessionCreated * 1000 + 5_000), sessionCreated), false)
+})
+
+test("isAccountFromSession: an account older than the session is someone else's", () => {
+  const sessionCreated = 1_700_000_000
+  assert.equal(isAccountFromSession(new Date(sessionCreated * 1000 - 1), sessionCreated), false)
+})
+
+test("isAccountFromSession: an account created at or after the session began is this purchase's", () => {
+  const sessionCreated = 1_700_000_000
+  assert.equal(isAccountFromSession(new Date(sessionCreated * 1000), sessionCreated), true)
+  assert.equal(isAccountFromSession(new Date(sessionCreated * 1000 + 3_000), sessionCreated), true)
 })
 
 test("setPasswordPath carries the token and the welcome flag", () => {

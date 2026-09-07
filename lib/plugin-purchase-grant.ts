@@ -6,7 +6,7 @@ import { PLUGIN_GRANTS, isCompProduct, type PluginProduct } from "@/lib/plugin-p
 import { generateLicenseKey } from "@/lib/license-key"
 import { recordAffiliateReferral } from "@/lib/affiliate"
 import { snapshotForVisitor } from "@/lib/attribution-snapshot"
-import { buyerLookupFor, isDuplicateGrant } from "@/lib/plugin-purchase-logic"
+import { buyerLookupFor, isDuplicateGrant, isAccountFromSession } from "@/lib/plugin-purchase-logic"
 
 // The one place a paid Stripe Checkout Session becomes Purchase rows. Called by
 // the webhook and by /api/plugins/claim, in either order, any number of times:
@@ -22,15 +22,19 @@ export type GrantResult = {
   /** User.passwordSetAt is null: the account was created by a purchase and
    *  nobody has chosen a password. Callers offer "set a password". */
   needsPassword: boolean
+  /** The account was created at or after this checkout began, i.e. by this
+   *  purchase. Only then may the thanks page show keys and offer a password
+   *  to whoever holds the session id; see isAccountFromSession. */
+  accountFromThisPurchase: boolean
   items: GrantItem[]
   /** Products this email already owned before this checkout began. The
    *  charge is a duplicate; nothing was regranted. */
   duplicates: PluginProduct[]
 }
 
-type Buyer = { id: string; email: string; passwordSetAt: Date | null }
+type Buyer = { id: string; email: string; passwordSetAt: Date | null; createdAt: Date }
 
-const buyerSelect = { id: true, email: true, passwordSetAt: true } as const
+const buyerSelect = { id: true, email: true, passwordSetAt: true, createdAt: true } as const
 
 const isUniqueViolation = (e: unknown) =>
   typeof e === "object" && e !== null && (e as { code?: string }).code === "P2002"
@@ -166,6 +170,7 @@ export async function grantPluginPurchase(session: Stripe.Checkout.Session): Pro
     userId: buyer.id,
     email: buyer.email,
     needsPassword: buyer.passwordSetAt === null,
+    accountFromThisPurchase: isAccountFromSession(buyer.createdAt, session.created),
     items,
     duplicates,
   }

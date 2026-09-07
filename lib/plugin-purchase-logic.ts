@@ -43,6 +43,18 @@ export function isDuplicateGrant(existingCreatedAt: Date, sessionCreatedUnix: nu
   return existingCreatedAt.getTime() < sessionCreatedUnix * 1000
 }
 
+/**
+ * Was this account born from this checkout? An account created at or after
+ * the session began can only have been created by the grant for this
+ * purchase (whichever of the webhook or the claim route got there first).
+ * One that predates the session belongs to someone who was already here,
+ * and the thanks page must not show its keys or offer its password to
+ * whoever holds the session id.
+ */
+export function isAccountFromSession(accountCreatedAt: Date, sessionCreatedUnix: number): boolean {
+  return accountCreatedAt.getTime() >= sessionCreatedUnix * 1000
+}
+
 /** `welcome=1` makes the reset page read "Set your password". */
 export function setPasswordPath(token: string): string {
   return `/reset-password?token=${encodeURIComponent(token)}&welcome=1`
