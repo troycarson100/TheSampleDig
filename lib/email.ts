@@ -88,6 +88,9 @@ const PLUGIN_EMAIL_COPY: Record<string, { formats: string }> = {
   drft: { formats: "macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone)" },
 }
 
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+
 export type PurchaseEmailOptions = {
   /** Present when the account has no human-chosen password (it was created by
    *  this purchase). The email then says "set a password", not "sign in". */
@@ -114,6 +117,7 @@ export async function sendPluginPurchaseEmail(
 ) {
   const url = `${APP_URL}/products`
   const names = items.map((i) => i.product).join(" + ")
+  const safeEmail = escapeHtml(email)
 
   const keyBlocks = items
     .filter((i) => i.licenseKey)
@@ -143,13 +147,13 @@ export async function sendPluginPurchaseEmail(
   const account = opts.setPasswordUrl
     ? `
         <p style="color: #555; margin: 0 0 12px; font-size: 14px;">
-          Your purchase is saved to <strong>${email}</strong>. Set a password to see it on
+          Your purchase is saved to <strong>${safeEmail}</strong>. Set a password to see it on
           My Products, manage your machines, and re-download any time.
         </p>
         <a href="${opts.setPasswordUrl}" style="${buttonStyle}">Set password</a>`
     : `
         <p style="color: #555; margin: 0 0 12px; font-size: 14px;">
-          Sign in with <strong>${email}</strong> to see it on My Products.
+          Sign in with <strong>${safeEmail}</strong> to see it on My Products.
         </p>
         <a href="${url}" style="${buttonStyle}">Go to My Products</a>
         <p style="color: #999; font-size: 13px; margin-top: 12px;">
@@ -160,7 +164,7 @@ export async function sendPluginPurchaseEmail(
     ? `
         <p style="color: #854d0e; background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px;
                   padding: 12px 16px; font-size: 14px; margin: 24px 0 0;">
-          It looks like ${email} already owned ${opts.duplicates.join(" and ")}, so this charge
+          It looks like ${safeEmail} already owned ${opts.duplicates.map(escapeHtml).join(" and ")}, so this charge
           will be refunded. Reply to this email if it hasn't landed within a few days.
         </p>`
     : ""
@@ -197,9 +201,6 @@ export const UNSUBSCRIBE_PLACEHOLDER = "{{UNSUBSCRIBE_URL}}"
 export function releaseAnnouncementSubject(product: string, version: string) {
   return `${product} v${version} - Out Now`
 }
-
-const escapeHtml = (s: string) =>
-  s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
 
 /** The release email body, with UNSUBSCRIBE_PLACEHOLDER where the per-recipient
  *  link goes. Notes come from PRODUCTS[product].changelog - the same prose that
