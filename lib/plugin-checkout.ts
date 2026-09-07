@@ -12,6 +12,15 @@ import { checkoutUrls, type CancelPath } from "@/lib/plugin-checkout-logic"
 
 export type CheckoutBuyer = { id: string; email: string | null }
 
+/** The signed-in buyer for checkout, or null for a guest. The one definition
+ *  of "signed in enough to buy", shared by the three checkout routes. */
+export function buyerFromSession(
+  session: { user?: { id?: string | null; email?: string | null } | null } | null | undefined,
+): CheckoutBuyer | null {
+  const id = session?.user?.id
+  return id ? { id, email: session?.user?.email ?? null } : null
+}
+
 export function checkoutBaseUrl(): string {
   return (
     process.env.NEXTAUTH_URL ||

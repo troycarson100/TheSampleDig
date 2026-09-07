@@ -3,7 +3,7 @@ import Stripe from "stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { PRICING } from "@/lib/products"
-import { createPluginCheckoutSession, readAffiliateCodeFromCookie, type CheckoutBuyer } from "@/lib/plugin-checkout"
+import { createPluginCheckoutSession, readAffiliateCodeFromCookie, buyerFromSession } from "@/lib/plugin-checkout"
 
 // One-time checkout for the shft + drft bundle. One Stripe price, one line
 // item; the webhook (and /api/plugins/claim) grant BOTH products.
@@ -21,9 +21,7 @@ export async function POST() {
   }
 
   const session = await auth()
-  const buyer: CheckoutBuyer | null = session?.user?.id
-    ? { id: session.user.id, email: session.user.email ?? null }
-    : null
+  const buyer = buyerFromSession(session)
 
   if (buyer) {
     const owned = await prisma.purchase.findMany({

@@ -3,7 +3,7 @@ import Stripe from "stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { PRICING } from "@/lib/products"
-import { createPluginCheckoutSession, readAffiliateCodeFromCookie, type CheckoutBuyer } from "@/lib/plugin-checkout"
+import { createPluginCheckoutSession, readAffiliateCodeFromCookie, buyerFromSession } from "@/lib/plugin-checkout"
 
 // One-time checkout for the drft plugin. Signing in is optional: a guest pays
 // the full price (ownership, and so the crossgrade, can only be checked
@@ -23,9 +23,7 @@ export async function POST() {
   }
 
   const session = await auth()
-  const buyer: CheckoutBuyer | null = session?.user?.id
-    ? { id: session.user.id, email: session.user.email ?? null }
-    : null
+  const buyer = buyerFromSession(session)
 
   let priceId = fullPriceId
   let paid: number = PRICING.drft.price
