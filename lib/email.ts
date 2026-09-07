@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer"
+import { downloadsFor } from "@/lib/plugin-purchase-logic"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"
 const FROM = `Sample Roll <${process.env.SMTP_FROM || process.env.SMTP_USER}>`
@@ -87,36 +88,82 @@ const PLUGIN_EMAIL_COPY: Record<string, { formats: string }> = {
   drft: { formats: "macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone)" },
 }
 
+export type PurchaseEmailOptions = {
+  /** Present when the account has no human-chosen password (it was created by
+   *  this purchase). The email then says "set a password", not "sign in". */
+  setPasswordUrl?: string | null
+  /** Products this address already owned before this checkout. The charge is
+   *  a duplicate and is refunded by hand. */
+  duplicates?: readonly string[]
+}
+
+const buttonStyle =
+  "display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;"
+const linkChipStyle =
+  "display: inline-block; margin: 0 8px 8px 0; padding: 8px 14px; border: 1px solid #d8d8d8; border-radius: 999px; color: #1a1a1a; text-decoration: none; font-size: 14px;"
+
 /** Purchase receipt for one or more plugins (a bundle purchase sends one email
-    covering both keys). Key blocks are omitted when a key is missing rather
+    covering both keys). Each key block is followed by direct download links
+    that use the key as their credential, so a buyer who never signs in still
+    gets the installer. Key blocks are omitted when a key is missing rather
     than printing an empty box — /products always shows the real one. */
 export async function sendPluginPurchaseEmail(
   email: string,
-  items: { product: "shft" | "drft"; licenseKey: string | null }[]
+  items: { product: "shft" | "drft"; licenseKey: string | null }[],
+  opts: PurchaseEmailOptions = {}
 ) {
   const url = `${APP_URL}/products`
   const names = items.map((i) => i.product).join(" + ")
 
   const keyBlocks = items
     .filter((i) => i.licenseKey)
-    .map(
-      (i) => `
+    .map((i) => {
+      const links = downloadsFor(i.product, i.licenseKey!)
+        .map((d) => `<a href="${APP_URL}${d.href}" style="${linkChipStyle}">↓ ${d.label}</a>`)
+        .join("")
+      return `
         <p style="color: #555; margin-bottom: 8px; font-size: 14px;">Your ${i.product} licence key</p>
         <p style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px;
                   letter-spacing: 1px; background: #f4f4f4; border: 1px solid #e4e4e4;
-                  border-radius: 8px; padding: 12px 16px; margin: 0 0 16px;">
+                  border-radius: 8px; padding: 12px 16px; margin: 0 0 12px;">
           ${i.licenseKey}
         </p>
-        <p style="color: #555; margin-bottom: 24px; font-size: 14px;">
+        <p style="color: #555; margin-bottom: 12px; font-size: 14px;">
           Paste it into ${i.product} the first time you open it. It activates up to 3 machines,
           and you can free one any time from My Products.
-        </p>`
-    )
+        </p>
+        <div style="margin: 0 0 24px;">${links}</div>`
+    })
     .join("")
 
   const downloadLines = items
     .map((i) => `<strong>${i.product}</strong> for ${PLUGIN_EMAIL_COPY[i.product]?.formats ?? "macOS & Windows"}`)
     .join(" and ")
+
+  const account = opts.setPasswordUrl
+    ? `
+        <p style="color: #555; margin: 0 0 12px; font-size: 14px;">
+          Your purchase is saved to <strong>${email}</strong>. Set a password to see it on
+          My Products, manage your machines, and re-download any time.
+        </p>
+        <a href="${opts.setPasswordUrl}" style="${buttonStyle}">Set password</a>`
+    : `
+        <p style="color: #555; margin: 0 0 12px; font-size: 14px;">
+          Sign in with <strong>${email}</strong> to see it on My Products.
+        </p>
+        <a href="${url}" style="${buttonStyle}">Go to My Products</a>
+        <p style="color: #999; font-size: 13px; margin-top: 12px;">
+          Forgot your password? <a href="${APP_URL}/forgot-password" style="color: #555;">Reset it</a>.
+        </p>`
+
+  const duplicateNote = opts.duplicates?.length
+    ? `
+        <p style="color: #854d0e; background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px;
+                  padding: 12px 16px; font-size: 14px; margin: 24px 0 0;">
+          It looks like ${email} already owned ${opts.duplicates.join(" and ")}, so this charge
+          will be refunded. Reply to this email if it hasn't landed within a few days.
+        </p>`
+    : ""
 
   await sendMailWithFallback({
     from: FROM,
@@ -126,18 +173,14 @@ export async function sendPluginPurchaseEmail(
       <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
         <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Thanks for buying ${names}</h1>
         <p style="color: #555; margin-bottom: 24px;">
-          Your purchase is complete. Head to <strong>My Products</strong> to download ${downloadLines},
-          plus the user manual — any time, as many times as you need.
+          Your purchase is complete. Below is everything you need: your licence key and the
+          download links for ${downloadLines}, plus the user manual.
         </p>
         ${keyBlocks}
-        <a href="${url}" style="display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;">
-          Go to My Products
-        </a>
+        ${account}
+        ${duplicateNote}
         <p style="color: #999; font-size: 13px; margin-top: 24px;">
-          Sign in with this email address to see your download. Reply here if you hit any trouble and we'll sort you out.
-        </p>
-        <p style="color: #ccc; font-size: 12px; margin-top: 8px;">
-          Or copy this link: ${url}
+          Reply here if you hit any trouble and we'll sort you out.
         </p>
       </div>
     `,
