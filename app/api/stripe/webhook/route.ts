@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db"
-import { PLUGIN_GRANTS, isCompProduct } from "@/lib/plugin-products"
+import { isCompProduct } from "@/lib/plugin-products"
 import { sendPluginPurchaseEmail } from "@/lib/email"
-import { recordAffiliateReferral } from "@/lib/affiliate"
-import { generateLicenseKey } from "@/lib/license-key"
+import { grantPluginPurchase } from "@/lib/plugin-purchase-grant"
+import { mintSetPasswordUrl } from "@/lib/set-password"
 import { reverseTransferForRefund } from "@/lib/affiliate-stripe"
 
 export async function POST(request: Request) {
@@ -47,84 +47,28 @@ export async function POST(request: Request) {
         const session = event.data.object as Stripe.Checkout.Session
 
         // --- Plugin purchases: single products and the bundle. -----------------
-        // metadata.product → which Purchase rows to grant. The map lives in
-        // lib/plugin-products so comp codes grant exactly what a purchase does;
-        // it used to be defined here while comps hardcoded "shft", and two
-        // copies of a grant map is how the wrong product gets handed out.
-        const metaProduct = session.metadata?.product ?? ""
-        const grantProducts = isCompProduct(metaProduct) ? PLUGIN_GRANTS[metaProduct] : undefined
-        if (grantProducts) {
-          const buyerId = session.client_reference_id ?? session.metadata?.userId
-          // Hoisted: the email below is sent even when there is no buyerId, and
-          // it needs the keys. Missing keys are omitted from the template rather
-          // than printing something that cannot activate.
-          const emailItems: { product: "shft" | "drft"; licenseKey: string | null }[] = []
-
-          if (buyerId && typeof buyerId === "string") {
-            let referralPurchaseId: string | null = null
-            let first = true
-            for (const product of grantProducts) {
-              // stripeSessionId is @unique on Purchase: one checkout session
-              // cannot stamp two rows, so only the FIRST granted product
-              // carries it (bundle: shft — the same row the referral hangs
-              // off). The second row is created with null, like comp grants.
-              const purchase = await prisma.purchase.upsert({
-                where: { userId_product: { userId: buyerId, product } },
-                create: {
-                  userId: buyerId,
-                  product,
-                  stripeSessionId: first ? session.id : null,
-                  licenseKey: generateLicenseKey(product),
-                },
-                // Never regenerate: a buyer may already have the old key in the
-                // plugin, and rotating it would deactivate them silently.
-                update: first ? { stripeSessionId: session.id } : {},
-              })
-              first = false
-
-              let licenseKey = purchase.licenseKey
-              if (!licenseKey) {
-                // The row predates licensing, or was created by an older deploy.
-                //
-                // Conditional update, then re-read: this route and the claim
-                // routes can run concurrently on the same purchase. A
-                // read-then-write would let the second mint overwrite the first,
-                // so the buyer gets emailed a key that is no longer on their
-                // account. With licenseKey:null in the WHERE the loser writes
-                // nothing, and the re-read returns whichever key actually won.
-                await prisma.purchase.updateMany({
-                  where: { id: purchase.id, licenseKey: null },
-                  data: { licenseKey: generateLicenseKey(product) },
-                })
-                const filled = await prisma.purchase.findUnique({
-                  where: { id: purchase.id },
-                  select: { licenseKey: true },
-                })
-                licenseKey = filled?.licenseKey ?? null
-              }
-              emailItems.push({ product, licenseKey })
-              // One referral per checkout session — first granted product only
-              // (the AffiliateReferral↔Purchase relation is one-to-one).
-              if (!referralPurchaseId) referralPurchaseId = purchase.id
-            }
-            if (referralPurchaseId) {
-              await recordAffiliateReferral(session, referralPurchaseId)
-            }
-          } else {
-            console.warn("[Stripe webhook] plugin purchase missing userId")
+        // All the grant logic (find-or-create the buyer, create-or-read the
+        // Purchase rows, mint keys, record the referral) lives in
+        // lib/plugin-purchase-grant.ts and is shared with /api/plugins/claim,
+        // so the two can run in either order. This route's only extra job is
+        // the receipt email, sent exactly once, from here.
+        if (isCompProduct(session.metadata?.product)) {
+          const result = await grantPluginPurchase(session)
+          if (!result) {
+            console.warn(`[Stripe webhook] plugin purchase ${session.id} could not be granted`)
+            break
           }
-          const email = session.customer_details?.email ?? session.customer_email ?? null
-          if (email) {
-            try {
-              await sendPluginPurchaseEmail(
-                email,
-                emailItems.length
-                  ? emailItems
-                  : grantProducts.map((product) => ({ product, licenseKey: null }))
-              )
-            } catch (e) {
-              console.error("[Stripe webhook] plugin purchase email failed:", e)
-            }
+          try {
+            // A purchase-created account has no password yet; the receipt is
+            // where the buyer gets the link to set one. An account with a real
+            // password is told to sign in instead - never handed a reset link.
+            const setPasswordUrl = result.needsPassword ? await mintSetPasswordUrl(result.userId) : null
+            await sendPluginPurchaseEmail(result.email, result.items, {
+              setPasswordUrl,
+              duplicates: result.duplicates,
+            })
+          } catch (e) {
+            console.error("[Stripe webhook] plugin purchase email failed:", e)
           }
           break
         }
