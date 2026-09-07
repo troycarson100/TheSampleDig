@@ -162,9 +162,11 @@ await sendPluginPurchaseEmail(result.email, result.items, { setPasswordUrl, dupl
 
 `mintSetPasswordUrl` writes a 32-byte hex token into the existing
 `passwordResetToken` / `passwordResetExpires` columns with a 7-day expiry and
-returns `/reset-password?token=<t>&welcome=1`. Minting overwrites any earlier
-token, which is fine: only the newest email's link needs to work, and
-forgot-password re-mints on demand.
+returns `/reset-password?token=<t>&welcome=1`. If the account already holds a
+token with at least 24 hours of life left, that token is reused instead, so
+the receipt email, the thanks page, and a resend all carry the same link
+rather than each silently killing the last one. Forgot-password's 1-hour
+tokens never qualify for reuse and are always replaced.
 
 The old "send an email with null keys when there is no buyer" branch goes
 away. A guest session always carries an email; a session with neither a user
@@ -190,7 +192,20 @@ Authorization:
   with it.
 
 Then `grantPluginPurchase(session)`, which is idempotent with the webhook in
-either order. Response:
+either order.
+
+What a claim reveals depends on whose account the purchase landed on. Keys,
+download links, and the set-password link are returned only when the viewer
+is signed in as the account's owner, or the account was born from this very
+checkout (`user.createdAt >= session.created`, computed by the helper as
+`accountFromThisPurchase`). An account that predates the session belongs to
+someone who was already here, and a guest who typed that email into Stripe
+has proven nothing about owning it: they are told only where the receipt
+went. The receipt itself still goes to the inbox, which is the proof of
+ownership. Without this rule, anyone could pay once with a stranger's email
+and collect that stranger's existing keys and a link to set their password.
+
+Response:
 
 ```
 {
@@ -198,20 +213,22 @@ either order. Response:
   product: "shft" | "drft" | "bundle",
   email: string,
   signedIn: boolean,          // caller has a session for this account
-  needsPassword: boolean,
-  setPasswordUrl: string | null,   // only when needsPassword
-  duplicates: string[],
-  items: [{
+  withheld: boolean,          // account predates the checkout and caller is not its owner
+  needsPassword: boolean,     // false when withheld
+  setPasswordUrl: string | null,   // only when needsPassword and not withheld
+  duplicates: string[],       // empty when withheld
+  items: [{                   // empty when withheld
     product, licenseKey,
     downloads: [{ id, label, href }]   // href carries the key, see §5
   }]
 }
 ```
 
-`setPasswordUrl` is minted here only when `needsPassword` is true. That account
-was created by this purchase and holds nothing the session id does not already
-reveal, so handing its holder a set-password link adds no new exposure. An
-account with a real password never gets one from this route.
+`setPasswordUrl` is minted here only when `needsPassword` is true and the
+response is not withheld. Such an account was created by this purchase and
+holds nothing the session id does not already reveal, so handing its holder a
+set-password link adds no new exposure. An account with a real password never
+gets one from this route.
 
 The claim route does not send email. The webhook does. If the webhook is
 delayed or misconfigured the page still shows everything and links to the
@@ -232,6 +249,11 @@ States:
 - Loading: "Confirming your purchase…".
 - Error: "We couldn't confirm that purchase. If you were charged, your key is
   on its way by email" with the lost-key link.
+- Withheld (`withheld: true`): heading "Thanks - you're all set". "This
+  purchase has been added to the account for {email}. Your licence key and
+  download links are in the receipt we've just sent there", the lost-key
+  link, and a "Sign in" button to `/login?callbackUrl=/products`. No key, no
+  downloads, no set-password button.
 - Success: heading "You're in". For each item: product name, the key in a
   monospace block with a copy button, and one button per asset (macOS
   installer, Windows installer, manual). Then "We've also sent this to
@@ -388,8 +410,13 @@ applies, `needsPassword` is false, and the thanks page offers My Products.
 
 - **Existing owner buys again while signed out.** Detected as a duplicate by
   the `createdAt` rule. Nothing is regranted, the original session id is kept,
-  a warning is logged, and both the page and the email say the charge will be
-  refunded. The refund is manual.
+  a warning is logged. Because the account predates the checkout, the thanks
+  page shows the withheld variant; the email carries the existing key and
+  says the charge will be refunded. The refund is manual.
+- **Guest buys a second plugin later with the same email.** Same withheld
+  variant on the thanks page: the account predates this checkout. The receipt
+  carries the new key and, if they never set a password, the same
+  set-password link as before (token reuse).
 - **Email matches an unverified account.** Purchase attaches to it, account
   stays unverified. The receipt's "sign in" path fails until they reset their
   password, which verifies the email and locks out whoever originally
@@ -412,8 +439,12 @@ applies, `needsPassword` is false, and the thanks page offers My Products.
 - `emailVerified` is set only on accounts this feature creates. Existing
   accounts are never verified, upgraded, or modified by a purchase.
 - Set-password links are issued only for accounts with `passwordSetAt` null.
+  The claim route additionally requires the account to have been created by
+  this checkout; the webhook's link goes to the inbox, which is the proof of
+  ownership.
 - The claim route requires a matching session for any purchase that names a
-  user id. Only guest sessions are claimable by session id alone.
+  user id. Only guest sessions are claimable by session id alone, and a
+  session id reveals keys only for an account it created.
 - Licence keys as download credentials are scoped to their own product.
 - The resend endpoint is constant-response and rate-limited.
 

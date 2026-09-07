@@ -10,6 +10,12 @@
 
 **Spec:** `docs/superpowers/specs/2026-09-07-guest-checkout-design.md`
 
+## Amendments (made during execution, after task reviews)
+
+1. **Task 8 review, finding A.** A guest claim could reveal a pre-existing passwordless account's keys and mint its set-password link to whoever typed that email at Stripe. Fixed in Task 8's fix round: `GrantResult.accountFromThisPurchase` (pure `isAccountFromSession(user.createdAt, session.created)` in `lib/plugin-purchase-logic.ts`); the claim route returns `withheld: true` with no items and no set-password link unless the viewer is signed in as the owner or the account was born from this checkout. Task 9's thanks page renders a withheld variant; Task 13 Step 11 verifies it. The webhook is unchanged: its link goes to the inbox, which is the proof of ownership.
+2. **Task 8 review, finding B.** The webhook and the claim route each minted a set-password token, and the second mint invalidated the first link. Fixed in the same round: `mintSetPasswordUrl` reuses an existing token with at least `SET_PASSWORD_REUSE_MIN_MS` (24h) of life left; forgot-password's 1-hour tokens and expired tokens are still replaced.
+3. **Task 7 review.** The offers page (`app/offers/OffersView.tsx`) also calls the checkout routes and had a 401 branch; Task 12 removes that dead branch as well.
+
 ## Global Constraints
 
 - Work happens in the worktree at `/Users/troycarson/Developer/thesampledig/.claude/worktrees/guest-checkout` on branch `worktree-guest-checkout`. `node_modules` there is a symlink to the main checkout's, so `npx prisma generate` updates the shared client (harmless to the main tree).
@@ -1521,6 +1527,9 @@ type Claim = {
   product: "shft" | "drft" | "bundle"
   email: string
   signedIn: boolean
+  /** The account predates this checkout and the viewer is not signed in as
+   *  its owner: keys and the set-password link were not returned. */
+  withheld: boolean
   needsPassword: boolean
   setPasswordUrl: string | null
   duplicates: string[]
@@ -1715,6 +1724,29 @@ export default function ThanksPage() {
   }
 
   const { claim } = state
+
+  if (claim.withheld) {
+    return (
+      <>
+        <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
+          Thanks - you&apos;re all set
+        </h1>
+        <p className="text-[15px] mb-4" style={muted}>
+          This purchase has been added to the account for <strong>{claim.email}</strong>. Your
+          licence key and download links are in the receipt we&apos;ve just sent there - check
+          spam if it isn&apos;t in your inbox, or{" "}
+          <Link href="/lost-key" className="underline">resend it</Link>.
+        </p>
+        <p className="text-[15px] mb-6" style={muted}>
+          Sign in with that email to see everything on My Products.
+        </p>
+        <Link href="/login?callbackUrl=%2Fproducts" className={primaryBtn} style={primaryBtnStyle}>
+          Sign in
+        </Link>
+      </>
+    )
+  }
+
   return (
     <>
       <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
@@ -2680,7 +2712,9 @@ With the browser signed in as the plus-address from Step 8, open `http://localho
 
 Sign out. Open `http://localhost:3001/shft`. Expected: "Own drft? Sign in for the $15 crossgrade." under the get-started buy button. Open `http://localhost:3001/plugins`. Expected: "Already own one? Sign in to complete the pair for $15." under the bundle button.
 
-Buy shft again as a guest with the same plus-address (re-run Step 3 with the email fixed to it). Expected: `/thanks` shows the same shft key as before (not a new one) and the yellow "already owned shft ... will be refunded" note; the dev server log has a `[plugin grant] duplicate purchase` warning; the DB still has one shft row for that user with its original `stripe_session_id`.
+Buy shft again as a guest with the same plus-address (re-run Step 3 with the email fixed to it). Expected: because that account predates this checkout and the browser is signed out, `/thanks` shows the withheld variant ("Thanks - you're all set ... added to the account for <email> ... receipt sent there") with NO key, NO download links and NO set-password button; the receipt email carries the same shft key as before (not a new one) plus the yellow "already owned shft ... will be refunded" note; the dev server log has a `[plugin grant] duplicate purchase` warning; the DB still has one shft row for that user with its original `stripe_session_id`.
+
+Then, still signed out, reload the same `/thanks` URL. Expected: the withheld variant again (the session id alone never reveals a pre-existing account's keys).
 
 Refund the duplicate in the Stripe test dashboard (or `stripe refunds create --payment-intent <pi>`), which keeps the test account tidy.
 
