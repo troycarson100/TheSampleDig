@@ -20,7 +20,22 @@ export async function readAttributionSnapshot(): Promise<AttributionSnapshot | n
     const cookieStore = await cookies()
     const visitorId = cookieStore.get(VISITOR_COOKIE)?.value
     if (!visitorId) return null
+    return await snapshotForVisitor(visitorId)
+  } catch (e) {
+    console.error("[attribution snapshot]", e)
+    return null
+  }
+}
 
+/**
+ * The same snapshot for a visitor id we already hold. The Stripe webhook has
+ * no request cookies - only the attrVisitorId the checkout route copied into
+ * session metadata - and uses this to attribute a guest-created account the
+ * same way a form signup is attributed. Null when the id matches no landing
+ * event.
+ */
+export async function snapshotForVisitor(visitorId: string): Promise<AttributionSnapshot | null> {
+  try {
     const landing = await prisma.landingEvent.findUnique({
       where: { visitorId },
       select: { referrerHost: true, utmSource: true, utmCampaign: true, landingPath: true },
