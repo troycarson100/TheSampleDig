@@ -109,7 +109,11 @@ export default function PluginsStore() {
         .then((d) => {
           if (d?.owned) setOwned((o) => ({ ...o, [id]: true }))
           setCrossgradeAvailable((c) => ({ ...c, [id]: Boolean(d?.crossgrade) }))
-          setSignedIn(Boolean(d?.signedIn))
+          // Only a response that actually arrived may say "signed out". This
+          // effect runs for both products, so a null d from one failing
+          // endpoint would otherwise tell a signed-in visitor to sign in,
+          // while the other endpoint's crossgrade flag kept the nudge shown.
+          if (d) setSignedIn(Boolean(d.signedIn))
         })
         .catch(() => {})
     }
