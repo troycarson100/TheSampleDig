@@ -7,6 +7,9 @@ import Link from "next/link"
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams()
   const token = searchParams.get("token")
+  // Set from a purchase receipt or the thanks page: the account was created
+  // by a guest checkout and this is the buyer's first password, not a reset.
+  const welcome = searchParams.get("welcome") === "1"
   const router = useRouter()
 
   const [password, setPassword] = useState("")
@@ -49,7 +52,7 @@ export default function ResetPasswordPage() {
         return
       }
 
-      router.push("/login?reset=true")
+      router.push(welcome ? "/login?reset=true&callbackUrl=%2Fproducts" : "/login?reset=true")
     } catch {
       setError("Something went wrong. Please try again.")
     } finally {
@@ -77,7 +80,15 @@ export default function ResetPasswordPage() {
     <div className="min-h-screen flex flex-col items-center justify-center px-4" style={{ background: "var(--background)" }}>
       <div className="w-full max-w-md p-8">
         <h1 className="text-2xl font-semibold text-center mb-2" style={{ color: "var(--foreground)", fontFamily: "var(--font-halant), Georgia, serif" }}>Sample Roll</h1>
-        <h2 className="text-lg font-medium text-center mb-6" style={{ color: "var(--muted)" }}>Reset Password</h2>
+        <h2 className={`text-lg font-medium text-center ${welcome ? "mb-2" : "mb-6"}`} style={{ color: "var(--muted)" }}>
+          {welcome ? "Set your password" : "Reset Password"}
+        </h2>
+        {welcome && (
+          <p className="text-sm text-center mb-6" style={{ color: "var(--muted)" }}>
+            Your account was created when you bought a plugin. Choose a password to sign in and
+            see your downloads on My Products.
+          </p>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
@@ -115,7 +126,7 @@ export default function ResetPasswordPage() {
             className="w-full py-2.5 rounded-[var(--radius-button)] font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "var(--primary)" }}
           >
-            {loading ? "Updating…" : "Set new password"}
+            {loading ? "Saving…" : welcome ? "Set password" : "Set new password"}
           </button>
           <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
             <Link href="/login" className="font-medium hover:underline" style={{ color: "var(--foreground)" }}>Back to login</Link>
