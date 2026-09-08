@@ -5,6 +5,7 @@ import Link from "next/link"
 import { useSession } from "next-auth/react"
 import styles from "./offers.module.css"
 import { PRICING } from "@/lib/products"
+import { trackMeta } from "@/lib/meta-pixel"
 
 type PluginId = "shft" | "drft"
 
@@ -15,31 +16,38 @@ const BLURB: Record<PluginId, string> = {
 }
 const ART: Record<PluginId, string> = { shft: "/shft/card.jpg", drft: "/drft/field.jpg" }
 
-async function startCheckout(endpoint: string): Promise<{ url: string | null; needsAuth: boolean; conflict: boolean }> {
+async function startCheckout(endpoint: string): Promise<{ url: string | null; conflict: boolean }> {
   try {
     const res = await fetch(endpoint, { method: "POST" })
-    if (res.status === 401) return { url: null, needsAuth: true, conflict: false }
-    if (res.status === 409) return { url: null, needsAuth: false, conflict: true }
+    if (res.status === 409) return { url: null, conflict: true }
     const data = await res.json().catch(() => ({}))
-    if (res.ok && typeof data?.url === "string") return { url: data.url, needsAuth: false, conflict: false }
+    if (res.ok && typeof data?.url === "string") return { url: data.url, conflict: false }
   } catch {
     /* fall through */
   }
-  return { url: null, needsAuth: false, conflict: false }
+  return { url: null, conflict: false }
 }
 
-function BuyBtn({ endpoint, children }: { endpoint: string; children: ReactNode }) {
+function BuyBtn({
+  endpoint,
+  product,
+  value,
+  children,
+}: {
+  endpoint: string
+  product: "shft" | "drft" | "bundle"
+  value: number
+  children: ReactNode
+}) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
   const buy = async () => {
     setBusy(true)
     setFailed(false)
-    const { url, needsAuth, conflict } = await startCheckout(endpoint)
-    if (needsAuth) {
-      window.location.href = `/login?callbackUrl=${encodeURIComponent("/offers")}`
-      return
-    }
+    // Funnel top: paired with the Purchase event on /thanks.
+    trackMeta("InitiateCheckout", { value, currency: "USD", content_name: product, content_type: "product" })
+    const { url, conflict } = await startCheckout(endpoint)
     if (conflict) {
       window.location.reload()
       return
@@ -184,7 +192,7 @@ export default function OffersView() {
           badge={`Save $${PRICING.crossgrade.compareAt - PRICING.crossgrade.price}`}
           art={ART[missing]}
         >
-          <BuyBtn endpoint={`/api/${missing}/checkout`}>
+          <BuyBtn endpoint={`/api/${missing}/checkout`} product={missing} value={PRICING.crossgrade.price}>
             Get {NAMES[missing]} - ${PRICING.crossgrade.price}
           </BuyBtn>
           <p className={styles.foot}>
@@ -212,7 +220,7 @@ export default function OffersView() {
           badge={`Save $${PRICING[missing].msrp - PRICING[missing].price}`}
           art={ART[missing]}
         >
-          <BuyBtn endpoint={`/api/${missing}/checkout`}>
+          <BuyBtn endpoint={`/api/${missing}/checkout`} product={missing} value={PRICING[missing].price}>
             Get {NAMES[missing]} - ${PRICING[missing].price}
           </BuyBtn>
           <p className={styles.foot}>
@@ -238,7 +246,9 @@ export default function OffersView() {
           badge={`Save $${PRICING.bundle.compareAt - PRICING.bundle.price}`}
           art="/drft/field.jpg"
         >
-          <BuyBtn endpoint="/api/bundle/checkout">Get the bundle - ${PRICING.bundle.price}</BuyBtn>
+          <BuyBtn endpoint="/api/bundle/checkout" product="bundle" value={PRICING.bundle.price}>
+            Get the bundle - ${PRICING.bundle.price}
+          </BuyBtn>
           <p className={styles.foot}>
             Or buy them one at a time on the{" "}
             <Link className={styles.footLink} href="/plugins">

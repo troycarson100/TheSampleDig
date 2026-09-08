@@ -124,21 +124,20 @@ const FAQS: { q: string; a: string }[] = [
   },
 ]
 
-async function startCheckout(): Promise<{ url: string | null; needsAuth: boolean; alreadyOwned: boolean }> {
+async function startCheckout(): Promise<{ url: string | null; alreadyOwned: boolean }> {
   try {
     const res = await fetch("/api/shft/checkout", { method: "POST" })
-    if (res.status === 401) return { url: null, needsAuth: true, alreadyOwned: false }
-    if (res.status === 409) return { url: null, needsAuth: false, alreadyOwned: true }
+    if (res.status === 409) return { url: null, alreadyOwned: true }
     const data = await res.json().catch(() => ({}))
-    if (res.ok && typeof data?.url === "string") return { url: data.url, needsAuth: false, alreadyOwned: false }
+    if (res.ok && typeof data?.url === "string") return { url: data.url, alreadyOwned: false }
   } catch {
     /* fall through */
   }
-  return { url: null, needsAuth: false, alreadyOwned: false }
+  return { url: null, alreadyOwned: false }
 }
 
-/** Buy Now button — shows the struck price inline. Kicks off Stripe checkout;
-    sends logged-out users to sign in first, owners to their downloads, and falls
+/** Buy Now button — shows the struck price inline. Kicks off Stripe checkout
+    for anyone, signed in or not; sends owners to their downloads, and falls
     back to "Opens at launch" until STRIPE_SHFT_PRICE_ID is configured. */
 function BuyButton({ className, owned, crossgrade }: { className: string; owned: boolean; crossgrade: boolean }) {
   const [busy, setBusy] = useState(false)
@@ -156,11 +155,14 @@ function BuyButton({ className, owned, crossgrade }: { className: string; owned:
   const buy = async () => {
     setBusy(true)
     setFailed(false)
-    const { url, needsAuth, alreadyOwned } = await startCheckout()
-    if (needsAuth) {
-      window.location.href = `/login?callbackUrl=${encodeURIComponent("/shft")}`
-      return
-    }
+    // Funnel top: paired with the Purchase event on /thanks.
+    trackMeta("InitiateCheckout", {
+      value: crossgrade ? PRICING.crossgrade.price : PRICING.shft.price,
+      currency: "USD",
+      content_name: "shft",
+      content_type: "product",
+    })
+    const { url, alreadyOwned } = await startCheckout()
     if (alreadyOwned) {
       window.location.href = "/products"
       return
@@ -189,39 +191,14 @@ function BuyButton({ className, owned, crossgrade }: { className: string; owned:
   )
 }
 
+/** Only the canceled state lives here now. Success goes to /thanks, which
+    claims the session and shows the key - see app/thanks. */
 function PurchaseBanner() {
   const [canceled, setCanceled] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const p = params.get("purchase")
-    if (p === "canceled") {
-      setCanceled(true)
-      return
-    }
-    if (p !== "success") return
-
-    // Meta Pixel: shft purchase conversion ($19 launch price, or the crossgrade
-    // price if `paid` is stamped on the success URL). Fired before the redirect
-    // below — fbq beacons survive the navigation.
-    const paid = Number(params.get("paid")) || PRICING.shft.price
-    trackMeta("Purchase", { value: paid, currency: "USD", content_name: "shft", content_type: "product" })
-
-    // On success, record the purchase (self-heals if the webhook is delayed),
-    // then send them to My Products — no banner to fight the fixed nav.
-    // replace() so the back button doesn't return to the success URL.
-    const sessionId = params.get("session_id")
-    if (!sessionId) {
-      window.location.replace("/products")
-      return
-    }
-    fetch("/api/shft/claim", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    }).finally(() => {
-      window.location.replace("/products")
-    })
+    if (params.get("purchase") === "canceled") setCanceled(true)
   }, [])
 
   if (!canceled) return null
@@ -273,12 +250,14 @@ export default function ShftLanding() {
   // Whether STRIPE_SHFT_CROSSGRADE_PRICE_ID is actually configured - the $15
   // price can only be shown (and charged) when this is true.
   const [shftCrossgrade, setShftCrossgrade] = useState(false)
+  const [signedIn, setSignedIn] = useState(true)
   useEffect(() => {
     fetch("/api/shft/ownership")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d?.owned) setOwned(true)
         setShftCrossgrade(Boolean(d?.crossgrade))
+        setSignedIn(Boolean(d?.signedIn))
       })
       .catch(() => {})
     fetch("/api/drft/ownership")
@@ -416,6 +395,11 @@ export default function ShftLanding() {
         <div className={styles.gsForm}>
           <BuyButton className={styles.pillDark} owned={owned} crossgrade={crossgradeOn} />
         </div>
+        {!signedIn && shftCrossgrade && (
+          <p className={styles.gsSub}>
+            Own drft? <a href="/login?callbackUrl=%2Fshft">Sign in</a> for the ${PRICING.crossgrade.price} crossgrade.
+          </p>
+        )}
       </section>
     </>
   )
