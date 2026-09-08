@@ -22,6 +22,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setNeedsPassword(false)
     setLoading(true)
 
     try {
@@ -32,7 +33,6 @@ export default function LoginPage() {
       })
 
       if (result?.error) {
-        setNeedsPassword(false)
         const check = await fetch("/api/auth/check-unverified", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -41,7 +41,7 @@ export default function LoginPage() {
 
         if (check.needsPassword) {
           setNeedsPassword(true)
-          setError("This account was created when you bought a plugin. Set a password to sign in.")
+          setError("This account was created when you bought a plugin.")
         } else if (check.unverified) {
           setError("Please verify your email before logging in. Check your inbox — and your spam folder if you don't see it.")
         } else {

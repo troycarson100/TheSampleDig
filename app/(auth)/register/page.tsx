@@ -20,12 +20,12 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setExists(false)
     if (!agreeToTerms) {
       setError("You must agree to the Terms and Conditions to register.")
       return
     }
     setError("")
-    setExists(false)
     setLoading(true)
 
     try {

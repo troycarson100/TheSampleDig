@@ -126,7 +126,7 @@ export default function ResetPasswordPage() {
             className="w-full py-2.5 rounded-[var(--radius-button)] font-medium text-white transition disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ background: "var(--primary)" }}
           >
-            {loading ? "Saving…" : welcome ? "Set password" : "Set new password"}
+            {loading ? (welcome ? "Saving…" : "Updating…") : welcome ? "Set password" : "Set new password"}
           </button>
           <p className="text-center text-sm" style={{ color: "var(--muted)" }}>
             <Link href="/login" className="font-medium hover:underline" style={{ color: "var(--foreground)" }}>Back to login</Link>
