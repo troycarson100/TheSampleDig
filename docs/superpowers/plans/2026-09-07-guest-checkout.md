@@ -15,6 +15,8 @@
 1. **Task 8 review, finding A.** A guest claim could reveal a pre-existing passwordless account's keys and mint its set-password link to whoever typed that email at Stripe. Fixed in Task 8's fix round: `GrantResult.accountFromThisPurchase` (pure `isAccountFromSession(user.createdAt, session.created)` in `lib/plugin-purchase-logic.ts`); the claim route returns `withheld: true` with no items and no set-password link unless the viewer is signed in as the owner or the account was born from this checkout. Task 9's thanks page renders a withheld variant; Task 13 Step 11 verifies it. The webhook is unchanged: its link goes to the inbox, which is the proof of ownership.
 2. **Task 8 review, finding B.** The webhook and the claim route each minted a set-password token, and the second mint invalidated the first link. Fixed in the same round: `mintSetPasswordUrl` reuses an existing token with at least `SET_PASSWORD_REUSE_MIN_MS` (24h) of life left; forgot-password's 1-hour tokens and expired tokens are still replaced.
 3. **Task 7 review.** The offers page (`app/offers/OffersView.tsx`) also calls the checkout routes and had a 401 branch; Task 12 removes that dead branch as well.
+4. **Task 10 review.** The per-IP limiter keyed on `x-forwarded-for`, which on DigitalOcean App Platform is DO's own ingress; the resend route now prefers `do-connecting-ip`. The limiter never deleted keys; it now sweeps aged-out keys once it holds `sweepAt` (1000) entries, with two extra tests.
+5. **Commit attribution changed mid-execution.** Commits through Task 10 carry `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`; from Task 11 onward the trailer in this plan is `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`. Both are correct for their commits; do not rewrite history to unify them.
 
 ## Global Constraints
 
@@ -28,7 +30,7 @@
 - Copy style: the plugins are written lowercase (`shft`, `drft`); use " - " not an em dash in user-facing strings; British "licence" in user-facing copy, matching `/products`.
 - Prisma unique-violation detection follows the existing duck-typed pattern: `(e as { code?: string }).code === "P2002"`.
 - Pure logic goes in `*-logic.ts` files with no Prisma or `next/headers` imports so tests can load them; DB and framework code goes in the sibling file (the `lib/affiliate-logic.ts` / `lib/affiliate.ts` split).
-- Commit after every task with a `feat:`/`refactor:`/`docs:` prefix and the trailer `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`.
+- Commit after every task with a `feat:`/`refactor:`/`docs:` prefix and the trailer `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`.
 
 ---
 
@@ -158,7 +160,7 @@ Expected: no errors. (If the run reports errors in files this task did not touch
 git add prisma/schema.prisma prisma/migrations/manual/20260907_password_set_at.sql app/api/auth/register/route.ts app/api/auth/reset-password/route.ts
 git commit -m "feat: track whether an account has a human-chosen password
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -276,7 +278,7 @@ Expected: no new errors. If `@/lib/plugin-purchase-logic` is missing because Tas
 git add lib/attribution-snapshot.ts lib/set-password.ts lib/plugin-purchase-logic.ts
 git commit -m "feat: attribution by visitor id and set-password link minting
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 (Drop `lib/plugin-purchase-logic.ts` from the `git add` if you did not create it here.)
@@ -651,7 +653,7 @@ Expected: no type errors; all tests pass (63 existing + 11 new).
 git add lib/plugin-purchase-logic.ts lib/plugin-purchase-logic.test.ts lib/plugin-purchase-grant.ts
 git commit -m "feat: one grant helper for plugin purchases, with guest buyer provisioning
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -747,7 +749,7 @@ Expected: no errors.
 git add "app/api/products/[product]/download/route.ts"
 git commit -m "feat: licence key unlocks its product's downloads without a session
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -883,7 +885,7 @@ Expected: no errors. The comps redeem route's call `sendPluginPurchaseEmail(sess
 git add lib/email.ts
 git commit -m "feat: receipt email carries download links and a set-password path
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -957,7 +959,7 @@ Expected: clean. If eslint flags an unused import, remove it.
 git add app/api/stripe/webhook/route.ts
 git commit -m "refactor: webhook grants plugin purchases through the shared helper
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -1334,7 +1336,7 @@ Expected: all clean, all tests pass.
 git add lib/plugin-checkout-logic.ts lib/plugin-checkout-logic.test.ts lib/plugin-checkout.ts app/api/shft/checkout/route.ts app/api/drft/checkout/route.ts app/api/bundle/checkout/route.ts
 git commit -m "feat: plugin checkout no longer requires a session
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -1463,7 +1465,7 @@ Expected: no errors. (The storefront pages still reference the old routes as str
 git add app/api/plugins/claim/route.ts
 git commit -m "feat: one claim route for every plugin purchase, guest or signed in
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -1790,7 +1792,7 @@ Expected: clean.
 git add app/thanks/page.tsx app/thanks/ThanksPage.tsx
 git commit -m "feat: /thanks shows keys and downloads straight after checkout
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -2105,7 +2107,7 @@ Expected: clean; all tests pass.
 git add lib/resend-rate-limit.ts lib/resend-rate-limit.test.ts app/api/plugins/resend-key/route.ts app/lost-key/page.tsx components/LostKeyForm.tsx
 git commit -m "feat: lost-key page resends the receipt without a sign-in
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -2306,7 +2308,7 @@ Expected: clean.
 git add app/api/auth/check-unverified/route.ts "app/(auth)/login/page.tsx" "app/(auth)/register/page.tsx" "app/(auth)/reset-password/page.tsx"
 git commit -m "feat: auth pages guide purchase-created accounts to set a password
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -2604,7 +2606,7 @@ Expected: typecheck and lint clean; the grep prints nothing.
 git add lib/meta-pixel.ts app/api/shft/ownership/route.ts app/api/drft/ownership/route.ts app/shft/ShftLanding.tsx app/drft/DrftLanding.tsx app/plugins/PluginsStore.tsx
 git commit -m "feat: storefront buys without a sign-in, nudges owners to the crossgrade
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---
@@ -2731,7 +2733,7 @@ Stop the dev server and `stripe listen`. Append a short "Verified 2026-09-07" no
 git add docs/superpowers/plans/2026-09-07-guest-checkout.md
 git commit -m "docs: guest checkout verification notes
 
-Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>"
+Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 ```
 
 ---

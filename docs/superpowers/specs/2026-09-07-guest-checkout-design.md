@@ -321,10 +321,14 @@ known.
 - Normalise the email. Always respond 200 `{ ok: true }` on a well-formed
   request, whether or not anything was sent.
 - Rate limit before any lookup: 3 requests per email per hour and 10 per
-  client IP per hour (first value of `x-forwarded-for`). Over the limit
+  client IP per hour. The client IP is `do-connecting-ip` (DigitalOcean App
+  Platform puts its own ingress address in `x-forwarded-for`), falling back
+  to the first `x-forwarded-for` value, then `"unknown"`. Over the limit
   returns 429 with a plain "Too many requests, try again later". The limiter
   is an in-memory sliding window in `lib/resend-rate-limit.ts` with an
-  injectable clock. Best-effort per instance is fine for this endpoint.
+  injectable clock; once it holds 1000 keys it sweeps out every key whose
+  hits have all aged out, so memory stays bounded. Best-effort per instance
+  is fine for this endpoint.
 - Find the user case-insensitively. If found and they have at least one
   Purchase, send `sendPluginPurchaseEmail` with the same account-block logic
   as the webhook (mint a set-password URL when `passwordSetAt` is null).
