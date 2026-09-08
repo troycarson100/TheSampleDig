@@ -96,7 +96,9 @@ export default async function ProductsPage() {
                     ))}
                   </div>
 
-                  {def.assets.some((a) => a.id === "installer-win") && <WindowsInstallNote />}
+                  {def.assets.some((a) => a.id === "installer-win") && (
+                    <WindowsInstallNote product={def.name} />
+                  )}
 
                   <LicenseSection
                     licenseKey={purchase.licenseKey}

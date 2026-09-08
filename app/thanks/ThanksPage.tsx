@@ -84,7 +84,9 @@ function ItemCard({ item }: { item: Item }) {
           </a>
         ))}
       </div>
-      {item.downloads.some((d) => d.id === "installer-win") && <WindowsInstallNote />}
+      {item.downloads.some((d) => d.id === "installer-win") && (
+        <WindowsInstallNote product={item.product} />
+      )}
     </section>
   )
 }

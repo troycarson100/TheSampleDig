@@ -1,17 +1,22 @@
 /**
  * Heads-up shown next to the Windows download.
  *
- * shft's installer IS Authenticode-signed and timestamped (Azure Artifact
+ * Our installers ARE Authenticode-signed and timestamped (Azure Artifact
  * Signing, publisher "Troy Carson"), but SmartScreen still prompts on any
  * independently-distributed installer until Microsoft's reputation service has
  * seen enough clean downloads. Buyers read that prompt as "this is malware and
  * the store sold it to me", so we say it first, in our own words, and give them
  * the publisher name to check the signature against.
  *
+ * `product` names the plugin being downloaded. It used to be hardcoded to shft
+ * while this box rendered next to EVERY Windows download, so a drft buyer was
+ * told to check "shft's" signing identity - the one moment where naming the
+ * wrong thing teaches someone to ignore a mismatch.
+ *
  * Deliberately always visible rather than collapsed — it only works if it is
  * read BEFORE the download, not after the scary dialog appears.
  */
-export default function WindowsInstallNote() {
+export default function WindowsInstallNote({ product }: { product: string }) {
   return (
     <div
       className="mt-4 rounded-lg border p-4 text-xs"
@@ -40,9 +45,9 @@ export default function WindowsInstallNote() {
         <span className="font-medium" style={{ opacity: 0.95 }}>
           Troy Carson
         </span>
-        . That&apos;s shft&apos;s verified code-signing identity — if it says
-        anything else, the file didn&apos;t come from us. Don&apos;t run it, and
-        email us.
+        . That&apos;s {product}&apos;s verified code-signing identity — if it
+        says anything else, the file didn&apos;t come from us. Don&apos;t run
+        it, and email us.
       </p>
       <p style={{ opacity: 0.55 }}>
         The installer is digitally signed and timestamped. Microsoft still shows
