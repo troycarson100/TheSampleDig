@@ -43,7 +43,15 @@ export async function POST(request: Request) {
   try {
     const checkout = await new Stripe(secret).checkout.sessions.retrieve(sessionId)
     const product = checkout.metadata?.product
-    if (checkout.payment_status !== "paid" || !isCompProduct(product)) {
+    // Stripe reports "no_payment_required" - not "paid" - when a discount
+    // brings the total to zero, which is what a 100% promotion code does. The
+    // session completed; there was simply nothing to charge. Refusing it here
+    // showed giveaway buyers an error page while the webhook granted them the
+    // product anyway. "unpaid" is still refused: that one really has not
+    // settled.
+    const settled =
+      checkout.payment_status === "paid" || checkout.payment_status === "no_payment_required"
+    if (!settled || !isCompProduct(product)) {
       return NextResponse.json({ error: "No completed purchase for that session." }, { status: 403 })
     }
 
