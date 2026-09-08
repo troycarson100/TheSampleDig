@@ -16,7 +16,8 @@
 2. **Task 8 review, finding B.** The webhook and the claim route each minted a set-password token, and the second mint invalidated the first link. Fixed in the same round: `mintSetPasswordUrl` reuses an existing token with at least `SET_PASSWORD_REUSE_MIN_MS` (24h) of life left; forgot-password's 1-hour tokens and expired tokens are still replaced.
 3. **Task 7 review.** The offers page (`app/offers/OffersView.tsx`) also calls the checkout routes and had a 401 branch; Task 12 removes that dead branch as well.
 4. **Task 10 review.** The per-IP limiter keyed on `x-forwarded-for`, which on DigitalOcean App Platform is DO's own ingress; the resend route now prefers `do-connecting-ip`. The limiter never deleted keys; it now sweeps aged-out keys once it holds `sweepAt` (1000) entries, with two extra tests.
-5. **Commit attribution changed mid-execution.** Commits through Task 10 carry `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`; from Task 11 onward the trailer in this plan is `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`. Both are correct for their commits; do not rewrite history to unify them.
+5. **Task 11 review.** Three reachable UI regressions in this plan's own Task 11 code, fixed in its fix round and corrected in the steps above: the reset page's loading label changed the untouched non-welcome flow from "Updating…" to "Saving…"; `needsPassword` and `exists` were reset only on the happy error branch, so a later network error or an unchecked terms box rendered stale account links beside an unrelated message; and the login error text ended with the same words as the link that follows it.
+6. **Commit attribution changed mid-execution.** Commits through Task 10 carry `Co-Authored-By: Claude Fable 5.1 <noreply@anthropic.com>`; from Task 11 onward the trailer in this plan is `Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>`. Both are correct for their commits; do not rewrite history to unify them.
 
 ## Global Constraints
 
@@ -2167,11 +2168,20 @@ Add state after the existing `useState` lines:
   const [needsPassword, setNeedsPassword] = useState(false)
 ```
 
+Reset it at the top of the handler, beside the existing `setError("")`, so no
+error path can leave a stale link behind:
+
+```ts
+    e.preventDefault()
+    setError("")
+    setNeedsPassword(false)
+    setLoading(true)
+```
+
 Replace the block that begins `if (result?.error) {` and ends before `} else {` with:
 
 ```ts
       if (result?.error) {
-        setNeedsPassword(false)
         const check = await fetch("/api/auth/check-unverified", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -2180,7 +2190,9 @@ Replace the block that begins `if (result?.error) {` and ends before `} else {` 
 
         if (check.needsPassword) {
           setNeedsPassword(true)
-          setError("This account was created when you bought a plugin. Set a password to sign in.")
+          // The link rendered after this sentence reads "Set a password", so
+          // the message must not end with that phrase itself.
+          setError("This account was created when you bought a plugin.")
         } else if (check.unverified) {
           setError("Please verify your email before logging in. Check your inbox — and your spam folder if you don't see it.")
         } else {
@@ -2243,7 +2255,16 @@ with
       }
 ```
 
-and add `setExists(false)` right after the existing `setError("")` at the top of the handler.
+and add `setExists(false)` as the first statement after `e.preventDefault()`,
+BEFORE the `!agreeToTerms` guard — that guard returns early, so a reset placed
+after it leaves the 409 links showing beside an unrelated message:
+
+```ts
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setExists(false)
+    if (!agreeToTerms) {
+```
 
 Replace the error box with:
 
@@ -2295,7 +2316,7 @@ Replace the `<h2 ...>Reset Password</h2>` line with:
         )}
 ```
 
-Replace the submit button label `{loading ? "Updating…" : "Set new password"}` with `{loading ? "Saving…" : welcome ? "Set password" : "Set new password"}`.
+Replace the submit button label `{loading ? "Updating…" : "Set new password"}` with `{loading ? (welcome ? "Saving…" : "Updating…") : welcome ? "Set password" : "Set new password"}` — the loading text has to branch on `welcome` too, or the ordinary reset flow silently changes from "Updating…" to "Saving…".
 
 - [ ] **Step 5: Typecheck and lint**
 
