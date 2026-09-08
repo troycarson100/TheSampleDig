@@ -34,7 +34,7 @@ export function generateDashboardToken(): string {
   return randomBytes(24).toString("base64url")
 }
 
-// Called from BOTH the Stripe webhook and the /api/shft/claim self-heal path
+// Called from BOTH the Stripe webhook and the /api/plugins/claim self-heal path
 // after the Purchase upsert. Idempotent (unique purchaseId) and deliberately
 // swallows every error — attribution must never break a purchase.
 export async function recordAffiliateReferral(

@@ -15,10 +15,12 @@ export default function RegisterPage() {
   const [agreeToTerms, setAgreeToTerms] = useState(false)
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [exists, setExists] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setExists(false)
     if (!agreeToTerms) {
       setError("You must agree to the Terms and Conditions to register.")
       return
@@ -37,6 +39,7 @@ export default function RegisterPage() {
 
       if (!response.ok) {
         setError(data.error || "Registration failed")
+        setExists(response.status === 409)
         return
       }
 
@@ -56,7 +59,17 @@ export default function RegisterPage() {
         <h2 className="text-lg font-medium text-center mb-6" style={{ color: "var(--muted)" }}>Register</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 rounded-xl text-sm border" style={{ background: "rgba(185,28,28,0.08)", borderColor: "rgba(185,28,28,0.3)", color: "#b91c1c" }}>{error}</div>
+            <div className="p-3 rounded-xl text-sm border" style={{ background: "rgba(185,28,28,0.08)", borderColor: "rgba(185,28,28,0.3)", color: "#b91c1c" }}>
+              {error}
+              {exists && (
+                <>
+                  {" "}
+                  <Link href="/login" className="font-medium underline">Sign in</Link>
+                  {" or "}
+                  <Link href="/forgot-password" className="font-medium underline">reset your password</Link>.
+                </>
+              )}
+            </div>
           )}
           <div>
             <label htmlFor="name" className="block text-sm font-medium mb-2" style={{ color: "var(--foreground)" }}>Name (optional)</label>

@@ -27,33 +27,42 @@ const PLUGINS: { id: PluginId; name: string; tagline: string; img: string; theme
   },
 ]
 
-async function startCheckout(endpoint: string): Promise<{ url: string | null; needsAuth: boolean; conflict: boolean }> {
+async function startCheckout(endpoint: string): Promise<{ url: string | null; conflict: boolean }> {
   try {
     const res = await fetch(endpoint, { method: "POST" })
-    if (res.status === 401) return { url: null, needsAuth: true, conflict: false }
-    if (res.status === 409) return { url: null, needsAuth: false, conflict: true }
+    if (res.status === 409) return { url: null, conflict: true }
     const data = await res.json().catch(() => ({}))
-    if (res.ok && typeof data?.url === "string") return { url: data.url, needsAuth: false, conflict: false }
+    if (res.ok && typeof data?.url === "string") return { url: data.url, conflict: false }
   } catch {
     /* fall through */
   }
-  return { url: null, needsAuth: false, conflict: false }
+  return { url: null, conflict: false }
 }
 
 /** Buy button used for singles and the bundle. On 409 (ownership changed under
     us) it reloads so the page re-renders the right state. */
-function BuyBtn({ endpoint, className, children }: { endpoint: string; className: string; children: ReactNode }) {
+function BuyBtn({
+  endpoint,
+  className,
+  product,
+  value,
+  children,
+}: {
+  endpoint: string
+  className: string
+  product: "shft" | "drft" | "bundle"
+  value: number
+  children: ReactNode
+}) {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
 
   const buy = async () => {
     setBusy(true)
     setFailed(false)
-    const { url, needsAuth, conflict } = await startCheckout(endpoint)
-    if (needsAuth) {
-      window.location.href = `/login?callbackUrl=${encodeURIComponent("/plugins")}`
-      return
-    }
+    // Funnel top: paired with the Purchase event on /thanks.
+    trackMeta("InitiateCheckout", { value, currency: "USD", content_name: product, content_type: "product" })
+    const { url, conflict } = await startCheckout(endpoint)
     if (conflict) {
       window.location.reload()
       return
@@ -73,33 +82,13 @@ function BuyBtn({ endpoint, className, children }: { endpoint: string; className
   )
 }
 
+/** Only the canceled state lives here now. Success goes to /thanks. */
 function PurchaseBanner() {
   const [canceled, setCanceled] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const p = params.get("purchase")
-    if (p === "canceled") {
-      setCanceled(true)
-      return
-    }
-    if (p !== "success") return
-
-    const paid = Number(params.get("paid")) || PRICING.bundle.price
-    trackMeta("Purchase", { value: paid, currency: "USD", content_name: "bundle", content_type: "product" })
-
-    const sessionId = params.get("session_id")
-    if (!sessionId) {
-      window.location.replace("/products")
-      return
-    }
-    fetch("/api/bundle/claim", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    }).finally(() => {
-      window.location.replace("/products")
-    })
+    if (params.get("purchase") === "canceled") setCanceled(true)
   }, [])
 
   if (!canceled) return null
@@ -111,6 +100,7 @@ export default function PluginsStore() {
   // Whether each product's crossgrade price actually exists in Stripe - the UI
   // must never advertise a $15 price the checkout route cannot actually charge.
   const [crossgradeAvailable, setCrossgradeAvailable] = useState<Record<PluginId, boolean>>({ shft: false, drft: false })
+  const [signedIn, setSignedIn] = useState(true)
 
   useEffect(() => {
     for (const id of ["shft", "drft"] as const) {
@@ -119,6 +109,11 @@ export default function PluginsStore() {
         .then((d) => {
           if (d?.owned) setOwned((o) => ({ ...o, [id]: true }))
           setCrossgradeAvailable((c) => ({ ...c, [id]: Boolean(d?.crossgrade) }))
+          // Only a response that actually arrived may say "signed out". This
+          // effect runs for both products, so a null d from one failing
+          // endpoint would otherwise tell a signed-in visitor to sign in,
+          // while the other endpoint's crossgrade flag kept the nudge shown.
+          if (d) setSignedIn(Boolean(d.signedIn))
         })
         .catch(() => {})
     }
@@ -165,9 +160,15 @@ export default function PluginsStore() {
                     </span>
                   </span>
                 </div>
-                <BuyBtn endpoint="/api/bundle/checkout" className={styles.bundleBuy}>
+                <BuyBtn endpoint="/api/bundle/checkout" className={styles.bundleBuy} product="bundle" value={PRICING.bundle.price}>
                   Get the bundle - ${PRICING.bundle.price}
                 </BuyBtn>
+                {!signedIn && (crossgradeAvailable.shft || crossgradeAvailable.drft) && (
+                  <p className={styles.bundleSub}>
+                    Already own one? <a href="/login?callbackUrl=%2Fplugins">Sign in</a> to complete the
+                    pair for ${PRICING.crossgrade.price}.
+                  </p>
+                )}
               </>
             )}
             {ownCount === 1 && missingCrossgradeOn && (
@@ -192,7 +193,7 @@ export default function PluginsStore() {
                     </span>
                   </span>
                 </div>
-                <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy}>
+                <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy} product={missing} value={PRICING.crossgrade.price}>
                   Get {missing} - ${PRICING.crossgrade.price}
                 </BuyBtn>
               </>
@@ -215,7 +216,7 @@ export default function PluginsStore() {
                     <s>${PRICING[missing].msrp}</s>
                   </span>
                 </div>
-                <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy}>
+                <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy} product={missing} value={PRICING[missing].price}>
                   Get {missing} - ${PRICING[missing].price}
                 </BuyBtn>
               </>
@@ -263,7 +264,12 @@ export default function PluginsStore() {
                     You own {p.name} — Download
                   </a>
                 ) : (
-                  <BuyBtn endpoint={`/api/${p.id}/checkout`} className={styles.cardBuy}>
+                  <BuyBtn
+                    endpoint={`/api/${p.id}/checkout`}
+                    className={styles.cardBuy}
+                    product={p.id}
+                    value={p.id === missing && missingCrossgradeOn ? PRICING.crossgrade.price : PRICING[p.id].price}
+                  >
                     Buy — <strong>${p.id === missing && missingCrossgradeOn ? PRICING.crossgrade.price : PRICING[p.id].price}</strong>{" "}
                     <s>${p.id === missing && missingCrossgradeOn ? PRICING.crossgrade.compareAt : PRICING[p.id].msrp}</s>
                   </BuyBtn>

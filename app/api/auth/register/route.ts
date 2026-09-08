@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
       data: {
         email: normalizedEmail,
         passwordHash,
+        passwordSetAt: new Date(),
         name: name ? String(name).trim() || null : null,
         emailMarketingOptIn,
         emailVerified: emailAvailable ? null : new Date(),

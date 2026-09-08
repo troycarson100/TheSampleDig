@@ -144,23 +144,22 @@ const FAQS: { q: string; a: string }[] = [
   },
 ]
 
-async function startCheckout(): Promise<{ url: string | null; needsAuth: boolean; alreadyOwned: boolean }> {
+async function startCheckout(): Promise<{ url: string | null; alreadyOwned: boolean }> {
   try {
     const res = await fetch("/api/drft/checkout", { method: "POST" })
-    if (res.status === 401) return { url: null, needsAuth: true, alreadyOwned: false }
-    if (res.status === 409) return { url: null, needsAuth: false, alreadyOwned: true }
+    if (res.status === 409) return { url: null, alreadyOwned: true }
     const data = await res.json().catch(() => ({}))
-    if (res.ok && typeof data?.url === "string") return { url: data.url, needsAuth: false, alreadyOwned: false }
+    if (res.ok && typeof data?.url === "string") return { url: data.url, alreadyOwned: false }
   } catch {
     /* fall through */
   }
-  return { url: null, needsAuth: false, alreadyOwned: false }
+  return { url: null, alreadyOwned: false }
 }
 
 /** Buy Now button. Shows the crossgrade price to shft owners (only once the
-    crossgrade price actually exists in Stripe). Kicks off Stripe checkout;
-    sends logged-out users to sign in first, owners to their downloads, and
-    falls back to "Opens at launch" until the price env is set. */
+    crossgrade price actually exists in Stripe). Kicks off Stripe checkout,
+    sends owners to their downloads, and falls back to "Opens at launch"
+    until the price env is set. */
 function BuyButton({
   className,
   owned,
@@ -186,11 +185,14 @@ function BuyButton({
   const buy = async () => {
     setBusy(true)
     setFailed(false)
-    const { url, needsAuth, alreadyOwned } = await startCheckout()
-    if (needsAuth) {
-      window.location.href = `/login?callbackUrl=${encodeURIComponent("/drft")}`
-      return
-    }
+    // Funnel top: paired with the Purchase event on /thanks.
+    trackMeta("InitiateCheckout", {
+      value: crossgrade ? PRICING.crossgrade.price : PRICING.drft.price,
+      currency: "USD",
+      content_name: "drft",
+      content_type: "product",
+    })
+    const { url, alreadyOwned } = await startCheckout()
     if (alreadyOwned) {
       window.location.href = "/products"
       return
@@ -221,36 +223,14 @@ function BuyButton({
   )
 }
 
+/** Only the canceled state lives here now. Success goes to /thanks, which
+    claims the session and shows the key - see app/thanks. */
 function PurchaseBanner() {
   const [canceled, setCanceled] = useState(false)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const p = params.get("purchase")
-    if (p === "canceled") {
-      setCanceled(true)
-      return
-    }
-    if (p !== "success") return
-
-    // Meta Pixel: value rides the ?paid= param the checkout route stamped on
-    // the success URL (19 full / 15 crossgrade). Fired before the redirect —
-    // fbq beacons survive the navigation.
-    const paid = Number(params.get("paid")) || PRICING.drft.price
-    trackMeta("Purchase", { value: paid, currency: "USD", content_name: "drft", content_type: "product" })
-
-    const sessionId = params.get("session_id")
-    if (!sessionId) {
-      window.location.replace("/products")
-      return
-    }
-    fetch("/api/drft/claim", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ sessionId }),
-    }).finally(() => {
-      window.location.replace("/products")
-    })
+    if (params.get("purchase") === "canceled") setCanceled(true)
   }, [])
 
   if (!canceled) return null
@@ -302,12 +282,14 @@ export default function DrftLanding() {
   // Whether STRIPE_DRFT_CROSSGRADE_PRICE_ID is actually configured - the $15
   // price can only be shown (and charged) when this is true.
   const [drftCrossgrade, setDrftCrossgrade] = useState(false)
+  const [signedIn, setSignedIn] = useState(true)
   useEffect(() => {
     fetch("/api/drft/ownership")
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (d?.owned) setOwned(true)
         setDrftCrossgrade(Boolean(d?.crossgrade))
+        setSignedIn(Boolean(d?.signedIn))
       })
       .catch(() => {})
     fetch("/api/shft/ownership")
@@ -469,6 +451,11 @@ export default function DrftLanding() {
         <div className={styles.gsForm}>
           <BuyButton className={styles.heroBuyBtn} owned={owned} crossgrade={crossgradeOn} />
         </div>
+        {!signedIn && drftCrossgrade && (
+          <p className={styles.gsSub}>
+            Own shft? <a href="/login?callbackUrl=%2Fdrft">Sign in</a> for the ${PRICING.crossgrade.price} crossgrade.
+          </p>
+        )}
       </section>
     </>
   )

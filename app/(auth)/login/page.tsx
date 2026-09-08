@@ -10,6 +10,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
+  const [needsPassword, setNeedsPassword] = useState(false)
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError("")
+    setNeedsPassword(false)
     setLoading(true)
 
     try {
@@ -35,9 +37,12 @@ export default function LoginPage() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email, password }),
-        }).then((r) => r.json()).catch(() => ({ unverified: false }))
+        }).then((r) => r.json()).catch(() => ({ unverified: false, needsPassword: false }))
 
-        if (check.unverified) {
+        if (check.needsPassword) {
+          setNeedsPassword(true)
+          setError("This account was created when you bought a plugin.")
+        } else if (check.unverified) {
           setError("Please verify your email before logging in. Check your inbox — and your spam folder if you don't see it.")
         } else {
           setError("Invalid email or password")
@@ -98,7 +103,15 @@ export default function LoginPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <div className="p-3 rounded-xl text-sm border" style={{ background: "rgba(185,28,28,0.08)", borderColor: "rgba(185,28,28,0.3)", color: "#b91c1c" }}>{error}</div>
+            <div className="p-3 rounded-xl text-sm border" style={{ background: "rgba(185,28,28,0.08)", borderColor: "rgba(185,28,28,0.3)", color: "#b91c1c" }}>
+              {error}
+              {needsPassword && (
+                <>
+                  {" "}
+                  <Link href="/forgot-password" className="font-medium underline">Set a password</Link>
+                </>
+              )}
+            </div>
           )}
           <div>
             <label htmlFor="email" className="block text-sm font-medium mb-2" style={{ color: "var(--foreground)" }}>Email</label>
@@ -145,6 +158,10 @@ export default function LoginPage() {
         <p className="mt-6 text-center text-sm" style={{ color: "var(--muted)" }}>
           Don&apos;t have an account?{" "}
           <Link href="/register" className="font-medium hover:underline" style={{ color: "var(--foreground)" }}>Register</Link>
+        </p>
+        <p className="mt-2 text-center text-sm" style={{ color: "var(--muted)" }}>
+          Bought a plugin?{" "}
+          <Link href="/lost-key" className="font-medium hover:underline" style={{ color: "var(--foreground)" }}>Find your key</Link>
         </p>
       </div>
     </div>
