@@ -2765,3 +2765,53 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 2. No new environment variables.
 3. Set up DKIM for sampleroll.com in the Microsoft 365 Defender portal and add the two `selector1._domainkey` / `selector2._domainkey` CNAMEs at GoDaddy. Not code, but it is the biggest deliverability lever for the receipt.
 4. Optional: enable customer receipts in the Stripe dashboard as a second confirmation from Stripe's own servers.
+
+---
+
+## Verified 2026-09-07
+
+End-to-end run against real Stripe test mode, dev server on `:3001` with
+`NEXTAUTH_URL` / `NEXT_PUBLIC_APP_URL` overridden, `stripe listen` forwarding to
+`/api/stripe/webhook`. Buyer: `troycarson100+guest1788827463@gmail.com`.
+
+| Step | Result | Evidence |
+| --- | --- | --- |
+| 1 Dev server on 3001 | pass | `Ready in 1341ms`; `GET /thanks` → 200 |
+| 2 Webhook forwarding | pass | `whsec_6963…5176`, identical to `.env.local`; no restart needed |
+| 3 Guest purchase | pass | `/thanks` → "You're in", key `SHFT-MNP4-RRKA-C1FC`, 3 download hrefs, `Set a password` → `/reset-password?token=…&welcome=1` |
+| 4 Database | pass | one user, `verified=t`, `password_set_at` null, `token_live=t`; one shft purchase, `stamped=t` |
+| 5 Webhook + receipt | pass (inbox not readable) | `checkout.session.completed` `evt_1UDD3TPjSayG8XvvZpZwpHPS` → `[200]`; no `[plugin grant]` / `[Stripe webhook]` / `[email]` errors. Inbox unreadable from this session, so the receipt was verified by rendering `sendPluginPurchaseEmail` with a stubbed transport: all three variants carry the key and 3 download links, and show `Set password` / `Go to My Products` / the refund note correctly. |
+| 6 Download by key | pass | shft+key → 302, drft+shft key → 403, no key → 401 |
+| 7 Webhook replay | pass | resent `evt_1UDD3TPjSayG8XvvZpZwpHPS` → `[200]`; still one purchase row, same key |
+| 8 Set password | pass | heading "Set your password"; → `/login?reset=true&callbackUrl=%2Fproducts`; sign-in works; `/products` shows the same key; `password_set_at` now set, reset token cleared |
+| 9 Lost key | pass | `{"ok":true}` for known and unknown; `200 200 200 429`; known address took 2.3s (real SMTP), unknown 7ms (no send); `/lost-key` renders the fixed confirmation |
+| 10 Signed-in purchase | pass | `/drft` button "BUY NOW — $15", no "Own shft? Sign in"; `/thanks` shows `DRFT-M7ZP-4SJK-A163`, "Go to My Products", no set-password link; `/products` lists both |
+| 11 Nudges + duplicate | pass | "Own drft? Sign in for the $15 crossgrade." on `/shft`, "Already own one? Sign in to complete the pair for $15." on `/plugins`; duplicate guest buy → withheld variant, no key/downloads/set-password; `[plugin grant] duplicate purchase` logged; shft row keeps its original `stripe_session_id`; signed-out reload → withheld again; refunded (`re_3UDDCtPjSayG8Xvv0X4UOEEF`) |
+| 12 Tests / typecheck / lint | partial | `npx tsx --test lib/*.test.ts` 84/84 pass; `npx tsc --noEmit` clean; `npx eslint app lib components` **not** green — see below |
+
+### Notes
+
+- **Lint was already red before this branch.** `npx eslint app lib components`
+  reports 167 errors / 63 warnings, of which 163 errors and 62 warnings are in
+  58 files this branch never touched. Of the 5 findings in files it did touch,
+  4 are verbatim pre-existing (`react-hooks/set-state-in-effect` on the
+  `setCanceled(true)` purchase-banner effect, which is on `main` in
+  `ShftLanding`, `DrftLanding` and `PluginsStore`; an unused `err` in
+  `register/page.tsx` also on `main`). The one genuinely new finding is
+  `app/thanks/ThanksPage.tsx:144` `react-hooks/set-state-in-effect`, the same
+  pattern the repo uses in 166 other places. Step 12's "all green" expectation
+  was not achievable against this baseline.
+- **The Stripe CLI's own login key had expired** (`test_mode_key_expires_at =
+  2026-07-09`), so `stripe listen` was run with `STRIPE_API_KEY` taken from
+  `.env.local`, whose `sk_test_` key is still valid. Worth a `stripe login`
+  before the next verification run.
+- **The inbox could not be read from this session.** Receipt delivery is
+  evidenced by the absence of `[email] send failed` / `[Stripe webhook] plugin
+  purchase email failed` lines plus the SMTP-shaped latency (4.1s on the
+  purchase webhook, 2.3s on the resend), and receipt *content* by rendering the
+  HTML with a stubbed transport. Nobody has confirmed the mail actually landed
+  in Gmail.
+- **Pre-existing copy bug, not part of this feature:**
+  `components/WindowsInstallNote.tsx` hardcodes "That's **shft**'s verified
+  code-signing identity", so the drft `/thanks` page and drft's row on
+  `/products` tell a drft buyer to check for shft's signature.
