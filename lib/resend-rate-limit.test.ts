@@ -43,3 +43,27 @@ test("keys are independent", () => {
   assert.equal(l.allow("two"), true)
   assert.equal(l.allow("one"), false)
 })
+
+test("sweeps keys whose hits have all aged out once the map reaches sweepAt", () => {
+  const c = clock()
+  const l = new SlidingWindowLimiter(1, 1000, c.now, 2)
+  l.allow("a")
+  l.allow("b")
+  assert.equal(l.size, 2)
+  c.tick(1001)
+  l.allow("c") // size was 2 >= sweepAt, so a and b (both aged out) are dropped first
+  assert.equal(l.size, 1)
+  assert.equal(l.allow("a"), true) // a is a fresh key again
+})
+
+test("sweep keeps keys that still have a live hit", () => {
+  const c = clock()
+  const l = new SlidingWindowLimiter(1, 1000, c.now, 2)
+  l.allow("a")
+  c.tick(600)
+  l.allow("b")
+  c.tick(600) // a is 1200ms old (dead), b is 600ms old (live)
+  l.allow("c")
+  assert.equal(l.size, 2) // b and c
+  assert.equal(l.allow("b"), false) // b's live hit still counts
+})

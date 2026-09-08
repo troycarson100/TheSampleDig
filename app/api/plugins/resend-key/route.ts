@@ -28,7 +28,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Enter the email you bought with." }, { status: 400 })
   }
 
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown"
+  // DigitalOcean App Platform puts its own ingress address in x-forwarded-for
+  // and exposes the real client in do-connecting-ip; locally there is neither.
+  const ip =
+    request.headers.get("do-connecting-ip")?.trim() ||
+    request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
   if (!perIp.allow(ip) || !perEmail.allow(email)) {
     return NextResponse.json({ error: "Too many requests. Try again in an hour." }, { status: 429 })
   }
