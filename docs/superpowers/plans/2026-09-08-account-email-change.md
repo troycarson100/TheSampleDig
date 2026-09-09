@@ -1280,3 +1280,51 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 1. Apply `prisma/migrations/manual/20260908_email_change.sql` to the production Supabase database **before** deploying the code, exactly as the `password_set_at` migration was applied on 2026-09-07. The columns are additive and nullable, so existing rows are untouched and no backfill is needed.
 2. No new environment variables.
 3. Nothing about existing accounts changes until someone requests a change.
+
+---
+
+## Verified 2026-09-08
+
+Task 9 run end to end against a local dev server on port 3001 (`NEXTAUTH_URL` and
+`NEXT_PUBLIC_APP_URL` both overridden so the emailed links pointed at it), the local
+`sampleroll_dev` database, and the real Office 365 SMTP account.
+
+| Step | Result |
+|---|---|
+| 1. Dev server | Pass - "Ready", `GET /settings` → 200. |
+| 2. Test account | Pass - `local-user` / `local-user@example.com`. A known password was put on it with `scripts/ensure-demo-user.ts`; nothing else about the account was touched before the run. |
+| 3. Signed-out request | Pass - `{"error":"Please sign in to change your email."} [401]`. |
+| 4. Request from /settings | Pass - the row read "Currently local-user@example.com", and after submitting it was replaced by "Check troycarson100+ec1@gmail.com for a link to confirm the change." The DB held `pending_email = troycarson100+ec1@gmail.com`, `token_live = t`, `email` still the old address. |
+| 5. Confirm from the link | Pass - 303 to `/settings?email-changed=troycarson100%2Bec1%40gmail.com`, green banner naming the new address, and the DB showed the new `email`, a restamped `emailVerified` and all three pending columns null. Signing in with the new address then worked; the old address no longer did. |
+| 6. Refusals | Pass - 400 unchanged, 409 taken, 400 invalid, each with the expected message. A re-used token, a bogus token and a missing token all redirected to `/settings?email-change=expired`. No refusal wrote a pending row. |
+| 7. Rate limiting | Pass - the fourth request inside the hour returned 429. |
+| 8. Thanks page | Pass - on a paid test session whose account that checkout created, "Wrong address? Change it" appeared under the receipt line and opened the form; on a withheld claim the affordance, the licence key and the set-password link were all absent. |
+| 9. Full checks | Pass - 92/92 tests, `npx tsc --noEmit` clean. |
+
+Nothing was skipped, and no product code needed changing.
+
+Notes worth carrying forward:
+
+- **Inbox delivery is unconfirmed.** Mail went to plus-addressed variants of the owner's
+  Gmail and no inbox was read. What was checked is that SMTP accepted the messages and the
+  server logged no failure. A second cycle (`+ec1` → `+ec2`) sent both the confirmation to
+  the new address and the notice to the old one with no error.
+- The *first* cycle's notice to the old address failed with `501 5.1.5 Recipient address
+  reserved by RFC 2606`, because that old address was the fixture `local-user@example.com`.
+  The confirm route logged it and still redirected to the success banner - the intended
+  best-effort behaviour, not a defect. Step 7's first three requests returned 500 for the
+  same reason (`a@example.com` is equally undeliverable); the 429 on the fourth, which is
+  what the step tests, was unaffected.
+- A send failure leaves the pending row and its live token behind, because the route mints
+  before it sends (its comment says as much). Harmless - only whoever receives the link can
+  use it - but worth knowing when reading the table after a bounce.
+- Refusals count against the per-account window too: three refusals were followed by a
+  fourth request that returned 429. The limiter is in-memory, so the dev server was
+  restarted between the rate-limit-sensitive steps to get a clean window.
+- The withheld thanks-page case was reproduced by moving the fixture account's `created_at`
+  behind the checkout's rather than by making a new test-mode purchase; the row was restored
+  afterwards. The other locally available session id could not serve as the negative case:
+  it carries a `client_reference_id`, so a signed-out claim is refused with 403 before the
+  withheld branch is reached.
+- Local-only side effects: fixture `local-user` had its password hash replaced (it cannot be
+  put back) and its address moved and then restored.
