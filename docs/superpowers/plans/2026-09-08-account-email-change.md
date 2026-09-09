@@ -830,11 +830,16 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
 
 **Files:**
 - Create: `components/SettingsEmailChange.tsx`, `components/SettingsEmailChangeBanner.tsx`
-- Modify: `app/settings/SettingsPageBody.tsx`
+- Modify: `app/settings/SettingsPageBody.tsx`, `lib/auth.ts`
 
 **Interfaces:**
 - Consumes: `EmailChangeForm` (Task 6); the redirect parameters from Task 5.
-- Produces: two default-exported client components rendered by `SettingsPageBody`.
+- Produces: two default-exported client components rendered by `SettingsPageBody`; `refreshUserTokenFields` additionally returns the account's current `email`.
+
+**Why `lib/auth.ts` is in scope:** the NextAuth JWT stamps `token.email` once at
+sign-in and never refreshes it, so after a confirmed change the session still
+carries the old address and this new row would display it. Step 4 fixes that at
+the source.
 
 - [ ] **Step 1: Write the settings row**
 
@@ -994,15 +999,80 @@ Then inside `<nav ...>`, directly after `<SettingsMarketingPreference />`, add:
           <SettingsEmailChange />
 ```
 
-- [ ] **Step 4: Typecheck and lint**
+- [ ] **Step 4: Keep the session's email fresh**
 
-Run: `npx tsc --noEmit && npx eslint components/SettingsEmailChange.tsx components/SettingsEmailChangeBanner.tsx app/settings/SettingsPageBody.tsx`
+`lib/auth.ts` sets `token.email` only when `user` is present, which is once, at
+sign-in. `refreshUserTokenFields` already re-reads the account on every request
+for the Pro flags, so it is the natural place to pick the address up too.
+
+In `refreshUserTokenFields`, add `email: true` to **both** selects (the primary
+one and the fallback in the `catch`), capture it, and return it. The function
+becomes:
+
+```ts
+async function refreshUserTokenFields(
+  userId: string,
+  email: string
+): Promise<{ isPro: boolean; emailMarketingOptIn: boolean; email: string | null }> {
+  const prisma = await getPrisma()
+  let subscriptionStatus: string | null | undefined
+  let emailMarketingOptIn: boolean | undefined
+  let currentEmail: string | null | undefined
+
+  try {
+    const row = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionStatus: true, emailMarketingOptIn: true, email: true },
+    })
+    subscriptionStatus = row?.subscriptionStatus
+    emailMarketingOptIn = row?.emailMarketingOptIn
+    currentEmail = row?.email
+  } catch {
+    // DB not migrated yet (missing email_marketing_opt_in) — still allow sessions
+    const row = await prisma.user.findUnique({
+      where: { id: userId },
+      select: { subscriptionStatus: true, email: true },
+    })
+    subscriptionStatus = row?.subscriptionStatus
+    emailMarketingOptIn = true
+    currentEmail = row?.email
+  }
+
+  // The address on the row wins over the one baked into the token at sign-in,
+  // so an account that has since moved is matched on what it is now.
+  const normalized = (currentEmail ?? email).trim().toLowerCase()
+```
+
+Leave the rest of the function body exactly as it is, except the `normalized`
+line above replaces the existing `const normalized = email.trim().toLowerCase()`
+at the top, and the return becomes:
+
+```ts
+  return {
+    isPro: isProResolved,
+    emailMarketingOptIn: emailMarketingOptIn ?? true,
+    email: currentEmail ?? null,
+  }
+}
+```
+
+Then in the `jwt` callback, directly after `token.emailMarketingOptIn = fields.emailMarketingOptIn`, add:
+
+```ts
+        // A confirmed email change moves the address without touching the
+        // JWT, so refresh it here or the session shows the old one forever.
+        if (fields.email) token.email = fields.email
+```
+
+- [ ] **Step 5: Typecheck and lint**
+
+Run: `npx tsc --noEmit && npx eslint components/SettingsEmailChange.tsx components/SettingsEmailChangeBanner.tsx app/settings/SettingsPageBody.tsx lib/auth.ts`
 Expected: clean apart from `.next/` noise.
 
-- [ ] **Step 5: Commit**
+- [ ] **Step 6: Commit**
 
 ```bash
-git add components/SettingsEmailChange.tsx components/SettingsEmailChangeBanner.tsx app/settings/SettingsPageBody.tsx
+git add components/SettingsEmailChange.tsx components/SettingsEmailChangeBanner.tsx app/settings/SettingsPageBody.tsx lib/auth.ts
 git commit -m "feat: change the account email from settings
 
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>"
