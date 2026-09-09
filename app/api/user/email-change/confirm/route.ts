@@ -12,13 +12,25 @@ import { sendEmailChangedNoticeEmail } from "@/lib/email"
 // token, so a human clicking later lands on the expired page. The proof of
 // delivery still holds - the scanner sits at the new address - but the failure
 // mode is worth knowing.
-function back(request: Request, params: string) {
-  return NextResponse.redirect(new URL(`/settings?${params}`, request.url), 303)
+//
+// The redirect target is built from the configured app URL, NOT from
+// request.url. DigitalOcean App Platform serves the app on an internal origin,
+// so in production request.url is https://localhost:8080 and a redirect
+// derived from it sends the buyer to a page their browser cannot reach - while
+// the account change has already committed, so it looks like a failure that
+// actually succeeded. Locally the two are identical, which is why this only
+// showed up against the deployed site. This is the same value the confirmation
+// link itself was built from, so it is known to reach us.
+const APP_URL =
+  process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"
+
+function back(params: string) {
+  return NextResponse.redirect(`${APP_URL}/settings?${params}`, 303)
 }
 
 export async function GET(request: Request) {
   const token = new URL(request.url).searchParams.get("token")
-  if (!token) return back(request, "email-change=expired")
+  if (!token) return back("email-change=expired")
 
   const user = await prisma.user.findUnique({
     where: { emailChangeToken: token },
@@ -30,9 +42,9 @@ export async function GET(request: Request) {
     },
   })
 
-  if (!user || !user.pendingEmail) return back(request, "email-change=expired")
+  if (!user || !user.pendingEmail) return back("email-change=expired")
   if (!user.emailChangeExpires || user.emailChangeExpires < new Date()) {
-    return back(request, "email-change=expired")
+    return back("email-change=expired")
   }
 
   // Re-check: another account could have claimed this address while the
@@ -46,7 +58,7 @@ export async function GET(request: Request) {
       where: { id: user.id },
       data: { pendingEmail: null, emailChangeToken: null, emailChangeExpires: null },
     })
-    return back(request, "email-change=taken")
+    return back("email-change=taken")
   }
 
   const oldEmail = user.email
@@ -78,7 +90,7 @@ export async function GET(request: Request) {
     } catch (clearError) {
       console.error("[email-change confirm] could not clear the pending change", clearError)
     }
-    return back(request, "email-change=taken")
+    return back("email-change=taken")
   }
 
   // Best effort: the address has already moved, and failing to warn the old
@@ -89,5 +101,5 @@ export async function GET(request: Request) {
     console.error("[email-change confirm] notice to the old address failed", e)
   }
 
-  return back(request, `email-changed=${encodeURIComponent(newEmail)}`)
+  return back(`email-changed=${encodeURIComponent(newEmail)}`)
 }
