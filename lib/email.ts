@@ -337,3 +337,80 @@ export async function sendPasswordResetEmail(email: string, token: string) {
     `,
   })
 }
+
+/** Sent to the address someone wants to move their account TO. Opening the
+    link is the proof they can receive mail there, which is why nothing changes
+    until they do. A guest-created account gets the set-password link in the
+    same email, so confirming lands them somewhere they can actually sign in
+    rather than at a password prompt they have never set. */
+export async function sendEmailChangeConfirmEmail(
+  newEmail: string,
+  opts: { token: string; currentEmail: string; setPasswordUrl?: string | null },
+) {
+  const url = `${APP_URL}/api/user/email-change/confirm?token=${opts.token}`
+  const safeCurrent = escapeHtml(opts.currentEmail)
+  const safeNew = escapeHtml(newEmail)
+
+  const passwordBlock = opts.setPasswordUrl
+    ? `
+        <p style="color: #555; font-size: 14px; margin: 24px 0 8px;">
+          This account has no password yet. Once you've confirmed, set one to see
+          your downloads and licence keys on My Products.
+        </p>
+        <a href="${opts.setPasswordUrl}" style="display: inline-block; border: 1px solid #d8d8d8; color: #1a1a1a; text-decoration: none; padding: 10px 20px; border-radius: 8px; font-size: 14px;">
+          Set password
+        </a>`
+    : ""
+
+  await sendMailWithFallback({
+    from: FROM,
+    to: newEmail,
+    subject: "Confirm your new email address",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+        <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Confirm your new email</h1>
+        <p style="color: #555; margin-bottom: 24px;">
+          Someone asked to move the Sample Roll account currently on
+          <strong>${safeCurrent}</strong> to this address, <strong>${safeNew}</strong>.
+          Click below to confirm. Nothing changes until you do.
+        </p>
+        <a href="${url}" style="display: inline-block; background: #e63c3c; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;">
+          Confirm this address
+        </a>
+        ${passwordBlock}
+        <p style="color: #999; font-size: 13px; margin-top: 24px;">
+          This link expires in 24 hours. If you weren't expecting it, ignore this email - the account stays exactly as it is.
+        </p>
+        <p style="color: #ccc; font-size: 12px; margin-top: 8px;">
+          Or copy this link: ${url}
+        </p>
+      </div>
+    `,
+  })
+}
+
+/** Sent to the address an account just moved AWAY from. Carries no link and
+    offers no action: it exists so that a change the real owner did not make is
+    visible to them, and it must not itself be usable to do anything. */
+export async function sendEmailChangedNoticeEmail(oldEmail: string, newEmail: string) {
+  const safeNew = escapeHtml(newEmail)
+
+  await sendMailWithFallback({
+    from: FROM,
+    to: oldEmail,
+    subject: "Your Sample Roll account email was changed",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+        <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">Your account email was changed</h1>
+        <p style="color: #555; margin-bottom: 16px;">
+          The Sample Roll account that used this address now uses
+          <strong>${safeNew}</strong>. Your purchases, licence keys and downloads
+          moved with it.
+        </p>
+        <p style="color: #555; margin-bottom: 0;">
+          If this wasn't you, reply to this email straight away and we'll put it back.
+        </p>
+      </div>
+    `,
+  })
+}
