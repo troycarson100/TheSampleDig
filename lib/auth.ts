@@ -32,28 +32,34 @@ function parseComplimentaryProEmails(): Set<string> {
 async function refreshUserTokenFields(
   userId: string,
   email: string
-): Promise<{ isPro: boolean; emailMarketingOptIn: boolean }> {
-  const normalized = email.trim().toLowerCase()
+): Promise<{ isPro: boolean; emailMarketingOptIn: boolean; email: string | null }> {
   const prisma = await getPrisma()
   let subscriptionStatus: string | null | undefined
   let emailMarketingOptIn: boolean | undefined
+  let currentEmail: string | null | undefined
 
   try {
     const row = await prisma.user.findUnique({
       where: { id: userId },
-      select: { subscriptionStatus: true, emailMarketingOptIn: true },
+      select: { subscriptionStatus: true, emailMarketingOptIn: true, email: true },
     })
     subscriptionStatus = row?.subscriptionStatus
     emailMarketingOptIn = row?.emailMarketingOptIn
+    currentEmail = row?.email
   } catch {
     // DB not migrated yet (missing email_marketing_opt_in) — still allow sessions
     const row = await prisma.user.findUnique({
       where: { id: userId },
-      select: { subscriptionStatus: true },
+      select: { subscriptionStatus: true, email: true },
     })
     subscriptionStatus = row?.subscriptionStatus
     emailMarketingOptIn = true
+    currentEmail = row?.email
   }
+
+  // The address on the row wins over the one baked into the token at sign-in,
+  // so an account that has since moved is matched on what it is now.
+  const normalized = (currentEmail ?? email).trim().toLowerCase()
 
   /** Match Stripe subscription statuses that should unlock Pro (incl. trial and grace). */
   const isPro =
@@ -71,6 +77,7 @@ async function refreshUserTokenFields(
   return {
     isPro: isProResolved,
     emailMarketingOptIn: emailMarketingOptIn ?? true,
+    email: currentEmail ?? null,
   }
 }
 
@@ -151,6 +158,9 @@ export const authOptions = {
         const fields = await refreshUserTokenFields(uid, String(token.email ?? ""))
         token.isPro = fields.isPro
         token.emailMarketingOptIn = fields.emailMarketingOptIn
+        // A confirmed email change moves the address without touching the
+        // JWT, so refresh it here or the session shows the old one forever.
+        if (fields.email) token.email = fields.email
       }
       return token
     },

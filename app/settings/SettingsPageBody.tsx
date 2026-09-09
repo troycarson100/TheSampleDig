@@ -1,8 +1,11 @@
 "use client"
 
+import { Suspense } from "react"
 import Link from "next/link"
 import SiteNav from "@/components/SiteNav"
 import SettingsAffiliateLink from "@/components/SettingsAffiliateLink"
+import SettingsEmailChange from "@/components/SettingsEmailChange"
+import SettingsEmailChangeBanner from "@/components/SettingsEmailChangeBanner"
 import SettingsMarketingPreference from "@/components/SettingsMarketingPreference"
 import SettingsReleasePreference from "@/components/SettingsReleasePreference"
 import SettingsPricingNavButton from "@/components/SettingsPricingNavButton"
@@ -25,8 +28,12 @@ export default function SettingsPageBody() {
         <p className="text-sm mb-8" style={{ color: "var(--muted)", fontFamily: "var(--font-ibm-mono), monospace" }}>
           Account, billing, and legal links.
         </p>
+        <Suspense fallback={null}>
+          <SettingsEmailChangeBanner />
+        </Suspense>
         <nav className="flex flex-col gap-3" aria-label="Settings sections">
           <SettingsMarketingPreference />
+          <SettingsEmailChange />
           <SettingsReleasePreference />
           <SettingsSubscriptionManage />
           <Link href="/profile" className={linkClass} style={{ borderColor: "var(--border)", color: "var(--foreground)" }}>
