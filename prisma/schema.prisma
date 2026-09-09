@@ -30,6 +30,12 @@ model User {
   // receipt email and the login page key off this to say "set a password"
   // rather than "sign in". Register and reset-password both stamp it.
   passwordSetAt                DateTime?        @map("password_set_at")
+  // A requested-but-unconfirmed email address, plus its one-shot token. The
+  // account keeps its current `email` until the owner opens the link we send
+  // to `pendingEmail`, so a mistyped new address changes nothing.
+  pendingEmail                 String?          @map("pending_email")
+  emailChangeToken             String?          @unique @map("email_change_token")
+  emailChangeExpires           DateTime?        @map("email_change_expires")
   // Marketing / newsletter opt-in (Mailchimp exports). Default true at signup when checkbox left on.
   emailMarketingOptIn          Boolean          @default(true) @map("email_marketing_opt_in")
   // "drft v1.1.3 - Out Now" release notices. A narrower opt-out layered on
