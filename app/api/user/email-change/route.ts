@@ -129,6 +129,17 @@ export async function POST(request: Request) {
     // the caller is waiting on an email that is not coming, and telling them
     // to retry is more useful than a silent success.
     console.error("[email-change] request failed", e)
+    // The mint above may already have overwritten an earlier pending change.
+    // Leaving it would hand the user a dead link and hide the one that worked,
+    // so roll it back rather than leaving a token no email ever carried.
+    try {
+      await prisma.user.update({
+        where: { id: owner.id },
+        data: { pendingEmail: null, emailChangeToken: null, emailChangeExpires: null },
+      })
+    } catch (rollbackError) {
+      console.error("[email-change] could not clear the pending change", rollbackError)
+    }
     return NextResponse.json({ error: "Could not send the confirmation. Try again." }, { status: 500 })
   }
 

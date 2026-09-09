@@ -6,9 +6,12 @@ import { sendEmailChangedNoticeEmail } from "@/lib/email"
 // person can receive mail at the new address, so this is where the account
 // actually moves.
 //
-// A GET that mutates, matching how /verify-email already consumes its token:
-// it is opened from an inbox, the token is single use, and the effect is the
-// one the recipient asked for.
+// A GET that mutates, because it is opened from an inbox and the effect is the
+// one the recipient asked for. Note this differs from /verify-email, which is a
+// client page that POSTs: a link scanner doing a plain GET can consume THIS
+// token, so a human clicking later lands on the expired page. The proof of
+// delivery still holds - the scanner sits at the new address - but the failure
+// mode is worth knowing.
 function back(request: Request, params: string) {
   return NextResponse.redirect(new URL(`/settings?${params}`, request.url), 303)
 }
@@ -65,6 +68,16 @@ export async function GET(request: Request) {
   } catch (e) {
     // Almost certainly P2002 from a race on the unique email column.
     console.error("[email-change confirm] update failed", e)
+    // Match the pre-check path above: a change that can never succeed must not
+    // stay pending, or settings keeps advertising it until it expires.
+    try {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { pendingEmail: null, emailChangeToken: null, emailChangeExpires: null },
+      })
+    } catch (clearError) {
+      console.error("[email-change confirm] could not clear the pending change", clearError)
+    }
     return back(request, "email-change=taken")
   }
 

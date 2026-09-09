@@ -18,7 +18,7 @@ export default function SettingsEmailChangeBanner() {
         className="rounded-lg border px-4 py-3 mb-4 text-sm"
         style={{ borderColor: "rgba(22,163,74,0.3)", background: "rgba(22,163,74,0.08)", color: "#166534" }}
       >
-        Done - this account now uses <strong>{changed}</strong>. Sign in with that address from now on.
+        Done - your account email has been changed. Sign in with your new address from now on.
       </div>
     )
   }
