@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import WindowsInstallNote from "@/components/WindowsInstallNote"
+import EmailChangeForm from "@/components/EmailChangeForm"
 import { trackMeta } from "@/lib/meta-pixel"
 import { PRICING } from "@/lib/products"
 
@@ -138,6 +139,10 @@ function AccountBlock({ claim }: { claim: Claim }) {
 
 export default function ThanksPage() {
   const [state, setState] = useState<State>({ kind: "loading" })
+  const [changingEmail, setChangingEmail] = useState(false)
+  // Named to avoid shadowing the effect's local `const sessionId`, which is
+  // still the value the claim request uses.
+  const [claimSessionId, setClaimSessionId] = useState<string | null>(null)
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -146,6 +151,7 @@ export default function ThanksPage() {
       setState({ kind: "empty" })
       return
     }
+    setClaimSessionId(sessionId)
 
     // Meta Pixel: one Purchase per session, even if the page is reloaded.
     const product = params.get("product") ?? "shft"
@@ -240,11 +246,31 @@ export default function ThanksPage() {
       <h1 className="text-2xl font-bold mb-2" style={{ color: "var(--foreground)" }}>
         You&apos;re in
       </h1>
-      <p className="text-[15px] mb-8" style={muted}>
+      <p className="text-[15px] mb-2" style={muted}>
         Here&apos;s everything you need. We&apos;ve also sent it to <strong>{claim.email}</strong> -
         check spam if it isn&apos;t there, or{" "}
         <Link href="/lost-key" className="underline">resend it</Link>.
       </p>
+      <div className="mb-8">
+        {!changingEmail ? (
+          <button
+            type="button"
+            onClick={() => setChangingEmail(true)}
+            className="text-[14px] underline cursor-pointer"
+            style={{ color: "var(--foreground)", opacity: 0.75, background: "none", border: "none", padding: 0 }}
+          >
+            Wrong address? Change it
+          </button>
+        ) : (
+          <div className="max-w-sm">
+            <p className="text-[14px] mb-2" style={muted}>
+              We&apos;ll email the new address to confirm. Your key and downloads on this page keep
+              working either way.
+            </p>
+            <EmailChangeForm currentEmail={claim.email} sessionId={claimSessionId ?? undefined} compact />
+          </div>
+        )}
+      </div>
 
       {claim.duplicates.length > 0 && (
         <div
