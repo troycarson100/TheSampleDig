@@ -259,12 +259,12 @@ export function decideEmailChange(
 - [ ] **Step 4: Run the tests to verify they pass**
 
 Run: `npx tsx --test lib/email-change-logic.test.ts`
-Expected: 7 tests pass.
+Expected: 8 tests pass.
 
 - [ ] **Step 5: Run the full suite**
 
 Run: `npx tsx --test lib/*.test.ts`
-Expected: 91 passing (84 existing + 7 new), output pristine.
+Expected: 92 passing (84 existing + 8 new), output pristine.
 
 - [ ] **Step 6: Commit**
 
@@ -1093,7 +1093,7 @@ Expected: clean apart from `.next/` noise, and no new `react-hooks` errors beyon
 - [ ] **Step 4: Run the full suite**
 
 Run: `npx tsx --test lib/*.test.ts`
-Expected: 91 passing.
+Expected: 92 passing.
 
 - [ ] **Step 5: Commit**
 
@@ -1190,7 +1190,7 @@ Also confirm the affordance is **absent** on a withheld claim (a purchase whose 
 - [ ] **Step 9: Full checks**
 
 Run: `npx tsx --test lib/*.test.ts && npx tsc --noEmit`
-Expected: 91 passing; no source type errors.
+Expected: 92 passing; no source type errors.
 
 - [ ] **Step 10: Record and commit**
 
