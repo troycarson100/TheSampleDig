@@ -2,7 +2,9 @@ import { NextResponse } from "next/server"
 import Stripe from "stripe"
 import { prisma } from "@/lib/db"
 import { isCompProduct } from "@/lib/plugin-products"
-import { sendPluginPurchaseEmail } from "@/lib/email"
+import { sendPluginPurchaseEmail, sendDuplicatePurchaseAlert } from "@/lib/email"
+import { duplicatePurchaseAlert } from "@/lib/duplicate-purchase-alert"
+import { adminEmails } from "@/lib/admin-emails"
 import { grantPluginPurchase } from "@/lib/plugin-purchase-grant"
 import { mintSetPasswordUrl } from "@/lib/set-password"
 import { reverseTransferForRefund } from "@/lib/affiliate-stripe"
@@ -52,7 +54,8 @@ export async function POST(request: Request) {
         // lib/plugin-purchase-grant.ts and is shared with /api/plugins/claim,
         // so the two can run in either order. This route's only extra job is
         // the receipt email, sent exactly once, from here.
-        if (isCompProduct(session.metadata?.product)) {
+        const purchasedProduct = session.metadata?.product
+        if (isCompProduct(purchasedProduct)) {
           const result = await grantPluginPurchase(session)
           if (!result) {
             console.warn(`[Stripe webhook] plugin purchase ${session.id} could not be granted`)
@@ -69,6 +72,25 @@ export async function POST(request: Request) {
             })
           } catch (e) {
             console.error("[Stripe webhook] plugin purchase email failed:", e)
+          }
+
+          // A repeat purchase writes no Purchase row (@@unique([userId,
+          // product])), so it lands in no sales figure we have and used to
+          // leave nothing but the console.warn in grantOne. Tell the owner so
+          // the charge can be refunded by hand. Best-effort by design: a
+          // notification must never fail the webhook and make Stripe retry a
+          // grant that already succeeded.
+          try {
+            const alert = duplicatePurchaseAlert({
+              buyerEmail: result.email,
+              product: purchasedProduct,
+              duplicates: result.duplicates,
+              amountTotal: session.amount_total,
+              sessionId: session.id,
+            })
+            if (alert) await sendDuplicatePurchaseAlert(adminEmails(), alert)
+          } catch (e) {
+            console.error("[Stripe webhook] duplicate purchase alert failed:", e)
           }
           break
         }

@@ -414,3 +414,25 @@ export async function sendEmailChangedNoticeEmail(oldEmail: string, newEmail: st
     `,
   })
 }
+
+/**
+ * Tells the site owner a buyer paid again for something they already own.
+ *
+ * Plain text on purpose: this is an operational alert, not a customer email,
+ * and it wants to be skimmable on a phone. Recipients come from ADMIN_EMAILS;
+ * with none configured there is nobody to tell, so it is a no-op rather than
+ * an error - the webhook must never fail over a notification.
+ */
+export async function sendDuplicatePurchaseAlert(
+  to: string[],
+  alert: { subject: string; text: string },
+) {
+  if (to.length === 0) return
+
+  await sendMailWithFallback({
+    from: FROM,
+    to: to.join(", "),
+    subject: alert.subject,
+    text: alert.text,
+  })
+}
