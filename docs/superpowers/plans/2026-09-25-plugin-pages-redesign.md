@@ -125,7 +125,19 @@ A unit test in Task 9 asserts the first two hold the same plugin ids, so they ca
 
 ### Definition of done for every task
 
-`npm run lint` passes, and the task's verify script exits 0.
+`npm run lint` passes, and **the checks that task's own steps say should pass, pass.**
+
+Three tasks deliberately leave checks red for a later task to close, and each says so
+in its steps — do not treat these as failures:
+
+| Task | Left red | Closed by |
+|---|---|---|
+| 1 | the two grep gates in `verify-plugin-pricing.mjs` | Task 12 |
+| 4 | the `/fltr` checks in `verify-plugin-chrome.mjs` | Task 10 |
+| 6 | the fltr card's art 404 | Task 10 |
+
+Every other check in a task must be green before that task is complete. Task 13 is where
+everything is green at once.
 
 ---
 
@@ -2210,20 +2222,48 @@ const onPluginPage = isActive("/plugins") || pluginList().some((p) => isActive(p
 
 Use `onPluginPage` in both places. A fifth plugin then needs no nav edit.
 
-- [ ] **Step 5: Fix the stale price in `ShftPromoDock.tsx`**
+- [ ] **Step 5: Retire the stale shft price alert in `lib/site-alerts.ts`**
+
+The alert with id `shft-launch-sale-19` (around line 30) advertises "launch sale $19 (reg.
+$39) — a limited launch discount". Every number in it is now wrong, and it is shown live in
+the site alerts popover.
+
+Replace it with an alert announcing the range, keeping the same object shape. Give it a
+**new id** — ids are how dismissal is remembered, so reusing `shft-launch-sale-19` would
+hide the new alert from everyone who dismissed the old one:
+
+```ts
+{
+  id: "three-plugin-bundle",
+  publishedAt: "<the date this ships>",
+  title: `All three plugins — $${PRICING.bundle.price}`,
+  body: `shft, drft and fltr together for $${PRICING.bundle.price}, against $${PRICING.bundle.compareAt} at list price.`,
+  href: "/plugins",
+  ctaLabel: "See the plugins",
+},
+```
+
+Drop `hideForShftOwners` — it is a shft-only flag and this alert is about the range. If the
+file has no import of `PRICING`, add one. Check whether any other entry in the file quotes
+a price; the grep gate in Step 6 is what proves it.
+
+- [ ] **Step 6: Fix the stale price in `ShftPromoDock.tsx`**
 
 The dock's copy names the old `$19`. Interpolate `PRICING.shft.price` instead. While here, check the dock's own comment block, which describes it as the "shft $19 launch promo".
 
-- [ ] **Step 6: Run the gate**
+- [ ] **Step 7: Run the gate**
 
 Run: `npx tsx scripts/verify-plugin-pricing.mjs`
-Expected: **all checks PASS**, including both greps.
+Expected: **all checks PASS**, including both greps. This is the task's real deliverable —
+if a grep still reports a hit, that hit is a stale price or crossgrade reference somewhere
+this list did not anticipate. Fix it rather than narrowing the grep.
 
-- [ ] **Step 7: Commit**
+- [ ] **Step 8: Commit**
 
 ```bash
-git add -A app/offers app/api/shft app/api/drft components/SiteNav.tsx components/ShftPromoDock.tsx
-git commit -m "refactor: retire the crossgrade offer and the page that surfaced it"
+git add -A app/offers app/api/shft app/api/drft components/SiteNav.tsx \
+           components/ShftPromoDock.tsx lib/site-alerts.ts
+git commit -m "refactor: retire the crossgrade offer and the stale launch pricing"
 ```
 
 ---
