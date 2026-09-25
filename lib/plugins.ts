@@ -1,0 +1,69 @@
+// Presentation catalog for the plugin range: display order, copy, theme and art.
+// Fulfilment (downloads, licence keys, changelogs) lives in lib/products.ts and
+// is joined to this by id. Keep the two apart — products.ts is already long, and
+// these are different axes of change.
+
+export const PLUGIN_ORDER = ["shft", "drft", "fltr"] as const
+export type PluginId = (typeof PLUGIN_ORDER)[number]
+
+export interface PluginMeta {
+  id: PluginId
+  /** Lowercase, as it is set everywhere on the site. */
+  name: string
+  /** The line under the name in the hero, e.g. "trance gate". */
+  category: string
+  /** One sentence. Used on the plugin card and the hero. */
+  tagline: string
+  href: string
+  /** Page ground colour. Drives --plugin-ground. */
+  ground: string
+  /** Page foreground. Drives --plugin-ink. */
+  ink: string
+  accent: string
+  accent2: string
+  art: { card: string; hero: string; heroPoster?: string }
+}
+
+export const PLUGINS: Record<PluginId, PluginMeta> = {
+  shft: {
+    id: "shft",
+    name: "shft",
+    category: "trance gate",
+    tagline: "Sixteen steps chop your audio into living rhythm.",
+    href: "/shft",
+    ground: "#efe9dc",
+    ink: "#24211d",
+    accent: "#a6633c",
+    accent2: "#d9a040",
+    art: { card: "/shft/card.jpg", hero: "/shft/hero-v2.mp4", heroPoster: "/shft/hero-v2-poster.jpg" },
+  },
+  drft: {
+    id: "drft",
+    name: "drft",
+    category: "vhs / crt fx",
+    tagline: "Your sound through a dying tape machine, picture and all.",
+    href: "/drft",
+    ground: "#e0c69f",
+    ink: "#1c140f",
+    accent: "#ef1f71",
+    accent2: "#d99a2b",
+    art: { card: "/drft/field.jpg", hero: "/drft/hero.mp4", heroPoster: "/drft/hero-poster.jpg" },
+  },
+  fltr: {
+    id: "fltr",
+    name: "fltr",
+    category: "filter in key",
+    tagline: "A morphing filter that tunes itself to your track, and plays chords in it.",
+    href: "/fltr",
+    ground: "#0d1117",
+    ink: "#e6edf3",
+    accent: "#4fd1c5",
+    accent2: "#8b7fd4",
+    art: { card: "/fltr/hero.png", hero: "/fltr/hero.png" },
+  },
+}
+
+/** The plugins in display order. Use this rather than Object.values. */
+export function pluginList(): PluginMeta[] {
+  return PLUGIN_ORDER.map((id) => PLUGINS[id])
+}

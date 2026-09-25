@@ -19,16 +19,15 @@ const basename = (key: string) => key.slice(key.lastIndexOf("/") + 1)
 
 // Display prices for the store pages. Stripe charges whatever the price IDs in
 // the env are configured to — keep these in sync with the Stripe dashboard.
+// Every price is struck against its MSRP, which is the house convention.
 export const PRICING = {
-  shft: { price: 19, msrp: 39 },
-  drft: { price: 19, msrp: 39 },
-  // Struck against the combined MSRP ($39 x 2), like every other price on the
-  // site strikes list price - not against the two sale prices.
-  bundle: { price: 34, compareAt: 78, msrp: 78 },
-  // Own one plugin, buy the other: $19 + $15 = $34 — exactly the bundle deal.
-  // compareAt is the MSRP, matching how every other price on the site is
-  // struck ($19 against $39), so the saving reads off the real list price.
-  crossgrade: { price: 15, compareAt: 39 },
+  shft: { price: 29, msrp: 49 },
+  drft: { price: 29, msrp: 49 },
+  // Introductory price with no announced end date. Raised by editing this line.
+  fltr: { price: 19, msrp: 49 },
+  // All three. Struck against the combined MSRP (3 x $49), like every other
+  // price on the site strikes list price — not against the three sale prices.
+  bundle: { price: 59, compareAt: 147, msrp: 147 },
 } as const
 
 export interface ProductAsset {
