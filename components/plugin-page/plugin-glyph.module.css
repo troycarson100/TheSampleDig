@@ -1,0 +1,18 @@
+.glyph { display: block; overflow: visible; }
+.glyph path { transform-box: fill-box; }
+
+/* shft: the gate pattern steps through once, left to right. */
+.shft.animate path { animation: step 900ms steps(6, end) 1; }
+@keyframes step { from { stroke-dasharray: 0 40; } to { stroke-dasharray: 40 0; } }
+
+/* drft: the torn scanline slips and re-seats, like a dropout. */
+.drft.animate path:nth-child(3) { animation: tear 700ms ease-out 1; }
+@keyframes tear { 0% { transform: translateX(-3px); opacity: 0.3; } 100% { transform: none; opacity: 1; } }
+
+/* fltr: the resonance peak sweeps in. */
+.fltr.animate path { animation: sweep 900ms ease-out 1; }
+@keyframes sweep { from { stroke-dasharray: 0 30; } to { stroke-dasharray: 30 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  .glyph path { animation: none !important; }
+}
