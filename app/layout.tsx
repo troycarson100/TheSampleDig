@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono, Halant, DM_Serif_Display, Bebas_Neue, IBM_Plex_Mono, Cormorant_Garamond } from "next/font/google"
 import "./globals.css"
 import RootBody from "@/components/RootBody"
+import { CartProvider } from "@/components/CartProvider"
 import MetaPixel from "@/components/analytics/MetaPixel"
 import AffiliateRefCapture from "@/components/AffiliateRefCapture"
 import AttributionCapture from "@/components/AttributionCapture"
@@ -69,7 +70,9 @@ export default function RootLayout({
           <MetaPixel />
           <AffiliateRefCapture />
           <AttributionCapture />
-          <RootBody>{children}</RootBody>
+          <RootBody>
+            <CartProvider>{children}</CartProvider>
+          </RootBody>
           <CookieBanner />
         </ConsentProvider>
       </body>
