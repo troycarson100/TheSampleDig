@@ -3,12 +3,20 @@
   color: var(--plugin-ink);
   --pad: clamp(20px, 5vw, 64px);
   --measure: 62ch;
+  /* globals.css sets a mono body font sitewide. The template's running text is
+     Geist; mono is reserved for labels, eyebrows and prices, each of which sets
+     it explicitly below. */
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
 }
 
 .hero {
   display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 56px);
   align-items: center; padding: clamp(48px, 8vw, 104px) var(--pad);
 }
+/* The copy column of .hero's two-up grid. min-width: 0 stops a grid item's
+   default content-based minimum from overriding 1fr and forcing the column
+   wider than the track — the classic way a long heading blows out a grid. */
+.heroCopy { min-width: 0; }
 .eyebrow {
   display: flex; align-items: center; gap: 10px; margin: 0 0 20px;
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
@@ -55,6 +63,8 @@
 .block { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; padding: clamp(36px, 5vw, 72px) var(--pad); }
 .blockAlt { direction: rtl; }
 .blockAlt > * { direction: ltr; }
+/* The copy column of .block's two-up grid — same min-width guard as .heroCopy. */
+.blockCopy { min-width: 0; }
 .blockTitle { font-family: var(--font-geist-sans), system-ui, sans-serif; font-weight: 800; letter-spacing: -0.02em; font-size: clamp(1.4rem, 2.6vw, 2rem); margin: 0 0 12px; }
 .blockBody { font-size: 16px; line-height: 1.6; opacity: 0.82; max-width: var(--measure); margin: 0; }
 
