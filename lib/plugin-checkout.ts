@@ -44,31 +44,45 @@ export async function readAffiliateCodeFromCookie(label: string): Promise<string
 }
 
 /**
- * One-time Checkout Session for a plugin or the bundle.
+ * One-time Checkout Session for a plugin, the bundle, or an arbitrary cart.
  *
  * `buyer` is null for a guest. A signed-in buyer's id is stamped as
  * client_reference_id and metadata.userId and their email prefilled; a guest
  * gets neither, types their email into Checkout, and that address is the
  * only identity the webhook has to attach the purchase to. metadata.guest
  * marks those sessions in the Stripe dashboard.
+ *
+ * Pass exactly one of `priceId` (the single-item shape every route used
+ * before the cart existed) or `lineItems` (one entry per cart product, or a
+ * single bundle-priced entry when the cart is the whole catalog) — adding the
+ * second shape here, rather than a second session builder, is what keeps the
+ * two from drifting apart. `metadata` is merged in last so a caller can add
+ * fields (the cart route stamps `products`) without touching the fields
+ * every caller already relies on.
  */
 export async function createPluginCheckoutSession(
   stripe: Stripe,
   opts: {
     product: CompProduct
-    priceId: string
+    priceId?: string
+    lineItems?: Stripe.Checkout.SessionCreateParams.LineItem[]
     paid: number
     cancelPath: CancelPath
     buyer: CheckoutBuyer | null
     affiliateCode: string | null
+    metadata?: Record<string, string>
   },
 ): Promise<Stripe.Checkout.Session> {
   const attrMetadata = await readAttributionMetadata()
   const { buyer } = opts
+  const lineItems = opts.lineItems ?? (opts.priceId ? [{ price: opts.priceId, quantity: 1 }] : [])
+  if (lineItems.length === 0) {
+    throw new Error("createPluginCheckoutSession: neither priceId nor lineItems was given")
+  }
   return stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
-    line_items: [{ price: opts.priceId, quantity: 1 }],
+    line_items: lineItems,
     ...checkoutUrls(checkoutBaseUrl(), opts.product, opts.paid, opts.cancelPath),
     customer_creation: "always",
     ...(buyer?.email ? { customer_email: buyer.email } : {}),
@@ -80,6 +94,7 @@ export async function createPluginCheckoutSession(
       ...(buyer ? { userId: buyer.id } : { guest: "1" }),
       ...(opts.affiliateCode ? { affiliateCode: opts.affiliateCode } : {}),
       ...attrMetadata,
+      ...opts.metadata,
     },
     custom_fields: [
       {

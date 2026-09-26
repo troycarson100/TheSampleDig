@@ -2,7 +2,7 @@ import crypto from "node:crypto"
 import bcrypt from "bcryptjs"
 import type Stripe from "stripe"
 import { prisma } from "@/lib/db"
-import { PLUGIN_GRANTS, isCompProduct, type PluginProduct } from "@/lib/plugin-products"
+import { PLUGIN_GRANTS, isCompProduct, isPluginProduct, type PluginProduct } from "@/lib/plugin-products"
 import { generateLicenseKey } from "@/lib/license-key"
 import { recordAffiliateReferral } from "@/lib/affiliate"
 import { snapshotForVisitor } from "@/lib/attribution-snapshot"
@@ -154,7 +154,19 @@ export async function grantPluginPurchase(session: Stripe.Checkout.Session): Pro
   const duplicates: PluginProduct[] = []
   let firstPurchaseId: string | null = null
   let first = true
-  for (const p of PLUGIN_GRANTS[product]) {
+
+  // A cart purchase names its own products; every older session shape names a
+  // single product or the bundle and still resolves through PLUGIN_GRANTS.
+  // metadata is attacker-adjacent input, so each entry is validated rather than
+  // trusted — an unrecognised value is dropped, never granted.
+  const fromMetadata = (session.metadata?.products ?? "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(isPluginProduct)
+
+  const grants = fromMetadata.length > 0 ? fromMetadata : PLUGIN_GRANTS[product]
+
+  for (const p of grants) {
     const granted = await grantOne(buyer, p, session, first)
     first = false
     firstPurchaseId ??= granted.id
