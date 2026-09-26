@@ -4,14 +4,17 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { PRICING } from "@/lib/products"
 import { createPluginCheckoutSession, readAffiliateCodeFromCookie, buyerFromSession } from "@/lib/plugin-checkout"
+import { bundleEligibility } from "@/lib/bundle-eligibility"
+import { PLUGIN_PRODUCTS } from "@/lib/plugin-products"
 
-// One-time checkout for the shft + drft bundle. One Stripe price, one line
-// item; the webhook (and /api/plugins/claim) grant BOTH products.
-// Signing in is optional. For a signed-in buyer the guard rails hold: owners
-// of both get 409 already_owned; owners of one get 409 own_one — the
-// storefront swaps to the $15 crossgrade offer instead, so no path through
-// here can double-charge. A guest has no ownership to check and pays the
-// bundle price.
+// One-time checkout for the shft + drft + fltr bundle. One Stripe price, one
+// line item; the webhook (and /api/plugins/claim) grant ALL THREE products.
+// Signing in is optional. For a signed-in buyer the guard rail holds: any
+// ownership at all — one, two or all three — gets a 409 (already_owned or
+// partial_owner) rather than a checkout session, so no path through here can
+// double-charge. There is no crossgrade to offer a partial owner instead; they
+// buy the singles they are missing. A guest has no ownership to check and pays
+// the bundle price.
 // Dormant until STRIPE_SECRET_KEY + STRIPE_BUNDLE_PRICE_ID are set.
 export async function POST() {
   const secret = process.env.STRIPE_SECRET_KEY
@@ -25,15 +28,12 @@ export async function POST() {
 
   if (buyer) {
     const owned = await prisma.purchase.findMany({
-      where: { userId: buyer.id, product: { in: ["shft", "drft"] } },
+      where: { userId: buyer.id, product: { in: [...PLUGIN_PRODUCTS] } },
       select: { product: true },
     })
-    const ownedSet = new Set(owned.map((p) => p.product))
-    if (ownedSet.size === 2) {
-      return NextResponse.json({ error: "already_owned" }, { status: 409 })
-    }
-    if (ownedSet.size === 1) {
-      return NextResponse.json({ error: "own_one", owns: [...ownedSet][0] }, { status: 409 })
+    const eligibility = bundleEligibility(owned.map((p) => p.product))
+    if (!eligibility.ok) {
+      return NextResponse.json({ error: eligibility.reason, owns: eligibility.owns }, { status: 409 })
     }
   }
 
