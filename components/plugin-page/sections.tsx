@@ -1,19 +1,59 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import PluginGlyph from "./PluginGlyph"
 import BuyButton from "./BuyButton"
 import { PLUGINS, type PluginId } from "@/lib/plugins"
 import type { Capability, FaqItem, FeatureBlock, Media, PluginContent } from "./types"
 import styles from "./plugin-page.module.css"
 
-/** Video where we have one, still otherwise, nothing if the asset is absent. */
+/**
+ * Video where we have one, still otherwise, nothing if the asset is absent.
+ *
+ * Starts assuming reduced motion and only switches a video on to autoplay once
+ * `prefers-reduced-motion` is confirmed *not* "reduce" — the same shape as the
+ * ownership guard in BuyButton: never render the state you have to walk back,
+ * even for one frame. CSS can't stop a video autoplaying, so this has to be JS.
+ */
 export function MediaSlot({ media, className = "" }: { media?: Media; className?: string }) {
+  const [motionOk, setMotionOk] = useState(false)
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
+    const sync = () => setMotionOk(!mq.matches)
+    sync()
+    mq.addEventListener("change", sync)
+    return () => mq.removeEventListener("change", sync)
+  }, [])
+
   if (!media) return null
+
   if (media.kind === "video") {
+    if (motionOk) {
+      return (
+        <video
+          className={`${styles.media} ${className}`}
+          src={media.src}
+          poster={media.poster}
+          autoPlay muted loop playsInline
+          aria-label={media.alt}
+        />
+      )
+    }
+    // Reduced motion (or not yet confirmed otherwise): freeze on the poster.
+    // `poster` is optional on Media — a video with nothing to freeze on falls
+    // back to the video itself, paused and with controls, rather than showing
+    // nothing: the visitor can still choose to play it.
+    if (media.poster) {
+      // eslint-disable-next-line @next/next/no-img-element
+      return <img className={`${styles.media} ${className}`} src={media.poster} alt={media.alt} />
+    }
     return (
       <video
         className={`${styles.media} ${className}`}
         src={media.src}
-        poster={media.poster}
-        autoPlay muted loop playsInline
+        controls
+        playsInline
         aria-label={media.alt}
       />
     )

@@ -67,10 +67,16 @@
 .blockCopy { min-width: 0; }
 .blockTitle { font-family: var(--font-geist-sans), system-ui, sans-serif; font-weight: 800; letter-spacing: -0.02em; font-size: clamp(1.4rem, 2.6vw, 2rem); margin: 0 0 12px; }
 .blockBody { font-size: 16px; line-height: 1.6; opacity: 0.82; max-width: var(--measure); margin: 0; }
+/* The media column of .block — same shadow treatment as .heroMedia, scaled down
+   for a secondary section. */
+.blockMedia { box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22); }
 
 .caps { padding: clamp(40px, 6vw, 88px) var(--pad); border-top: 1px solid color-mix(in srgb, var(--plugin-ink) 14%, transparent); }
 .capsTitle { font-family: var(--font-geist-sans), system-ui, sans-serif; font-weight: 800; letter-spacing: -0.02em; font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 0 0 28px; }
 .capsGrid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 24px; }
+/* One capability card in the grid — bordered box, same corner radius as .media
+   and the same tinted-border convention already used by .caps/.faq/.getStarted. */
+.cap { padding: 20px; border: 1px solid color-mix(in srgb, var(--plugin-ink) 12%, transparent); border-radius: 10px; }
 .capTitle { font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--plugin-accent); margin: 0 0 8px; }
 .capBody { font-size: 15px; line-height: 1.55; opacity: 0.82; margin: 0; }
 
