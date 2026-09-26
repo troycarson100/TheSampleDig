@@ -71,7 +71,7 @@ test("duplicatePurchaseAlert: owning one of the bundle's three products (1 of 3)
     buyerEmail: "owns-one@example.com",
     product: "bundle",
     duplicates: ["shft"],
-    amountTotal: 3400,
+    amountTotal: BUNDLE_AMOUNT_CENTS,
     sessionId: "cs_live_partial",
   })
 
