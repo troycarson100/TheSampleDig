@@ -1,8 +1,15 @@
-.wrap { position: relative; display: inline-flex; }
+/* align-self: stretch makes the wrapper span the nav bar's full height, so the
+   trigger's own `h-full` resolves against the bar rather than against the
+   wrapper's content box. Without it the sitewide `.nav-link-active::after`
+   underline — positioned at bottom: 0 — lands under the text instead of at the
+   bottom of the nav, where every sibling tab's underline sits. */
+.wrap { position: relative; display: inline-flex; align-self: stretch; }
 
 .trigger {
-  background: none; border: none; cursor: pointer; padding: 0 2px;
+  background: none; border: none; cursor: pointer;
   font: inherit; color: inherit;
+  /* No padding override: navLinkBase supplies px-5 (20px), which is exactly what
+     `.nav-link-active::after`'s left/right: 20px insets are drawn against. */
 }
 .trigger:focus-visible { outline: 2px solid #a6633c; outline-offset: 3px; border-radius: 3px; }
 
