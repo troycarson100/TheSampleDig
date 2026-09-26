@@ -63,6 +63,12 @@
 .block { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; padding: clamp(36px, 5vw, 72px) var(--pad); }
 .blockAlt { direction: rtl; }
 .blockAlt > * { direction: ltr; }
+/* A block with no media at all (fltr's case — none of its six blocks carry a
+   screenshot) collapses the two-up grid to one column. Without this, .block's
+   second 1fr track sits empty beside the copy, and on an odd (.blockAlt)
+   index that leaves the lone .blockCopy parked against the *right* edge of a
+   blank left column rather than reading as an ordinary full-width block. */
+.blockNoMedia { grid-template-columns: 1fr; direction: ltr; }
 /* The copy column of .block's two-up grid — same min-width guard as .heroCopy. */
 .blockCopy { min-width: 0; }
 /* Optional per-block OSD label (e.g. drft's "TRK 01") — same silk-screen
