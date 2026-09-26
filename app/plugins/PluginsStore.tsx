@@ -1,288 +1,145 @@
 "use client"
 
-import { useEffect, useState, type ReactNode } from "react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
+import PluginGlyph from "@/components/plugin-page/PluginGlyph"
+import BuyButton from "@/components/plugin-page/BuyButton"
 import styles from "./plugins.module.css"
 import { trackMeta } from "@/lib/meta-pixel"
+import { pluginList, PLUGINS, type PluginId } from "@/lib/plugins"
 import { PRICING } from "@/lib/products"
+import { usePluginOwnership } from "@/lib/use-plugin-ownership"
 
-type PluginId = "shft" | "drft"
-
-const PLUGINS: { id: PluginId; name: string; tagline: string; img: string; theme: string; href: string }[] = [
-  {
-    id: "shft",
-    name: "shft",
-    tagline: "Tempo-synced trance-gate multi-FX. Sixteen steps chop your audio into living rhythm.",
-    img: "/shft/card.jpg",
-    theme: "cardShft",
-    href: "/shft",
-  },
-  {
-    id: "drft",
-    name: "drft",
-    tagline: "VHS / CRT circuit-bend FX. Your sound through a dying tape machine, picture and all.",
-    img: "/drft/field.jpg",
-    theme: "cardDrft",
-    href: "/drft",
-  },
-]
-
-async function startCheckout(endpoint: string): Promise<{ url: string | null; conflict: boolean }> {
-  try {
-    const res = await fetch(endpoint, { method: "POST" })
-    if (res.status === 409) return { url: null, conflict: true }
-    const data = await res.json().catch(() => ({}))
-    if (res.ok && typeof data?.url === "string") return { url: data.url, conflict: false }
-  } catch {
-    /* fall through */
-  }
-  return { url: null, conflict: false }
+/** Only the canceled state lives here. Success goes to /thanks. */
+function CanceledNotice() {
+  const [canceled, setCanceled] = useState(false)
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("purchase") === "canceled") setCanceled(true)
+  }, [])
+  if (!canceled) return null
+  return <div className={styles.notice}>Checkout canceled — no charge was made. The bundle is here whenever you want it.</div>
 }
 
-/** Buy button used for singles and the bundle. On 409 (ownership changed under
-    us) it reloads so the page re-renders the right state. */
-function BuyBtn({
-  endpoint,
-  className,
-  product,
-  value,
-  children,
-}: {
-  endpoint: string
-  className: string
-  product: "shft" | "drft" | "bundle"
-  value: number
-  children: ReactNode
-}) {
+function BundleButton() {
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
-
   const buy = async () => {
-    setBusy(true)
-    setFailed(false)
-    // Funnel top: paired with the Purchase event on /thanks.
-    trackMeta("InitiateCheckout", { value, currency: "USD", content_name: product, content_type: "product" })
-    const { url, conflict } = await startCheckout(endpoint)
-    if (conflict) {
-      window.location.reload()
-      return
-    }
-    if (url) {
-      window.location.href = url
-      return
-    }
-    setFailed(true)
-    setBusy(false)
+    setBusy(true); setFailed(false)
+    trackMeta("InitiateCheckout", {
+      value: PRICING.bundle.price, currency: "USD", content_name: "bundle", content_type: "product",
+    })
+    try {
+      const res = await fetch("/api/bundle/checkout", { method: "POST" })
+      if (res.status === 409) { window.location.reload(); return }
+      const data = await res.json().catch(() => ({}))
+      if (res.ok && typeof data?.url === "string") { window.location.href = data.url; return }
+    } catch { /* fall through */ }
+    setFailed(true); setBusy(false)
   }
-
   return (
-    <button type="button" className={className} onClick={buy} disabled={busy}>
-      {busy ? "…" : failed ? "Opens at launch" : children}
+    <button type="button" className={styles.bundleBuy} onClick={buy} disabled={busy}>
+      {busy ? "…" : failed ? "Opens at launch" : `Get all three · $${PRICING.bundle.price}`}
     </button>
   )
 }
 
-/** Only the canceled state lives here now. Success goes to /thanks. */
-function PurchaseBanner() {
-  const [canceled, setCanceled] = useState(false)
+function Bundle({ loading, ownedCount, missing }: {
+  loading: boolean; ownedCount: number; missing: PluginId[]
+}) {
+  if (loading) return <section className={styles.bundle} id="bundle" aria-busy="true" />
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search)
-    if (params.get("purchase") === "canceled") setCanceled(true)
-  }, [])
+  if (ownedCount === 3) {
+    return (
+      <section className={styles.bundle} id="bundle">
+        <p className={styles.bundleTag}>The whole rack</p>
+        <h2 className={styles.bundleTitle}>Every plugin is yours</h2>
+        <p className={styles.bundleSub}>
+          Downloads and licence keys live in My Products — take them as many times as you need.
+        </p>
+        <Link href="/products" className={styles.bundleBuy}>Go to My Products</Link>
+      </section>
+    )
+  }
 
-  if (!canceled) return null
-  return <div className={styles.bannerInfo}>Checkout canceled — no charge was made. The bundle is here whenever you&apos;re ready.</div>
+  if (ownedCount > 0) {
+    const total = missing.reduce((sum, id) => sum + PRICING[id].price, 0)
+    return (
+      <section className={styles.bundle} id="bundle">
+        <p className={styles.bundleTag}>Finish the rack</p>
+        <h2 className={styles.bundleTitle}>
+          {missing.length === 1 ? "One plugin left" : "Two plugins left"}
+        </h2>
+        <p className={styles.bundleSub}>
+          {missing.map((id) => PLUGINS[id].name).join(" and ")} — ${total} for what you are missing.
+        </p>
+        {/* No bundle button: a partial owner has no bundle price that is correct
+            for them, and buying one would charge again for what they own. */}
+      </section>
+    )
+  }
+
+  const save = PRICING.bundle.compareAt - PRICING.bundle.price
+  return (
+    <section className={styles.bundle} id="bundle">
+      <p className={styles.bundleTag}>All three plugins</p>
+      <h2 className={styles.bundleTitle}>
+        {pluginList().map((p) => p.name).join(" + ")}
+      </h2>
+      <p className={styles.bundleSub}>
+        One chops your sound into rhythm, one drags it through a dying tape machine, and one
+        tunes it to your track. Take all three for less than two at list price.
+      </p>
+      <p className={styles.priceRow}>
+        <span className={styles.bigPrice}>${PRICING.bundle.price}</span>
+        <s className={styles.wasPrice}>${PRICING.bundle.compareAt}</s>
+        <span className={styles.saveBadge}>Save ${save}</span>
+      </p>
+      <BundleButton />
+    </section>
+  )
 }
 
 export default function PluginsStore() {
-  const [owned, setOwned] = useState<Record<PluginId, boolean>>({ shft: false, drft: false })
-  // Whether each product's crossgrade price actually exists in Stripe - the UI
-  // must never advertise a $15 price the checkout route cannot actually charge.
-  const [crossgradeAvailable, setCrossgradeAvailable] = useState<Record<PluginId, boolean>>({ shft: false, drft: false })
-  const [signedIn, setSignedIn] = useState(true)
-
-  useEffect(() => {
-    for (const id of ["shft", "drft"] as const) {
-      fetch(`/api/${id}/ownership`)
-        .then((r) => (r.ok ? r.json() : null))
-        .then((d) => {
-          if (d?.owned) setOwned((o) => ({ ...o, [id]: true }))
-          setCrossgradeAvailable((c) => ({ ...c, [id]: Boolean(d?.crossgrade) }))
-          // Only a response that actually arrived may say "signed out". This
-          // effect runs for both products, so a null d from one failing
-          // endpoint would otherwise tell a signed-in visitor to sign in,
-          // while the other endpoint's crossgrade flag kept the nudge shown.
-          if (d) setSignedIn(Boolean(d.signedIn))
-        })
-        .catch(() => {})
-    }
-  }, [])
-
-  const ownCount = Number(owned.shft) + Number(owned.drft)
-  const missing: PluginId = owned.shft ? "drft" : "shft"
-  const missingCrossgradeOn = ownCount === 1 && crossgradeAvailable[missing]
+  const { loading, ownedCount, missing } = usePluginOwnership()
 
   return (
     <main className={styles.store}>
-      <PurchaseBanner />
+      <CanceledNotice />
       <div className={styles.head}>
         <h1 className={styles.title}>Plugins</h1>
-        <p className={styles.sub}>Instruments of damage and rhythm. One-time purchase, free updates, macOS &amp; Windows.</p>
+        <p className={styles.sub}>
+          Instruments of damage, rhythm and key. One-time purchase, free updates, macOS and Windows.
+        </p>
       </div>
 
-      {/* ---- The offer leads the page: both plugins, one price. State depends
-              on how much of the pair you already own. ------------------------ */}
-      <section className={styles.bundle}>
-        <div className={styles.bundleSheen} aria-hidden />
-        <div className={styles.bundleInner}>
-          <div className={styles.bundleCopy}>
-            {ownCount === 0 && (
-              <>
-                <p className={styles.bundleTag}>
-                  <span className={styles.liveDot} aria-hidden />
-                  LIMITED TIME
-                </p>
-                <h2 className={styles.bundleTitle}>
-                  Get <span className={styles.markShft}>shft</span> <span className={styles.plus}>+</span>{" "}
-                  <span className={styles.markDrft}>drft</span>
-                </h2>
-                <p className={styles.bundleSub}>
-                  One chops your sound into rhythm. The other drags it through a dying tape machine.
-                  Take both for less than one at full price.
-                </p>
-                <div className={styles.priceRow}>
-                  <span className={styles.bigPrice}>${PRICING.bundle.price}</span>
-                  <span className={styles.priceMeta}>
-                    <s>${PRICING.bundle.compareAt}</s>
-                    <span className={styles.saveBadge}>
-                      Save ${PRICING.bundle.compareAt - PRICING.bundle.price}
-                    </span>
-                  </span>
-                </div>
-                <BuyBtn endpoint="/api/bundle/checkout" className={styles.bundleBuy} product="bundle" value={PRICING.bundle.price}>
-                  Get the bundle - ${PRICING.bundle.price}
-                </BuyBtn>
-                {!signedIn && (crossgradeAvailable.shft || crossgradeAvailable.drft) && (
-                  <p className={styles.bundleSub}>
-                    Already own one? <a href="/login?callbackUrl=%2Fplugins">Sign in</a> to complete the
-                    pair for ${PRICING.crossgrade.price}.
-                  </p>
-                )}
-              </>
-            )}
-            {ownCount === 1 && missingCrossgradeOn && (
-              <>
-                <p className={styles.bundleTag}>
-                  <span className={styles.liveDot} aria-hidden />
-                  COMPLETE THE PAIR
-                </p>
-                <h2 className={styles.bundleTitle}>
-                  You own {owned.shft ? "shft" : "drft"} - take {missing} for ${PRICING.crossgrade.price}
-                </h2>
-                <p className={styles.bundleSub}>
-                  The same deal as the bundle, kept open for you: ${PRICING.crossgrade.price} brings your pair
-                  to ${PRICING.bundle.price} total.
-                </p>
-                <div className={styles.priceRow}>
-                  <span className={styles.bigPrice}>${PRICING.crossgrade.price}</span>
-                  <span className={styles.priceMeta}>
-                    <s>${PRICING.crossgrade.compareAt}</s>
-                    <span className={styles.saveBadge}>
-                      Save ${PRICING.crossgrade.compareAt - PRICING.crossgrade.price}
-                    </span>
-                  </span>
-                </div>
-                <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy} product={missing} value={PRICING.crossgrade.price}>
-                  Get {missing} - ${PRICING.crossgrade.price}
-                </BuyBtn>
-              </>
-            )}
-            {ownCount === 1 && !missingCrossgradeOn && (
-              <>
-                <p className={styles.bundleTag}>
-                  <span className={styles.liveDot} aria-hidden />
-                  COMPLETE THE PAIR
-                </p>
-                <h2 className={styles.bundleTitle}>
-                  You own {owned.shft ? "shft" : "drft"} - complete the pair
-                </h2>
-                <p className={styles.bundleSub}>
-                  {missing} is the other half of the rack, at its launch price.
-                </p>
-                <div className={styles.priceRow}>
-                  <span className={styles.bigPrice}>${PRICING[missing].price}</span>
-                  <span className={styles.priceMeta}>
-                    <s>${PRICING[missing].msrp}</s>
-                  </span>
-                </div>
-                <BuyBtn endpoint={`/api/${missing}/checkout`} className={styles.bundleBuy} product={missing} value={PRICING[missing].price}>
-                  Get {missing} - ${PRICING[missing].price}
-                </BuyBtn>
-              </>
-            )}
-            {ownCount === 2 && (
-              <>
-                <p className={styles.bundleTag}>
-                  <span className={styles.liveDot} aria-hidden />
-                  THE WHOLE RACK
-                </p>
-                <h2 className={styles.bundleTitle}>Both plugins are yours</h2>
-                <p className={styles.bundleSub}>
-                  Downloads and licence keys live in My Products - grab them any time, as many times as you need.
-                </p>
-                <a href="/products" className={styles.bundleBuy}>
-                  Go to My Products
-                </a>
-              </>
-            )}
-          </div>
-
-          {/* Both plugins, stacked like a boxed pair. */}
-          <div className={styles.bundleArt} aria-hidden>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className={styles.artBack} src="/shft/card.jpg" alt="" />
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img className={styles.artFront} src="/drft/field.jpg" alt="" />
-          </div>
-        </div>
-      </section>
+      <Bundle loading={loading} ownedCount={ownedCount} missing={missing} />
 
       <div className={styles.cards}>
-        {PLUGINS.map((p) => (
-          <article key={p.id} className={`${styles.card} ${styles[p.theme]}`}>
+        {pluginList().map((p) => (
+          <article key={p.id} className={styles.card} data-plugin-card={p.id}
+            style={{
+              ["--card-ground" as string]: p.ground,
+              ["--card-ink" as string]: p.ink,
+              ["--card-accent" as string]: p.accent,
+            }}>
             <Link href={p.href} className={styles.cardMedia} aria-label={`Learn more about ${p.name}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className={styles.cardImg} src={p.img} alt={`${p.name} plugin UI`} />
+              <img className={styles.cardImg} src={p.art.card} alt={`${p.name} plugin interface`} />
             </Link>
             <div className={styles.cardBody}>
+              <p className={styles.cardEyebrow}>
+                <PluginGlyph id={p.id} /> {p.category}
+              </p>
               <h2 className={styles.cardName}>{p.name}</h2>
               <p className={styles.cardTagline}>{p.tagline}</p>
               <div className={styles.cardRow}>
-                {owned[p.id] ? (
-                  <a className={styles.cardBuy} href="/products">
-                    You own {p.name} — Download
-                  </a>
-                ) : (
-                  <BuyBtn
-                    endpoint={`/api/${p.id}/checkout`}
-                    className={styles.cardBuy}
-                    product={p.id}
-                    value={p.id === missing && missingCrossgradeOn ? PRICING.crossgrade.price : PRICING[p.id].price}
-                  >
-                    Buy — <strong>${p.id === missing && missingCrossgradeOn ? PRICING.crossgrade.price : PRICING[p.id].price}</strong>{" "}
-                    <s>${p.id === missing && missingCrossgradeOn ? PRICING.crossgrade.compareAt : PRICING[p.id].msrp}</s>
-                  </BuyBtn>
-                )}
-                <Link href={p.href} className={styles.cardMore}>
-                  Learn more →
-                </Link>
+                <BuyButton id={p.id} />
+                <Link href={p.href} className={styles.cardMore}>Learn more →</Link>
               </div>
             </div>
           </article>
         ))}
       </div>
-
     </main>
   )
 }

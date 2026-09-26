@@ -3,14 +3,17 @@ import SiteNav from "@/components/SiteNav"
 import PluginChrome from "@/components/PluginChrome"
 import PluginPageErrorBoundary from "@/components/PluginPageErrorBoundary"
 import PluginsStore from "./PluginsStore"
+import { PRICING } from "@/lib/products"
 
 export const metadata: Metadata = {
-  title: "Plugins — shft & drft | Sample Roll",
+  title: "Plugins — shft, drft & fltr | Sample Roll",
   description:
-    "Sample Roll plugins: shft, the tempo-synced trance-gate multi-FX, and drft, the VHS / CRT circuit-bend effect. $19 each, or both for $34 for a limited time. VST3 / AU / Standalone for macOS & Windows.",
+    `Sample Roll plugins: shft, the tempo-synced trance gate; drft, the VHS / CRT circuit-bend effect; ` +
+    `and fltr, a morphing filter that plays in key. All three for $${PRICING.bundle.price}. ` +
+    `VST3 / AU / Standalone.`,
   openGraph: {
-    title: "Sample Roll Plugins — shft & drft",
-    description: "shft + drft — $19 each, or both for $34 for a limited time.",
+    title: "Sample Roll Plugins — shft, drft & fltr",
+    description: `All three plugins for $${PRICING.bundle.price}.`,
     images: ["/drft/og.png"],
     type: "website",
   },
