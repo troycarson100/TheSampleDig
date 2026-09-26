@@ -1,0 +1,93 @@
+.wrap { position: relative; display: inline-flex; }
+
+.trigger {
+  background: none; border: none; cursor: pointer; padding: 0 2px;
+  font: inherit; color: inherit;
+}
+.trigger:focus-visible { outline: 2px solid #a6633c; outline-offset: 3px; border-radius: 3px; }
+
+.panel {
+  position: absolute; top: calc(100% + 10px); left: 50%; transform: translateX(-50%);
+  z-index: 60; min-width: 260px; padding: 8px;
+  background: #efe9dc; color: #24211d;
+  border: 1px solid rgba(36, 33, 29, 0.16); border-radius: 12px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.22);
+  /* Sans deliberately: globals.css sets a monospace body font sitewide. */
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+/* `hidden` (the HTML attribute, toggled in the JSX) does the actual show/hide —
+   it's what keeps the closed panel out of the a11y tree and off-screen. This
+   just plays a short fade the moment `hidden` is lifted, rather than snapping in. */
+.panelOpen { animation: panelIn 140ms ease-out; }
+@keyframes panelIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .panelOpen { animation: none; }
+}
+
+/* PluginsMenuRows mounts in two different places: inside this floating
+   `.panel` on desktop, and directly in the mobile drawer with no such
+   wrapper (SiteNav portals the drawer to document.body, so it isn't even a
+   descendant of <nav> there). Scoping through an ancestor class — the way
+   plugin-chrome.module.css scopes `.rail .pill` — only reaches the first of
+   those two mount points, so it can't be the fix here.
+   Instead every row/bundle link also carries `.link`, and the
+   specificity-sensitive declarations are written as the compound selector
+   `.link.row` / `.link.bundleRow`. That's two classes on one element either
+   way — (0,2,0) — which beats the sitewide `.theme-vinyl nav a` rule (0,1,2)
+   regardless of DOM nesting, and (with :hover/:focus-visible) (0,3,0) beats
+   `.theme-vinyl nav a:hover` (0,2,2) — without `!important`, and it still
+   applies harmlessly in the drawer where that sitewide rule can't reach
+   anyway. Explicit text-transform/font-weight/letter-spacing resets clear
+   the rest of that rule's declarations, which would otherwise still cascade
+   from the anchor down into .rowName (uppercase "shft" would defeat the
+   point of a lowercase wordmark). */
+.row, .bundleRow {
+  display: flex; align-items: center; gap: 11px;
+  padding: 9px 11px; border-radius: 8px; text-decoration: none;
+}
+.link.row, .link.bundleRow {
+  text-transform: none; font-weight: 400; letter-spacing: normal;
+}
+/* .row inherits ambient text colour (dark ink on the cream panel, cream on the
+   drawer's near-black background). .bundleRow does not: it always sits on its
+   own warm gradient, so it needs the same dark ink in both mounts — "inherit"
+   would hand it cream-on-gold in the drawer, which is nearly unreadable. */
+.link.row { color: inherit; }
+.link.bundleRow { color: #1c140f; }
+.link.row:hover, .link.row:focus-visible { color: inherit; }
+.link.bundleRow:hover, .link.bundleRow:focus-visible { color: #1c140f; }
+/* A neutral mid-tone tint (rather than the dark tint an all-cream panel could
+   afford) so the same rule reads on both the cream panel and the near-black
+   drawer background. */
+.row:hover, .row:focus-visible { background: rgba(130, 120, 105, 0.16); }
+.row:focus-visible, .bundleRow:focus-visible { outline: 2px solid var(--row-accent, #a6633c); outline-offset: -2px; }
+.rowGlyph { color: var(--row-accent); flex: none; }
+.rowText { display: flex; flex-direction: column; min-width: 0; }
+.rowName { font-size: 15px; font-weight: 600; letter-spacing: -0.01em; }
+.rowCategory {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 10px; letter-spacing: 0.13em; text-transform: uppercase; opacity: 0.6; margin-top: 2px;
+}
+
+/* Same neutral-tone reasoning as the hover tint above: this line sits on a
+   cream panel in one mount and a near-black drawer in the other. */
+.divider { display: block; height: 1px; margin: 7px 9px; background: rgba(150, 140, 125, 0.3); }
+
+.bundleRow {
+  justify-content: space-between;
+  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
+  color: #1c140f;
+}
+.bundleRow:hover, .bundleRow:focus-visible {
+  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%); color: #1c140f;
+}
+.bundleRow .rowName { font-weight: 700; }
+.bundleRow .rowCategory { opacity: 0.75; }
+.bundlePrice {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 420px) {
+  .panel { min-width: 0; width: calc(100vw - 24px); left: 0; transform: none; }
+}

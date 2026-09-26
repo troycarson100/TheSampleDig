@@ -12,6 +12,7 @@ import { SiteSettingsMenu } from "@/components/SiteNavUtilities"
 import { useGoProModal } from "@/components/GoProModalContext"
 import { useIsAffiliate } from "@/lib/use-is-affiliate"
 import { pluginList } from "@/lib/plugins"
+import PluginsMenu, { PluginsMenuRows } from "@/components/PluginsMenu"
 
 const navLinkBase = "nav-tab-link relative flex items-center h-full px-5 py-0 border-none bg-transparent cursor-pointer transition-colors"
 
@@ -141,9 +142,7 @@ export default function SiteNav() {
               My Crate
             </button>
           )}
-          <Link href="/plugins" className={`${navLinkBase} ${onPluginPage ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/plugins" ? "page" : undefined}>
-            Plugins
-          </Link>
+          <PluginsMenu active={onPluginPage} className={navLinkBase} />
           {/* Blog + About moved to the footer; Affiliate shows only for invited creators. */}
           {isAffiliate && (
             <Link href="/affiliate" className={`${navLinkBase} ${isActive("/affiliate") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/affiliate" ? "page" : undefined}>
@@ -278,6 +277,13 @@ export default function SiteNav() {
             >
               Plugins
             </Link>
+            {/* The three plugins + bundle, expanded inline under the Plugins link rather
+                than mounted as the desktop hover panel — a hover-only panel would be
+                unreachable inside this touch drawer. Sets the ambient text colour
+                PluginsMenuRows' rows inherit, matching the drawer's dark surface. */}
+            <div className="w-full pl-4 pb-1 flex flex-col" style={{ color: "var(--cream)" }}>
+              <PluginsMenuRows onNavigate={closeMenu} />
+            </div>
             {/* Blog + About moved to the footer; Affiliate shows only for invited creators. */}
             {isAffiliate && (
               <Link
