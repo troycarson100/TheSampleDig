@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 import Countdown from "@/components/Countdown"
 import PluginGlyph from "@/components/plugin-page/PluginGlyph"
 import styles from "@/components/plugin-chrome.module.css"
@@ -29,6 +29,16 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
   // branch for this visitor, without a reload.
   const [, setExpiredAt] = useState<number | null>(null)
   const intro = introWindow()
+  // introWindow() returns a fresh Date instance on every call, and this
+  // component re-renders on every unrelated change to `hovered` below (the
+  // rail's own hover state) — without memoising, Countdown's effect (keyed on
+  // [endsAt, onExpire]) would see a "new" endsAt and onExpire on every pill
+  // hover and tear down + rebuild its interval for no reason. Keyed on the
+  // timestamp, not the Date object, since introWindow's raw source (env) is
+  // stable but the instances it mints are not.
+  const introEndsMs = intro.endsAt?.getTime() ?? null
+  const endsAt = useMemo(() => (introEndsMs === null ? null : new Date(introEndsMs)), [introEndsMs])
+  const onExpire = useCallback(() => setExpiredAt(Date.now()), [])
 
   // 1. Unknown ownership: reserve the height, offer nothing.
   if (loading || error) return <div className={styles.strip} data-sale-strip aria-hidden />
@@ -37,8 +47,12 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
   if (ownedCount === PLUGIN_ORDER.length) return null
 
   // 3. fltr's intro price is the only genuinely time-limited price on the site,
-  //    so it outranks the partial-owner nudge while it is running.
-  if (!owned.fltr && intro.live && intro.endsAt) {
+  //    so it outranks the partial-owner nudge while it is running. Also
+  //    requires the price to actually be a discount: if fltr's price were
+  //    raised to (or past) its MSRP before the deadline passed, this would
+  //    otherwise keep advertising a "sale" that no longer saves anyone money —
+  //    $49 struck against $49, clock still running.
+  if (!owned.fltr && intro.live && endsAt && PRICING.fltr.price < PRICING.fltr.msrp) {
     return (
       <div className={styles.strip} data-sale-strip data-strip-variant="intro">
         <Link href={PLUGINS.fltr.href} className={styles.stripInner}>
@@ -47,8 +61,8 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
           <span className={styles.stripPrice}>${PRICING.fltr.price}</span>
           <s className={styles.stripWas}>${PRICING.fltr.msrp}</s>
           <Countdown
-            endsAt={intro.endsAt}
-            onExpire={() => setExpiredAt(Date.now())}
+            endsAt={endsAt}
+            onExpire={onExpire}
             className={styles.stripClock}
           />
           <span className={styles.stripLabel}>Get {PLUGINS.fltr.name}</span>

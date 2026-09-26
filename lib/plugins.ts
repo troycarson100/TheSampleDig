@@ -78,9 +78,14 @@ export function countWord(n: number): string {
   return word ? word[0].toUpperCase() + word.slice(1) : String(n)
 }
 
-/** When fltr's introductory price ends, as an ISO date string. Unset until fltr
- *  ships — its launch is gated on Phase 5, so there is no date to hardcode.
- *  Setting this is what turns the countdown on.
+/** When fltr's introductory price ends, as an ISO date-time string. Unset
+ *  until fltr ships — its launch is gated on Phase 5, so there is no date to
+ *  hardcode. Setting this is what turns the countdown on.
+ *  MUST include a timezone offset — a trailing `Z` for UTC, or an explicit
+ *  `+hh:mm`/`-hh:mm`. A bare "2026-10-01T00:00:00" with no offset is parsed
+ *  as *local* time (see `introWindow` below), which would make the offer end
+ *  at a different absolute instant in every visitor's timezone, while
+ *  Stripe's own price change happens at exactly one instant.
  *  NEXT_PUBLIC_ because the clock ticks in the browser. */
 export const FLTR_INTRO_ENDS: string | null = process.env.NEXT_PUBLIC_FLTR_INTRO_ENDS ?? null
 
@@ -100,6 +105,8 @@ export interface IntroWindow {
  */
 export function introWindow(now: Date = new Date(), raw: string | null = FLTR_INTRO_ENDS): IntroWindow {
   if (!raw) return { endsAt: null, live: false }
+  // `raw` must carry a timezone offset — see FLTR_INTRO_ENDS above. Without
+  // one, `new Date(...)` parses it as local time, not UTC.
   const endsAt = new Date(raw)
   if (Number.isNaN(endsAt.getTime())) return { endsAt: null, live: false }
   return { endsAt, live: endsAt.getTime() > now.getTime() }

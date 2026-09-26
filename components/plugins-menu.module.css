@@ -24,23 +24,21 @@
   .panelOpen { animation: none; }
 }
 
-/* PluginsMenuRows mounts in two different places: inside this floating
-   `.panel` on desktop, and directly in the mobile drawer with no such
-   wrapper (SiteNav portals the drawer to document.body, so it isn't even a
-   descendant of <nav> there). Scoping through an ancestor class — the way
-   plugin-chrome.module.css scopes `.rail .pill` — only reaches the first of
-   those two mount points, so it can't be the fix here.
-   Instead every row/bundle link also carries `.link`, and the
-   specificity-sensitive declarations are written as the compound selector
-   `.link.row` / `.link.bundleRow`. That's two classes on one element either
-   way — (0,2,0) — which beats the sitewide `.theme-vinyl nav a` rule (0,1,2)
-   regardless of DOM nesting, and (with :hover/:focus-visible) (0,3,0) beats
-   `.theme-vinyl nav a:hover` (0,2,2) — without `!important`, and it still
-   applies harmlessly in the drawer where that sitewide rule can't reach
-   anyway. Explicit text-transform/font-weight/letter-spacing resets clear
-   the rest of that rule's declarations, which would otherwise still cascade
-   from the anchor down into .rowName (uppercase "shft" would defeat the
-   point of a lowercase wordmark). */
+/* PluginsMenuRows mounts in two places — this floating `.panel` on desktop,
+   and the mobile drawer that SiteNav portals to document.body, entirely
+   outside <nav> — so an ancestor-scoped selector like plugin-chrome.module.css's
+   `.rail .pill` would only ever style the desktop copy, leaving the drawer
+   bare; every row instead carries the shared `.link` class, which reaches
+   both mounts identically. The resulting compound selectors `.link.row` /
+   `.link.bundleRow` — (0,2,0), rising to (0,3,0) with :hover/:focus-visible —
+   incidentally also beat the sitewide `.theme-vinyl nav a` rule ((0,1,2) /
+   (0,2,2)) without `!important` in the desktop panel, where that rule can
+   actually reach; the drawer was never at risk from it in the first place,
+   since `.theme-vinyl nav a` can't reach outside <nav> either. Explicit
+   text-transform/font-weight/letter-spacing resets clear the rest of that
+   rule's declarations, which would otherwise still cascade from the anchor
+   down into .rowName (uppercase "shft" would defeat the point of a
+   lowercase wordmark). */
 .row, .bundleRow {
   display: flex; align-items: center; gap: 11px;
   padding: 9px 11px; border-radius: 8px; text-decoration: none;
@@ -86,8 +84,4 @@
 .bundlePrice {
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
   font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
-}
-
-@media (max-width: 420px) {
-  .panel { min-width: 0; width: calc(100vw - 24px); left: 0; transform: none; }
 }

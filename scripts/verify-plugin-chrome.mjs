@@ -28,11 +28,24 @@ for (const [path, active] of [["/plugins", null], ["/shft", "shft"], ["/drft", "
       await page.locator(`[data-pill="${active}"][aria-current="page"]`).count() === 1)
   }
 
-  // Signed out => owns nothing => bundle offer everywhere.
+  // Signed out => owns nothing => the strip is either the bundle offer, or —
+  // whenever fltr's intro window is live (NEXT_PUBLIC_FLTR_INTRO_ENDS set to
+  // a future date, the whole point of this increment) — the intro price
+  // instead. A check that only ever knew about the bundle's "59" would fail
+  // on every plugin path the moment an owner actually sets that env var, so
+  // branch on the rendered variant and assert the price that variant
+  // actually promises (bundle: PRICING.bundle.price; intro: PRICING.fltr.price
+  // — see lib/products.ts).
   check(`${path}: bundle pill present for a signed-out visitor`,
     await page.locator('[data-bundle-pill]').count() === 1)
-  check(`${path}: sale strip shows the bundle`,
-    (await page.locator('[data-sale-strip]').innerText()).includes("59"))
+  const stripVariant = await page.locator('[data-sale-strip]').getAttribute("data-strip-variant")
+  const stripText = await page.locator('[data-sale-strip]').innerText()
+  if (stripVariant === "intro") {
+    check(`${path}: intro strip shows fltr's intro price`, stripText.includes("19"), stripText)
+  } else {
+    check(`${path}: sale strip variant is "bundle"`, stripVariant === "bundle", `got ${stripVariant}`)
+    check(`${path}: sale strip shows the bundle price`, stripText.includes("59"), stripText)
+  }
 
   // The rail must survive scrolling — that is the point of the redesign. Its
   // *unscrolled* position sits below the sale strip (by design, the strip

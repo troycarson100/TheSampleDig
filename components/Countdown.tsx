@@ -34,17 +34,28 @@ export default function Countdown({
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches
-    // eslint-disable-next-line react-hooks/set-state-in-effect -- mount-time init, not a cascading update loop
     setCoarse(reduce)
-    setNow(Date.now())
 
-    const tick = () => {
-      const t = Date.now()
-      setNow(t)
+    // Shared by the initial mount-time set below and by `tick` — without
+    // this, the mount-time path never checked expiry, so under reduced
+    // motion (60s ticks) a viewer arriving after the deadline already
+    // passed could sit looking at "00 days / 00 hrs / 00 min" for up to a
+    // minute before the first `tick` finally caught it.
+    const checkExpiry = (t: number) => {
       if (!expired.current && t >= endsAt.getTime()) {
         expired.current = true
         onExpire?.()
       }
+    }
+
+    const initial = Date.now()
+    setNow(initial)
+    checkExpiry(initial)
+
+    const tick = () => {
+      const t = Date.now()
+      setNow(t)
+      checkExpiry(t)
     }
     // A repainting clock is motion: coarse viewers get minute resolution.
     const id = setInterval(tick, reduce ? 60_000 : 1_000)

@@ -9,8 +9,13 @@ import { pluginList } from "@/lib/plugins"
 import { PRICING } from "@/lib/products"
 import { usePluginOwnership } from "@/lib/use-plugin-ownership"
 
-/** The rows themselves, shared by the desktop panel and the mobile drawer. */
-export function PluginsMenuRows({ onNavigate }: { onNavigate?: () => void }) {
+/** The rows themselves, shared by the desktop panel and the mobile drawer.
+ *  `menuRole` applies `role="menuitem"` / `role="separator"` to the rows —
+ *  pass it only from a mount that has a `role="menu"` ancestor (the desktop
+ *  panel). Those roles are meaningless, and confuse assistive tech, without
+ *  such an owner, so the mobile drawer (a plain `<div>`, not a menu) omits it
+ *  and renders plain links instead. */
+export function PluginsMenuRows({ onNavigate, menuRole = false }: { onNavigate?: () => void; menuRole?: boolean }) {
   const { loading, error, owned, ownedCount } = usePluginOwnership()
   // Until ownership resolves these are plain navigation: no owned marks, and no
   // bundle row, because offering the bundle to an owner sells them what they have.
@@ -25,7 +30,7 @@ export function PluginsMenuRows({ onNavigate }: { onNavigate?: () => void }) {
             key={p.id}
             href={isOwned ? "/products" : p.href}
             className={`${styles.row} ${styles.link}`}
-            role="menuitem"
+            role={menuRole ? "menuitem" : undefined}
             data-menu-row={p.id}
             style={{ ["--row-accent" as string]: p.accent }}
             onClick={onNavigate}
@@ -41,11 +46,11 @@ export function PluginsMenuRows({ onNavigate }: { onNavigate?: () => void }) {
 
       {known && ownedCount === 0 && (
         <>
-          <span className={styles.divider} role="separator" />
+          <span className={styles.divider} role={menuRole ? "separator" : undefined} />
           <Link
             href="/plugins#bundle"
             className={`${styles.bundleRow} ${styles.link}`}
-            role="menuitem"
+            role={menuRole ? "menuitem" : undefined}
             data-menu-row="bundle"
             onClick={onNavigate}
           >
@@ -127,16 +132,30 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
     }
   }, [open])
 
-  /** Arrow keys move between rows; Home/End jump to the ends. */
+  /** Arrow keys move between rows; Home/End jump to the ends. Must not run
+   *  while the panel is closed: the rows still exist in the `hidden` subtree
+   *  (querySelectorAll finds them regardless of visibility), so without this
+   *  guard every Arrow/Home/End keypress on the trigger would preventDefault()
+   *  the browser's native scroll and then silently fail to focus anything
+   *  inside a `hidden` panel — freezing keyboard scrolling on the page. */
   const onPanelKeyDown = (e: React.KeyboardEvent) => {
+    if (!open) return
     const rows = Array.from(
       wrapRef.current?.querySelectorAll<HTMLElement>('[role="menuitem"]') ?? []
     )
     if (rows.length === 0) return
+    // -1 (nothing in the panel focused yet — the trigger itself is focused)
+    // must be handled explicitly for both directions: the wrap-around formula
+    // below only happens to land ArrowDown on the first row by coincidence,
+    // and lands ArrowUp on the second-to-last row instead of the last.
     const i = rows.indexOf(document.activeElement as HTMLElement)
-    if (e.key === "ArrowDown") { e.preventDefault(); rows[(i + 1) % rows.length]?.focus() }
-    else if (e.key === "ArrowUp") { e.preventDefault(); rows[(i - 1 + rows.length) % rows.length]?.focus() }
-    else if (e.key === "Home") { e.preventDefault(); rows[0]?.focus() }
+    if (e.key === "ArrowDown") {
+      e.preventDefault()
+      rows[i === -1 ? 0 : (i + 1) % rows.length]?.focus()
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault()
+      rows[i === -1 ? rows.length - 1 : (i - 1 + rows.length) % rows.length]?.focus()
+    } else if (e.key === "Home") { e.preventDefault(); rows[0]?.focus() }
     else if (e.key === "End") { e.preventDefault(); rows[rows.length - 1]?.focus() }
   }
 
@@ -150,6 +169,14 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
         if (suppressFocusOpen.current) { suppressFocusOpen.current = false; return }
         cancelClose()
         setOpen(true)
+      }}
+      // Closes the panel once focus leaves the wrapper entirely (e.g. tabbing
+      // past "Plugins" into whatever comes next). `relatedTarget` is the
+      // element about to receive focus; when it's still inside the wrapper —
+      // moving from the trigger to a row, or between rows — this must NOT
+      // close the panel out from under that focus move.
+      onBlur={(e) => {
+        if (!wrapRef.current?.contains(e.relatedTarget as Node | null)) setOpen(false)
       }}
       onKeyDown={onPanelKeyDown}
     >
@@ -165,6 +192,7 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
         aria-expanded={open}
         aria-haspopup="menu"
         aria-controls="plugins-menu-panel"
+        aria-current={active ? "page" : undefined}
         // Open, don't toggle: onFocus/onMouseEnter above already open the panel
         // on hover and keyboard focus, and in browsers where a mouse click also
         // focuses the button (Chromium, Firefox/Windows) that focus event fires
@@ -172,6 +200,21 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
         // that had just opened from the same click. Touch has no hover, so the
         // first tap still opens it (there is nothing to toggle away from).
         onClick={() => setOpen(true)}
+        // Enter/Space need to be a real toggle — a screen-reader user hears
+        // "expanded" and expects collapsing it back to work — but they can't
+        // just flip `open` here: both keys also fire this same button's native
+        // click after keydown, which would immediately undo the toggle via the
+        // onClick above. preventDefault() on the keydown cancels that synthetic
+        // click for keyboard activation (Enter *and* Space; the browser only
+        // dispatches click as a *default action* here, not a separate event),
+        // so this is the only place the toggle happens. Mouse/touch stay
+        // open-only, which is what dodges the race explained above.
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault()
+            setOpen((o) => !o)
+          }
+        }}
       >
         Plugins
       </button>
@@ -184,7 +227,7 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
         data-plugins-menu
         hidden={!open}
       >
-        <PluginsMenuRows onNavigate={() => setOpen(false)} />
+        <PluginsMenuRows onNavigate={() => setOpen(false)} menuRole />
       </div>
     </div>
   )
