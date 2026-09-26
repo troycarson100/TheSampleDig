@@ -4,7 +4,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { PRICING } from "@/lib/products"
 import { createPluginCheckoutSession, readAffiliateCodeFromCookie, buyerFromSession } from "@/lib/plugin-checkout"
-import { bundleEligibility } from "@/lib/bundle-eligibility"
+import { checkCart } from "@/lib/cart-ownership"
 import { PLUGIN_PRODUCTS } from "@/lib/plugin-products"
 
 // One-time checkout for the shft + drft + fltr bundle. One Stripe price, one
@@ -31,9 +31,14 @@ export async function POST() {
       where: { userId: buyer.id, product: { in: [...PLUGIN_PRODUCTS] } },
       select: { product: true },
     })
-    const eligibility = bundleEligibility(owned.map((p) => p.product))
-    if (!eligibility.ok) {
-      return NextResponse.json({ error: eligibility.reason, owns: eligibility.owns }, { status: 409 })
+    // TEMPORARY bridge: bundleEligibility was retired in favour of checkCart
+    // (see lib/cart-ownership.ts). Task 8 deletes this route outright, so this
+    // is reconstructed to match the old reason codes exactly rather than
+    // redesigned. Remove this block along with the route in Task 8.
+    const check = checkCart([...PLUGIN_PRODUCTS], owned.map((p) => p.product))
+    if (check.owned.length > 0) {
+      const reason = check.owned.length === PLUGIN_PRODUCTS.length ? "already_owned" : "partial_owner"
+      return NextResponse.json({ error: reason, owns: check.owned }, { status: 409 })
     }
   }
 
