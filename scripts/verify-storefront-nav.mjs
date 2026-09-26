@@ -50,6 +50,13 @@ check("Escape closes it", await trigger.getAttribute("aria-expanded") === "false
 check("Escape returns focus to the trigger",
   await page.evaluate(() => document.activeElement?.getAttribute("aria-controls")) === "plugins-menu-panel")
 
+// Escape (above) deliberately leaves DOM focus on the trigger. Calling
+// .focus() on an element that already has focus is a browser no-op — it
+// fires no `focus` event — so this check must move focus away first, or it
+// would silently exercise nothing and pass by accident (this bit a real
+// review: the panel had regressed to never closing, which left focus here
+// too, and that coincidentally made this check "pass" for the wrong reason).
+await page.evaluate(() => document.activeElement instanceof HTMLElement && document.activeElement.blur())
 await trigger.focus()
 await page.waitForTimeout(150)
 check("opens on keyboard focus", await trigger.getAttribute("aria-expanded") === "true")
