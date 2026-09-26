@@ -81,7 +81,7 @@ export default function ShftPromoDock() {
       // Left edge, below the Try Pro tab (~38%), so the two don't collide.
       <div className="fixed left-0 top-[62%] w-max" style={{ zIndex: Z }}>
         <div className={styles.sideTabGradient}>
-          <button type="button" className={styles.sideTabInner} onClick={() => setPhase("card")} aria-label="Open shft launch offer">
+          <button type="button" className={styles.sideTabInner} onClick={() => setPhase("card")} aria-label="Open shft offer">
             <span className={styles.sideTabStack}>
               <svg className={styles.sideTabChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
