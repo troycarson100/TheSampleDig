@@ -8,7 +8,49 @@ import type { Capability, FaqItem, FeatureBlock, Media, PluginContent } from "./
 import styles from "./plugin-page.module.css"
 
 /**
- * Video where we have one, still otherwise, nothing if the asset is absent.
+ * An intentional empty panel for a media source that failed to load — a
+ * missing screenshot, not a decoding glitch. Deliberately *not* the browser's
+ * cracked-image glyph plus `alt` rendered as visible body copy (that read as
+ * broken, not absent). Colours come from the `--plugin-*` theme variables, so
+ * this reads as "on brand, waiting for an asset" on cream shft, warm drft or
+ * near-black fltr alike, rather than a hardcoded light- or dark-mode block.
+ * `alt` still reaches assistive tech via `aria-label` on the `role="img"`
+ * panel; nothing is rendered as visible text.
+ */
+function MediaFallback({ alt, className = "" }: { alt: string; className?: string }) {
+  return (
+    <div className={`${styles.media} ${styles.mediaFallback} ${className}`} role="img" aria-label={alt}>
+      <svg width="15%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+        <rect x="3" y="4" width="18" height="16" rx="2" />
+        <circle cx="8.5" cy="9.5" r="1.4" />
+        <path d="M21 15.5l-5.2-5.2-4 4-2.8-2.8L3 17.5" />
+      </svg>
+    </div>
+  )
+}
+
+/**
+ * Catches a load failure that already happened *before* hydration attached
+ * React's `onError` — the browser starts fetching an SSR-rendered `<img src>`
+ * or `<video src>` the instant it parses the markup, well before client JS
+ * runs, so a fast 404 (as with a locally-missing file) can finish before any
+ * listener exists to hear it. `onError` alone catches a failure that happens
+ * *after* hydration; this ref callback catches one that already happened by
+ * checking the element's own load state the moment it lands in the DOM.
+ */
+function checkAlreadyFailed(el: HTMLImageElement | HTMLVideoElement | null, onFail: () => void) {
+  if (!el) return
+  if (el instanceof HTMLImageElement) {
+    if (el.complete && el.naturalWidth === 0 && el.src) onFail()
+  } else if (el.error) {
+    onFail()
+  }
+}
+
+/**
+ * Video where we have one, still otherwise, nothing if the asset is absent —
+ * and the fallback panel above if the asset is *present in content* but the
+ * file itself 404s (or otherwise fails to decode).
  *
  * Starts assuming reduced motion and only switches a video on to autoplay once
  * `prefers-reduced-motion` is confirmed *not* "reduce" — the same shape as the
@@ -17,6 +59,7 @@ import styles from "./plugin-page.module.css"
  */
 export function MediaSlot({ media, className = "" }: { media?: Media; className?: string }) {
   const [motionOk, setMotionOk] = useState(false)
+  const [failed, setFailed] = useState(false)
 
   useEffect(() => {
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)")
@@ -26,17 +69,29 @@ export function MediaSlot({ media, className = "" }: { media?: Media; className?
     return () => mq.removeEventListener("change", sync)
   }, [])
 
+  // A different source deserves a fresh attempt — without this, a slot that
+  // already failed once would never show a real asset dropped in later
+  // without a full remount.
+  useEffect(() => {
+    setFailed(false)
+  }, [media?.src])
+
   if (!media) return null
+  if (failed) return <MediaFallback alt={media.alt} className={className} />
+
+  const onError = () => setFailed(true)
 
   if (media.kind === "video") {
     if (motionOk) {
       return (
         <video
+          ref={(el) => checkAlreadyFailed(el, onError)}
           className={`${styles.media} ${className}`}
           src={media.src}
           poster={media.poster}
           autoPlay muted loop playsInline
           aria-label={media.alt}
+          onError={onError}
         />
       )
     }
@@ -46,20 +101,38 @@ export function MediaSlot({ media, className = "" }: { media?: Media; className?
     // nothing: the visitor can still choose to play it.
     if (media.poster) {
       // eslint-disable-next-line @next/next/no-img-element
-      return <img className={`${styles.media} ${className}`} src={media.poster} alt={media.alt} />
+      return (
+        <img
+          ref={(el) => checkAlreadyFailed(el, onError)}
+          className={`${styles.media} ${className}`}
+          src={media.poster}
+          alt={media.alt}
+          onError={onError}
+        />
+      )
     }
     return (
       <video
+        ref={(el) => checkAlreadyFailed(el, onError)}
         className={`${styles.media} ${className}`}
         src={media.src}
         controls
         playsInline
         aria-label={media.alt}
+        onError={onError}
       />
     )
   }
   // eslint-disable-next-line @next/next/no-img-element
-  return <img className={`${styles.media} ${className}`} src={media.src} alt={media.alt} />
+  return (
+    <img
+      ref={(el) => checkAlreadyFailed(el, onError)}
+      className={`${styles.media} ${className}`}
+      src={media.src}
+      alt={media.alt}
+      onError={onError}
+    />
+  )
 }
 
 export function Hero({ id, hero }: { id: PluginId; hero: PluginContent["hero"] }) {

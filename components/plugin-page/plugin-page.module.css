@@ -38,7 +38,11 @@
   font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.55;
 }
 .media { width: 100%; height: auto; display: block; border-radius: 10px; }
-.heroMedia { box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
+/* `auto <ratio>`, not a bare `<ratio>`: a real image/video keeps its own
+   intrinsic proportions once it loads (this only sets the box *before* that,
+   or when there's no intrinsic size to have — see .mediaFallback) — so this
+   reserves the hero's footprint without ever stretching real hero art. */
+.heroMedia { aspect-ratio: auto 16 / 11; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
 
 .buy {
   display: inline-flex; align-items: center; gap: 8px;
@@ -79,8 +83,23 @@
 .blockTitle { font-family: var(--font-geist-sans), system-ui, sans-serif; font-weight: 800; letter-spacing: -0.02em; font-size: clamp(1.4rem, 2.6vw, 2rem); margin: 0 0 12px; }
 .blockBody { font-size: 16px; line-height: 1.6; opacity: 0.82; max-width: var(--measure); margin: 0; }
 /* The media column of .block — same shadow treatment as .heroMedia, scaled down
-   for a secondary section. */
-.blockMedia { box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22); }
+   for a secondary section. Same `auto <ratio>` reasoning as .heroMedia. */
+.blockMedia { aspect-ratio: auto 16 / 11; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.22); }
+/* The empty-panel fallback MediaSlot renders when an image or video fails to
+   load — a missing asset, not a decoding glitch, so it reads as deliberate
+   rather than as the browser's cracked-image glyph. Built entirely from the
+   `--plugin-*` theme variables (same color-mix convention as .cap/.faqItem's
+   borders) so it sits correctly on cream shft, warm drft or near-black fltr
+   without a hardcoded light- or dark-mode treatment. `aspect-ratio` here has
+   no `auto` prefix — unlike .heroMedia/.blockMedia, this element is a plain
+   div with no intrinsic size to prefer, so the specified ratio always wins. */
+.mediaFallback {
+  aspect-ratio: 16 / 11;
+  display: flex; align-items: center; justify-content: center;
+  background: color-mix(in srgb, var(--plugin-ink) 6%, var(--plugin-ground));
+  border: 1px dashed color-mix(in srgb, var(--plugin-ink) 20%, transparent);
+  color: color-mix(in srgb, var(--plugin-ink) 32%, transparent);
+}
 
 .caps { padding: clamp(40px, 6vw, 88px) var(--pad); border-top: 1px solid color-mix(in srgb, var(--plugin-ink) 14%, transparent); }
 .capsTitle { font-family: var(--font-geist-sans), system-ui, sans-serif; font-weight: 800; letter-spacing: -0.02em; font-size: clamp(1.6rem, 3vw, 2.2rem); margin: 0 0 28px; }
