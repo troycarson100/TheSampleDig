@@ -77,3 +77,30 @@ export function countWord(n: number): string {
   const word = COUNT_WORDS[n]
   return word ? word[0].toUpperCase() + word.slice(1) : String(n)
 }
+
+/** When fltr's introductory price ends, as an ISO date string. Unset until fltr
+ *  ships — its launch is gated on Phase 5, so there is no date to hardcode.
+ *  Setting this is what turns the countdown on.
+ *  NEXT_PUBLIC_ because the clock ticks in the browser. */
+export const FLTR_INTRO_ENDS: string | null = process.env.NEXT_PUBLIC_FLTR_INTRO_ENDS ?? null
+
+export interface IntroWindow {
+  /** The deadline, or null when unset or unparseable. */
+  endsAt: Date | null
+  /** True only when a valid deadline exists and is still in the future. */
+  live: boolean
+}
+
+/**
+ * The single place the intro deadline is interpreted. Unset, malformed and past
+ * dates all resolve to `live: false`, which is what makes the ticker fall back to
+ * the bundle offer rather than render a dead or negative clock.
+ *
+ * `raw` is injectable so the behaviour can be tested without touching env.
+ */
+export function introWindow(now: Date = new Date(), raw: string | null = FLTR_INTRO_ENDS): IntroWindow {
+  if (!raw) return { endsAt: null, live: false }
+  const endsAt = new Date(raw)
+  if (Number.isNaN(endsAt.getTime())) return { endsAt: null, live: false }
+  return { endsAt, live: endsAt.getTime() > now.getTime() }
+}
