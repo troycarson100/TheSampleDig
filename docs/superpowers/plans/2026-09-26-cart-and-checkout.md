@@ -369,9 +369,16 @@ export function checkCart(requestedIds: readonly string[], ownedIds: readonly st
 Run: `npx tsx --test lib/cart-ownership.test.ts` — 6 pass.
 
 Then delete `lib/bundle-eligibility.ts` and `lib/bundle-eligibility.test.ts`. **Check what
-imports them first** (`grep -rn bundle-eligibility app lib`) — `app/api/bundle/checkout/route.ts`
-does, and Task 6 deletes that route. If anything else does, stop and report rather than
-leaving a broken import.
+imports them first** (`grep -rn bundle-eligibility app lib`).
+
+`app/api/bundle/checkout/route.ts` imports it, and Task 8 — not Task 6 — deletes that route.
+Leaving the import broken until then would put `tsc` and `npm run build` in the red for six
+tasks, while every task's definition of done requires a green build. So **repoint that route at
+`checkCart` in this task**: replace its `bundleEligibility(...)` call with `checkCart(PLUGIN_PRODUCTS, ownedIds)`
+and keep its existing 409 behaviour — refuse when anything is owned. It is three lines, it keeps
+the tree green, and Task 8 deletes the route outright.
+
+If anything else imports the deleted module, stop and report rather than leaving the tree broken.
 
 Run: `npx tsx --test lib/*.test.ts` — expect 159 (158 + 6 new − 5 removed).
 
