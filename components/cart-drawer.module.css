@@ -1,0 +1,134 @@
+/* The drawer is chrome — it appears over all three plugin grounds (cream,
+   tan, near-black) — so it carries its own fixed chrome palette rather than
+   any page's --plugin-ground/--plugin-ink.
+   z-index: the sticky pill rail (plugin-chrome.module.css) sits at 40 and the
+   nav's Plugins dropdown panel (plugins-menu.module.css) sits at 60. This has
+   to beat both, so the scrim sits at 80 and the panel above it at 81 — never
+   the other way around, or the scrim would paint over the drawer's own
+   controls. */
+
+.root { position: fixed; inset: 0; z-index: 80; }
+
+.scrim {
+  position: fixed; inset: 0; z-index: 80;
+  background: rgba(20, 17, 14, 0.5);
+  animation: scrimIn 180ms ease-out;
+}
+
+.panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 81;
+  width: min(420px, 100vw);
+  display: flex; flex-direction: column;
+  background: #efe9dc; color: #24211d;
+  box-shadow: -18px 0 44px rgba(0, 0, 0, 0.28);
+  animation: slideIn 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* Sans deliberately: globals.css sets a monospace body font sitewide
+     (body { font-family: IBM Plex Mono }). Names and body copy in here read
+     as sans; individual labels/prices opt back into var(--font-ibm-mono)
+     below, matching the house convention (see plugins-menu.module.css). */
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+@keyframes scrimIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+@media (prefers-reduced-motion: reduce) {
+  .scrim { animation: none; }
+  .panel { animation: none; }
+}
+
+/* ---- header ------------------------------------------------------------ */
+.header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 20px 20px 16px; flex: none;
+  border-bottom: 1px solid rgba(36, 33, 29, 0.12);
+}
+.title { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
+.closeButton, .remove, .droppedDismiss {
+  display: inline-flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer; color: inherit; padding: 0;
+}
+.closeButton {
+  width: 32px; height: 32px; border-radius: 8px; flex: none;
+}
+.closeButton:hover, .remove:hover { background: rgba(36, 33, 29, 0.08); }
+.closeButton:focus-visible, .remove:focus-visible, .droppedDismiss:focus-visible,
+.emptyLink:focus-visible, .checkout:focus-visible {
+  outline: 2px solid #a6633c; outline-offset: 2px; border-radius: 4px;
+}
+
+/* ---- dropped-ownership notice ------------------------------------------ */
+.droppedNotice {
+  flex: none; margin: 14px 20px 0; padding: 12px 14px; border-radius: 10px;
+  background: rgba(166, 99, 60, 0.12);
+  display: flex; align-items: flex-start; justify-content: space-between; gap: 10px;
+}
+.droppedText { margin: 0; font-size: 13px; line-height: 1.4; }
+.droppedDismiss {
+  flex: none; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+
+/* ---- body: the only part that scrolls ---------------------------------- */
+.body { flex: 1 1 auto; overflow-y: auto; min-height: 0; }
+
+.lines { list-style: none; margin: 0; padding: 8px 20px; }
+
+.line {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 0; border-bottom: 1px solid rgba(36, 33, 29, 0.1);
+}
+.lines > .line:last-child { border-bottom: none; }
+.lineGlyph { flex: none; color: var(--row-accent, #a6633c); }
+.lineText { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.lineName { font-size: 15px; font-weight: 600; }
+.lineCategory {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; margin-top: 2px;
+}
+.linePrice {
+  flex: none; display: flex; align-items: baseline; gap: 6px;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.price { font-size: 14px; font-weight: 600; }
+.msrp { font-size: 12px; opacity: 0.5; text-decoration: line-through; }
+.remove { width: 28px; height: 28px; border-radius: 7px; flex: none; }
+
+.bundleLine {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; margin-top: 6px; border-bottom: none; border-radius: 10px;
+  background: linear-gradient(90deg, rgba(166, 99, 60, 0.14) 0%, rgba(217, 160, 64, 0.14) 100%);
+}
+.bundleLabel { font-size: 13px; font-weight: 600; }
+.bundleSaving {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 700; color: #a6633c;
+}
+
+/* ---- empty state: never a blank panel ----------------------------------- */
+.empty {
+  height: 100%; display: flex; flex-direction: column; align-items: flex-start; justify-content: center;
+  gap: 12px; padding: 20px;
+}
+.emptyText { margin: 0; font-size: 14px; line-height: 1.5; opacity: 0.75; max-width: 30ch; }
+.emptyLink { color: #a6633c; font-weight: 600; text-decoration: none; }
+.emptyLink:hover { text-decoration: underline; }
+
+/* ---- footer: pinned, never pushed off by long line lists ---------------- */
+.footer { flex: none; padding: 16px 20px 20px; border-top: 1px solid rgba(36, 33, 29, 0.12); }
+.totalRow {
+  display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px;
+}
+.totalLabel { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; opacity: 0.65; }
+.totalValue {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 700;
+}
+.checkout {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; padding: 14px; border-radius: 10px; text-decoration: none;
+  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%); color: #1c140f;
+  font-weight: 700; font-size: 14px;
+}
+.checkout:hover { filter: brightness(1.04); }

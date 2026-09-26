@@ -3,6 +3,7 @@ import { Geist, Geist_Mono, Halant, DM_Serif_Display, Bebas_Neue, IBM_Plex_Mono,
 import "./globals.css"
 import RootBody from "@/components/RootBody"
 import { CartProvider } from "@/components/CartProvider"
+import CartDrawer from "@/components/CartDrawer"
 import MetaPixel from "@/components/analytics/MetaPixel"
 import AffiliateRefCapture from "@/components/AffiliateRefCapture"
 import AttributionCapture from "@/components/AttributionCapture"
@@ -71,7 +72,10 @@ export default function RootLayout({
           <AffiliateRefCapture />
           <AttributionCapture />
           <RootBody>
-            <CartProvider>{children}</CartProvider>
+            <CartProvider>
+              {children}
+              <CartDrawer />
+            </CartProvider>
           </RootBody>
           <CookieBanner />
         </ConsentProvider>
