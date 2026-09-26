@@ -1,6 +1,13 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
 import { duplicatePurchaseAlert } from "./duplicate-purchase-alert"
+import { PRICING } from "./products"
+
+// The bundle's real price, in Stripe cents - amountTotal fixtures below use
+// this rather than a hardcoded figure so they track PRICING.bundle.price
+// instead of quietly going stale the next time it changes.
+const BUNDLE_AMOUNT_CENTS = PRICING.bundle.price * 100
+const bundlePriceRe = new RegExp(`\\$${PRICING.bundle.price}\\.00`)
 
 test("duplicatePurchaseAlert: owning all three of the bundle's products (3 of 3) is a FULL duplicate", () => {
   // A bundle now grants three products (shft, drft, fltr), so all three must
@@ -13,13 +20,13 @@ test("duplicatePurchaseAlert: owning all three of the bundle's products (3 of 3)
     buyerEmail: "jhoacoustic@gmail.com",
     product: "bundle",
     duplicates: ["shft", "drft", "fltr"],
-    amountTotal: 3400,
+    amountTotal: BUNDLE_AMOUNT_CENTS,
     sessionId: "cs_live_b1dxbWdp",
   })
 
   assert.ok(alert, "a purchase with duplicates must produce an alert")
   assert.match(alert.subject, /jhoacoustic@gmail\.com/)
-  assert.match(alert.text, /\$34\.00/)
+  assert.match(alert.text, bundlePriceRe)
   assert.match(alert.text, /shft/)
   assert.match(alert.text, /drft/)
   assert.match(alert.text, /fltr/)
@@ -38,7 +45,7 @@ test("duplicatePurchaseAlert: owning two of the bundle's three products (2 of 3)
     buyerEmail: "owns-two@example.com",
     product: "bundle",
     duplicates: ["shft", "drft"],
-    amountTotal: 3400,
+    amountTotal: BUNDLE_AMOUNT_CENTS,
     sessionId: "cs_live_two_of_three",
   })
 
@@ -52,7 +59,7 @@ test("duplicatePurchaseAlert: a purchase that granted something new is not a dup
     buyerEmail: "new@example.com",
     product: "bundle",
     duplicates: [],
-    amountTotal: 3400,
+    amountTotal: BUNDLE_AMOUNT_CENTS,
     sessionId: "cs_live_fresh",
   })
 

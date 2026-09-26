@@ -11,7 +11,7 @@ import { createPluginCheckoutSession, readAffiliateCodeFromCookie, buyerFromSess
 // Dormant until BOTH env vars are set:
 //   STRIPE_SECRET_KEY     — already used by the subscription checkout
 //   STRIPE_FLTR_PRICE_ID  — the one-time price for fltr
-// No crossgrade: fltr is a standalone product, not part of a shft/drft pair.
+// fltr is a standalone product, not part of a discounted pair or trade-in offer.
 export async function POST() {
   const secret = process.env.STRIPE_SECRET_KEY
   const fullPriceId = process.env.STRIPE_FLTR_PRICE_ID

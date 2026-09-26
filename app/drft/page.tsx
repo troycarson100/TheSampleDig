@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import SiteNav from "@/components/SiteNav"
 import PluginChrome from "@/components/PluginChrome"
-import PluginPageErrorBoundary from "@/components/PluginPageErrorBoundary"
 import DrftLanding from "./DrftLanding"
 import { PRICING } from "@/lib/products"
 import styles from "./drft.module.css"
@@ -27,9 +26,7 @@ export default function DrftPage() {
         <SiteNav />
       </header>
       <PluginChrome active="drft" />
-      <PluginPageErrorBoundary>
-        <DrftLanding />
-      </PluginPageErrorBoundary>
+      <DrftLanding />
     </div>
   )
 }

@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import SiteNav from "@/components/SiteNav"
 import PluginChrome from "@/components/PluginChrome"
-import PluginPageErrorBoundary from "@/components/PluginPageErrorBoundary"
 import PluginsStore from "./PluginsStore"
 import { PRICING } from "@/lib/products"
 
@@ -27,9 +26,7 @@ export default function PluginsPage() {
         <SiteNav />
       </header>
       <PluginChrome />
-      <PluginPageErrorBoundary>
-        <PluginsStore />
-      </PluginPageErrorBoundary>
+      <PluginsStore />
     </div>
   )
 }

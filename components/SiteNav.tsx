@@ -11,6 +11,7 @@ import SiteAlertsPopover from "@/components/SiteAlertsPopover"
 import { SiteSettingsMenu } from "@/components/SiteNavUtilities"
 import { useGoProModal } from "@/components/GoProModalContext"
 import { useIsAffiliate } from "@/lib/use-is-affiliate"
+import { pluginList } from "@/lib/plugins"
 
 const navLinkBase = "nav-tab-link relative flex items-center h-full px-5 py-0 border-none bg-transparent cursor-pointer transition-colors"
 
@@ -53,6 +54,7 @@ export default function SiteNav() {
   const closeBtnRef = useRef<HTMLButtonElement>(null)
   const wasMenuOpenRef = useRef(false)
   const isActive = (path: string) => pathname === path || (path !== "/dig" && pathname?.startsWith(path))
+  const onPluginPage = isActive("/plugins") || pluginList().some((p) => isActive(p.href))
   const isAffiliate = useIsAffiliate()
 
   useEffect(() => setMounted(true), [])
@@ -139,7 +141,7 @@ export default function SiteNav() {
               My Crate
             </button>
           )}
-          <Link href="/plugins" className={`${navLinkBase} ${isActive("/plugins") || isActive("/shft") || isActive("/drft") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/plugins" ? "page" : undefined}>
+          <Link href="/plugins" className={`${navLinkBase} ${onPluginPage ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/plugins" ? "page" : undefined}>
             Plugins
           </Link>
           {/* Offers are tied to what you own, so they only mean anything signed in. */}
@@ -275,7 +277,7 @@ export default function SiteNav() {
             )}
             <Link
               href="/plugins"
-              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/plugins" || pathname === "/shft" || pathname === "/drft" ? navLinkActive : ""}`}
+              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${onPluginPage ? navLinkActive : ""}`}
               style={navLinkStyle}
               onClick={closeMenu}
               aria-current={pathname === "/plugins" ? "page" : undefined}

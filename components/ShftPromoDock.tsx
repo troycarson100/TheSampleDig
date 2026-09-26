@@ -5,6 +5,7 @@ import { createPortal } from "react-dom"
 import { usePathname, useRouter } from "next/navigation"
 import styles from "@/components/shft-promo-dock.module.css"
 import { useOwnsShft } from "@/lib/use-owns-shft"
+import { PRICING } from "@/lib/products"
 
 /** localStorage: user closed the card → next load shows the collapsed tab, not the card. */
 const STORAGE_DISMISSED = "sampleroll_shft_promo_dismissed_v1"
@@ -33,7 +34,7 @@ function writeDismissed() {
 type Phase = "idle" | "card" | "docked"
 
 /**
- * shft $19 launch promo on /dig: a non-blocking card slides in ~5s after landing.
+ * shft launch promo on /dig: a non-blocking card slides in ~5s after landing.
  * Closing it collapses to a right-edge tab that reopens the card. Hidden from
  * shft owners. "Get shft" routes to /shft (which handles login/checkout/owner state).
  *
@@ -85,7 +86,7 @@ export default function ShftPromoDock() {
               <svg className={styles.sideTabChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 18l6-6-6-6" />
               </svg>
-              <span className={styles.sideTabLabel}>shft $19</span>
+              <span className={styles.sideTabLabel}>{`shft $${PRICING.shft.price}`}</span>
             </span>
           </button>
         </div>
@@ -118,8 +119,8 @@ export default function ShftPromoDock() {
           </h2>
           <p className={styles.subcopy}>
             Our tempo-synced trance-gate plugin just dropped. Grab it now for{" "}
-            <span className={styles.price}>$19</span>
-            <s className={styles.priceOld}>$39</s>.
+            <span className={styles.price}>{`$${PRICING.shft.price}`}</span>
+            <s className={styles.priceOld}>{`$${PRICING.shft.msrp}`}</s>.
           </p>
 
           <button type="button" className={styles.getBtn} onClick={() => router.push("/shft")}>

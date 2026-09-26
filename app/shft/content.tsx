@@ -1,8 +1,8 @@
 // shft's copy, moved verbatim off the old ShftLanding.tsx into the shared
 // PluginContent shape. Only the launch-price sentences were touched — see the
 // two PRICING interpolations below — because both figures they used to quote
-// ($19 / $39) are stale and "limited" implies a deadline that doesn't exist.
-// Everything else is the original prose, unchanged.
+// were stale launch-week numbers, and "limited" implies a deadline that
+// doesn't exist. Everything else is the original prose, unchanged.
 //
 // This is a .tsx, not a .ts: the six capability icons are JSX, copied
 // verbatim (same viewBox/stroke/path data) from the pre-template

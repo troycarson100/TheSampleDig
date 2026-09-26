@@ -1,7 +1,6 @@
 import type { Metadata } from "next"
 import SiteNav from "@/components/SiteNav"
 import PluginChrome from "@/components/PluginChrome"
-import PluginPageErrorBoundary from "@/components/PluginPageErrorBoundary"
 import ShftLanding from "./ShftLanding"
 import { PRICING } from "@/lib/products"
 import styles from "./shft.module.css"
@@ -27,9 +26,7 @@ export default function ShftPage() {
         <SiteNav />
       </header>
       <PluginChrome active="shft" />
-      <PluginPageErrorBoundary>
-        <ShftLanding />
-      </PluginPageErrorBoundary>
+      <ShftLanding />
     </div>
   )
 }

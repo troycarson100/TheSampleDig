@@ -12,9 +12,9 @@ import { PLUGIN_PRODUCTS } from "@/lib/plugin-products"
 // Signing in is optional. For a signed-in buyer the guard rail holds: any
 // ownership at all — one, two or all three — gets a 409 (already_owned or
 // partial_owner) rather than a checkout session, so no path through here can
-// double-charge. There is no crossgrade to offer a partial owner instead; they
-// buy the singles they are missing. A guest has no ownership to check and pays
-// the bundle price.
+// double-charge. There is no discounted upgrade price to offer a partial owner
+// instead; they buy the singles they are missing. A guest has no ownership to
+// check and pays the bundle price.
 // Dormant until STRIPE_SECRET_KEY + STRIPE_BUNDLE_PRICE_ID are set.
 export async function POST() {
   const secret = process.env.STRIPE_SECRET_KEY

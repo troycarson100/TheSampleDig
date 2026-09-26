@@ -1,3 +1,5 @@
+import { PRICING } from "@/lib/products"
+
 /**
  * In-app alerts (bell popover + optional /alerts archive). Add rows and deploy to broadcast.
  * Users can dismiss an alert (×); dismissed ids persist in localStorage.
@@ -27,13 +29,12 @@ export const SITE_ALERTS: SiteAlert[] = [
     ctaLabel: "Join the Discord",
   },
   {
-    id: "shft-launch-sale-19",
-    publishedAt: "2026-07-27",
-    title: "shft is here — launch sale $19",
-    body: "Our tempo-synced trance-gate plugin just dropped. Grab it for $19 (reg. $39) — a limited launch discount.",
-    href: "/shft",
-    ctaLabel: "Get shft",
-    hideForShftOwners: true,
+    id: "three-plugin-bundle",
+    publishedAt: "2026-09-25",
+    title: `All three plugins — $${PRICING.bundle.price}`,
+    body: `shft, drft and fltr together for $${PRICING.bundle.price}, against $${PRICING.bundle.compareAt} at list price.`,
+    href: "/plugins",
+    ctaLabel: "See the plugins",
   },
   {
     id: "welcome-2026",
