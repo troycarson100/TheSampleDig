@@ -1,0 +1,29 @@
+.clock {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  min-height: 34px;
+}
+.block { position: relative; display: flex; flex-direction: column; align-items: center; min-width: 30px; }
+.value {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 19px; font-weight: 600; line-height: 1.05;
+  /* Without tabular figures the clock jitters as digits change width. */
+  font-variant-numeric: tabular-nums;
+}
+.label {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 9px; letter-spacing: 0.16em; text-transform: uppercase;
+  opacity: 0.6; margin-top: 3px;
+}
+.sep {
+  position: absolute; top: 0; right: -7px;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 15px; opacity: 0.4;
+}
+
+@media (max-width: 640px) {
+  .clock { gap: 7px; }
+  .value { font-size: 16px; }
+  .block { min-width: 24px; }
+}
