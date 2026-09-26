@@ -29,7 +29,7 @@
 .strip {
   background: var(--strip-ground);
   color: var(--strip-ink);
-  min-height: 40px;
+  min-height: 64px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -47,6 +47,14 @@
 .stripSave { color: #d9a040; }
 .stripArrow { transition: transform 160ms ease; }
 .stripInner:hover .stripArrow { transform: translateX(3px); }
+
+/* The clock sits inline with the label and price, slightly raised so its
+   small labels do not drag the row's optical centre down. */
+.stripClock { margin: 0 4px; }
+.stripNew {
+  color: #d9a040;
+  font-weight: 600;
+}
 
 /* ---- pill rail: sticky ------------------------------------------------ */
 .rail {
