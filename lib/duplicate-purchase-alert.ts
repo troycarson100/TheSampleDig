@@ -58,4 +58,4 @@ export function duplicatePurchaseAlert(
 
 /** How many Purchase rows each sellable thing grants - a duplicate list
  *  shorter than this means the buyer did receive something new. */
-const GRANT_COUNT: Record<CompProduct, number> = { shft: 1, drft: 1, bundle: 2 }
+const GRANT_COUNT: Record<CompProduct, number> = { shft: 1, drft: 1, fltr: 1, bundle: 3 }

@@ -1,5 +1,6 @@
 import nodemailer from "nodemailer"
 import { downloadsFor } from "@/lib/plugin-purchase-logic"
+import type { PluginProduct } from "@/lib/plugin-products"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"
 const FROM = `Sample Roll <${process.env.SMTP_FROM || process.env.SMTP_USER}>`
@@ -86,6 +87,8 @@ export async function sendVerificationEmail(email: string, token: string) {
 const PLUGIN_EMAIL_COPY: Record<string, { formats: string }> = {
   shft: { formats: "macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone)" },
   drft: { formats: "macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone)" },
+  // macOS-only at launch - see the note by FLTR_INSTALLER_KEY in lib/products.ts.
+  fltr: { formats: "macOS (VST3 / AU / Standalone)" },
 }
 
 const escapeHtml = (s: string) =>
@@ -112,7 +115,7 @@ const linkChipStyle =
     than printing an empty box — /products always shows the real one. */
 export async function sendPluginPurchaseEmail(
   email: string,
-  items: { product: "shft" | "drft"; licenseKey: string | null }[],
+  items: { product: PluginProduct; licenseKey: string | null }[],
   opts: PurchaseEmailOptions = {}
 ) {
   const url = `${APP_URL}/products`

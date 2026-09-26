@@ -1,6 +1,6 @@
 import type { CompProduct } from "./plugin-products"
 
-export type CancelPath = "/shft" | "/drft" | "/plugins"
+export type CancelPath = "/shft" | "/drft" | "/fltr" | "/plugins"
 
 /**
  * Where Stripe sends the buyer afterwards. Success lands on /thanks, which

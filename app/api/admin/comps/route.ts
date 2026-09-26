@@ -81,7 +81,7 @@ export async function POST(request: Request) {
   // an unrecognised or missing value is a 400 rather than a silent "shft".
   if (!isCompProduct(body.product)) {
     return NextResponse.json(
-      { error: "Pick a product: shft, drft, or bundle." },
+      { error: "Pick a product: shft, drft, fltr, or bundle." },
       { status: 400 },
     )
   }

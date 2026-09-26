@@ -7,25 +7,27 @@
 
 /** A thing a Purchase row can be for. Comp codes may also grant a bundle,
  *  which is not itself a product - see CompProduct. */
-export const PLUGIN_PRODUCTS = ["shft", "drft"] as const
+export const PLUGIN_PRODUCTS = ["shft", "drft", "fltr"] as const
 export type PluginProduct = (typeof PLUGIN_PRODUCTS)[number]
 
 /** What an admin can mint a comp code for: either plugin, or the bundle. */
-export const COMP_PRODUCTS = ["shft", "drft", "bundle"] as const
+export const COMP_PRODUCTS = ["shft", "drft", "fltr", "bundle"] as const
 export type CompProduct = (typeof COMP_PRODUCTS)[number]
 
 /** What each purchasable/grantable thing turns into as Purchase rows. */
 export const PLUGIN_GRANTS: Record<CompProduct, readonly PluginProduct[]> = {
   shft: ["shft"],
   drft: ["drft"],
-  bundle: ["shft", "drft"],
+  fltr: ["fltr"],
+  bundle: ["shft", "drft", "fltr"],
 }
 
-/** Display copy. Lowercase because both plugins are styled lowercase. */
+/** Display copy. Lowercase because all three plugins are styled lowercase. */
 export const PRODUCT_LABEL: Record<CompProduct, string> = {
   shft: "shft",
   drft: "drft",
-  bundle: "shft + drft",
+  fltr: "fltr",
+  bundle: "shft + drft + fltr",
 }
 
 export function isCompProduct(value: unknown): value is CompProduct {

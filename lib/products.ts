@@ -15,6 +15,13 @@ const DRFT_INSTALLER_WIN_KEY = process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-
 // when controls change. v1.1 is the manual for every 1.1.x build.
 const DRFT_MANUAL_KEY        = process.env.DRFT_MANUAL_KEY        || "drft/drft-manual-v1.1.pdf"
 
+// fltr is macOS-only at launch - no installer-win key, on purpose. Adding one
+// that points at a file that doesn't exist would hand buyers a broken download;
+// /products only renders the Windows install note when an "installer-win"
+// asset is present, so omitting the asset is what keeps that note away.
+const FLTR_INSTALLER_KEY = process.env.FLTR_INSTALLER_KEY || "fltr/fltr-1.0.0.pkg"
+const FLTR_MANUAL_KEY    = process.env.FLTR_MANUAL_KEY    || "fltr/fltr-manual-v1.0.pdf"
+
 const basename = (key: string) => key.slice(key.lastIndexOf("/") + 1)
 
 // Display prices for the store pages. Stripe charges whatever the price IDs in
@@ -216,6 +223,28 @@ export const PRODUCTS: Record<string, ProductDef> = {
         key: DRFT_MANUAL_KEY,
         filename: basename(DRFT_MANUAL_KEY),
       },
+    ],
+  },
+  fltr: {
+    id: "fltr",
+    name: "fltr",
+    version: "1.0.0",
+    blurb: "Morphing filter that plays in key — macOS (VST3 / AU / Standalone).",
+    changelog: [
+      {
+        version: "1.0.0",
+        notes: [
+          "First release. Twelve filter characters over two cores, with a Shape control that morphs each one's response.",
+          "Chord and Harmony turn whatever passes through into a chord in your key, following a root and one of 14 scales.",
+          "Four modulation sources — Follow, Move, Draw and Macro — routed by dragging them onto whatever they should move.",
+          "The Push layer tunes the filter to the scale, feeds it back into itself, and freezes it.",
+          "Your licence key is on this page, just below the download buttons. One key covers 3 machines.",
+        ],
+      },
+    ],
+    assets: [
+      { id: "installer", label: "fltr installer — macOS", key: FLTR_INSTALLER_KEY, filename: basename(FLTR_INSTALLER_KEY) },
+      { id: "manual", label: "User manual (PDF)", key: FLTR_MANUAL_KEY, filename: basename(FLTR_MANUAL_KEY) },
     ],
   },
 }

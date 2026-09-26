@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { sendPluginPurchaseEmail } from "@/lib/email"
-import { isPluginProduct } from "@/lib/plugin-products"
+import { isPluginProduct, type PluginProduct } from "@/lib/plugin-products"
 import { SlidingWindowLimiter } from "@/lib/resend-rate-limit"
 import { mintSetPasswordUrl } from "@/lib/set-password"
 
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     if (!user) return ok
 
     const items = user.purchases
-      .filter((p): p is { product: "shft" | "drft"; licenseKey: string | null } => isPluginProduct(p.product))
+      .filter((p): p is { product: PluginProduct; licenseKey: string | null } => isPluginProduct(p.product))
       .map((p) => ({ product: p.product, licenseKey: p.licenseKey }))
     if (items.length === 0) return ok
 
