@@ -121,6 +121,7 @@ export default function PluginsStore() {
               ["--card-ground" as string]: p.ground,
               ["--card-ink" as string]: p.ink,
               ["--card-accent" as string]: p.accent,
+              ["--card-accent-2" as string]: p.accent2,
             }}>
             <Link href={p.href} className={styles.cardMedia} aria-label={`Learn more about ${p.name}`}>
               {/* eslint-disable-next-line @next/next/no-img-element */}

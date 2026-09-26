@@ -146,17 +146,22 @@
   border: 1px solid rgba(0, 0, 0, 0.1);
   background: var(--card-ground);
   color: var(--card-ink);
-  /* BuyButton's own stylesheet (components/plugin-page/plugin-page.module.css)
-     themes off --plugin-ground / --plugin-ink / --plugin-accent, set on each
-     plugin's own page wrapper. This card is not that wrapper — it carries the
-     narrower --card-* names instead — so without this alias the button falls
-     back to unstyled (invalid var() = transparent background) the moment it
-     inherits into a context that never set --plugin-*. Re-exporting the
-     card's colours under the names BuyButton expects keeps it themed without
-     reaching into a component task 6 was told not to touch. */
+  /* This re-exports the full four-variable theming contract PluginMeta
+     defines (ground, ink, accent, accent2 — see PluginLanding.tsx, which sets
+     these same four as --plugin-* on each plugin's own page wrapper) under
+     the --card-* names PluginsStore sets inline above. It exists because
+     BuyButton and anything else from components/plugin-page/ theme off
+     --plugin-ground / --plugin-ink / --plugin-accent / --plugin-accent-2, not
+     --card-*, and this card is not the page wrapper those pieces normally
+     inherit from. Without this alias, any such component landing inside a
+     card would find --plugin-* unset in its ancestor chain and mis-theme
+     silently (an invalid var() falls back to transparent/inherited, not to
+     the card's real colours) — keep all four in lockstep with PluginMeta;
+     dropping one re-opens exactly this gap for whichever piece reads it. */
   --plugin-ground: var(--card-ground);
   --plugin-ink: var(--card-ink);
   --plugin-accent: var(--card-accent);
+  --plugin-accent-2: var(--card-accent-2);
 }
 .cardMedia { display: block; background: #000; }
 /* Natural height, never cropped: these are plugin UIs, and cropping one cuts
