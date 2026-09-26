@@ -4,13 +4,13 @@ import { useState } from "react"
 import { PLUGINS, type PluginId } from "@/lib/plugins"
 import { PRICING } from "@/lib/products"
 import { usePluginOwnership } from "@/lib/use-plugin-ownership"
-import { trackMeta } from "@/lib/meta-pixel"
+import { useCart } from "@/components/CartProvider"
 import styles from "./plugin-page.module.css"
 
 export default function BuyButton({ id, className = "" }: { id: PluginId; className?: string }) {
   const { loading, error, owned } = usePluginOwnership()
+  const { add, open } = useCart()
   const [busy, setBusy] = useState(false)
-  const [failed, setFailed] = useState(false)
   const price = PRICING[id]
 
   // Never render a purchase control before ownership resolves, or when it
@@ -27,28 +27,22 @@ export default function BuyButton({ id, className = "" }: { id: PluginId; classN
     )
   }
 
-  const buy = async () => {
+  // Adding to the cart is synchronous local state, not a round trip — this
+  // can no longer fail the way a checkout POST could. `busy` still gates
+  // `disabled` (see the note above the button) so the mechanism that guards
+  // against interacting with the control mid-click stays in place, but there
+  // is no longer a distinct failure state to render.
+  const addToCart = () => {
     setBusy(true)
-    setFailed(false)
-    trackMeta("InitiateCheckout", {
-      value: price.price, currency: "USD", content_name: id, content_type: "product",
-    })
-    try {
-      const res = await fetch(`/api/${id}/checkout`, { method: "POST" })
-      if (res.status === 409) { window.location.reload(); return }
-      const data = await res.json().catch(() => ({}))
-      if (res.ok && typeof data?.url === "string") { window.location.href = data.url; return }
-    } catch { /* fall through to the failed state */ }
-    setFailed(true)
+    add(id)
+    open()
     setBusy(false)
   }
 
   return (
-    <button type="button" className={`${styles.buy} ${className}`} onClick={buy} disabled={busy}>
-      {busy ? "…" : failed ? "Opens at launch" : (
-        <>Buy · <span className={styles.buyPrice}>${price.price}</span>{" "}
-        <s className={styles.buyWas}>${price.msrp}</s></>
-      )}
+    <button type="button" className={`${styles.buy} ${className}`} onClick={addToCart} disabled={busy}>
+      Add · <span className={styles.buyPrice}>${price.price}</span>{" "}
+      <s className={styles.buyWas}>${price.msrp}</s>
     </button>
   )
 }

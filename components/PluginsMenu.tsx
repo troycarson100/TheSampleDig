@@ -8,6 +8,7 @@ import styles from "@/components/plugins-menu.module.css"
 import { pluginList } from "@/lib/plugins"
 import { PRICING } from "@/lib/products"
 import { usePluginOwnership } from "@/lib/use-plugin-ownership"
+import { useCart } from "@/components/CartProvider"
 
 /** The rows themselves, shared by the desktop panel and the mobile drawer.
  *  `menuRole` applies `role="menuitem"` / `role="separator"` to the rows —
@@ -17,6 +18,7 @@ import { usePluginOwnership } from "@/lib/use-plugin-ownership"
  *  and renders plain links instead. */
 export function PluginsMenuRows({ onNavigate, menuRole = false }: { onNavigate?: () => void; menuRole?: boolean }) {
   const { loading, error, owned, ownedCount } = usePluginOwnership()
+  const { addAll, open: openCart } = useCart()
   // Until ownership resolves these are plain navigation: no owned marks, and no
   // bundle row, because offering the bundle to an owner sells them what they have.
   const known = !loading && !error
@@ -47,19 +49,23 @@ export function PluginsMenuRows({ onNavigate, menuRole = false }: { onNavigate?:
       {known && ownedCount === 0 && (
         <>
           <span className={styles.divider} role={menuRole ? "separator" : undefined} />
-          <Link
-            href="/plugins#bundle"
+          <button
+            type="button"
             className={`${styles.bundleRow} ${styles.link}`}
             role={menuRole ? "menuitem" : undefined}
             data-menu-row="bundle"
-            onClick={onNavigate}
+            onClick={() => {
+              addAll()
+              openCart()
+              onNavigate?.()
+            }}
           >
             <span className={styles.rowText}>
               <span className={styles.rowName}>all three</span>
               <span className={styles.rowCategory}>every plugin, one price</span>
             </span>
             <span className={styles.bundlePrice}>${PRICING.bundle.price}</span>
-          </Link>
+          </button>
         </>
       )}
     </>

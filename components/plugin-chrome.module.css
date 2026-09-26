@@ -40,6 +40,13 @@
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
   font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
 }
+/* Only the bundle variant renders .stripInner as a <button> (it opens the
+   cart rather than navigating) — the intro and partial variants stay <a>
+   tags and never carry this class. Resets the UA button chrome (border,
+   background, cursor) that a plain anchor never had; deliberately leaves
+   outline alone so the same default focus-visible ring the anchor variants
+   already relied on (no bespoke rule existed for .stripInner) still shows. */
+.stripButton { border: none; background: none; cursor: pointer; }
 .stripLabel { opacity: 0.85; }
 .stripNames { opacity: 0.85; text-transform: none; letter-spacing: 0.04em; }
 .stripPrice { font-variant-numeric: tabular-nums; font-weight: 600; }
@@ -97,9 +104,12 @@
 }
 .rail .pill:focus-visible { outline: 2px solid var(--pill-accent); outline-offset: 2px; }
 
+/* A <button>, not an <a> — it opens the cart rather than navigating, so it
+   needs the UA button chrome (border, cursor) reset that an anchor never had. */
 .rail .bundlePill {
   display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
   padding: 8px 16px; border-radius: 999px; text-decoration: none;
+  border: none; cursor: pointer;
   background: var(--hot); color: #1c140f; font-weight: 700;
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
   font-size: 13px; letter-spacing: 0.04em;

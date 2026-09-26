@@ -33,8 +33,8 @@ export const SITE_ALERTS: SiteAlert[] = [
     publishedAt: "2026-09-25",
     title: `All three plugins — $${PRICING.bundle.price}`,
     body: `shft, drft and fltr together for $${PRICING.bundle.price}, against $${PRICING.bundle.compareAt} at list price.`,
-    href: "/plugins",
-    ctaLabel: "See the plugins",
+    href: "/shft",
+    ctaLabel: "See shft",
   },
   {
     id: "welcome-2026",

@@ -9,6 +9,7 @@ import { countWord, introWindow, pluginList, PLUGIN_ORDER, PLUGINS, type PluginI
 import { PRICING } from "@/lib/products"
 import { usePluginOwnership } from "@/lib/use-plugin-ownership"
 import { trackMeta } from "@/lib/meta-pixel"
+import { useCart } from "@/components/CartProvider"
 
 /** Joins names the way a sentence does: "drft and fltr". */
 function nameList(ids: PluginId[]): string {
@@ -39,6 +40,7 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
   const introEndsMs = intro.endsAt?.getTime() ?? null
   const endsAt = useMemo(() => (introEndsMs === null ? null : new Date(introEndsMs)), [introEndsMs])
   const onExpire = useCallback(() => setExpiredAt(Date.now()), [])
+  const { addAll, open: openCart } = useCart()
 
   // 1. Unknown ownership: reserve the height, offer nothing.
   if (loading || error) return <div className={styles.strip} data-sale-strip aria-hidden />
@@ -90,17 +92,22 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
     )
   }
 
-  // 5. Owns nothing: the bundle.
+  // 5. Owns nothing: the bundle. A real button, not a link — this opens the
+  // cart in place rather than navigating anywhere.
   const save = PRICING.bundle.compareAt - PRICING.bundle.price
   return (
     <div className={styles.strip} data-sale-strip data-strip-variant="bundle">
-      <Link href="/plugins#bundle" className={styles.stripInner}>
+      <button
+        type="button"
+        className={`${styles.stripInner} ${styles.stripButton}`}
+        onClick={() => { addAll(); openCart() }}
+      >
         <span className={styles.stripLabel}>All three plugins</span>
         <span className={styles.stripPrice}>${PRICING.bundle.price}</span>
         <s className={styles.stripWas}>${PRICING.bundle.compareAt}</s>
         <span className={styles.stripSave}>Save ${save}</span>
         <span className={styles.stripArrow} aria-hidden>→</span>
-      </Link>
+      </button>
     </div>
   )
 }
@@ -108,6 +115,7 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
 export default function PluginChrome({ active }: { active?: PluginId }) {
   const { loading, error, owned, ownedCount, missing } = usePluginOwnership()
   const [hovered, setHovered] = useState<PluginId | null>(null)
+  const { addAll, open: openCart } = useCart()
 
   return (
     <div className={styles.chrome}>
@@ -138,14 +146,18 @@ export default function PluginChrome({ active }: { active?: PluginId }) {
         </ul>
 
         {!loading && !error && ownedCount === 0 && (
-          <Link
-            href="/plugins#bundle"
+          <button
+            type="button"
             className={styles.bundlePill}
             data-bundle-pill
-            onClick={() => trackMeta("ViewContent", { content_name: "bundle", content_type: "product" })}
+            onClick={() => {
+              trackMeta("ViewContent", { content_name: "bundle", content_type: "product" })
+              addAll()
+              openCart()
+            }}
           >
             All three · ${PRICING.bundle.price} <span aria-hidden>→</span>
-          </Link>
+          </button>
         )}
         {!loading && !error && ownedCount > 0 && (
           <Link href="/products" className={styles.ownedLink}>

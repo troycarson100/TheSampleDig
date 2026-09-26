@@ -78,10 +78,15 @@
    cream panel in one mount and a near-black drawer in the other. */
 .divider { display: block; height: 1px; margin: 7px 9px; background: rgba(150, 140, 125, 0.3); }
 
+/* .bundleRow is a <button>, unlike its .row siblings — it opens the cart
+   rather than navigating, so it needs the UA button chrome (border, font,
+   width) reset back to what the shared .row rule already gives every
+   anchor row for free. */
 .bundleRow {
   justify-content: space-between;
   background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
   color: #1c140f;
+  border: none; width: 100%; text-align: left; font: inherit; cursor: pointer;
 }
 .bundleRow:hover, .bundleRow:focus-visible {
   background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%); color: #1c140f;
