@@ -69,6 +69,12 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
   const wrapRef = useRef<HTMLDivElement>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // When the panel was opened by hover (not focus), the trigger has no focus
+  // yet, so Escape's own `triggerRef.current?.focus()` below fires a genuine
+  // native focus event — which bubbles to the wrap's onFocus handler and
+  // reopens the panel it just closed. This flag tells that handler "this next
+  // focus event is Escape returning focus, not a user tabbing in — ignore it".
+  const suppressFocusOpen = useRef(false)
   const pathname = usePathname()
 
   const cancelClose = () => {
@@ -96,7 +102,19 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
   useEffect(() => {
     if (!open) return
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") { setOpen(false); triggerRef.current?.focus() }
+      if (e.key === "Escape") {
+        suppressFocusOpen.current = true
+        setOpen(false)
+        triggerRef.current?.focus()
+        // If the trigger already had focus (panel was opened via Tab, not
+        // hover), .focus() above is a no-op and fires no new focus event, so
+        // nothing would ever clear the flag — leaving it stuck true and
+        // silently swallowing the *next* legitimate focus-open. Clear it a
+        // tick later as a safety net: a real focus event, if one fires, does
+        // so synchronously inside .focus() above and will already have
+        // consumed and reset the flag by the time this runs.
+        setTimeout(() => { suppressFocusOpen.current = false }, 0)
+      }
     }
     const onClickAway = (e: MouseEvent) => {
       if (!wrapRef.current?.contains(e.target as Node)) setOpen(false)
@@ -128,7 +146,11 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
       className={styles.wrap}
       onMouseEnter={() => { cancelClose(); setOpen(true) }}
       onMouseLeave={scheduleClose}
-      onFocus={() => { cancelClose(); setOpen(true) }}
+      onFocus={() => {
+        if (suppressFocusOpen.current) { suppressFocusOpen.current = false; return }
+        cancelClose()
+        setOpen(true)
+      }}
       onKeyDown={onPanelKeyDown}
     >
       <button
