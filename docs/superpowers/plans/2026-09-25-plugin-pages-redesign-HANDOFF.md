@@ -71,6 +71,39 @@ with no code change.
    unreachable for FLTR (no path creates an FLTR purchase with a null licence key), but it
    is a landmine for a fourth plugin.
 
+## Increment 2, spec B — navigation and ticker (complete, 2026-09-26)
+
+Shipped on this same branch. The ticker and the rail had both been advertising the bundle;
+they now have separate jobs. The ticker grew to 64px and carries fltr's introductory price
+with a real countdown; the rail keeps the bundle. The nav's "Plugins" item gained a hover
+dropdown listing the three plugins and the bundle.
+
+**One owner action arms it:** set `NEXT_PUBLIC_FLTR_INTRO_ENDS` to an ISO date **with an
+explicit `Z` or offset** — without one it parses as local time and the offer would end at a
+different absolute instant in every timezone while Stripe changes at exactly one. Until it is
+set the countdown never renders and the ticker behaves as it did before.
+
+**Nothing raises the price when the clock expires.** At zero the clock disappears and the
+ticker falls back to whichever offer suits that visitor. Raise `PRICING.fltr.price` and the
+Stripe price object together, by hand. The failure mode is therefore a deal running long,
+never a page quoting a price Stripe is not charging.
+
+**The lint baseline moved 297 → 298 deliberately.** An `eslint-disable` for
+`react-hooks/set-state-in-effect` was removed from `Countdown.tsx` so the count reflects how
+many instances actually exist — the same rule fires unsuppressed at `FeatureGateModal.tsx:53`
+and `SiteNav.tsx:61`. 298 is correct; treat a return to 297 as suspicious.
+
+**Accepted, not a defect:** the open dropdown covers the ticker's countdown digits. Measured:
+it covers only the ticker, never the plugin rail, with roughly 500px of ticker visible either
+side and "GET FLTR →" still visible and clickable.
+
+**Deferred from its final review:** `useOwnsShft` and `usePluginOwnership` both fire on every
+page carrying `SiteNav`, including pages with no storefront on them. The second returns a
+strict superset of the first, so it is one redundant round trip per page view — and the two
+have *opposite* failure policies for the same fact: `useOwnsShft` fails open to `owned: false`,
+while `usePluginOwnership` surfaces `error` precisely so nothing is offered on unknown
+ownership. Consolidating them halves the requests and removes the divergence.
+
 ## Next project — cart and checkout
 
 Decided during this work, not yet specced:
