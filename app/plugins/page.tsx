@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
 import SiteNav from "@/components/SiteNav"
+import PluginChrome from "@/components/PluginChrome"
+import PluginPageErrorBoundary from "@/components/PluginPageErrorBoundary"
 import PluginsStore from "./PluginsStore"
 
 export const metadata: Metadata = {
@@ -21,7 +23,10 @@ export default function PluginsPage() {
       <header className="site-header w-full shrink-0">
         <SiteNav />
       </header>
-      <PluginsStore />
+      <PluginChrome />
+      <PluginPageErrorBoundary>
+        <PluginsStore />
+      </PluginPageErrorBoundary>
     </div>
   )
 }

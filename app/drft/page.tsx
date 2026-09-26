@@ -1,5 +1,7 @@
 import type { Metadata } from "next"
 import SiteNav from "@/components/SiteNav"
+import PluginChrome from "@/components/PluginChrome"
+import PluginPageErrorBoundary from "@/components/PluginPageErrorBoundary"
 import DrftLanding from "./DrftLanding"
 import styles from "./drft.module.css"
 
@@ -23,7 +25,10 @@ export default function DrftPage() {
       <header className="site-header w-full shrink-0">
         <SiteNav />
       </header>
-      <DrftLanding />
+      <PluginChrome active="drft" />
+      <PluginPageErrorBoundary>
+        <DrftLanding />
+      </PluginPageErrorBoundary>
     </div>
   )
 }

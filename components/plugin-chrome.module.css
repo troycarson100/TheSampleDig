@@ -1,0 +1,112 @@
+.chrome {
+  --chrome-ground: #efe9dc;
+  --chrome-ink: #24211d;
+  --strip-ground: #14110e;
+  --strip-ink: #efe9dc;
+  --hot: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
+  /* This wrapper exists only to scope the custom properties above and must not
+     generate its own box: a normal block box here is sized to its two children
+     (strip + rail) with no slack, which caps how far .rail's position: sticky
+     can travel and makes it scroll away with the strip instead of sticking for
+     the rest of the page. `contents` removes the box while custom properties
+     still inherit through it, so .rail's containing block becomes the page's
+     own (tall) wrapper instead. */
+  display: contents;
+}
+
+/* SiteNav's header is `position: fixed; height: 56px` (see .theme-vinyl
+   .site-header in globals.css) and does not occupy flow space, so whichever
+   of .strip / .rail renders first here needs to clear it explicitly — the
+   same 56px the site already uses for e.g. .genre-ticker's `top` and
+   .profile-page-wrap's `margin-top`. Targeting :first-child (rather than
+   .strip directly) keeps this correct when ownedCount === 3 and the strip
+   doesn't render at all, leaving .rail as chrome's only child. */
+.chrome > :first-child {
+  margin-top: 56px;
+}
+
+/* ---- sale strip: scrolls away ---------------------------------------- */
+.strip {
+  background: var(--strip-ground);
+  color: var(--strip-ink);
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.stripInner {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px; text-decoration: none; color: inherit;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+}
+.stripLabel { opacity: 0.85; }
+.stripNames { opacity: 0.85; text-transform: none; letter-spacing: 0.04em; }
+.stripPrice { font-variant-numeric: tabular-nums; font-weight: 600; }
+.stripWas { opacity: 0.5; font-variant-numeric: tabular-nums; }
+.stripSave { color: #d9a040; }
+.stripArrow { transition: transform 160ms ease; }
+.stripInner:hover .stripArrow { transform: translateX(3px); }
+
+/* ---- pill rail: sticky ------------------------------------------------ */
+.rail {
+  position: sticky;
+  /* 56px, not 0: the fixed site header sits on top of everything (z-index
+     500) and never scrolls away, so sticking at the viewport edge would tuck
+     the rail behind it. Sticking just below the header keeps it in view. */
+  top: 56px;
+  z-index: 40;
+  background: var(--chrome-ground);
+  border-bottom: 1px solid rgba(36, 33, 29, 0.14);
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.rail::-webkit-scrollbar { display: none; }
+
+.pills { display: flex; gap: 8px; list-style: none; margin: 0; padding: 0; flex: 1; }
+
+/* `.pill`, `.bundlePill` and `.ownedLink` are all <a> tags (next/link) inside
+   this <nav>, and globals.css has a sitewide `.theme-vinyl nav a { color: ... }`
+   rule (0,1,2) meant for SiteNav's own tabs that outranks a bare `.pill` (0,1,0)
+   and would otherwise paint every pill label the same near-invisible translucent
+   grey. Prefixing with `.rail` (0,2,0) outranks it without `!important`. */
+.rail .pill {
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  padding: 7px 14px; border-radius: 999px; text-decoration: none;
+  border: 1px solid rgba(36, 33, 29, 0.22);
+  background: transparent; color: var(--chrome-ink);
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 13px; letter-spacing: 0.04em;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.pillGlyph { color: var(--pill-accent); }
+.rail .pill:hover { border-color: var(--pill-accent); }
+.rail .pill[data-active="true"] {
+  background: var(--chrome-ink); color: var(--chrome-ground); border-color: var(--chrome-ink);
+}
+.rail .pill:focus-visible { outline: 2px solid var(--pill-accent); outline-offset: 2px; }
+
+.rail .bundlePill {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  padding: 8px 16px; border-radius: 999px; text-decoration: none;
+  background: var(--hot); color: #1c140f; font-weight: 700;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 13px; letter-spacing: 0.04em;
+  font-variant-numeric: tabular-nums;
+}
+.rail .bundlePill:focus-visible { outline: 2px solid var(--chrome-ink); outline-offset: 2px; }
+
+.rail .ownedLink {
+  white-space: nowrap; text-decoration: none; color: var(--chrome-ink); opacity: 0.7;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 12px; letter-spacing: 0.08em;
+}
+.rail .ownedLink:hover { opacity: 1; }
+
+@media (max-width: 520px) {
+  .stripInner { gap: 8px; font-size: 11px; padding: 9px 12px; }
+  .stripWas, .stripSave { display: none; }
+}
