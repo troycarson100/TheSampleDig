@@ -34,13 +34,20 @@ for (const [path, active] of [["/plugins", null], ["/shft", "shft"], ["/drft", "
   check(`${path}: sale strip shows the bundle`,
     (await page.locator('[data-sale-strip]').innerText()).includes("59"))
 
-  // The rail must survive scrolling — that is the point of the redesign.
-  const before = await rail.boundingBox()
+  // The rail must survive scrolling — that is the point of the redesign. Its
+  // *unscrolled* position sits below the sale strip (by design, the strip
+  // scrolls away and the rail sticks under the header once you pass it), so
+  // comparing scroll-0 against scrolled would always show that expected
+  // shift. Instead: scroll past the strip first so the rail is stuck, record
+  // that position, scroll further, and assert it hasn't moved from there.
+  await page.evaluate(() => window.scrollBy(0, 200))
+  await page.waitForTimeout(250)
+  const stuck1 = await rail.boundingBox()
   await page.evaluate(() => window.scrollBy(0, 1200))
   await page.waitForTimeout(250)
-  const after = await rail.boundingBox()
-  check(`${path}: rail stays put while the page scrolls`,
-    before && after && Math.abs(before.y - after.y) < 2, `${before?.y} -> ${after?.y}`)
+  const stuck2 = await rail.boundingBox()
+  check(`${path}: rail stays stuck while the page keeps scrolling`,
+    stuck1 && stuck2 && Math.abs(stuck1.y - stuck2.y) < 2, `${stuck1?.y} -> ${stuck2?.y}`)
 
   await page.close()
 }
