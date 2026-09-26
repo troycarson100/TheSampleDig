@@ -56,13 +56,11 @@ export function useCartState(): Cart {
   // known: acting on loading or error would silently empty a legitimate cart.
   useEffect(() => {
     if (loading || error) return
-    setIds((current) => {
-      const keep = current.filter((id) => !owned[id])
-      if (keep.length === current.length) return current
-      setDropped(current.filter((id) => owned[id]))
-      return keep
-    })
-  }, [loading, error, owned])
+    const ownedInCart = ids.filter((id) => owned[id])
+    if (ownedInCart.length === 0) return
+    setDropped(ownedInCart)
+    setIds((current) => current.filter((id) => !owned[id]))
+  }, [ids, loading, error, owned])
 
   const add = useCallback((id: PluginId) => {
     setIds((c) => (c.includes(id) ? c : [...c, id]))
