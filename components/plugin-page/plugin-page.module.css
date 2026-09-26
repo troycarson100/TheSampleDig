@@ -77,6 +77,8 @@
 /* One capability card in the grid — bordered box, same corner radius as .media
    and the same tinted-border convention already used by .caps/.faq/.getStarted. */
 .cap { padding: 20px; border: 1px solid color-mix(in srgb, var(--plugin-ink) 12%, transparent); border-radius: 10px; }
+/* Optional per-capability glyph — absent for plugins whose Capability items don't set `icon`. */
+.capIcon { color: var(--plugin-accent); margin-bottom: 14px; }
 .capTitle { font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--plugin-accent); margin: 0 0 8px; }
 .capBody { font-size: 15px; line-height: 1.55; opacity: 0.82; margin: 0; }
 

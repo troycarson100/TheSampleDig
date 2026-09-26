@@ -76,7 +76,7 @@ export function Hero({ id, hero }: { id: PluginId; hero: PluginContent["hero"] }
         <p className={styles.heroDesc}>{hero.description}</p>
         <div className={styles.heroCta}>
           <BuyButton id={id} />
-          <span className={styles.heroMeta}>One-time purchase · free updates</span>
+          <span className={styles.heroMeta}>{hero.caption ?? "One-time purchase · free updates"}</span>
         </div>
       </div>
       <MediaSlot media={hero.media} className={styles.heroMedia} />
@@ -87,6 +87,7 @@ export function Hero({ id, hero }: { id: PluginId; hero: PluginContent["hero"] }
 export function Intro({ intro }: { intro: PluginContent["intro"] }) {
   return (
     <section className={styles.intro}>
+      {intro.eyebrow ? <p className={styles.eyebrow}>{intro.eyebrow}</p> : null}
       <h2 className={styles.introTitle}>{intro.title}</h2>
       <p className={styles.introBody}>{intro.body}</p>
       <MediaSlot media={intro.media} />
@@ -117,6 +118,7 @@ export function Caps({ caps }: { caps: { title: string; items: Capability[] } })
       <ul className={styles.capsGrid}>
         {caps.items.map((c) => (
           <li key={c.title} className={styles.cap}>
+            {c.icon ? <div className={styles.capIcon}>{c.icon}</div> : null}
             <h3 className={styles.capTitle}>{c.title}</h3>
             <p className={styles.capBody}>{c.body}</p>
           </li>

@@ -40,34 +40,36 @@ export default function ShftLanding() {
     <>
       <PurchaseBanner />
 
-      <PluginLanding id="shft" content={SHFT_CONTENT} />
-
-      {/* The shared template has no slot for shft's social proof and
-          walkthrough — on the old page they sat between the intro and the
-          feature blocks. They compose in after the template output instead;
-          see the task report for why. */}
-      <ReelCarousel reels={REELS} />
-      <TestimonialMarquee items={TESTIMONIALS} />
-      <section className={styles.walkthrough} aria-labelledby="shft-walkthrough-title">
-        <div className={styles.walkthroughHead}>
-          <p className={styles.eyebrow}>Walkthrough</p>
-          <h2 className={styles.walkthroughTitle} id="shft-walkthrough-title">
-            See how it all works
-          </h2>
-          <p className={styles.walkthroughSub}>
-            A ten-minute tour of shft from the person who built it — lanes and shapes,
-            beat repeat and granular, building a rhythm from a sample, dragging MIDI
-            out, the FX page and the LFOs.
-          </p>
-        </div>
-        <YouTubeEmbed
-          className={styles.shotFrame}
-          id={WALKTHROUGH.id}
-          title={WALKTHROUGH.title}
-          duration={WALKTHROUGH.duration}
-          poster={WALKTHROUGH.poster}
-        />
-      </section>
+      <PluginLanding
+        id="shft"
+        content={SHFT_CONTENT}
+        afterIntro={
+          <>
+            <ReelCarousel reels={REELS} />
+            <TestimonialMarquee items={TESTIMONIALS} />
+            <section className={styles.walkthrough} aria-labelledby="shft-walkthrough-title">
+              <div className={styles.walkthroughHead}>
+                <p className={styles.eyebrow}>Walkthrough</p>
+                <h2 className={styles.walkthroughTitle} id="shft-walkthrough-title">
+                  See how it all works
+                </h2>
+                <p className={styles.walkthroughSub}>
+                  A ten-minute tour of shft from the person who built it — lanes and shapes,
+                  beat repeat and granular, building a rhythm from a sample, dragging MIDI
+                  out, the FX page and the LFOs.
+                </p>
+              </div>
+              <YouTubeEmbed
+                className={styles.shotFrame}
+                id={WALKTHROUGH.id}
+                title={WALKTHROUGH.title}
+                duration={WALKTHROUGH.duration}
+                poster={WALKTHROUGH.poster}
+              />
+            </section>
+          </>
+        }
+      />
     </>
   )
 }
