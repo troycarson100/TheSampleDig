@@ -59,10 +59,11 @@ export async function POST(request: Request) {
 
   const row = await prisma.compCode.findUnique({ where: { code } })
 
-  // What this code grants. A bundle grants two products, so ownership is only
-  // a refusal when the redeemer already owns EVERY product it would grant -
-  // someone who bought shft can still redeem a bundle comp and get drft from
-  // it, rather than being told "you already own that" and losing the code.
+  // What this code grants. A bundle grants three products, so ownership is
+  // only a refusal when the redeemer already owns EVERY product it would
+  // grant - someone who bought shft can still redeem a bundle comp and get
+  // drft and fltr from it, rather than being told "you already own that" and
+  // losing the code.
   const compProduct = asCompProduct(row?.product)
   const grantProducts = PLUGIN_GRANTS[compProduct]
 

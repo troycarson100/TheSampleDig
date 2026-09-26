@@ -4,7 +4,7 @@ import Link from "next/link"
 import { useState } from "react"
 import PluginGlyph from "@/components/plugin-page/PluginGlyph"
 import styles from "@/components/plugin-chrome.module.css"
-import { pluginList, PLUGINS, type PluginId } from "@/lib/plugins"
+import { countWord, pluginList, PLUGIN_ORDER, PLUGINS, type PluginId } from "@/lib/plugins"
 import { PRICING } from "@/lib/products"
 import { usePluginOwnership } from "@/lib/use-plugin-ownership"
 import { trackMeta } from "@/lib/meta-pixel"
@@ -17,16 +17,18 @@ function nameList(ids: PluginId[]): string {
 }
 
 /** The dark offer band. Never offers a visitor something they already own. */
-function SaleStrip({ loading, ownedCount, missing }: {
+function SaleStrip({ loading, error, ownedCount, missing }: {
   loading: boolean
+  error: boolean
   ownedCount: number
   missing: PluginId[]
 }) {
   // Owns everything: there is nothing honest to advertise.
-  if (!loading && ownedCount === 3) return null
+  if (!loading && !error && ownedCount === PLUGIN_ORDER.length) return null
 
-  // Reserve the height while ownership resolves, so the page does not jump.
-  if (loading) return <div className={styles.strip} data-sale-strip aria-hidden />
+  // Reserve the height while ownership resolves — or failed to resolve — so
+  // the page does not jump and nothing gets offered on unknown ownership.
+  if (loading || error) return <div className={styles.strip} data-sale-strip aria-hidden />
 
   if (ownedCount === 0) {
     const save = PRICING.bundle.compareAt - PRICING.bundle.price
@@ -50,7 +52,7 @@ function SaleStrip({ loading, ownedCount, missing }: {
     <div className={styles.strip} data-sale-strip>
       <Link href={href} className={styles.stripInner}>
         <span className={styles.stripLabel}>
-          {missing.length === 1 ? "Complete the rack" : "Two left"}
+          {missing.length === 1 ? "Complete the rack" : `${countWord(missing.length)} left`}
         </span>
         <span className={styles.stripNames}>{nameList(missing)}</span>
         <span className={styles.stripPrice}>${total}</span>
@@ -61,12 +63,12 @@ function SaleStrip({ loading, ownedCount, missing }: {
 }
 
 export default function PluginChrome({ active }: { active?: PluginId }) {
-  const { loading, ownedCount, missing } = usePluginOwnership()
+  const { loading, error, ownedCount, missing } = usePluginOwnership()
   const [hovered, setHovered] = useState<PluginId | null>(null)
 
   return (
     <div className={styles.chrome}>
-      <SaleStrip loading={loading} ownedCount={ownedCount} missing={missing} />
+      <SaleStrip loading={loading} error={error} ownedCount={ownedCount} missing={missing} />
 
       <nav className={styles.rail} data-plugin-rail aria-label="Plugins">
         <ul className={styles.pills}>
@@ -92,7 +94,7 @@ export default function PluginChrome({ active }: { active?: PluginId }) {
           })}
         </ul>
 
-        {!loading && ownedCount === 0 && (
+        {!loading && !error && ownedCount === 0 && (
           <Link
             href="/plugins#bundle"
             className={styles.bundlePill}
@@ -102,7 +104,7 @@ export default function PluginChrome({ active }: { active?: PluginId }) {
             All three · ${PRICING.bundle.price} <span aria-hidden>→</span>
           </Link>
         )}
-        {!loading && ownedCount > 0 && (
+        {!loading && !error && ownedCount > 0 && (
           <Link href="/products" className={styles.ownedLink}>
             My products <span aria-hidden>→</span>
           </Link>

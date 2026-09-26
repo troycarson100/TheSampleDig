@@ -1,4 +1,4 @@
-import { PRODUCT_LABEL, type CompProduct, type PluginProduct } from "@/lib/plugin-products"
+import { PLUGIN_GRANTS, PRODUCT_LABEL, type CompProduct, type PluginProduct } from "@/lib/plugin-products"
 
 // A buyer paying again for something they already own leaves no trace of its
 // own: Purchase is @@unique([userId, product]), so the repeat charge writes no
@@ -37,7 +37,7 @@ export function duplicatePurchaseAlert(
   const amount = formatAmount(input.amountTotal)
   const bought = PRODUCT_LABEL[input.product]
   const owned = input.duplicates.map((p) => PRODUCT_LABEL[p]).join(", ")
-  const partial = input.duplicates.length < GRANT_COUNT[input.product]
+  const partial = input.duplicates.length < PLUGIN_GRANTS[input.product].length
 
   const subject = `Duplicate purchase: ${input.buyerEmail} paid ${amount} for ${bought}`
 
@@ -55,7 +55,3 @@ export function duplicatePurchaseAlert(
 
   return { subject, text }
 }
-
-/** How many Purchase rows each sellable thing grants - a duplicate list
- *  shorter than this means the buyer did receive something new. */
-const GRANT_COUNT: Record<CompProduct, number> = { shft: 1, drft: 1, fltr: 1, bundle: 3 }

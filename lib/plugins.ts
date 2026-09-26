@@ -67,3 +67,13 @@ export const PLUGINS: Record<PluginId, PluginMeta> = {
 export function pluginList(): PluginMeta[] {
   return PLUGIN_ORDER.map((id) => PLUGINS[id])
 }
+
+const COUNT_WORDS = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"]
+
+/** Spells a small count as a word for copy like "Two left" — the plugin range
+ *  is small enough that this always reads better than a numeral. Falls back
+ *  to the numeral past ten so nothing renders blank if the range grows. */
+export function countWord(n: number): string {
+  const word = COUNT_WORDS[n]
+  return word ? word[0].toUpperCase() + word.slice(1) : String(n)
+}

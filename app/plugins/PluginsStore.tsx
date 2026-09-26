@@ -7,7 +7,7 @@ import BuyButton from "@/components/plugin-page/BuyButton"
 import { MediaFallback, checkAlreadyFailed } from "@/components/plugin-page/sections"
 import styles from "./plugins.module.css"
 import { trackMeta } from "@/lib/meta-pixel"
-import { pluginList, PLUGINS, type PluginId } from "@/lib/plugins"
+import { countWord, pluginList, PLUGIN_ORDER, PLUGINS, type PluginId } from "@/lib/plugins"
 import { PRICING } from "@/lib/products"
 import { usePluginOwnership } from "@/lib/use-plugin-ownership"
 
@@ -44,12 +44,15 @@ function BundleButton() {
   )
 }
 
-function Bundle({ loading, ownedCount, missing }: {
-  loading: boolean; ownedCount: number; missing: PluginId[]
+function Bundle({ loading, error, ownedCount, missing }: {
+  loading: boolean; error: boolean; ownedCount: number; missing: PluginId[]
 }) {
-  if (loading) return <section className={styles.bundle} id="bundle" aria-busy="true" />
+  // Unknown ownership (loading, or the request failed) reserves the section's
+  // space rather than guessing — never advertise the bundle to someone who
+  // might already own all or part of it.
+  if (loading || error) return <section className={styles.bundle} id="bundle" aria-busy="true" />
 
-  if (ownedCount === 3) {
+  if (ownedCount === PLUGIN_ORDER.length) {
     return (
       <section className={styles.bundle} id="bundle">
         <p className={styles.bundleTag}>The whole rack</p>
@@ -68,7 +71,7 @@ function Bundle({ loading, ownedCount, missing }: {
       <section className={styles.bundle} id="bundle">
         <p className={styles.bundleTag}>Finish the rack</p>
         <h2 className={styles.bundleTitle}>
-          {missing.length === 1 ? "One plugin left" : "Two plugins left"}
+          {countWord(missing.length)} plugin{missing.length === 1 ? "" : "s"} left
         </h2>
         <p className={styles.bundleSub}>
           {missing.map((id) => PLUGINS[id].name).join(" and ")} — ${total} for what you are missing.
@@ -134,7 +137,7 @@ function CardMedia({ name, src }: { name: string; src: string }) {
 }
 
 export default function PluginsStore() {
-  const { loading, ownedCount, missing } = usePluginOwnership()
+  const { loading, error, ownedCount, missing } = usePluginOwnership()
 
   return (
     <main className={styles.store}>
@@ -146,7 +149,7 @@ export default function PluginsStore() {
         </p>
       </div>
 
-      <Bundle loading={loading} ownedCount={ownedCount} missing={missing} />
+      <Bundle loading={loading} error={error} ownedCount={ownedCount} missing={missing} />
 
       <div className={styles.cards}>
         {pluginList().map((p) => (

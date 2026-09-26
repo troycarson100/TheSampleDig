@@ -6,12 +6,14 @@ import WindowsInstallNote from "@/components/WindowsInstallNote"
 import EmailChangeForm from "@/components/EmailChangeForm"
 import { trackMeta } from "@/lib/meta-pixel"
 import { PRICING } from "@/lib/products"
+import type { PluginId } from "@/lib/plugins"
+import type { CompProduct } from "@/lib/plugin-products"
 
 type Download = { id: string; label: string; href: string }
-type Item = { product: "shft" | "drft"; licenseKey: string; downloads: Download[] }
+type Item = { product: PluginId; licenseKey: string; downloads: Download[] }
 type Claim = {
   ok: true
-  product: "shft" | "drft" | "bundle"
+  product: CompProduct
   email: string
   signedIn: boolean
   /** The account predates this checkout and the viewer is not signed in as
@@ -38,9 +40,7 @@ const ghostBtn = "inline-flex items-center rounded-lg px-3 py-2 text-[13px] font
 const ghostBtnStyle = { borderColor: "var(--border)", color: "var(--foreground)" } as const
 
 function fallbackPaid(product: string): number {
-  if (product === "bundle") return PRICING.bundle.price
-  if (product === "drft") return PRICING.drft.price
-  return PRICING.shft.price
+  return PRICING[product as keyof typeof PRICING]?.price ?? PRICING.shft.price
 }
 
 function KeyRow({ value }: { value: string }) {

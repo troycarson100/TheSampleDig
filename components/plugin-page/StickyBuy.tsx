@@ -9,7 +9,7 @@ import styles from "./plugin-page.module.css"
 
 /** Appears once the hero has scrolled past, so the price is always reachable. */
 export default function StickyBuy({ id }: { id: PluginId }) {
-  const { loading, owned } = usePluginOwnership()
+  const { loading, error, owned } = usePluginOwnership()
   const [shown, setShown] = useState(false)
 
   useEffect(() => {
@@ -19,7 +19,10 @@ export default function StickyBuy({ id }: { id: PluginId }) {
     return () => window.removeEventListener("scroll", onScroll)
   }, [])
 
-  if (loading || owned[id] || !shown) return null
+  // Unknown ownership (loading, or the request failed) never gets a buy
+  // control — this component has no reserved-height placeholder, so staying
+  // hidden is what "inert" means here.
+  if (loading || error || owned[id] || !shown) return null
 
   return (
     <div className={styles.sticky} data-sticky-buy>

@@ -8,14 +8,16 @@ import { trackMeta } from "@/lib/meta-pixel"
 import styles from "./plugin-page.module.css"
 
 export default function BuyButton({ id, className = "" }: { id: PluginId; className?: string }) {
-  const { loading, owned } = usePluginOwnership()
+  const { loading, error, owned } = usePluginOwnership()
   const [busy, setBusy] = useState(false)
   const [failed, setFailed] = useState(false)
   const price = PRICING[id]
 
-  // Never render a purchase control before ownership resolves — offering an
-  // owned plugin for sale, even for one frame, is the bug this guards.
-  if (loading) return <span className={`${styles.buy} ${styles.buyIdle} ${className}`} aria-hidden />
+  // Never render a purchase control before ownership resolves, or when it
+  // failed to resolve at all — offering an owned plugin for sale, even for
+  // one frame, is the bug this guards. A failed request is unknown ownership,
+  // not "owns nothing", so it gets the same inert placeholder as loading.
+  if (loading || error) return <span className={`${styles.buy} ${styles.buyIdle} ${className}`} aria-hidden />
 
   if (owned[id]) {
     return (

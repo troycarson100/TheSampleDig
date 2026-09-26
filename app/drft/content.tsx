@@ -219,12 +219,12 @@ export const DRFT_CONTENT: PluginContent = {
     },
     {
       q: "Is it a subscription?",
-      a: `No. drft is a one-time purchase with free updates - buy it once, keep it forever. The $${PRICING.drft.price} launch price is a discount off the regular $${PRICING.drft.msrp}.`,
+      a: `No. drft is a one-time purchase with free updates - buy it once, keep it forever. $${PRICING.drft.price}, off a $${PRICING.drft.msrp} list price.`,
     },
   ],
 
   buy: {
     title: "Get drft",
-    body: `One-time purchase, free updates. The $${PRICING.drft.price} launch price is a discount off $${PRICING.drft.msrp}.`,
+    body: `One-time purchase, free updates. $${PRICING.drft.price}, off a $${PRICING.drft.msrp} list price.`,
   },
 }

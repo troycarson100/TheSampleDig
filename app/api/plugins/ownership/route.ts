@@ -18,8 +18,10 @@ export async function GET() {
     where: { userId: session.user.id, product: { in: [...PLUGIN_ORDER] } },
     select: { product: true },
   })
+  // The Prisma WHERE above already restricts `product` to PLUGIN_ORDER, so
+  // every row here is a known plugin id - no membership check needed.
   for (const p of purchases) {
-    if (p.product in owned) owned[p.product as PluginId] = true
+    owned[p.product as PluginId] = true
   }
 
   return NextResponse.json({ signedIn: true, owned })

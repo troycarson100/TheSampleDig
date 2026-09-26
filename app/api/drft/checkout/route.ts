@@ -11,10 +11,10 @@ import { createPluginCheckoutSession, readAffiliateCodeFromCookie, buyerFromSess
 // the account if there isn't one.
 // Dormant until BOTH env vars are set:
 //   STRIPE_SECRET_KEY     — already used by the subscription checkout
-//   STRIPE_DRFT_PRICE_ID  — the one-time price for drft
+//   STRIPE_DRFT29_PRICE_ID — the one-time price for drft
 export async function POST() {
   const secret = process.env.STRIPE_SECRET_KEY
-  const priceId = process.env.STRIPE_DRFT_PRICE_ID
+  const priceId = process.env.STRIPE_DRFT29_PRICE_ID
   if (!secret || !priceId) {
     return NextResponse.json({ error: "Checkout opens at launch." }, { status: 503 })
   }

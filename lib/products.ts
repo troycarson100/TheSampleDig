@@ -34,7 +34,7 @@ export const PRICING = {
   fltr: { price: 19, msrp: 49 },
   // All three. Struck against the combined MSRP (3 x $49), like every other
   // price on the site strikes list price — not against the three sale prices.
-  bundle: { price: 59, compareAt: 147, msrp: 147 },
+  bundle: { price: 59, compareAt: 147 },
 } as const
 
 export interface ProductAsset {

@@ -25,7 +25,7 @@ export default function AffiliateDashboard({
   payout: { connected: boolean; enabled: boolean }
   connectToken?: string
 }) {
-  // /plugins is the storefront listing both plugins and the bundle. The
+  // /plugins is the storefront listing all three plugins and the bundle. The
   // per-plugin links are for creators making a video about one specific plugin;
   // ?ref= is captured in the root layout, so any page URL would work.
   const storeLink = `${baseUrl}/plugins?ref=${affiliate.code}`

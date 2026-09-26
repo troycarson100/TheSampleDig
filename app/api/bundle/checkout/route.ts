@@ -15,10 +15,10 @@ import { PLUGIN_PRODUCTS } from "@/lib/plugin-products"
 // double-charge. There is no discounted upgrade price to offer a partial owner
 // instead; they buy the singles they are missing. A guest has no ownership to
 // check and pays the bundle price.
-// Dormant until STRIPE_SECRET_KEY + STRIPE_BUNDLE_PRICE_ID are set.
+// Dormant until STRIPE_SECRET_KEY + STRIPE_BUNDLE3_PRICE_ID are set.
 export async function POST() {
   const secret = process.env.STRIPE_SECRET_KEY
-  const priceId = process.env.STRIPE_BUNDLE_PRICE_ID
+  const priceId = process.env.STRIPE_BUNDLE3_PRICE_ID
   if (!secret || !priceId) {
     return NextResponse.json({ error: "Checkout opens at launch." }, { status: 503 })
   }

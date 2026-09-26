@@ -178,12 +178,12 @@ export const SHFT_CONTENT: PluginContent = {
     },
     {
       q: "Is it a subscription?",
-      a: `No. shft is a one-time purchase with free updates — buy it once, keep it forever. The $${PRICING.shft.price} launch price is a discount off the regular $${PRICING.shft.msrp}.`,
+      a: `No. shft is a one-time purchase with free updates — buy it once, keep it forever. $${PRICING.shft.price}, off a $${PRICING.shft.msrp} list price.`,
     },
   ],
 
   buy: {
     title: "Get shft",
-    body: `One-time purchase, free updates. The $${PRICING.shft.price} launch price is a discount off $${PRICING.shft.msrp}.`,
+    body: `One-time purchase, free updates. $${PRICING.shft.price}, off a $${PRICING.shft.msrp} list price.`,
   },
 }

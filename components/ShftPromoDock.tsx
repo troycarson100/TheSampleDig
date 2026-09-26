@@ -112,13 +112,13 @@ export default function ShftPromoDock() {
             </svg>
           </button>
 
-          <span className={styles.badge}>Launch Sale</span>
+          <span className={styles.badge}>Out now</span>
 
           <h2 id="shft-promo-title" className={styles.headline}>
             <span className={styles.brand}>shft</span> is here
           </h2>
           <p className={styles.subcopy}>
-            Our tempo-synced trance-gate plugin just dropped. Grab it now for{" "}
+            Our tempo-synced trance-gate plugin. Get it for{" "}
             <span className={styles.price}>{`$${PRICING.shft.price}`}</span>
             <s className={styles.priceOld}>{`$${PRICING.shft.msrp}`}</s>.
           </p>
