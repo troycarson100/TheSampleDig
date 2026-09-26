@@ -86,6 +86,7 @@ export const DRFT_CONTENT: PluginContent = {
 
   blocks: [
     {
+      osdTag: "TRK 01",
       title: "A picture behind the sound",
       body: "Drop a video, a GIF or a still onto the tube and it plays through the same circuit as your audio. Or go live: any camera your machine can see - a webcam, a capture card, or on a Mac your iPhone over Continuity Camera - point it at your hands, your desk, the room, and that becomes the picture.",
       media: {
@@ -95,6 +96,7 @@ export const DRFT_CONTENT: PluginContent = {
       },
     },
     {
+      osdTag: "TRK 02",
       title: "Six knobs of character",
       body: "BURN scorches it hot, DRIFT lets the tape wander and leaves a blurred echo smearing behind the picture, BEND warps and skews, DROPOUT punches holes in the take, WASH softens everything to mush, NOISE buries it in snow. Sound and picture ride the same knobs - turn one and you hear it and see it move together.",
       media: {
@@ -104,6 +106,7 @@ export const DRFT_CONTENT: PluginContent = {
       },
     },
     {
+      osdTag: "TRK 03",
       title: "When it drops, it drops everywhere",
       body: "Dropouts are wired straight across the machine: the instant one punches a hole in the audio, the picture tears with it. Not a visualizer guessing along - one event, heard and seen.",
       media: {
@@ -113,6 +116,7 @@ export const DRFT_CONTENT: PluginContent = {
       },
     },
     {
+      osdTag: "TRK 04",
       title: "23 generators when you have no footage",
       body: "The FIELD page makes its own picture: 23 generators - flow, plasma, tunnel, kaleido, aurora, caustic, cells, mandala and more - shaped by hue, zoom, glow, tint and flow, with FOLLOW setting how hard they ride your audio. Then blend them: the BLEND fader luma-keys the generator against your video or your live camera, so your footage comes through the pattern instead of replacing it.",
       media: {
@@ -122,6 +126,7 @@ export const DRFT_CONTENT: PluginContent = {
       },
     },
     {
+      osdTag: "TRK 05",
       title: "Break the television, not the tape",
       body: "The CIRCUIT page is six knobs that damage the set itself - and it runs on whatever is already on the tube, so it bends your footage and your camera the same way it bends the generators. The deflection coil pins and bows the raster. The colour reference dies, so the picture stops knowing what colour anything is and reads brightness as hue instead. INJECT puts your waveform into the video line, where bass draws slow curves down the screen and hats comb it into ripples. One DEPTH fader rides all of it at once.",
       media: {
@@ -131,6 +136,7 @@ export const DRFT_CONTENT: PluginContent = {
       },
     },
     {
+      osdTag: "TRK 06",
       title: "A canvas that remembers what you played",
       body: "PAINT is the FIELD page's other half, and a different instrument entirely. Nothing is generated fresh each frame - a buffer is redrawn into itself, turning and drifting and fading, while the transients in your track stamp new marks on top. What you played a few seconds ago is still up there, smeared and rotated away from what you are playing now. Six kinds of mark, including ink marbling that pushes the whole picture outward into nested contours.",
       media: {
@@ -140,6 +146,7 @@ export const DRFT_CONTENT: PluginContent = {
       },
     },
     {
+      osdTag: "TRK 07",
       title: "The picture plays the sound",
       body: "feed reads the frame - how bright, how busy, how broken - and pushes it back into the audio. A hot white flash leans on the sound; a dead channel goes quiet. Run a music video through it and the mix starts breathing with the footage.",
       media: {
@@ -149,6 +156,7 @@ export const DRFT_CONTENT: PluginContent = {
       },
     },
     {
+      osdTag: "TRK 08",
       title: "Press REC, keep the take",
       body: "The REC key captures the tube and the sound together and writes a real MP4 - the export re-renders every frame through the same pipeline, so the file matches what you watched. Frame it 16:9, vertical 9:16 for phones and reels, or ultrawide, and cut circuit-bent music videos straight out of the plugin.",
       media: {

@@ -101,6 +101,7 @@ export function Blocks({ blocks }: { blocks: FeatureBlock[] }) {
       {blocks.map((b, i) => (
         <section key={b.title} className={`${styles.block} ${i % 2 === 1 ? styles.blockAlt : ""}`}>
           <div className={styles.blockCopy}>
+            {b.osdTag ? <p className={styles.blockOsd} aria-hidden>{b.osdTag}</p> : null}
             <h2 className={styles.blockTitle}>{b.title}</h2>
             <p className={styles.blockBody}>{b.body}</p>
           </div>

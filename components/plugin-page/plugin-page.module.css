@@ -65,6 +65,11 @@
 .blockAlt > * { direction: ltr; }
 /* The copy column of .block's two-up grid — same min-width guard as .heroCopy. */
 .blockCopy { min-width: 0; }
+/* Optional per-block OSD label (e.g. drft's "TRK 01") — same silk-screen
+   treatment as the old per-plugin stylesheet, recoloured off the shared
+   accent variable rather than hardcoded so any plugin can use it. Renders
+   nothing for plugins whose blocks don't set FeatureBlock.osdTag. */
+.blockOsd { font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace; font-size: 0.78rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--plugin-accent); margin: 0 0 0.7rem; }
 .blockTitle { font-family: var(--font-geist-sans), system-ui, sans-serif; font-weight: 800; letter-spacing: -0.02em; font-size: clamp(1.4rem, 2.6vw, 2rem); margin: 0 0 12px; }
 .blockBody { font-size: 16px; line-height: 1.6; opacity: 0.82; max-width: var(--measure); margin: 0; }
 /* The media column of .block — same shadow treatment as .heroMedia, scaled down

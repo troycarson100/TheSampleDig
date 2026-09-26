@@ -12,6 +12,8 @@ export interface FeatureBlock {
   title: string
   body: string
   media?: Media
+  /** Small mono label above the title, e.g. "TRK 01". Renders nothing when absent. */
+  osdTag?: string
 }
 
 export interface Capability {
