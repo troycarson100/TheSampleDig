@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import PluginGlyph from "@/components/plugin-page/PluginGlyph"
 import BuyButton from "@/components/plugin-page/BuyButton"
+import { MediaFallback, checkAlreadyFailed } from "@/components/plugin-page/sections"
 import styles from "./plugins.module.css"
 import { trackMeta } from "@/lib/meta-pixel"
 import { pluginList, PLUGINS, type PluginId } from "@/lib/plugins"
@@ -99,6 +100,39 @@ function Bundle({ loading, ownedCount, missing }: {
   )
 }
 
+/**
+ * A card's art, with the same broken-image handling every other media
+ * element on the plugin pages gets from `MediaSlot` — a themed empty panel
+ * instead of the browser's cracked-image glyph plus visible `alt` text. Not
+ * `MediaSlot` itself: that component always adds `plugin-page.module.css`'s
+ * `.media` base class (built for a free-standing hero/block image, complete
+ * with its own border-radius) underneath whatever className is passed, and
+ * layering that onto this card's fixed `.cardImg` thumbnail — sized and
+ * clipped by the card, not by `.media` — would round the image's own bottom
+ * corners and show the card's black media backdrop peeking through, a visual
+ * change to shft's and drft's cards, which load fine today. So this reuses
+ * `MediaSlot`'s actual failure-handling logic — `checkAlreadyFailed` (catches
+ * a load failure that finished before hydration attached `onError`) and
+ * `MediaFallback` (the themed placeholder panel, styled off the same
+ * `--plugin-*` variables `.card` aliases from its own `--card-*` colours) —
+ * without pulling in the styling that does not fit here.
+ */
+function CardMedia({ name, src }: { name: string; src: string }) {
+  const [failed, setFailed] = useState(false)
+  const alt = `${name} plugin interface`
+  if (failed) return <MediaFallback alt={alt} className={styles.cardImg} />
+  return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img
+      ref={(el) => checkAlreadyFailed(el, () => setFailed(true))}
+      className={styles.cardImg}
+      src={src}
+      alt={alt}
+      onError={() => setFailed(true)}
+    />
+  )
+}
+
 export default function PluginsStore() {
   const { loading, ownedCount, missing } = usePluginOwnership()
 
@@ -124,8 +158,7 @@ export default function PluginsStore() {
               ["--card-accent-2" as string]: p.accent2,
             }}>
             <Link href={p.href} className={styles.cardMedia} aria-label={`Learn more about ${p.name}`}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img className={styles.cardImg} src={p.art.card} alt={`${p.name} plugin interface`} />
+              <CardMedia name={p.name} src={p.art.card} />
             </Link>
             <div className={styles.cardBody}>
               <p className={styles.cardEyebrow}>

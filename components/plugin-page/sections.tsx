@@ -17,7 +17,7 @@ import styles from "./plugin-page.module.css"
  * `alt` still reaches assistive tech via `aria-label` on the `role="img"`
  * panel; nothing is rendered as visible text.
  */
-function MediaFallback({ alt, className = "" }: { alt: string; className?: string }) {
+export function MediaFallback({ alt, className = "" }: { alt: string; className?: string }) {
   return (
     <div className={`${styles.media} ${styles.mediaFallback} ${className}`} role="img" aria-label={alt}>
       <svg width="15%" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -38,7 +38,7 @@ function MediaFallback({ alt, className = "" }: { alt: string; className?: strin
  * *after* hydration; this ref callback catches one that already happened by
  * checking the element's own load state the moment it lands in the DOM.
  */
-function checkAlreadyFailed(el: HTMLImageElement | HTMLVideoElement | null, onFail: () => void) {
+export function checkAlreadyFailed(el: HTMLImageElement | HTMLVideoElement | null, onFail: () => void) {
   if (!el) return
   if (el instanceof HTMLImageElement) {
     if (el.complete && el.naturalWidth === 0 && el.src) onFail()
@@ -71,10 +71,17 @@ export function MediaSlot({ media, className = "" }: { media?: Media; className?
 
   // A different source deserves a fresh attempt — without this, a slot that
   // already failed once would never show a real asset dropped in later
-  // without a full remount.
-  useEffect(() => {
+  // without a full remount. Adjusted directly during render (the React-docs
+  // "resetting state when a prop changes" pattern:
+  // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes)
+  // rather than in an effect, so the reset lands in the same render/commit as
+  // the new source instead of one render later, and setFailed never runs
+  // inside a useEffect body.
+  const [prevSrc, setPrevSrc] = useState(media?.src)
+  if (media?.src !== prevSrc) {
+    setPrevSrc(media?.src)
     setFailed(false)
-  }, [media?.src])
+  }
 
   if (!media) return null
   if (failed) return <MediaFallback alt={media.alt} className={className} />
@@ -100,8 +107,8 @@ export function MediaSlot({ media, className = "" }: { media?: Media; className?
     // back to the video itself, paused and with controls, rather than showing
     // nothing: the visitor can still choose to play it.
     if (media.poster) {
-      // eslint-disable-next-line @next/next/no-img-element
       return (
+        // eslint-disable-next-line @next/next/no-img-element
         <img
           ref={(el) => checkAlreadyFailed(el, onError)}
           className={`${styles.media} ${className}`}
@@ -123,8 +130,8 @@ export function MediaSlot({ media, className = "" }: { media?: Media; className?
       />
     )
   }
-  // eslint-disable-next-line @next/next/no-img-element
   return (
+    // eslint-disable-next-line @next/next/no-img-element
     <img
       ref={(el) => checkAlreadyFailed(el, onError)}
       className={`${styles.media} ${className}`}
