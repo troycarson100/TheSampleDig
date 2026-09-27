@@ -4,6 +4,7 @@
  */
 import "dotenv/config"
 import "./ensure-single-db-connection"
+import "./ensure-not-production-db"
 import { prisma } from "@/lib/db"
 
 const YOUTUBE_ID = process.argv[2] || "10llfskRJEs"

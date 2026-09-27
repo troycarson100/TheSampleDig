@@ -15,6 +15,7 @@
 import "dotenv/config"
 import fs from "fs"
 import path from "path"
+import "./ensure-not-production-db"
 import { prisma } from "@/lib/db"
 import { getVideoDetailsFullBatch } from "@/lib/youtube"
 

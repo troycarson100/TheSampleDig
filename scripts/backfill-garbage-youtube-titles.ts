@@ -17,6 +17,7 @@ import { resolve } from "path"
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
 
+import "./ensure-not-production-db"
 import { prisma } from "../lib/db"
 import { ensureUsableYoutubeTitle } from "../lib/database-samples"
 import { titleLooksLikeYoutubePlayerChrome } from "../lib/youtube-title-garbage"

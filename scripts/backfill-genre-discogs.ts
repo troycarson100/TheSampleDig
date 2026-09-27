@@ -21,6 +21,7 @@ import { resolve } from "path"
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
 
+import "./ensure-not-production-db"
 import { prisma } from "../lib/db"
 import { fetchDiscogsGenreForTrack, getDiscogsCredentials } from "../lib/discogs"
 

@@ -74,6 +74,14 @@ export async function POST(request: Request) {
     // session belongs to someone already here: a guest typing that email
     // into Stripe has proven nothing about owning it, so they learn only
     // where the receipt went. The receipt itself still goes to the inbox.
+    //
+    // `purchasedIds` is returned even when withheld: it is not a secret from
+    // whoever holds this session id, since it's exactly what they just paid
+    // for (session.metadata.product/products, resolved through the same
+    // grant call that only a paid, settled session can trigger). Unlike
+    // `items`, it carries no licence key, download link or set-password URL,
+    // so it can safely clear the cart for a returning guest who is not
+    // signed in as the account's owner.
     const signedIn = viewerId === result.userId
     if (!signedIn && !result.accountFromThisPurchase) {
       return NextResponse.json({
@@ -86,6 +94,7 @@ export async function POST(request: Request) {
         setPasswordUrl: null,
         duplicates: [],
         items: [],
+        purchasedIds: result.items.map((i) => i.product),
       })
     }
 
@@ -103,6 +112,7 @@ export async function POST(request: Request) {
       setPasswordUrl,
       duplicates: result.duplicates,
       items: result.items.map((i) => ({ ...i, downloads: downloadsFor(i.product, i.licenseKey) })),
+      purchasedIds: result.items.map((i) => i.product),
     })
   } catch (e) {
     console.error("[plugins claim]", e)

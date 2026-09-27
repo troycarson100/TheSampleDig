@@ -5,6 +5,7 @@
  */
 
 import "dotenv/config"
+import "./ensure-not-production-db"
 import { prisma } from "@/lib/db"
 
 async function main() {

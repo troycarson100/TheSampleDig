@@ -54,6 +54,18 @@ To generate a `NEXTAUTH_SECRET`, run:
 openssl rand -base64 32
 ```
 
+> **Footgun:** in this repo, `.env` holds the **production** Supabase `DATABASE_URL`.
+> `.env.local` overrides it with your local Postgres connection, and Next.js
+> layers both when you run `npm run dev` — but a standalone script started
+> with `node -r dotenv/config` (or a bare `import "dotenv/config"`) loads
+> `.env` alone and will silently read and write production. Put your local
+> `DATABASE_URL` in `.env.local`, not `.env`, and never run a writing script
+> with `-r dotenv/config`. Scripts under `scripts/` that touch the database
+> import `scripts/ensure-not-production-db.ts`, which refuses to run against
+> the production host unless you set `ALLOW_PROD_DB=1` explicitly — if a
+> script exits with that message, it means DATABASE_URL resolved to
+> production and you almost certainly meant to load `.env.local`.
+
 4. Set up the database:
 ```bash
 npx prisma migrate dev

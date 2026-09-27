@@ -20,6 +20,7 @@ import { resolve } from "path"
 
 config({ path: resolve(process.cwd(), ".env") })
 
+import "./ensure-not-production-db"
 import { PrismaClient } from "@prisma/client"
 import {
   analyzeYouTubeVideo,

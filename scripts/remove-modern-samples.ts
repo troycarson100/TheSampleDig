@@ -9,6 +9,7 @@
  */
 
 import "dotenv/config"
+import "./ensure-not-production-db"
 import { prisma } from "@/lib/db"
 import { getVideoDetailsFullBatch } from "@/lib/youtube"
 

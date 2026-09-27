@@ -12,6 +12,7 @@
  */
 
 import { PrismaClient } from "@prisma/client"
+import "./ensure-not-production-db"
 
 const prisma = new PrismaClient()
 

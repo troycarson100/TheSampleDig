@@ -14,6 +14,7 @@ import { writeFileSync } from "fs"
 
 config({ path: resolve(process.cwd(), ".env") })
 
+import "./ensure-not-production-db"
 import { PrismaClient } from "@prisma/client"
 
 function escapeCsv(s: string | null | undefined): string {

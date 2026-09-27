@@ -11,6 +11,7 @@
  * format is identical either way, so nothing here is thrown away when that ships.
  */
 import "./load-env" // must precede lib/db — see that file
+import "./ensure-not-production-db"
 import { prisma } from "../lib/db"
 import { normalizeLicenseKey } from "../lib/license-key"
 import { decideSeat, validMachineIds, SEAT_LIMIT } from "../lib/license-activation"

@@ -24,6 +24,11 @@ type Claim = {
   setPasswordUrl: string | null
   duplicates: string[]
   items: Item[]
+  /** Product ids this Stripe session paid for, present even when `withheld`
+   *  is true. Not a secret from whoever holds the session id - it is what
+   *  they just bought - so it is safe to use for clearing the cart even when
+   *  keys and download links are not. */
+  purchasedIds: PluginId[]
 }
 
 type State =
@@ -184,11 +189,13 @@ export default function ThanksPage() {
         // is the one place a purchase is confirmed, so it's the one place
         // the ids it actually paid for come out of the cart — only those
         // ids, not the whole cart, in case something else was added since.
-        // `claim.items` is what grantPluginPurchase resolved for this
-        // session (fresh grants and already-owned duplicates alike), and
-        // removeMany no-ops on ids no longer present, so reloading /thanks
-        // after the cart has already been cleared changes nothing.
-        if (claim) removeMany(claim.items.map((item) => item.product))
+        // `claim.purchasedIds` is what grantPluginPurchase resolved for this
+        // session (fresh grants and already-owned duplicates alike) and is
+        // present even when the claim is withheld, so a returning guest who
+        // is not signed in still gets their cart cleared. removeMany no-ops
+        // on ids no longer present, so reloading /thanks after the cart has
+        // already been cleared changes nothing.
+        if (claim) removeMany(claim.purchasedIds)
         setState(claim ? { kind: "ready", claim } : { kind: "error" })
       })
       .catch(() => setState({ kind: "error" }))

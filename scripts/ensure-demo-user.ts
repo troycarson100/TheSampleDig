@@ -14,6 +14,7 @@ import bcrypt from "bcryptjs"
 config({ path: resolve(process.cwd(), ".env.local") })
 config({ path: resolve(process.cwd(), ".env") })
 
+import "./ensure-not-production-db"
 import { prisma } from "../lib/db"
 
 const DEFAULT_EMAIL = "try@sampleroll.com"

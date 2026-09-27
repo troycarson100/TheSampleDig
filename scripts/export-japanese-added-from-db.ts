@@ -5,6 +5,7 @@
 import "dotenv/config"
 import { writeFile } from "fs/promises"
 import path from "path"
+import "./ensure-not-production-db"
 import { PrismaClient } from "@prisma/client"
 
 const prisma = new PrismaClient()

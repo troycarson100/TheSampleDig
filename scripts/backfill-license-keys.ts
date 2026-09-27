@@ -1,14 +1,25 @@
 /**
  * Mints licence keys for purchases that predate licensing.
  *
- *   npx tsx -r dotenv/config scripts/backfill-license-keys.ts              # dry run
- *   npx tsx -r dotenv/config scripts/backfill-license-keys.ts --commit
- *   npx tsx -r dotenv/config scripts/backfill-license-keys.ts --commit --email
+ *   npx tsx scripts/backfill-license-keys.ts              # dry run
+ *   npx tsx scripts/backfill-license-keys.ts --commit
+ *   npx tsx scripts/backfill-license-keys.ts --commit --email
+ *
+ * Loads .env.local ahead of .env itself, so plain `npx tsx` is enough - do
+ * NOT run this with `-r dotenv/config`, which loads .env alone. `.env` here
+ * is the PRODUCTION DATABASE_URL, and this script writes Purchase rows.
  *
  * Idempotent: a purchase that already has a key is never touched, so this can
  * be re-run safely. Keys are minted and mailed as SEPARATE passes so a failing
  * mail server cannot leave a purchase keyless.
  */
+import { config } from "dotenv"
+import { resolve } from "path"
+
+config({ path: resolve(process.cwd(), ".env.local") })
+config({ path: resolve(process.cwd(), ".env") })
+
+import "./ensure-not-production-db"
 import { prisma } from "../lib/db"
 import { generateLicenseKey } from "../lib/license-key"
 import { sendPluginPurchaseEmail } from "../lib/email"

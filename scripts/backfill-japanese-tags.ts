@@ -8,6 +8,7 @@ import "dotenv/config"
 import "./ensure-single-db-connection"
 import { readFile } from "fs/promises"
 import path from "path"
+import "./ensure-not-production-db"
 import { prisma } from "@/lib/db"
 
 const FILE = path.resolve(process.cwd(), "300-rare-japanese-tracks-added.txt")
