@@ -19,11 +19,16 @@ const perIp = new SlidingWindowLimiter(10, MINUTE)
 
 export async function POST(request: Request) {
   // DigitalOcean App Platform puts its own ingress address in x-forwarded-for
-  // and exposes the real client in do-connecting-ip; locally there is neither.
+  // and exposes the real client in do-connecting-ip; production always has
+  // one or the other. A fallback to a single fixed key would put every
+  // client missing both (local dev, or a misconfigured proxy) in one shared
+  // bucket, letting them lock each other out - a random per-request key
+  // instead leaves that path effectively unthrottled rather than unfairly
+  // throttled, which is fine since it is not a shape production traffic has.
   const ip =
     request.headers.get("do-connecting-ip")?.trim() ||
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "unknown"
+    `unknown:${crypto.randomUUID()}`
   if (!perIp.allow(ip)) {
     return NextResponse.json({ error: "Too many requests." }, { status: 429 })
   }
@@ -34,10 +39,26 @@ export async function POST(request: Request) {
     return NextResponse.json({ owned: [] })
   }
 
-  const user = await prisma.user.findFirst({
-    where: { email: { equals: email, mode: "insensitive" } },
-    select: { id: true },
-  })
+  // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
+  // compiles to an unescaped ILIKE and lets "%"/"_" in the address act as
+  // wildcards ("%@%.%" would match anyone, defeating the rate limit above).
+  // Safe because every write to User.email normalises to lowercase first -
+  // see the identical comment on findByEmail in lib/plugin-purchase-grant.ts.
+  //
+  // Wrapped because a shape that still passes the regex above (e.g. an
+  // embedded NUL byte) can make Postgres itself raise on the query - that is
+  // still just "this isn't an address we know", the same as any other
+  // no-match, not a fault worth a 500.
+  let user: { id: string } | null
+  try {
+    user = await prisma.user.findFirst({
+      where: { email },
+      select: { id: true },
+    })
+  } catch (e) {
+    console.error("[cart owned] lookup failed", e)
+    return NextResponse.json({ owned: [] })
+  }
   if (!user) return NextResponse.json({ owned: [] })
 
   const purchases = await prisma.purchase.findMany({

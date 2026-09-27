@@ -27,26 +27,39 @@ import { SlidingWindowLimiter } from "@/lib/resend-rate-limit"
 // is passed to Stripe as customer_email, which Stripe renders read-only, so
 // the address that was checked is the address Checkout collects payment for.
 //
-// Rate-limited per IP for the same reason /api/cart/owned is: the 409 replies
-// below say exactly what an address owns, which makes this route as good an
-// ownership oracle as that one if left unthrottled.
+// Rate-limited per IP for the same reason /api/cart/owned is: every response
+// below (a 409 naming what's owned, and even the outcome of a 400 or a 200)
+// says something about the address asked about, which makes this route as
+// good an ownership oracle as that one if left unthrottled.
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MINUTE = 60_000
-// Tighter than /api/cart/owned's 10/min: every request here also creates a
-// real (if unpaid) Stripe Checkout Session, not just a read, so there is more
-// reason to keep it low. A genuine buyer does not POST here more than a
-// couple of times a minute even fumbling a cart or an email typo; 5/min still
-// leaves room for that while cutting full-speed ownership enumeration to a
-// fifth of what /api/cart/owned already limits it to.
-const perIp = new SlidingWindowLimiter(5, MINUTE)
+// Matches /api/cart/owned's 10/min exactly, rather than being stricter: the
+// disclosure this defends against is the same shape and size as that
+// endpoint's. The cost that's unique to this route - one unpaid Stripe
+// Checkout Session - only applies to the outcomes that actually reach
+// Stripe (a 200), not to the 400/409s a legitimate buyer's retries mostly
+// produce (an email typo, a cart with an owned item still in it); an
+// abandoned unpaid session costs nothing and simply expires. Counting only
+// successful session creations was considered instead, but that would let an
+// attacker send unlimited 409-triggering requests at full speed - the
+// already_owned reply is itself the leak this limiter exists to slow down,
+// not just a successful charge - so every outcome counts against the limit.
+const perIp = new SlidingWindowLimiter(10, MINUTE)
 
 export async function POST(request: Request) {
   // DigitalOcean App Platform puts its own ingress address in x-forwarded-for
-  // and exposes the real client in do-connecting-ip; locally there is neither.
+  // and exposes the real client in do-connecting-ip; production always has
+  // one or the other. Locally, or behind a proxy that sets neither, there is
+  // no way to tell requests apart - falling back to a fixed "unknown" key
+  // would put every such client in one shared bucket, so five unrelated
+  // people sharing that gap could lock each other out. A random per-request
+  // key instead means this path is effectively unthrottled rather than
+  // unfairly throttled; it is not a live gap in production; where an IP is
+  // always present.
   const ip =
     request.headers.get("do-connecting-ip")?.trim() ||
     request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
-    "unknown"
+    `unknown:${crypto.randomUUID()}`
   if (!perIp.allow(ip)) {
     return NextResponse.json({ error: "Too many requests." }, { status: 429 })
   }
@@ -71,7 +84,17 @@ export async function POST(request: Request) {
   }
 
   // Rule 2: what does this buyer actually own? Never taken from the request.
-  const ownedIds = await ownedProductsFor(buyer?.id ?? null, postedEmail)
+  // The lookup itself can throw on an input that looks like an email but
+  // isn't one Postgres will accept (e.g. an embedded NUL byte raises an
+  // uncaught encoding error) - that is still an input problem, not a server
+  // fault, so it is a 400 too rather than an unhandled 500.
+  let ownedIds: string[]
+  try {
+    ownedIds = await ownedProductsFor(buyer?.id ?? null, postedEmail)
+  } catch (e) {
+    console.error("[cart checkout] ownership lookup failed", e)
+    return NextResponse.json({ error: "Sign in or provide a valid email to check out." }, { status: 400 })
+  }
 
   // Rule 3: the client's cart is never trusted. A cart with some owned items
   // reports "already_owned" and names them, even when it is fully owned -
@@ -126,6 +149,14 @@ export async function POST(request: Request) {
     })
     return NextResponse.json({ url: checkout.url })
   } catch (e) {
+    // An address that passes EMAIL_RE's loose shape check can still be one
+    // Stripe's own, stricter validation rejects (e.g. a quoted display name).
+    // That is an input problem on our side of the line - our own message,
+    // not Stripe's internal error text, and a 400, not a 500.
+    if (e instanceof Stripe.errors.StripeInvalidRequestError && e.param === "customer_email") {
+      console.error("[cart checkout] Stripe rejected the guest email", e)
+      return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 })
+    }
     console.error("[cart checkout]", e)
     return NextResponse.json({ error: e instanceof Error ? e.message : "Checkout failed" }, { status: 500 })
   }
@@ -144,13 +175,21 @@ function withPrice(priceId: string | undefined): { price: string; quantity: numb
 /** What this buyer owns, looked up by user id when signed in or by email for
  *  a guest - never taken from the request body. Unknown user, unknown email,
  *  or no email at all all resolve to "owns nothing", the same shape checkCart
- *  already treats a brand-new buyer as. */
+ *  already treats a brand-new buyer as.
+ *
+ *  Looked up with a plain, pre-lowercased equals - not Prisma's
+ *  `mode: "insensitive"`, which compiles to an unescaped ILIKE, letting "%"
+ *  and "_" in the posted address act as wildcards ("rev_y@x.com" would match
+ *  "revXy@x.com"; "%@%.%" would match anyone, defeating the rate limit
+ *  below). Safe because every write to User.email normalises to lowercase
+ *  first - see the identical comment on findByEmail in
+ *  lib/plugin-purchase-grant.ts, which this mirrors on purpose. */
 async function ownedProductsFor(userId: string | null, email: string): Promise<string[]> {
   let ownerId = userId
   if (!ownerId) {
     if (!email) return []
     const user = await prisma.user.findFirst({
-      where: { email: { equals: email, mode: "insensitive" } },
+      where: { email: email.trim().toLowerCase() },
       select: { id: true },
     })
     if (!user) return []

@@ -62,12 +62,39 @@ export async function readAffiliateCodeFromCookie(label: string): Promise<string
  * before the cart existed) or `lineItems` (one entry per cart product, or a
  * single bundle-priced entry when the cart is the whole catalog) — adding the
  * second shape here, rather than a second session builder, is what keeps the
- * two from drifting apart. `metadata` is merged in FIRST, so a caller-supplied
- * field can only add keys, never override `product`, `userId`/`guest`,
- * `affiliateCode` or the attribution snapshot - the fields that decide who a
- * session belongs to and what it grants must always come from this function,
- * never from a caller's metadata object.
+ * two from drifting apart. Any of `RESERVED_METADATA_KEYS` present in a
+ * caller's `metadata` is dropped before merging - not merely overridden by a
+ * later spread, which only protects a key the branch actually sets this call
+ * (a guest session never sets `userId`, so an override-by-spread would still
+ * have let a caller's `userId` survive on exactly that branch). Stripping the
+ * reserved keys unconditionally means a caller can only ever add genuinely
+ * new keys, never spoof, widen or blank the fields that decide who a session
+ * belongs to and what it grants, regardless of which branch is live.
  */
+/** Metadata keys this function alone decides - see createPluginCheckoutSession's
+ *  doc comment. Kept in sync with the fields the session-create call below
+ *  actually sets: `product`, the userId/guest pair, `affiliateCode`, and
+ *  whatever readAttributionMetadata's four keys are. */
+const RESERVED_METADATA_KEYS = [
+  "product",
+  "userId",
+  "guest",
+  "affiliateCode",
+  "attrVisitorId",
+  "attrReferrer",
+  "attrSource",
+  "attrCampaign",
+] as const
+
+function withoutReservedKeys(metadata: Record<string, string> | undefined): Record<string, string> {
+  if (!metadata) return {}
+  const clean: Record<string, string> = {}
+  for (const [key, value] of Object.entries(metadata)) {
+    if (!(RESERVED_METADATA_KEYS as readonly string[]).includes(key)) clean[key] = value
+  }
+  return clean
+}
+
 export async function createPluginCheckoutSession(
   stripe: Stripe,
   opts: {
@@ -103,7 +130,7 @@ export async function createPluginCheckoutSession(
     allow_promotion_codes: true,
     ...(buyer ? { client_reference_id: buyer.id } : {}),
     metadata: {
-      ...opts.metadata,
+      ...withoutReservedKeys(opts.metadata),
       product: opts.product,
       ...(buyer ? { userId: buyer.id } : { guest: "1" }),
       ...(opts.affiliateCode ? { affiliateCode: opts.affiliateCode } : {}),

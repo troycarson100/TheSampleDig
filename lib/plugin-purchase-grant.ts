@@ -39,8 +39,17 @@ const buyerSelect = { id: true, email: true, passwordSetAt: true, createdAt: tru
 const isUniqueViolation = (e: unknown) =>
   typeof e === "object" && e !== null && (e as { code?: string }).code === "P2002"
 
+// Case-insensitive by comparing a pre-lowercased value, not Prisma's
+// `mode: "insensitive"` - that compiles to ILIKE, and Prisma does not escape
+// the value, so "%" and "_" in an address are live wildcards. "rev_y@x.com"
+// would match "revXy@x.com"; "%@%.%" would match anyone. That is bad enough
+// as an ownership leak, and worse here: this function is on the purchase
+// grant path, so it would grant one buyer's payment onto a stranger's
+// account. Safe to compare with a plain equals because every write to
+// User.email normalises to lowercase first (register, and the guest-account
+// create just below) - confirmed against production data before this change.
 async function findByEmail(email: string): Promise<Buyer | null> {
-  return prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } }, select: buyerSelect })
+  return prisma.user.findFirst({ where: { email: email.trim().toLowerCase() }, select: buyerSelect })
 }
 
 async function resolveBuyer(session: Stripe.Checkout.Session): Promise<Buyer | null> {
