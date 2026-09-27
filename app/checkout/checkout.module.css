@@ -1,0 +1,176 @@
+/* Site page, not a plugin page — background/foreground come from the same
+   --background/--foreground tokens app/products and app/redeem use, not a
+   plugin's --plugin-ground/--plugin-ink. Order-summary rows still borrow each
+   plugin's own accent via --row-accent, same trick as cart-drawer.module.css.
+
+   globals.css sets a monospace body font sitewide (body { font-family: IBM
+   Plex Mono }) as an unlayered rule, which beats Tailwind's layered
+   `font-sans` utility on <body> regardless of specificity — so this page
+   cannot rely on inheriting a sans stack. .layout and .empty declare
+   var(--font-geist-sans) explicitly for that reason; numbers opt back into
+   var(--font-ibm-mono) below, matching the house convention. */
+
+.layout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 40px;
+  align-items: start;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+
+.empty {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 12px;
+  padding: 48px 0;
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+}
+.emptyText { margin: 0; font-size: 15px; line-height: 1.5; color: var(--foreground); opacity: 0.75; max-width: 34ch; }
+.emptyLink { color: var(--primary); font-weight: 600; text-decoration: none; }
+.emptyLink:hover { text-decoration: underline; }
+.emptyLink:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; border-radius: 4px; }
+
+/* ---- identification side (left) ----------------------------------------- */
+.identify { min-width: 0; }
+.pageTitle {
+  margin: 0 0 20px; font-size: 24px; font-weight: 700; letter-spacing: -0.01em;
+  color: var(--foreground);
+}
+
+.ownedNotice {
+  margin: 0 0 16px; padding: 12px 14px; border-radius: 10px;
+  background: rgba(184, 92, 56, 0.1); color: var(--foreground);
+  font-size: 13px; line-height: 1.5;
+}
+
+.form { display: flex; flex-direction: column; gap: 18px; }
+
+.identifyLoading {
+  height: 168px; border-radius: 10px;
+  background: linear-gradient(90deg, var(--muted-light) 25%, var(--border) 50%, var(--muted-light) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .identifyLoading { animation: none; }
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.account {
+  padding: 16px 18px; border: 1px solid var(--border); border-radius: 10px;
+}
+.accountLabel {
+  margin: 0 0 4px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted); opacity: 0.8;
+}
+.accountEmail { margin: 0 0 12px; font-size: 15px; font-weight: 600; color: var(--foreground); word-break: break-all; }
+.switchAccount {
+  background: none; border: none; padding: 0; cursor: pointer;
+  font-size: 13px; font-weight: 600; color: var(--foreground); opacity: 0.7;
+  text-decoration: underline; text-underline-offset: 2px;
+}
+.switchAccount:hover { opacity: 1; }
+.switchAccount:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+
+.signInPrompt { margin: 0; font-size: 13px; color: var(--foreground); opacity: 0.75; }
+.signInLink { color: var(--primary); font-weight: 600; text-decoration: underline; text-underline-offset: 2px; }
+.signInLink:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; border-radius: 4px; }
+
+.field { display: flex; flex-direction: column; gap: 6px; }
+.label { font-size: 13px; font-weight: 600; color: var(--foreground); }
+.input {
+  width: 100%; padding: 12px 14px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--muted-light); color: var(--foreground); font-size: 15px;
+  font-family: inherit;
+}
+.input:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+.input[aria-invalid="true"] { border-color: #b91c1c; }
+
+.fieldError { margin: 0; font-size: 12.5px; line-height: 1.4; color: #b91c1c; }
+
+/* Always in the DOM (see CheckoutForm.tsx) so its text appearing or clearing
+   never shifts the submit button below it. */
+.ownershipStatus { margin: -6px 0 0; min-height: 18px; font-size: 12.5px; line-height: 1.4; color: var(--foreground); opacity: 0.65; }
+
+.submitError {
+  margin: 0; padding: 10px 12px; border-radius: 8px; font-size: 13px; line-height: 1.4;
+  background: rgba(185, 28, 28, 0.08); color: #b91c1c;
+}
+
+.submit {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 100%; padding: 14px; border: none; border-radius: 10px; margin-top: 4px;
+  background: linear-gradient(90deg, var(--rust, #b85c38) 0%, var(--gold, #c9933a) 100%);
+  color: #1c140f; font-weight: 700; font-size: 15px; cursor: pointer;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.submit:hover:not(:disabled) { filter: brightness(1.04); }
+.submit:disabled { opacity: 0.55; cursor: default; }
+.submit:focus-visible { outline: 2px solid var(--rust, #b85c38); outline-offset: 3px; }
+
+/* ---- order summary (right) ----------------------------------------------- */
+.summary {
+  border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+  background: var(--muted-light, var(--background));
+  position: sticky; top: 88px;
+}
+.summaryTitle {
+  margin: 0 0 14px; font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--muted); opacity: 0.85;
+}
+
+.lines { list-style: none; margin: 0; padding: 0; }
+
+.line {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 0; border-bottom: 1px solid var(--border);
+}
+.lines > .line:last-child { border-bottom: none; }
+.lineGlyph { flex: none; color: var(--row-accent, var(--primary)); }
+.lineText { display: flex; flex-direction: column; min-width: 0; flex: 1 1 auto; }
+.lineName { font-size: 15px; font-weight: 600; color: var(--foreground); }
+.lineCategory {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.6; margin-top: 2px;
+  color: var(--foreground);
+}
+.linePrice {
+  flex: none; display: flex; align-items: baseline; gap: 6px;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums;
+}
+.price { font-size: 14px; font-weight: 600; color: var(--foreground); }
+.msrp { font-size: 12px; opacity: 0.5; color: var(--foreground); }
+
+.bundleLine {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 14px; margin-top: 6px; border-bottom: none; border-radius: 10px;
+  background: linear-gradient(90deg, rgba(184, 92, 56, 0.12) 0%, rgba(201, 147, 58, 0.12) 100%);
+}
+.bundleLabel { font-size: 13px; font-weight: 600; color: var(--foreground); }
+.bundleSaving {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 700; color: var(--rust, #b85c38);
+}
+
+.dueRow {
+  display: flex; align-items: baseline; justify-content: space-between;
+  margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border);
+}
+.dueLabel { font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); opacity: 0.85; }
+.dueValue { display: flex; align-items: baseline; gap: 8px; }
+.dueTotal {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums; font-size: 20px; font-weight: 700; color: var(--foreground);
+}
+.dueMsrp {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums; font-size: 14px; opacity: 0.5; color: var(--foreground);
+}
+
+@media (max-width: 860px) {
+  .layout { grid-template-columns: 1fr; gap: 28px; }
+  .summary { position: static; }
+}
