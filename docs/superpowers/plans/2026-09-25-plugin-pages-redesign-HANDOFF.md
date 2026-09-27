@@ -104,9 +104,62 @@ have *opposite* failure policies for the same fact: `useOwnsShft` fails open to 
 while `usePluginOwnership` surfaces `error` precisely so nothing is offered on unknown
 ownership. Consolidating them halves the requests and removes the divergence.
 
-## Next project — cart and checkout
+## Increment 2, spec A — cart and checkout (complete, 2026-09-27)
 
-Decided during this work, not yet specced:
+Shipped on this branch. A slide-out cart holds any combination of plugins; a `/checkout`
+page identifies the buyer by session or email **before** Stripe; the server re-checks
+ownership and never trusts the posted cart; one multi-line-item Stripe session takes the
+money. `/plugins` is retired — the cart is the bundle's home.
+
+**Buying without an account still works.** What was removed is *anonymous* checkout, not
+guest checkout: the email is now typed on our page rather than Stripe's, one step earlier,
+which is what makes it possible to check what someone owns before charging them. The
+existing machinery still creates and verifies their account after purchase and mints a
+set-password link.
+
+**Reviews on this increment found three defects the implementers' own testing could not
+see**, each because they were verifying their design worked rather than trying to break it:
+
+1. **A bypassable ownership gate.** The route accepted any non-empty string as an email and
+   never forwarded it to Stripe, so the checked address was not the charged address. A
+   guest owning one plugin could POST `{"email":"."}` and buy the $59 bundle. It also fired
+   on an ordinary typo.
+2. **An unescaped `ILIKE` email lookup.** Prisma's `mode: "insensitive"` compiles to
+   `WHERE email ILIKE $1` **unescaped**, so `_` and `%` in an address act as wildcards.
+   `john_smith@example.com` could resolve to `johnXsmith@example.com`. Binding
+   `customer_email` made it reachable from the grant path — a payment could land on a
+   stranger's account. Fixed across **all ten** call sites, including login, password reset
+   and licence-key resend, by dropping `mode: "insensitive"` for a plain comparison against
+   a pre-lowercased value. Verified safe: 1,736 user rows, 0 mixed-case, all 20 write sites
+   lowercase first.
+3. **The cart was never emptied after a purchase.** `clear()` existed and was called from
+   nowhere, and the ownership drop effect cannot fire for a guest. The double-charge hole
+   reopened from the other end, one typo later. Now cleared at `/thanks`, including for
+   returning guests whose claim is withheld.
+
+**Production database footgun — fixed, but know it existed.** `.env` holds production
+Supabase credentials and `.env.local` overrides them. Next.js layers the two, but a
+standalone script run with `node -r dotenv/config` loads only `.env` and hits **production**
+— which is how a stray test row briefly reached the live database during this work. It was
+deleted. `scripts/ensure-not-production-db.ts` now refuses to run any of the 19
+Prisma-touching scripts against a Supabase host unless `ALLOW_PROD_DB=1` is set.
+`lib/db.ts` is untouched, so the deployed app is unaffected.
+
+**Lint baseline is now 299**, down from 300 because deleting `PluginsStore.tsx` removed a
+pre-existing error with the file. Treat a change in either direction as worth checking.
+
+## Next project — spec C, the interactive hotspot hero
+
+Still to do, and the last piece of the audio-spices comparison:
+
+- A hoverable product image on each plugin page where each knob explains itself, with the
+  video loop moved below it.
+- **Content-heavy**: it needs a hotspot coordinate and a line of copy for every control on
+  three plugins. The copy can be drafted from the changelogs, the manual and the FLTR spec,
+  but it needs Troy's correction — and FLTR's cannot be built at all until
+  `public/fltr/hero.png` exists.
+
+## Earlier cart decisions, now implemented
 
 - **Cart**, slide-out, in the style of audio-spices.com. Pricing: items sit at their single
   price and the $59 bundle price applies automatically once all three are in the cart, shown
