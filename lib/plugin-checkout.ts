@@ -47,18 +47,26 @@ export async function readAffiliateCodeFromCookie(label: string): Promise<string
  * One-time Checkout Session for a plugin, the bundle, or an arbitrary cart.
  *
  * `buyer` is null for a guest. A signed-in buyer's id is stamped as
- * client_reference_id and metadata.userId and their email prefilled; a guest
- * gets neither, types their email into Checkout, and that address is the
- * only identity the webhook has to attach the purchase to. metadata.guest
- * marks those sessions in the Stripe dashboard.
+ * client_reference_id and metadata.userId and their email prefilled. A guest
+ * with no `guestEmail` gets neither and types their email into Checkout fresh
+ * - the pattern every single-plugin/bundle route still uses, where there is
+ * nothing upstream to bind to. `guestEmail` is for a caller that has already
+ * checked something (ownership, ownership-by-email) against a specific
+ * address before creating the session: passing it as `customer_email` makes
+ * Stripe render that field read-only, so the identity that was checked is the
+ * identity Checkout collects payment for and the webhook grants to - it
+ * cannot be swapped for a different address at the payment step. metadata.guest
+ * marks guest sessions (with or without a bound email) in the Stripe dashboard.
  *
  * Pass exactly one of `priceId` (the single-item shape every route used
  * before the cart existed) or `lineItems` (one entry per cart product, or a
  * single bundle-priced entry when the cart is the whole catalog) — adding the
  * second shape here, rather than a second session builder, is what keeps the
- * two from drifting apart. `metadata` is merged in last so a caller can add
- * fields (the cart route stamps `products`) without touching the fields
- * every caller already relies on.
+ * two from drifting apart. `metadata` is merged in FIRST, so a caller-supplied
+ * field can only add keys, never override `product`, `userId`/`guest`,
+ * `affiliateCode` or the attribution snapshot - the fields that decide who a
+ * session belongs to and what it grants must always come from this function,
+ * never from a caller's metadata object.
  */
 export async function createPluginCheckoutSession(
   stripe: Stripe,
@@ -70,6 +78,10 @@ export async function createPluginCheckoutSession(
     cancelPath: CancelPath
     buyer: CheckoutBuyer | null
     affiliateCode: string | null
+    /** A guest identity already checked against something by the caller (see
+     *  above). Ignored when `buyer` is set - a signed-in buyer's own email
+     *  always wins. */
+    guestEmail?: string | null
     metadata?: Record<string, string>
   },
 ): Promise<Stripe.Checkout.Session> {
@@ -79,22 +91,23 @@ export async function createPluginCheckoutSession(
   if (lineItems.length === 0) {
     throw new Error("createPluginCheckoutSession: neither priceId nor lineItems was given")
   }
+  const customerEmail = buyer?.email ?? opts.guestEmail ?? null
   return stripe.checkout.sessions.create({
     mode: "payment",
     payment_method_types: ["card"],
     line_items: lineItems,
     ...checkoutUrls(checkoutBaseUrl(), opts.product, opts.paid, opts.cancelPath),
     customer_creation: "always",
-    ...(buyer?.email ? { customer_email: buyer.email } : {}),
+    ...(customerEmail ? { customer_email: customerEmail } : {}),
     billing_address_collection: "auto",
     allow_promotion_codes: true,
     ...(buyer ? { client_reference_id: buyer.id } : {}),
     metadata: {
+      ...opts.metadata,
       product: opts.product,
       ...(buyer ? { userId: buyer.id } : { guest: "1" }),
       ...(opts.affiliateCode ? { affiliateCode: opts.affiliateCode } : {}),
       ...attrMetadata,
-      ...opts.metadata,
     },
     custom_fields: [
       {
