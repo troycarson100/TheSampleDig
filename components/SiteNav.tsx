@@ -55,7 +55,9 @@ export default function SiteNav() {
   const closeBtnRef = useRef<HTMLButtonElement>(null)
   const wasMenuOpenRef = useRef(false)
   const isActive = (path: string) => pathname === path || (path !== "/dig" && pathname?.startsWith(path))
-  const onPluginPage = isActive("/plugins") || pluginList().some((p) => isActive(p.href))
+  // /plugins now only ever redirects (to /shft), so pathname can never equal
+  // it - the "on a plugin page" check is just "on one of the plugin pages".
+  const onPluginPage = pluginList().some((p) => isActive(p.href))
   const isAffiliate = useIsAffiliate()
 
   useEffect(() => setMounted(true), [])
@@ -269,11 +271,11 @@ export default function SiteNav() {
               </button>
             )}
             <Link
-              href="/plugins"
+              href="/shft"
               className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${onPluginPage ? navLinkActive : ""}`}
               style={navLinkStyle}
               onClick={closeMenu}
-              aria-current={pathname === "/plugins" ? "page" : undefined}
+              aria-current={pathname === "/shft" ? "page" : undefined}
             >
               Plugins
             </Link>

@@ -8,6 +8,10 @@ test("checkoutUrls: success lands on /thanks with the session placeholder, produ
 })
 
 test("checkoutUrls: cancel returns to the page the buyer left", () => {
-  assert.equal(checkoutUrls("http://localhost:3000", "bundle", 34, "/plugins").cancel_url, "http://localhost:3000/plugins?purchase=canceled")
+  // "bundle" is still a real CompProduct (comp codes can grant it), but
+  // nothing constructs a checkout session for it with a dedicated cancel
+  // page anymore - cart checkout is the only path that sells a bundle, and
+  // it cancels back to /checkout like everything else in the cart.
+  assert.equal(checkoutUrls("http://localhost:3000", "bundle", 34, "/checkout").cancel_url, "http://localhost:3000/checkout?purchase=canceled")
   assert.equal(checkoutUrls("http://localhost:3000", "drft", 15, "/drft").cancel_url, "http://localhost:3000/drft?purchase=canceled")
 })

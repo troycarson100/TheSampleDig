@@ -185,7 +185,7 @@ export default function ThanksPage() {
         <p className="text-[15px]" style={muted}>
           Looking for your downloads?{" "}
           <Link href="/products" className="underline">My Products</Link> has them, or{" "}
-          <Link href="/plugins" className="underline">browse the plugins</Link>.
+          <Link href="/shft" className="underline">browse the plugins</Link>.
         </p>
       </>
     )

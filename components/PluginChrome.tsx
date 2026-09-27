@@ -77,7 +77,7 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
   // 4. Owns one or two: offer only what is missing, at single price.
   if (ownedCount > 0) {
     const total = missing.reduce((sum, id) => sum + PRICING[id].price, 0)
-    const href = missing.length === 1 ? PLUGINS[missing[0]].href : "/plugins"
+    const href = missing.length === 1 ? PLUGINS[missing[0]].href : "/shft"
     return (
       <div className={styles.strip} data-sale-strip data-strip-variant="partial">
         <Link href={href} className={styles.stripInner}>
