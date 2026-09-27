@@ -98,7 +98,18 @@
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
 .pillGlyph { color: var(--pill-accent); }
-.rail .pill:hover { border-color: var(--pill-accent); }
+/* globals.css:429 sets `.theme-vinyl nav a:hover { color: rgba(240,235,225,.7) }`
+   for the dark site nav. These pills are anchors inside a <nav> but on a CREAM
+   ground, so that rule turned their labels near-white and invisible on hover.
+   `.rail .pill:hover` is (0,2,0) and loses to its (0,2,2); prefixing `.chrome`
+   takes this to (0,3,0), which wins without !important. The tint is what makes
+   the hover legible as a hover rather than only a border change. */
+.chrome .rail .pill:hover {
+  color: var(--chrome-ink);
+  background: rgba(36, 33, 29, 0.07);
+  border-color: var(--pill-accent);
+}
+.chrome .rail .pill[data-active="true"]:hover { color: var(--chrome-ground); }
 .rail .pill[data-active="true"] {
   background: var(--chrome-ink); color: var(--chrome-ground); border-color: var(--chrome-ink);
 }
@@ -136,7 +147,15 @@
   font-size: 13px; letter-spacing: 0.04em;
   transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
 }
-.rail .cartButton:hover { border-color: var(--chrome-ink); }
+/* Same specificity problem as the pills: the cart control is a <button>, so the
+   sitewide `nav a:hover` cannot reach it, but `.nav-tab-link` styling could — and
+   keeping both hovers identical is what makes the rail read as one row. */
+.chrome .rail .cartButton:hover {
+  color: var(--chrome-ink);
+  background: rgba(36, 33, 29, 0.07);
+  border-color: var(--chrome-ink);
+}
+.cartIcon { display: block; flex: none; }
 .rail .cartButton:focus-visible { outline: 2px solid var(--chrome-ink); outline-offset: 2px; }
 .cartCount {
   display: inline-flex; align-items: center; justify-content: center;

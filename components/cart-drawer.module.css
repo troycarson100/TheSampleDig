@@ -7,16 +7,21 @@
    the other way around, or the scrim would paint over the drawer's own
    controls. */
 
-.root { position: fixed; inset: 0; z-index: 80; }
+.root { position: fixed; inset: 0; z-index: 999; }
 
 .scrim {
-  position: fixed; inset: 0; z-index: 80;
+  position: fixed; inset: 0; z-index: 999;
   background: rgba(20, 17, 14, 0.5);
   animation: scrimIn 180ms ease-out;
 }
 
+/* Above the site header, which is `position: fixed; z-index: 500` and covers the
+   top 56px. At the drawer's original z-index of 81 the header painted over this
+   panel's own header — the close button was focusable and Escape worked, so
+   automated checks passed, but the button could not actually be clicked. A modal
+   belongs above the page chrome it is modal over. */
 .panel {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 81;
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 1000;
   width: min(420px, 100vw);
   display: flex; flex-direction: column;
   background: #efe9dc; color: #24211d;
@@ -40,7 +45,6 @@
 .header {
   display: flex; align-items: center; justify-content: space-between;
   padding: 20px 20px 16px; flex: none;
-  border-bottom: 1px solid rgba(36, 33, 29, 0.12);
 }
 .title { font-size: 17px; font-weight: 600; margin: 0; letter-spacing: -0.01em; }
 .closeButton, .remove, .droppedDismiss {

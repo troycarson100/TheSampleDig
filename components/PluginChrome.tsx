@@ -167,21 +167,30 @@ export default function PluginChrome({ active }: { active?: PluginId }) {
 
         {/* The only way to open the cart from the site chrome — otherwise it
             appears solely as a side effect of adding something, and an
-            abandoned cart becomes invisible and unreachable. A real button
-            (it opens the drawer in place, never navigates), hidden entirely
-            rather than disabled when there's nothing in it, so it doesn't
-            sit there as dead chrome. */}
-        {cartIds.length > 0 && (
-          <button
-            type="button"
-            className={styles.cartButton}
-            data-cart-button
-            onClick={openCart}
-            aria-label={`Open cart, ${cartIds.length} item${cartIds.length === 1 ? "" : "s"}`}
-          >
-            Cart <span className={styles.cartCount}>{cartIds.length}</span>
-          </button>
-        )}
+            abandoned cart becomes invisible and unreachable. A real button:
+            it opens the drawer in place and never navigates. Always rendered,
+            including at zero, so its position in the rail is constant and the
+            count is a readout rather than an element that appears and
+            disappears under the cursor. */}
+        <button
+          type="button"
+          className={styles.cartButton}
+          data-cart-button
+          onClick={openCart}
+          aria-label={`Open cart, ${cartIds.length} item${cartIds.length === 1 ? "" : "s"}`}
+        >
+          <svg viewBox="0 0 20 20" width="16" height="16" aria-hidden focusable="false" className={styles.cartIcon}>
+            <path
+              d="M2 3h2.2l1.1 2m0 0 1.9 7.6h8l2.3-6.4H5.2ZM8.5 16.5a1 1 0 1 1-2 0 1 1 0 0 1 2 0Zm8 0a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+          <span className={styles.cartCount}>{cartIds.length}</span>
+        </button>
       </nav>
     </div>
   )
