@@ -68,6 +68,12 @@ type Phase =
   | { kind: "submitting" }
   | { kind: "launch-pending" }
   | { kind: "fully-owned" }
+  /** The server refused to override a live session with a different typed
+   *  email (see /api/cart/checkout's `session_email_mismatch` reason) — this
+   *  page rendered the guest form before useSession() picked up a sign-in
+   *  from another tab. `sessionEmail` is the address that will actually be
+   *  charged and granted if the buyer continues. */
+  | { kind: "session-mismatch"; sessionEmail: string }
   | { kind: "error"; message: string }
 
 type OwnershipStatus = "idle" | "checking" | "unavailable"
@@ -112,6 +118,28 @@ export default function CheckoutForm() {
         <Link href="/products" className={styles.emptyLink}>
           Go to My Products →
         </Link>
+      </div>
+    )
+  }
+
+  if (phase.kind === "session-mismatch") {
+    return (
+      <div className={styles.empty}>
+        <p className={styles.emptyText}>
+          You&apos;re signed in as <strong>{phase.sessionEmail}</strong> in another tab, so checkout will
+          use that account rather than the email you typed here.
+        </p>
+        <button
+          type="button"
+          className={styles.emptyLink}
+          style={{ background: "none", border: "none", padding: 0, cursor: "pointer", font: "inherit" }}
+          onClick={() => void continueAsSession()}
+        >
+          Continue as {phase.sessionEmail} →
+        </button>
+        <button type="button" className={styles.switchAccount} onClick={() => signOut({ callbackUrl: CALLBACK_URL })}>
+          Not you? Sign out
+        </button>
       </div>
     )
   }
@@ -179,31 +207,17 @@ export default function CheckoutForm() {
     if (!err) void checkOwnership(email)
   }
 
-  async function handleSubmit(e: FormEvent) {
-    e.preventDefault()
-    if (phase.kind === "submitting") return
-
-    if (!signedIn) {
-      const eErr = validateEmail(email)
-      const cErr = validateConfirm(confirmEmail, email)
-      setEmailError(eErr)
-      setConfirmError(cErr)
-      if (eErr || cErr) {
-        ;(eErr ? emailInputRef : confirmInputRef).current?.focus()
-        return
-      }
-    }
-
+  // Shared by the normal submit and by "Continue as {sessionEmail}" below
+  // (the resolution to a session/typed-email mismatch, which resubmits the
+  // same cart with no posted email so the server falls back to the session)
+  // — one place to read every status this route can return.
+  async function submitCheckout(payload: { ids: PluginId[]; email?: string }) {
     setPhase({ kind: "submitting" })
-    // Checkout actually begins here — the moment a validated attempt is sent
-    // to the server, not when the cart was built or a button first rendered.
-    trackMeta("InitiateCheckout", { value: cart.totals.total, currency: "USD", content_type: "product" })
-
     try {
       const res = await fetch("/api/cart/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: cart.ids, ...(signedIn ? {} : { email: normalize(email) }) }),
+        body: JSON.stringify(payload),
       })
 
       if (res.status === 200) {
@@ -227,6 +241,14 @@ export default function CheckoutForm() {
           setPhase({ kind: "form" })
           return
         }
+        if (reason === "session_email_mismatch") {
+          const sessionEmail = (data as { sessionEmail?: unknown } | null)?.sessionEmail
+          setPhase({
+            kind: "session-mismatch",
+            sessionEmail: typeof sessionEmail === "string" ? sessionEmail : (accountEmail ?? ""),
+          })
+          return
+        }
         setPhase({ kind: "fully-owned" })
         return
       }
@@ -245,6 +267,34 @@ export default function CheckoutForm() {
     } catch {
       setPhase({ kind: "error", message: "That didn't go through — check your connection and try again." })
     }
+  }
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault()
+    if (phase.kind === "submitting") return
+
+    if (!signedIn) {
+      const eErr = validateEmail(email)
+      const cErr = validateConfirm(confirmEmail, email)
+      setEmailError(eErr)
+      setConfirmError(cErr)
+      if (eErr || cErr) {
+        ;(eErr ? emailInputRef : confirmInputRef).current?.focus()
+        return
+      }
+    }
+
+    // Checkout actually begins here — the moment a validated attempt is sent
+    // to the server, not when the cart was built or a button first rendered.
+    trackMeta("InitiateCheckout", { value: cart.totals.total, currency: "USD", content_type: "product" })
+    await submitCheckout({ ids: cart.ids, ...(signedIn ? {} : { email: normalize(email) }) })
+  }
+
+  // The resolution offered on a session/typed-email mismatch: resubmit with
+  // no posted email at all, so the server resolves the buyer from the
+  // session alone — the same account the mismatch response just named.
+  async function continueAsSession() {
+    await submitCheckout({ ids: cart.ids })
   }
 
   const busy = phase.kind === "submitting"

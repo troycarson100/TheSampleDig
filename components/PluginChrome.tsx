@@ -115,7 +115,7 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
 export default function PluginChrome({ active }: { active?: PluginId }) {
   const { loading, error, owned, ownedCount, missing } = usePluginOwnership()
   const [hovered, setHovered] = useState<PluginId | null>(null)
-  const { addAll, open: openCart } = useCart()
+  const { ids: cartIds, addAll, open: openCart } = useCart()
 
   return (
     <div className={styles.chrome}>
@@ -163,6 +163,24 @@ export default function PluginChrome({ active }: { active?: PluginId }) {
           <Link href="/products" className={styles.ownedLink}>
             My products <span aria-hidden>→</span>
           </Link>
+        )}
+
+        {/* The only way to open the cart from the site chrome — otherwise it
+            appears solely as a side effect of adding something, and an
+            abandoned cart becomes invisible and unreachable. A real button
+            (it opens the drawer in place, never navigates), hidden entirely
+            rather than disabled when there's nothing in it, so it doesn't
+            sit there as dead chrome. */}
+        {cartIds.length > 0 && (
+          <button
+            type="button"
+            className={styles.cartButton}
+            data-cart-button
+            onClick={openCart}
+            aria-label={`Open cart, ${cartIds.length} item${cartIds.length === 1 ? "" : "s"}`}
+          >
+            Cart <span className={styles.cartCount}>{cartIds.length}</span>
+          </button>
         )}
       </nav>
     </div>

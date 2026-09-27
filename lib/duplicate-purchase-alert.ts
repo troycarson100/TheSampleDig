@@ -12,6 +12,23 @@ export type DuplicatePurchaseAlertInput = {
   product: CompProduct
   /** Products this email already owned before the checkout began. */
   duplicates: PluginProduct[]
+  /**
+   * Everything this session actually granted (fresh grants and duplicates
+   * alike) — session.metadata.products on a cart checkout, i.e.
+   * result.items.map(i => i.product) from grantPluginPurchase. Undefined or
+   * empty falls back to PLUGIN_GRANTS[product] for a legacy session that
+   * predates the cart, where `product` alone (a single plugin id or
+   * "bundle") already says the whole grant.
+   *
+   * This is the fix for the whole-increment review's Important 4: `product`
+   * is session.metadata.product, which a cart checkout sets to sellable[0] —
+   * a single plugin id — regardless of how many items were actually in the
+   * cart. Computing "was this partial?" against PLUGIN_GRANTS[product] alone
+   * made a two-item cart with one duplicate read as a FULL duplicate
+   * (1 owned < PLUGIN_GRANTS["shft"].length === 1 is false), telling the
+   * owner to refund a charge that had, in fact, delivered the second plugin.
+   */
+  products?: PluginProduct[]
   /** Stripe's amount_total, in cents. Null on a session that charged nothing. */
   amountTotal: number | null
   sessionId: string
@@ -37,7 +54,8 @@ export function duplicatePurchaseAlert(
   const amount = formatAmount(input.amountTotal)
   const bought = PRODUCT_LABEL[input.product]
   const owned = input.duplicates.map((p) => PRODUCT_LABEL[p]).join(", ")
-  const partial = input.duplicates.length < PLUGIN_GRANTS[input.product].length
+  const granted = input.products && input.products.length > 0 ? input.products : PLUGIN_GRANTS[input.product]
+  const partial = input.duplicates.length < granted.length
 
   const subject = `Duplicate purchase: ${input.buyerEmail} paid ${amount} for ${bought}`
 

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import WindowsInstallNote from "@/components/WindowsInstallNote"
 import EmailChangeForm from "@/components/EmailChangeForm"
+import { useCart } from "@/components/CartProvider"
 import { trackMeta } from "@/lib/meta-pixel"
 import { PRICING } from "@/lib/products"
 import type { PluginId } from "@/lib/plugins"
@@ -143,6 +144,10 @@ export default function ThanksPage() {
   // Named to avoid shadowing the effect's local `const sessionId`, which is
   // still the value the claim request uses.
   const [claimSessionId, setClaimSessionId] = useState<string | null>(null)
+  // Destructured, not the whole cart object: useCartState() returns a new
+  // object every render, but removeMany itself is useCallback-stable, so
+  // this is safe to depend on below without re-running the claim fetch.
+  const { removeMany } = useCart()
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -172,9 +177,22 @@ export default function ThanksPage() {
       body: JSON.stringify({ sessionId }),
     })
       .then(async (r) => (r.ok ? ((await r.json()) as Claim) : null))
-      .then((claim) => setState(claim ? { kind: "ready", claim } : { kind: "error" }))
+      .then((claim) => {
+        // The cart is never cleared anywhere else: not on the redirect to
+        // Stripe (that would empty an abandoned checkout) and not by the
+        // ownership-drop effect (a guest has no session for it to see). This
+        // is the one place a purchase is confirmed, so it's the one place
+        // the ids it actually paid for come out of the cart — only those
+        // ids, not the whole cart, in case something else was added since.
+        // `claim.items` is what grantPluginPurchase resolved for this
+        // session (fresh grants and already-owned duplicates alike), and
+        // removeMany no-ops on ids no longer present, so reloading /thanks
+        // after the cart has already been cleared changes nothing.
+        if (claim) removeMany(claim.items.map((item) => item.product))
+        setState(claim ? { kind: "ready", claim } : { kind: "error" })
+      })
       .catch(() => setState({ kind: "error" }))
-  }, [])
+  }, [removeMany])
 
   if (state.kind === "empty") {
     return (

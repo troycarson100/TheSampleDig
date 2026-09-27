@@ -355,7 +355,9 @@ function AffiliateRow({
   const [eFlatDollars, setEFlatDollars] = useState(((a.commissionFlatCents ?? 500) / 100).toFixed(2))
   const [eNotes, setENotes] = useState(a.notes ?? "")
   const dashboardLink = `${baseUrl}/affiliate/${a.dashboardToken}`
-  const refLink = `${baseUrl}/plugins?ref=${a.code}`
+  // /shft is the storefront now; /plugins survives only as a redirect for
+  // links already out in the wild.
+  const refLink = `${baseUrl}/shft?ref=${a.code}`
 
   return (
     <>

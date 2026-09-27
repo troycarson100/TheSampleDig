@@ -10,7 +10,24 @@ function check(label, condition, detail = "") {
 
 const browser = await chromium.launch()
 
-for (const [path, active] of [["/plugins", null], ["/shft", "shft"], ["/drft", "drft"], ["/fltr", "fltr"]]) {
+// /plugins is retired — a redirect, not a page of its own. It used to sit in
+// the loop below as a fourth row with `active: null`, which skipped the
+// whole active-pill block (2 of that row's checks) without anyone noticing:
+// what ran instead was a second, silent copy of the /shft checks under a
+// misleading label. Rather than duplicate /shft, assert the one thing that
+// is actually specific to /plugins: that it redirects, and that it forwards
+// the query string rather than dropping it — an affiliate ?ref= link served
+// through a stale /plugins?ref=<code> URL depends on exactly this (see
+// app/plugins/page.tsx and the whole-increment review's Critical 2).
+{
+  const page = await browser.newPage()
+  await page.goto(BASE + "/plugins?ref=verify-plugin-chrome", { waitUntil: "networkidle" })
+  check("/plugins redirects to /shft, forwarding the query string",
+    page.url() === `${BASE}/shft?ref=verify-plugin-chrome`, page.url())
+  await page.close()
+}
+
+for (const [path, active] of [["/shft", "shft"], ["/drft", "drft"], ["/fltr", "fltr"]]) {
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
   await page.goto(BASE + path, { waitUntil: "networkidle" })
 
@@ -67,7 +84,7 @@ for (const [path, active] of [["/plugins", null], ["/shft", "shft"], ["/drft", "
 
 // Narrow viewport: the rail scrolls sideways rather than wrapping or clipping.
 const mobile = await browser.newPage({ ...devices["iPhone SE"] })
-await mobile.goto(BASE + "/plugins", { waitUntil: "networkidle" })
+await mobile.goto(BASE + "/shft", { waitUntil: "networkidle" })
 const metrics = await mobile.locator('[data-plugin-rail]').evaluate((el) => ({
   scrollW: el.scrollWidth, clientW: el.clientWidth,
   overflowX: getComputedStyle(el).overflowX,

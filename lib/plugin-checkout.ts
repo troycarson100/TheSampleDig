@@ -3,7 +3,7 @@ import type Stripe from "stripe"
 import { prisma } from "@/lib/db"
 import { normalizeAffiliateCode } from "@/lib/affiliate-logic"
 import { readAttributionMetadata } from "@/lib/attribution-snapshot"
-import type { CompProduct } from "@/lib/plugin-products"
+import type { CompProduct, PluginProduct } from "@/lib/plugin-products"
 import { checkoutUrls, type CancelPath } from "@/lib/plugin-checkout-logic"
 
 // Shared by the shft, drft and bundle checkout routes. Each route still picks
@@ -73,13 +73,16 @@ export async function readAffiliateCodeFromCookie(label: string): Promise<string
  */
 /** Metadata keys this function alone decides - see createPluginCheckoutSession's
  *  doc comment. Kept in sync with the fields the session-create call below
- *  actually sets: `product`, the userId/guest pair, `affiliateCode`, and
- *  whatever readAttributionMetadata's four keys are. */
+ *  actually sets: `product`, the userId/guest pair, `affiliateCode`,
+ *  `products` (set only via the dedicated `products` option, never raw
+ *  metadata - see its own doc comment below), and whatever
+ *  readAttributionMetadata's four keys are. */
 const RESERVED_METADATA_KEYS = [
   "product",
   "userId",
   "guest",
   "affiliateCode",
+  "products",
   "attrVisitorId",
   "attrReferrer",
   "attrSource",
@@ -109,6 +112,17 @@ export async function createPluginCheckoutSession(
      *  above). Ignored when `buyer` is set - a signed-in buyer's own email
      *  always wins. */
     guestEmail?: string | null
+    /**
+     * The cart's real contents, when they differ from `product` (a cart
+     * checkout's `product` is sellable[0], a single id, regardless of how
+     * many plugins are actually being sold). lib/plugin-purchase-grant.ts's
+     * fromMetadata reads this to decide what to grant, falling back to
+     * PLUGIN_GRANTS[product] only when it's empty - so a partial cart grants
+     * exactly what was sold. A dedicated option rather than a plain
+     * `metadata.products` entry: `products` is in RESERVED_METADATA_KEYS
+     * precisely so a caller cannot set it any other way.
+     */
+    products?: readonly PluginProduct[]
     metadata?: Record<string, string>
   },
 ): Promise<Stripe.Checkout.Session> {
@@ -134,6 +148,7 @@ export async function createPluginCheckoutSession(
       product: opts.product,
       ...(buyer ? { userId: buyer.id } : { guest: "1" }),
       ...(opts.affiliateCode ? { affiliateCode: opts.affiliateCode } : {}),
+      ...(opts.products && opts.products.length > 0 ? { products: opts.products.join(",") } : {}),
       ...attrMetadata,
     },
     custom_fields: [

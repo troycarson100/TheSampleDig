@@ -124,6 +124,27 @@
 }
 .rail .ownedLink:hover { opacity: 1; }
 
+/* A <button>, not an <a> — same reset as .bundlePill, same visual weight as
+   a .pill (border, transparent ground) rather than the .bundlePill's hot
+   gradient: opening the cart isn't a sale pitch the way "all three" is. */
+.rail .cartButton {
+  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  padding: 7px 14px; border-radius: 999px;
+  border: 1px solid rgba(36, 33, 29, 0.22); cursor: pointer;
+  background: transparent; color: var(--chrome-ink);
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 13px; letter-spacing: 0.04em;
+  transition: background 160ms ease, color 160ms ease, border-color 160ms ease;
+}
+.rail .cartButton:hover { border-color: var(--chrome-ink); }
+.rail .cartButton:focus-visible { outline: 2px solid var(--chrome-ink); outline-offset: 2px; }
+.cartCount {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px;
+  background: var(--chrome-ink); color: var(--chrome-ground);
+  font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
+}
+
 @media (max-width: 520px) {
   .stripInner { gap: 8px; font-size: 11px; padding: 9px 12px; }
   .stripWas, .stripSave { display: none; }

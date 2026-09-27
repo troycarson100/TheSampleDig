@@ -3,8 +3,7 @@ import Stripe from "stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { createPluginCheckoutSession, readAffiliateCodeFromCookie, buyerFromSession } from "@/lib/plugin-checkout"
-import { checkCart } from "@/lib/cart-ownership"
-import { cartTotals } from "@/lib/cart-pricing"
+import { resolveCartIdentity, decideCartContents } from "@/lib/cart-checkout-decision"
 import { PLUGIN_PRODUCTS, type PluginProduct } from "@/lib/plugin-products"
 import { SlidingWindowLimiter } from "@/lib/resend-rate-limit"
 
@@ -31,7 +30,6 @@ import { SlidingWindowLimiter } from "@/lib/resend-rate-limit"
 // below (a 409 naming what's owned, and even the outcome of a 400 or a 200)
 // says something about the address asked about, which makes this route as
 // good an ownership oracle as that one if left unthrottled.
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const MINUTE = 60_000
 // Matches /api/cart/owned's 10/min exactly, rather than being stricter: the
 // disclosure this defends against is the same shape and size as that
@@ -74,13 +72,25 @@ export async function POST(request: Request) {
   const postedEmail = typeof body.email === "string" ? body.email.trim().toLowerCase() : ""
 
   // Rule 1: resolve the buyer. A signed-in session always wins over a posted
-  // email. A guest's email must look like an email - a malformed or empty
-  // one is refused outright rather than silently treated as "owns nothing",
-  // which is what let a one-character string sail through as an identity.
+  // email, but never silently: a posted email that disagrees with the
+  // session's is refused, naming the session's address, rather than charging
+  // and granting an identity the buyer never confirmed on this page (a page
+  // can render the guest form because useSession() hasn't yet picked up a
+  // sign-in that happened in another tab). A guest's email must look like an
+  // email - a malformed or empty one is refused outright rather than
+  // silently treated as "owns nothing", which is what let a one-character
+  // string sail through as an identity. See lib/cart-checkout-decision.ts.
   const session = await auth()
   const buyer = buyerFromSession(session)
-  if (!buyer && !EMAIL_RE.test(postedEmail)) {
+  const identity = resolveCartIdentity({ postedEmail, buyer })
+  if (identity.kind === "invalid-identity") {
     return NextResponse.json({ error: "Sign in or provide a valid email to check out." }, { status: 400 })
+  }
+  if (identity.kind === "session-email-mismatch") {
+    return NextResponse.json(
+      { reason: "session_email_mismatch", sessionEmail: identity.sessionEmail },
+      { status: 409 },
+    )
   }
 
   // Rule 2: what does this buyer actually own? Never taken from the request.
@@ -103,20 +113,19 @@ export async function POST(request: Request) {
   // with (an empty or all-garbage `ids`). Checking owned first is what makes
   // a fully-owned cart say what it owns instead of falsely claiming there was
   // nothing there.
-  const check = checkCart(ids, ownedIds)
-  if (check.owned.length > 0) {
-    return NextResponse.json({ reason: "already_owned", owns: check.owned }, { status: 409 })
+  const decision = decideCartContents({ ids, ownedIds })
+  if (decision.kind === "already-owned") {
+    return NextResponse.json({ reason: "already_owned", owns: decision.owns }, { status: 409 })
   }
-  if (check.empty) {
+  if (decision.kind === "empty") {
     return NextResponse.json({ reason: "empty" }, { status: 409 })
   }
 
   // Rule 4: one line item at the bundle price when the sellable set is every
   // plugin, otherwise one line item per plugin at its own price.
-  const totals = cartTotals(check.sellable)
-  const priced = totals.bundleApplied
+  const priced = decision.bundleApplied
     ? { product: "bundle" as const, lineItems: [withPrice(process.env.STRIPE_BUNDLE3_PRICE_ID)] }
-    : { product: check.sellable[0], lineItems: check.sellable.map((id) => withPrice(SINGLE_PRICE_ENV[id])) }
+    : { product: decision.sellable[0], lineItems: decision.sellable.map((id) => withPrice(SINGLE_PRICE_ENV[id])) }
 
   // Rule 5: a charge must never go out at the wrong price. If any price this
   // cart needs is unset, refuse rather than fall back to something else.
@@ -133,7 +142,7 @@ export async function POST(request: Request) {
       // The /thanks pixel must report what was actually charged, which is
       // the (possibly bundle-discounted) cart total, not the sum of list
       // prices for whatever was requested.
-      paid: totals.total,
+      paid: decision.paid,
       cancelPath: "/checkout",
       buyer,
       affiliateCode,
@@ -145,7 +154,10 @@ export async function POST(request: Request) {
       // The grant path (lib/plugin-purchase-grant.ts) resolves this list
       // first, falling back to PLUGIN_GRANTS[product] only when it is absent
       // - so a partial cart grants exactly what was sold, not a fixed pair.
-      metadata: { products: check.sellable.join(",") },
+      // A dedicated option, not raw `metadata`: "products" decides what gets
+      // granted, so it belongs with the other reserved fields
+      // createPluginCheckoutSession alone controls, not a caller-supplied key.
+      products: decision.sellable,
     })
     return NextResponse.json({ url: checkout.url })
   } catch (e) {

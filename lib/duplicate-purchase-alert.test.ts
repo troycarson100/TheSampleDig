@@ -78,3 +78,50 @@ test("duplicatePurchaseAlert: owning one of the bundle's three products (1 of 3)
   assert.ok(alert)
   assert.match(alert.text, /PARTIAL/)
 })
+
+// Regression guard for the whole-increment review's Important 4: a cart
+// checkout's session.metadata.product is sellable[0] — a single plugin id —
+// regardless of how many products were actually in the cart, so
+// PLUGIN_GRANTS[product] (length 1 for any single plugin id) is the WRONG
+// denominator for a cart. Without `products`, this exact input reads
+// `1 < PLUGIN_GRANTS["shft"].length` === `1 < 1` === false — a FULL
+// duplicate — and tells the owner drft was never delivered, when it was.
+test("duplicatePurchaseAlert: a two-item cart (shft+drft) with one duplicate is a PARTIAL duplicate, not full", () => {
+  const alert = duplicatePurchaseAlert({
+    buyerEmail: "two-item-cart@example.com",
+    product: "shft", // metadata.product = sellable[0] for a cart checkout
+    duplicates: ["shft"],
+    products: ["shft", "drft"], // metadata.products: the cart's real contents
+    amountTotal: 5800,
+    sessionId: "cs_live_cart_partial",
+  })
+
+  assert.ok(alert)
+  assert.match(alert.text, /PARTIAL/, "drft was still newly granted, so this must not read as a full duplicate")
+  assert.doesNotMatch(alert.text, /Nothing new was granted/)
+})
+
+// A legacy session (predating the cart, or a single-plugin/bundle checkout
+// that never set metadata.products) must still compute the right answer from
+// `product` alone, exactly as before this fix.
+test("duplicatePurchaseAlert: without `products`, falls back to PLUGIN_GRANTS[product] for a legacy session", () => {
+  const single = duplicatePurchaseAlert({
+    buyerEmail: "legacy-single@example.com",
+    product: "shft",
+    duplicates: ["shft"],
+    amountTotal: 2900,
+    sessionId: "cs_live_legacy_single",
+  })
+  assert.ok(single)
+  assert.match(single.text, /Nothing new was granted/, "a single-plugin session owning that one plugin is a full duplicate")
+
+  const bundle = duplicatePurchaseAlert({
+    buyerEmail: "legacy-bundle@example.com",
+    product: "bundle",
+    duplicates: ["shft"],
+    amountTotal: BUNDLE_AMOUNT_CENTS,
+    sessionId: "cs_live_legacy_bundle_partial",
+  })
+  assert.ok(bundle)
+  assert.match(bundle.text, /PARTIAL/, "a legacy bundle session still falls back to PLUGIN_GRANTS.bundle.length === 3")
+})

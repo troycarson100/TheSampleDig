@@ -85,6 +85,14 @@ export async function POST(request: Request) {
               buyerEmail: result.email,
               product: purchasedProduct,
               duplicates: result.duplicates,
+              // result.items is exactly what this session granted — a cart's
+              // full product list when metadata.products was set, or
+              // PLUGIN_GRANTS[product] itself for a legacy session where it
+              // wasn't. Passing it through (rather than re-deriving it from
+              // session.metadata here) keeps this in sync with whatever
+              // grantPluginPurchase actually resolved, including its own
+              // fallback for a session with no metadata.products at all.
+              products: result.items.map((item) => item.product),
               amountTotal: session.amount_total,
               sessionId: session.id,
             })

@@ -32,6 +32,9 @@ export interface Cart {
   totals: CartTotals
   add(id: PluginId): void
   remove(id: PluginId): void
+  /** Removes exactly these ids, leaving anything else the visitor added
+   *  alone. For clearing what a purchase just paid for — see /thanks. */
+  removeMany(ids: readonly PluginId[]): void
   addAll(): void
   clear(): void
   isOpen: boolean
@@ -66,6 +69,13 @@ export function useCartState(): Cart {
     setIds((c) => (c.includes(id) ? c : [...c, id]))
   }, [])
   const remove = useCallback((id: PluginId) => setIds((c) => c.filter((x) => x !== id)), [])
+  // Empty input is a deliberate no-op rather than a full clear: a caller that
+  // computed "nothing to remove" must not accidentally empty the cart.
+  const removeMany = useCallback((toRemove: readonly PluginId[]) => {
+    if (toRemove.length === 0) return
+    const gone = new Set(toRemove)
+    setIds((c) => c.filter((x) => !gone.has(x)))
+  }, [])
   const addAll = useCallback(() => setIds([...PLUGIN_ORDER]), [])
   const clear = useCallback(() => setIds([]), [])
   const open = useCallback(() => setIsOpen(true), [])
@@ -74,5 +84,5 @@ export function useCartState(): Cart {
 
   const totals = useMemo(() => cartTotals(ids), [ids])
 
-  return { ids, totals, add, remove, addAll, clear, isOpen, open, close, dropped, clearDropped }
+  return { ids, totals, add, remove, removeMany, addAll, clear, isOpen, open, close, dropped, clearDropped }
 }

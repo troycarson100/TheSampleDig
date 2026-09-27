@@ -9,7 +9,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticRoutes: MetadataRoute.Sitemap = [
     { url: `${base}/`, lastModified, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/blog`, lastModified, changeFrequency: "weekly", priority: 0.9 },
-    { url: `${base}/plugins`, lastModified, changeFrequency: "weekly", priority: 0.9 },
+    // /plugins is retired (a redirect to /shft, kept only for links already
+    // in circulation) — advertising it here as well as /shft would just be
+    // the same URL listed twice after a search engine follows the redirect.
     { url: `${base}/shft`, lastModified, changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/drft`, lastModified, changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/about`, lastModified, changeFrequency: "monthly", priority: 0.7 },
