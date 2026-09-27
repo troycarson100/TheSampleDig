@@ -22,7 +22,12 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = String(email).trim().toLowerCase()
 
-    const existing = await prisma.user.findFirst({ where: { email: { equals: normalizedEmail, mode: "insensitive" } } })
+    // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
+    // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
+    // because normalizedEmail above is already lowercased and every write to
+    // User.email normalises to lowercase first - see findByEmail in
+    // lib/plugin-purchase-grant.ts.
+    const existing = await prisma.user.findFirst({ where: { email: normalizedEmail } })
     if (existing) {
       return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 })
     }

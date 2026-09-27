@@ -58,8 +58,13 @@ async function resolveOwner(sessionId: unknown): Promise<Owner | null> {
             select: { id: true, email: true, passwordSetAt: true, createdAt: true },
           })
         : lookup.kind === "email"
-          ? await prisma.user.findFirst({
-              where: { email: { equals: lookup.email, mode: "insensitive" } },
+          ? // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`,
+            // which compiles to an unescaped ILIKE and lets "%"/"_" act as
+            // wildcards. Safe because buyerLookupFor already lowercases
+            // `lookup.email` and every write to User.email normalises to
+            // lowercase first - see findByEmail in lib/plugin-purchase-grant.ts.
+            await prisma.user.findFirst({
+              where: { email: lookup.email },
               select: { id: true, email: true, passwordSetAt: true, createdAt: true },
             })
           : null
@@ -99,10 +104,15 @@ export async function POST(request: Request) {
   }
 
   const requested = normalizeNewEmail(body.newEmail)
+  // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
+  // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
+  // because normalizeNewEmail already lowercases `requested` and every write
+  // to User.email normalises to lowercase first - see findByEmail in
+  // lib/plugin-purchase-grant.ts.
   const taken = requested
     ? Boolean(
         await prisma.user.findFirst({
-          where: { email: { equals: requested, mode: "insensitive" }, id: { not: owner.id } },
+          where: { email: requested, id: { not: owner.id } },
           select: { id: true },
         }),
       )

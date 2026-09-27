@@ -97,9 +97,17 @@ export const authOptions = {
         try {
           const prisma = await getPrisma()
           const email = String(credentials.email).trim().toLowerCase()
+          // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`,
+          // which compiles to an unescaped ILIKE and lets "%"/"_" in the
+          // posted address act as wildcards (e.g. "john_smith@x.com" would
+          // match "johnXsmith@x.com"'s row, running the password check
+          // against the wrong user). Safe because every write to User.email
+          // normalises to lowercase first - see findByEmail in
+          // lib/plugin-purchase-grant.ts.
+          //
           // Explicit select so login works even if optional columns (e.g. email_marketing_opt_in) are missing before migrate.
           const user = await prisma.user.findFirst({
-            where: { email: { equals: email, mode: "insensitive" } },
+            where: { email },
             select: {
               id: true,
               email: true,

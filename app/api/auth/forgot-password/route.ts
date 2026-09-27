@@ -19,7 +19,12 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     )
 
-    const user = await prisma.user.findFirst({ where: { email: { equals: normalizedEmail, mode: "insensitive" } } })
+    // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
+    // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
+    // because normalizedEmail above is already lowercased and every write to
+    // User.email normalises to lowercase first - see findByEmail in
+    // lib/plugin-purchase-grant.ts.
+    const user = await prisma.user.findFirst({ where: { email: normalizedEmail } })
     if (!user) {
       return genericResponse
     }

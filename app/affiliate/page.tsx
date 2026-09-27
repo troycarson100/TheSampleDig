@@ -35,8 +35,14 @@ export default async function AffiliatePage() {
     // Auto-link: verified account email matching an unlinked affiliate record.
     const user = await prisma.user.findUnique({ where: { id: session.user.id } })
     if (user?.emailVerified) {
+      // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`,
+      // which compiles to an unescaped ILIKE and lets "%"/"_" act as
+      // wildcards. Safe because `user.email` is a fresh row read (not
+      // request input) and every write to User.email normalises to
+      // lowercase first, matching how Affiliate.email is always written -
+      // see findByEmail in lib/plugin-purchase-grant.ts.
       const match = await prisma.affiliate.findFirst({
-        where: { email: { equals: user.email, mode: "insensitive" }, userId: null },
+        where: { email: user.email, userId: null },
       })
       if (match) {
         affiliate = await prisma.affiliate.update({ where: { id: match.id }, data: { userId: user.id } })

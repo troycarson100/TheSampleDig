@@ -53,7 +53,12 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Flat rate must be between $0.01 and $500 per sale." }, { status: 400 })
   }
   // Invite-only: if they already have a SampleRoll account, link it up front.
-  const linkedUser = await prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } })
+  // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
+  // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
+  // because `email` above is already lowercased and every write to
+  // User.email normalises to lowercase first - see findByEmail in
+  // lib/plugin-purchase-grant.ts.
+  const linkedUser = await prisma.user.findFirst({ where: { email } })
   try {
     const affiliate = await prisma.affiliate.create({
       data: {

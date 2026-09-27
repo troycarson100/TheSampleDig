@@ -49,8 +49,16 @@ export async function GET(request: Request) {
 
   // Re-check: another account could have claimed this address while the
   // change sat pending.
+  //
+  // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
+  // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
+  // because pendingEmail is only ever written from normalizeNewEmail's
+  // already-lowercased output (see mintEmailChangeToken's one caller in
+  // app/api/user/email-change/route.ts) and every write to User.email
+  // normalises to lowercase first - see findByEmail in
+  // lib/plugin-purchase-grant.ts.
   const taken = await prisma.user.findFirst({
-    where: { email: { equals: user.pendingEmail, mode: "insensitive" }, id: { not: user.id } },
+    where: { email: user.pendingEmail, id: { not: user.id } },
     select: { id: true },
   })
   if (taken) {
