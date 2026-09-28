@@ -58,9 +58,9 @@
    own warm gradient, so it needs the same dark ink in both mounts — "inherit"
    would hand it cream-on-gold in the drawer, which is nearly unreadable. */
 .link.row { color: inherit; }
-.link.bundleRow { color: #1c140f; }
+.link.bundleRow { color: #f4efe4; }
 .link.row:hover, .link.row:focus-visible { color: inherit; }
-.link.bundleRow:hover, .link.bundleRow:focus-visible { color: #1c140f; }
+.link.bundleRow:hover, .link.bundleRow:focus-visible { color: #f4efe4; }
 /* A neutral mid-tone tint (rather than the dark tint an all-cream panel could
    afford) so the same rule reads on both the cream panel and the near-black
    drawer background. */
@@ -82,17 +82,19 @@
    rather than navigating, so it needs the UA button chrome (border, font,
    width) reset back to what the shared .row rule already gives every
    anchor row for free. */
-/* The same three marks and the same gold-first gradient as the rail's control:
-   one offer, stated the same way wherever it appears. */
-.bundleGlyphs { display: inline-flex; align-items: center; gap: 3px; flex: none; color: #1c140f; }
+/* The same three marks and the same deep gradient as the rail's control: one
+   offer, stated the same way wherever it appears. Cream on deep burnt orange
+   rather than ink on gold — on a cream panel a dark mass has more presence than
+   a bright one, and it clears AA at every stop (6.7 / 5.4 / 4.2). */
+.bundleGlyphs { display: inline-flex; align-items: center; gap: 3px; flex: none; color: #f4efe4; }
 .bundleRow {
   justify-content: space-between;
-  background: linear-gradient(90deg, #d9a040 0%, #c07f3a 62%, #a6633c 100%);
-  color: #1c140f;
+  background: linear-gradient(90deg, #7c4522 0%, #8f5228 55%, #a2622f 100%);
+  color: #f4efe4;
   border: none; width: 100%; text-align: left; font: inherit; cursor: pointer;
 }
 .bundleRow:hover, .bundleRow:focus-visible {
-  background: linear-gradient(90deg, #d9a040 0%, #c07f3a 62%, #a6633c 100%); color: #1c140f;
+  background: linear-gradient(90deg, #7c4522 0%, #8f5228 55%, #a2622f 100%); color: #f4efe4;
 }
 .bundleRow .rowName { font-weight: 700; }
 .bundleRow .rowCategory { opacity: 0.75; white-space: nowrap; }
