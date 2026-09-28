@@ -121,13 +121,13 @@
   display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
   padding: 8px 16px; border-radius: 999px; text-decoration: none;
   cursor: pointer;
-  /* A saturated vermilion-to-amber, not the house burnt orange: brown reads as
-     heavy rather than pressable. Ink text rather than cream — vivid warm colour
-     cannot carry a light label (cream on this measures under 2:1), while ink on
-     it clears AA at every stop. The dark end leads, so the three marks sit where
-     contrast is strongest. */
-  background: linear-gradient(90deg, #f2591c 0%, #fa7a1e 52%, #ffa32e 100%);
-  color: #1c140f; font-weight: 700;
+  /* A vivid red rather than the house burnt orange, which read as heavy rather
+     than pressable. Red is the one warm hue dark enough to carry cream text and
+     still register as an action — an amber or vermilion bright enough to feel
+     clickable drops cream to 1.7:1. Every stop here clears AA for the 13px bold
+     label. It is also what the reference storefront used for its own bundle. */
+  background: linear-gradient(90deg, #a82216 0%, #ba2a19 55%, #c93018 100%);
+  color: #f7f3ec; font-weight: 700;
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
   font-size: 13px; letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
@@ -145,7 +145,7 @@
 .chrome .rail .bundlePill:hover {
   transform: translate(1px, 1px);
   box-shadow: 2px 2px 0 0 #1c140f;
-  color: #1c140f;
+  color: #f7f3ec;
 }
 .chrome .rail .bundlePill:active {
   transform: translate(3px, 3px);
@@ -153,13 +153,17 @@
 }
 .rail .bundlePill:focus-visible { outline: 2px solid var(--chrome-ink); outline-offset: 3px; }
 
-.bundleGlyphs { display: inline-flex; align-items: center; gap: 3px; color: #1c140f; }
+.bundleGlyphs { display: inline-flex; align-items: center; gap: 4px; color: #f7f3ec; }
+/* Staggered so the three marks read as a sequence, not a flash. */
+.bundleGlyphs > :nth-child(2) { animation-delay: 110ms; }
+.bundleGlyphs > :nth-child(3) { animation-delay: 220ms; }
+.bundleGlyphs > :nth-child(2) path, .bundleGlyphs > :nth-child(3) path { animation-delay: inherit; }
 .bundleGlyph { display: block; }
 .bundleLabel { text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; }
 .bundlePrice { font-size: 14px; }
 /* Struck against the combined list price, the same way every other price on the
    site is struck — the saving is shown rather than asserted. */
-.bundleWas { opacity: 0.6; font-weight: 400; font-size: 12px; }
+.bundleWas { opacity: 0.68; font-weight: 400; font-size: 12px; }
 .bundleArrow { transition: transform 160ms ease; }
 .rail .bundlePill:hover .bundleArrow { transform: translateX(2px); }
 

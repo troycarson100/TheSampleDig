@@ -115,6 +115,8 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
 export default function PluginChrome({ active }: { active?: PluginId }) {
   const { loading, error, owned, ownedCount, missing } = usePluginOwnership()
   const [hovered, setHovered] = useState<PluginId | null>(null)
+  /** Bumped to remount the bundle glyphs so their draw-in animation replays. */
+  const [bundleBeat, setBundleBeat] = useState(0)
   const { ids: cartIds, addAll, open: openCart } = useCart()
 
   return (
@@ -150,6 +152,8 @@ export default function PluginChrome({ active }: { active?: PluginId }) {
             type="button"
             className={styles.bundlePill}
             data-bundle-pill
+            onMouseEnter={() => setBundleBeat((n) => n + 1)}
+            onFocus={() => setBundleBeat((n) => n + 1)}
             onClick={() => {
               trackMeta("ViewContent", { content_name: "bundle", content_type: "product" })
               addAll()
@@ -160,9 +164,16 @@ export default function PluginChrome({ active }: { active?: PluginId }) {
                 control entitled to carry all three, so the marks themselves
                 state what the offer contains — the page's own grammar rather
                 than added decoration. */}
+            {/* The marks draw themselves — shft's gate steps through, drft's
+                scanline tears, fltr's curve sweeps — once on mount and again on
+                hover, staggered left to right. The motion is the three plugins'
+                own signatures rather than a sheen passing over a button.
+                `bundleBeat` remounts them, which is what replays a CSS
+                animation; PluginGlyph already silences all of it under
+                prefers-reduced-motion. */}
             <span className={styles.bundleGlyphs} aria-hidden>
               {pluginList().map((p) => (
-                <PluginGlyph key={p.id} id={p.id} size={14} className={styles.bundleGlyph} />
+                <PluginGlyph key={`${p.id}-${bundleBeat}`} id={p.id} size={14} animate className={styles.bundleGlyph} />
               ))}
             </span>
             <span className={styles.bundleLabel}>All three</span>
