@@ -96,6 +96,35 @@
 .bundleRow:hover, .bundleRow:focus-visible {
   background: linear-gradient(90deg, #a82216 0%, #ba2a19 55%, #c93018 100%); color: #f7f3ec;
 }
+/* The same looping light pass the rail's control carries, on the same 2s bar,
+   so the offer moves the same way wherever it is stated. Clipped to the row's
+   8px radius; the inset focus outline is the row's own and survives the clip. */
+.bundleRow { position: relative; overflow: hidden; }
+.bundleRow::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0; width: 38%;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 238, 214, 0.08) 58%,
+    rgba(255, 244, 228, 0.24) 86%,
+    rgba(255, 252, 245, 0.38) 96%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-130%);
+  animation: bundleRowSweep 2s linear infinite;
+}
+.bundleRow > * { position: relative; z-index: 1; }
+@keyframes bundleRowSweep {
+  0%, 10% { transform: translateX(-130%); }
+  45%, 100% { transform: translateX(290%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .bundleRow::after { display: none; animation: none; }
+}
 .bundleRow .rowName { font-weight: 700; }
 .bundleRow .rowCategory { opacity: 0.75; white-space: nowrap; }
 .bundlePrice {

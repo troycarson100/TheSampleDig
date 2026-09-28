@@ -166,11 +166,11 @@ export default function PluginChrome({ active }: { active?: PluginId }) {
                 than added decoration. */}
             {/* The marks draw themselves — shft's gate steps through, drft's
                 scanline tears, fltr's curve sweeps — once on mount and again on
-                hover, staggered left to right. The motion is the three plugins'
-                own signatures rather than a sheen passing over a button.
-                `bundleBeat` remounts them, which is what replays a CSS
-                animation; PluginGlyph already silences all of it under
-                prefers-reduced-motion. */}
+                hover, staggered left to right. That is the reward for reaching
+                the control; the looping light pass in the stylesheet is what
+                draws the eye to it in the first place. `bundleBeat` remounts
+                them, which is what replays a CSS animation; PluginGlyph already
+                silences all of it under prefers-reduced-motion. */}
             <span className={styles.bundleGlyphs} aria-hidden>
               {pluginList().map((p) => (
                 <PluginGlyph key={`${p.id}-${bundleBeat}`} id={p.id} size={14} animate className={styles.bundleGlyph} />

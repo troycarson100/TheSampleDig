@@ -121,6 +121,9 @@
   display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
   padding: 8px 16px; border-radius: 999px; text-decoration: none;
   cursor: pointer;
+  /* Containing block and clip for the sweep below. `overflow` clips only
+     descendants, so the offset shadow and the focus outline both survive it. */
+  position: relative; overflow: hidden;
   /* A vivid red rather than the house burnt orange, which read as heavy rather
      than pressable. Red is the one warm hue dark enough to carry cream text and
      still register as an action — an amber or vermilion bright enough to feel
@@ -139,9 +142,7 @@
   box-shadow: 3px 3px 0 0 #1c140f;
   transition: transform 120ms ease, box-shadow 120ms ease;
 }
-/* Presses in, like a key. This is the whole motion budget for the control —
-   animating the three glyphs as well would be scattered noise on an element
-   that sits in the chrome of every page. */
+/* Presses in, like a key. */
 .chrome .rail .bundlePill:hover {
   transform: translate(1px, 1px);
   box-shadow: 2px 2px 0 0 #1c140f;
@@ -152,6 +153,39 @@
   box-shadow: 0 0 0 0 #1c140f;
 }
 .rail .bundlePill:focus-visible { outline: 2px solid var(--chrome-ink); outline-offset: 3px; }
+
+/* The control has to pull the eye without being clicked first, so it carries
+   one light pass on a loop. Shaped as a playhead rather than a soft gaussian
+   bloom: a hard bright leading edge with the glow trailing behind it, which is
+   the same figure shft's sequencer draws crossing its 16 steps. The cycle is
+   2s — one bar at 120bpm — so the pass lands on the downbeat rather than at
+   some arbitrary interval, and the band rests for two thirds of it.
+   Peak alpha stays at 0.38: the crest crosses the label for ~200ms and a
+   brighter one would wash the cream text out as it passed. */
+.rail .bundlePill::after {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0; width: 44%;
+  pointer-events: none;
+  z-index: 0;
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 238, 214, 0.08) 58%,
+    rgba(255, 244, 228, 0.24) 86%,
+    rgba(255, 252, 245, 0.38) 96%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  transform: translateX(-130%);
+  animation: bundleSweep 2s linear infinite;
+}
+/* Behind the label, never over it: the pill's children are all spans, so one
+   stacking bump keeps every one of them above the band. */
+.rail .bundlePill > * { position: relative; z-index: 1; }
+@keyframes bundleSweep {
+  0%, 10% { transform: translateX(-130%); }
+  45%, 100% { transform: translateX(240%); }
+}
 
 .bundleGlyphs { display: inline-flex; align-items: center; gap: 4px; color: #f7f3ec; }
 /* Staggered so the three marks read as a sequence, not a flash. */
@@ -172,6 +206,9 @@
   .chrome .rail .bundlePill:hover,
   .chrome .rail .bundlePill:active { transform: none; transition: none; }
   .bundleArrow { transition: none; }
+  /* Removed outright rather than paused: a stopped band frozen mid-pill would
+     read as a rendering fault. */
+  .rail .bundlePill::after { display: none; animation: none; }
 }
 
 .rail .ownedLink {
