@@ -60,9 +60,18 @@ export function PluginsMenuRows({ onNavigate, menuRole = false }: { onNavigate?:
               onNavigate?.()
             }}
           >
+            <span className={styles.bundleGlyphs} aria-hidden>
+              {pluginList().map((p) => (
+                <PluginGlyph key={p.id} id={p.id} size={14} />
+              ))}
+            </span>
             <span className={styles.rowText}>
               <span className={styles.rowName}>all three</span>
-              <span className={styles.rowCategory}>every plugin, one price</span>
+              {/* The saving, not a restatement of the name — and it fits on one
+                  line, which "every plugin, one price" did not. */}
+              <span className={styles.rowCategory}>
+                save ${PRICING.bundle.compareAt - PRICING.bundle.price}
+              </span>
             </span>
             <span className={styles.bundlePrice}>${PRICING.bundle.price}</span>
           </button>

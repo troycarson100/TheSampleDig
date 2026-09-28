@@ -156,7 +156,19 @@ export default function PluginChrome({ active }: { active?: PluginId }) {
               openCart()
             }}
           >
-            All three · ${PRICING.bundle.price} <span aria-hidden>→</span>
+            {/* Every other pill carries one plugin's glyph. This is the only
+                control entitled to carry all three, so the marks themselves
+                state what the offer contains — the page's own grammar rather
+                than added decoration. */}
+            <span className={styles.bundleGlyphs} aria-hidden>
+              {pluginList().map((p) => (
+                <PluginGlyph key={p.id} id={p.id} size={14} className={styles.bundleGlyph} />
+              ))}
+            </span>
+            <span className={styles.bundleLabel}>All three</span>
+            <span className={styles.bundlePrice}>${PRICING.bundle.price}</span>
+            <s className={styles.bundleWas}>${PRICING.bundle.compareAt}</s>
+            <span className={styles.bundleArrow} aria-hidden>→</span>
           </button>
         )}
         {!loading && !error && ownedCount > 0 && (

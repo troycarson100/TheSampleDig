@@ -118,15 +118,56 @@
 /* A <button>, not an <a> — it opens the cart rather than navigating, so it
    needs the UA button chrome (border, cursor) reset that an anchor never had. */
 .rail .bundlePill {
-  display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
   padding: 8px 16px; border-radius: 999px; text-decoration: none;
-  border: none; cursor: pointer;
-  background: var(--hot); color: #1c140f; font-weight: 700;
+  cursor: pointer;
+  /* The house gradient, run gold-first. The three glyphs sit at the leading
+     edge, and ink marks on burnt orange were the weakest thing on the control;
+     on gold they read cleanly, while the arrow at the trailing end carries the
+     darker stop where legibility matters least. */
+  background: linear-gradient(90deg, #d9a040 0%, #c07f3a 62%, #a6633c 100%);
+  color: #1c140f; font-weight: 700;
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
   font-size: 13px; letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
+  /* The one element with depth on an otherwise flat band. A hard offset shadow
+     rather than a blur: the same hardware-panel idiom drft's own buy button
+     already uses, so this reads as the brand's vocabulary and not an imported
+     effect. The 1px ink border keeps the gradient's pale end legible on cream. */
+  border: 1px solid #1c140f;
+  box-shadow: 3px 3px 0 0 #1c140f;
+  transition: transform 120ms ease, box-shadow 120ms ease;
 }
-.rail .bundlePill:focus-visible { outline: 2px solid var(--chrome-ink); outline-offset: 2px; }
+/* Presses in, like a key. This is the whole motion budget for the control —
+   animating the three glyphs as well would be scattered noise on an element
+   that sits in the chrome of every page. */
+.chrome .rail .bundlePill:hover {
+  transform: translate(1px, 1px);
+  box-shadow: 2px 2px 0 0 #1c140f;
+  color: #1c140f;
+}
+.chrome .rail .bundlePill:active {
+  transform: translate(3px, 3px);
+  box-shadow: 0 0 0 0 #1c140f;
+}
+.rail .bundlePill:focus-visible { outline: 2px solid var(--chrome-ink); outline-offset: 3px; }
+
+.bundleGlyphs { display: inline-flex; align-items: center; gap: 3px; color: #1c140f; }
+.bundleGlyph { display: block; }
+.bundleLabel { text-transform: uppercase; letter-spacing: 0.1em; font-size: 11px; }
+.bundlePrice { font-size: 14px; }
+/* Struck against the combined list price, the same way every other price on the
+   site is struck — the saving is shown rather than asserted. */
+.bundleWas { opacity: 0.5; font-weight: 400; font-size: 12px; }
+.bundleArrow { transition: transform 160ms ease; }
+.rail .bundlePill:hover .bundleArrow { transform: translateX(2px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .rail .bundlePill,
+  .chrome .rail .bundlePill:hover,
+  .chrome .rail .bundlePill:active { transform: none; transition: none; }
+  .bundleArrow { transition: none; }
+}
 
 .rail .ownedLink {
   white-space: nowrap; text-decoration: none; color: var(--chrome-ink); opacity: 0.7;

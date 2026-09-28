@@ -82,17 +82,20 @@
    rather than navigating, so it needs the UA button chrome (border, font,
    width) reset back to what the shared .row rule already gives every
    anchor row for free. */
+/* The same three marks and the same gold-first gradient as the rail's control:
+   one offer, stated the same way wherever it appears. */
+.bundleGlyphs { display: inline-flex; align-items: center; gap: 3px; flex: none; color: #1c140f; }
 .bundleRow {
   justify-content: space-between;
-  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
+  background: linear-gradient(90deg, #d9a040 0%, #c07f3a 62%, #a6633c 100%);
   color: #1c140f;
   border: none; width: 100%; text-align: left; font: inherit; cursor: pointer;
 }
 .bundleRow:hover, .bundleRow:focus-visible {
-  background: linear-gradient(90deg, #a6633c 0%, #d9a040 100%); color: #1c140f;
+  background: linear-gradient(90deg, #d9a040 0%, #c07f3a 62%, #a6633c 100%); color: #1c140f;
 }
 .bundleRow .rowName { font-weight: 700; }
-.bundleRow .rowCategory { opacity: 0.75; }
+.bundleRow .rowCategory { opacity: 0.75; white-space: nowrap; }
 .bundlePrice {
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
   font-size: 15px; font-weight: 700; font-variant-numeric: tabular-nums;
