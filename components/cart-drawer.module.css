@@ -119,8 +119,58 @@
 .emptyLink { color: #a6633c; font-weight: 600; text-decoration: none; }
 .emptyLink:hover { text-decoration: underline; }
 
+/* With an offer under it, the empty state is a line at the top, not the
+   middle of the panel. */
+.emptyWithOffer { height: auto; justify-content: flex-start; padding-bottom: 8px; }
+
+/* ---- the offer: what was taken out, and the bundle ---------------------- */
+.offer {
+  margin: 8px 20px 20px; padding-top: 16px;
+  border-top: 1px dashed rgba(36, 33, 29, 0.18);
+}
+.offerTitle {
+  margin: 0 0 4px;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.6;
+}
+.offer .lines { padding: 0; }
+/* Not in the cart yet, so quieter than what is. */
+.offerLine { padding: 10px 0; }
+.offerLine .lineGlyph, .offerLine .lineText { opacity: 0.8; }
+.offerAdd, .offerBundleAdd {
+  flex: none; cursor: pointer; border-radius: 999px;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+}
+.offerAdd {
+  padding: 6px 12px; min-height: 30px;
+  background: none; color: #24211d; border: 1px solid rgba(36, 33, 29, 0.35);
+}
+.offerAdd:hover { background: rgba(36, 33, 29, 0.08); }
+
+/* The bundle wears the rail button's red, where it is the offer being made. */
+.offerBundle {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  margin: 10px 0 6px; padding: 12px 14px; border-radius: 10px;
+  background: rgba(186, 42, 25, 0.08); border: 1px solid rgba(186, 42, 25, 0.28);
+}
+.offerBundleText { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.offerBundleName { font-size: 14px; font-weight: 700; }
+.offerBundleNote {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-variant-numeric: tabular-nums; font-size: 11px; color: #9c2414;
+}
+.offerBundleAdd {
+  padding: 8px 14px; min-height: 34px; white-space: nowrap;
+  background: linear-gradient(90deg, #a82216 0%, #ba2a19 55%, #c93018 100%);
+  color: #f7f3ec; border: 1px solid #1c140f;
+}
+.offerBundleAdd:hover { filter: brightness(1.06); }
+.offerAdd:focus-visible, .offerBundleAdd:focus-visible { outline: 2px solid #a6633c; outline-offset: 2px; }
+
 /* ---- footer: pinned, never pushed off by long line lists ---------------- */
 .footer { flex: none; padding: 16px 20px 20px; border-top: 1px solid rgba(36, 33, 29, 0.12); }
+.promo { margin-bottom: 12px; }
 .totalRow {
   display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 12px;
 }

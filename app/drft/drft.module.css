@@ -6,7 +6,7 @@
      hero (video) and sticky bar stay dark on their own - see the notes on
      --cream/--silk-dim further down. --cream stays the lighter value because
      it doubles as light text on those dark surfaces. */
-  --chassis: #e0c69f;
+  --chassis: #e7d2b0;
   --panel: #e6dcc5;
   --seam: rgba(28, 20, 15, 0.14);
   --cream: #efe9dc;
@@ -208,14 +208,20 @@
 }
 
 /* ---- A/B compare --------------------------------------------------------
-   Sits between the hero and the intro. The page is paper, so the section
-   background stays cream and only the scope itself is a lit CRT - the one
-   place on the body where a dark panel earns its keep, because the traces
-   need somewhere to glow. */
+   Sits between the hero and the reels, as the one dark band on a page that is
+   otherwise paper: a full-width strip of the plugin's own chassis colour, so
+   the player reads as the unit itself set on a bench rather than a picture of
+   it. The band runs edge to edge; .abInner holds the measure. */
 .ab {
+  --bench: #171512;
+  background: var(--bench);
+  padding: 4.5rem 1.5rem 6.5rem;
+  /* The reels below bring no top padding of their own. */
+  margin-bottom: clamp(3.5rem, 7vw, 5.5rem);
+}
+.abInner {
   max-width: 60rem;
   margin: 0 auto;
-  padding: 4.5rem 1.5rem 1rem;
 }
 .abHead {
   text-align: center;
@@ -223,7 +229,7 @@
   margin: 0 auto 2.4rem;
 }
 .abTitle {
-  color: var(--ink);
+  color: var(--cream);
   font-size: clamp(1.6rem, 4vw, 2.3rem);
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -231,12 +237,13 @@
 }
 
 /* The unit reads as a piece of gear set down on the page - same hard-offset
-   chassis language as the hero's buy key. */
+   chassis language as the hero's buy key. On the dark band an ink shadow would
+   vanish into the ground, so the offset is cast in the page's own tan. */
 .abUnit {
   border: 3px solid var(--ink);
   border-radius: 12px;
   background: var(--panel);
-  box-shadow: 6px 7px 0 0 var(--ink);
+  box-shadow: 6px 7px 0 0 var(--chassis);
   padding: 1rem;
 }
 

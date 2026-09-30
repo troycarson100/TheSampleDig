@@ -32,6 +32,8 @@ import Link from "next/link"
 import { signOut, useSession } from "next-auth/react"
 import { useCart } from "@/components/CartProvider"
 import PluginGlyph from "@/components/plugin-page/PluginGlyph"
+import PromoCodeField from "@/components/PromoCodeField"
+import { formatCents } from "@/lib/cart-promo"
 import { PLUGIN_ORDER, PLUGINS, type PluginId } from "@/lib/plugins"
 import { trackMeta } from "@/lib/meta-pixel"
 import styles from "./checkout.module.css"
@@ -217,7 +219,9 @@ export default function CheckoutForm() {
       const res = await fetch("/api/cart/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        // The code and nothing about what it is worth: the server asks Stripe
+        // that itself, at the moment of sale.
+        body: JSON.stringify({ ...payload, ...(cart.promo ? { promoCode: cart.promo.code } : {}) }),
       })
 
       if (res.status === 200) {
@@ -239,6 +243,18 @@ export default function CheckoutForm() {
           setOwnedNotice(owns)
           owns.forEach((id) => cart.remove(id))
           setPhase({ kind: "form" })
+          return
+        }
+        // The code held when it was typed in and does not now — expired, used
+        // up, or not one this buyer may use. It comes off, so the summary goes
+        // back to the real total, and the buyer decides again with that in
+        // front of them rather than being sent to pay a price they did not see.
+        if (reason === "promo_invalid") {
+          cart.clearPromo()
+          setPhase({
+            kind: "error",
+            message: "That promo code can't be used on this order, so we've taken it off. Check the total and continue when you're ready.",
+          })
           return
         }
         if (reason === "session_email_mismatch") {
@@ -286,7 +302,7 @@ export default function CheckoutForm() {
 
     // Checkout actually begins here — the moment a validated attempt is sent
     // to the server, not when the cart was built or a button first rendered.
-    trackMeta("InitiateCheckout", { value: cart.totals.total, currency: "USD", content_type: "product" })
+    trackMeta("InitiateCheckout", { value: cart.quote.totalCents / 100, currency: "USD", content_type: "product" })
     await submitCheckout({ ids: cart.ids, ...(signedIn ? {} : { email: normalize(email) }) })
   }
 
@@ -299,7 +315,8 @@ export default function CheckoutForm() {
 
   const busy = phase.kind === "submitting"
   const launchPending = phase.kind === "launch-pending"
-  const submitLabel = busy ? "…" : launchPending ? "Opens at launch" : `Continue to payment · $${cart.totals.total}`
+  const due = formatCents(cart.quote.totalCents)
+  const submitLabel = busy ? "…" : launchPending ? "Opens at launch" : `Continue to payment · ${due}`
 
   return (
     <div className={styles.layout}>
@@ -451,10 +468,13 @@ export default function CheckoutForm() {
             </li>
           )}
         </ul>
+        {/* Here, outside the form on the left: it is a form of its own, and
+            Enter in a box inside the checkout form would submit the order. */}
+        <PromoCodeField idPrefix="checkout" className={styles.promo} />
         <div className={styles.dueRow}>
           <span className={styles.dueLabel}>Amount due</span>
           <span className={styles.dueValue}>
-            <span className={styles.dueTotal}>${cart.totals.total}</span>
+            <span className={styles.dueTotal} data-amount-due>{due}</span>
             <s className={styles.dueMsrp}>${cart.totals.msrpTotal}</s>
           </span>
         </div>

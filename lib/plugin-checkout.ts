@@ -4,7 +4,7 @@ import { prisma } from "@/lib/db"
 import { normalizeAffiliateCode } from "@/lib/affiliate-logic"
 import { readAttributionMetadata } from "@/lib/attribution-snapshot"
 import type { CompProduct, PluginProduct } from "@/lib/plugin-products"
-import { checkoutUrls, type CancelPath } from "@/lib/plugin-checkout-logic"
+import { checkoutUrls, sessionDiscount, type CancelPath } from "@/lib/plugin-checkout-logic"
 
 // Shared by the shft, drft and bundle checkout routes. Each route still picks
 // its own price and runs its own ownership guards; this is the part that was
@@ -123,6 +123,10 @@ export async function createPluginCheckoutSession(
      * precisely so a caller cannot set it any other way.
      */
     products?: readonly PluginProduct[]
+    /** A Stripe promotion code id the caller has just looked up for this
+     *  order. Applied to the session, which takes Stripe's own promo box off
+     *  the payment page — see sessionDiscount. */
+    promotionCodeId?: string | null
     metadata?: Record<string, string>
   },
 ): Promise<Stripe.Checkout.Session> {
@@ -141,7 +145,7 @@ export async function createPluginCheckoutSession(
     customer_creation: "always",
     ...(customerEmail ? { customer_email: customerEmail } : {}),
     billing_address_collection: "auto",
-    allow_promotion_codes: true,
+    ...sessionDiscount(opts.promotionCodeId),
     ...(buyer ? { client_reference_id: buyer.id } : {}),
     metadata: {
       ...withoutReservedKeys(opts.metadata),

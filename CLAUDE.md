@@ -75,6 +75,9 @@ running.
 
 ```bash
 node scripts/verify-plugin-chrome.mjs      # sale strip + sticky rail
+node scripts/verify-plugin-panel.mjs       # hero panel: hover help + page tabs
+node scripts/verify-drft-compare.mjs       # drft: the dark "hear it" band
+node scripts/verify-ab-compare.mjs         # before/after player on drft + fltr
 node scripts/verify-storefront-nav.mjs     # nav dropdown + ticker
 node scripts/verify-cart.mjs               # cart drawer + checkout
 node scripts/verify-plugin-ownership.mjs   # never sell what someone owns
@@ -137,17 +140,27 @@ checkout. Design docs in `docs/superpowers/specs/`, plans and a handoff note in
 
 Before that branch can launch:
 
-- [ ] Create the Stripe price objects for `STRIPE_SHFT29_PRICE_ID`,
-      `STRIPE_DRFT29_PRICE_ID`, `STRIPE_BUNDLE3_PRICE_ID`. The names changed
-      with the prices so stale config fails closed rather than charging the old
-      amount.
-- [ ] Set `NEXT_PUBLIC_FLTR_INTRO_ENDS` with an explicit `Z` or offset. Unset,
-      the countdown stays dormant by design.
-- [ ] Supply `public/fltr/hero.png` — fltr's hero is a deliberate empty panel.
+- [ ] Create the Stripe price objects and set `STRIPE_SHFT29_PRICE_ID`,
+      `STRIPE_DRFT29_PRICE_ID`, `STRIPE_FLTR29_PRICE_ID` ($29 each) and
+      `STRIPE_BUNDLE69_PRICE_ID` ($69). The names change with the prices so
+      stale config fails closed rather than charging the old amount.
+- [ ] Member offer ($10 off any plugin, one single-use code per existing
+      account, 30 days). `prisma/migrations/manual/20260930_member_offers.sql`
+      is applied to production (2026-09-30). After deploy use `/admin/offers` -
+      "Send test to me" first, then Send.
+      Accounts made after the first press of Send get nothing. It sends through
+      the same SMTP account as everything else, so a Gmail daily cap stops it
+      partway; Resume the next day picks up where it stopped.
+- [ ] The bundle's countdown ends at `BUNDLE_OFFER_ENDS` in `lib/plugins.ts`.
+      On that date the $69 goes up (here and in Stripe) or the date moves.
+- `NEXT_PUBLIC_FLTR_INTRO_ENDS` is not to be set: fltr has no intro price any
+      more ($29, like the others, since 2026-09-30).
 - [ ] Confirm the stray production row is gone:
       `select count(*) from affiliates where lower(code) = 'verifyc2';`
-- [ ] Decide the in-plugin `sift` → `fltr` rename, and whether fltr ships on
-      Windows.
+- [ ] Decide the in-plugin `sift` → `fltr` rename.
+- [x] fltr's three files are in the bucket's `fltr/` folder (2026-09-30), named
+      as `lib/products.ts` expects: `fltr-1.0.0.pkg`, `fltr-1.0.0-setup.exe`,
+      `fltr-manual-v1.0.pdf`.
 
 Not started: the interactive hotspot hero (spec C) — a product image where each
 control explains itself, with the video loop moved below. Needs per-control copy

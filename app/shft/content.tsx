@@ -8,6 +8,7 @@
 // verbatim (same viewBox/stroke/path data) from the pre-template
 // ShftLanding.tsx (see `git show 2115c61:app/shft/ShftLanding.tsx`).
 import type { PluginContent } from "@/components/plugin-page/types"
+import { SHFT_PANEL } from "./panel"
 import { PRICING } from "@/lib/products"
 
 /* ---- capability icons (thin-line, matching the plugin's minimal look) ---- */
@@ -71,19 +72,15 @@ export const SHFT_CONTENT: PluginContent = {
   hero: {
     badge: "out now",
     description: "Gated Multi-FX",
-    caption: "One-time purchase · macOS & Windows · VST3 / AU / Standalone",
-    media: {
-      kind: "video",
-      src: "/shft/hero-v2.mp4",
-      poster: "/shft/hero-v2-poster.jpg",
-      alt: "shft running on a drum loop",
-    },
-  },
-
-  intro: {
-    eyebrow: "Inside shft",
-    title: "Draw a curve on every step",
+    // Was the body of the "Inside shft" intro section below the hero. It says
+    // what the plugin is, so it belongs with the name; the intro section is gone.
     body: "A grid where each step is a tiny envelope — swell, pluck, pulse. String them together and any sound turns rhythmic, perfectly in time.",
+    caption: "One-time purchase · macOS & Windows · VST3 / AU / Standalone",
+    panel: SHFT_PANEL,
+    // No `media` for now. The hero clip (/shft/hero-v2.mp4, poster
+    // /shft/hero-v2-poster.jpg) was recorded on the old cream skin and is
+    // parked until there is one of the current interface. Set `media` again
+    // and it plays in its own section under the hero, with a link down to it.
   },
 
   blocks: [
@@ -107,8 +104,8 @@ export const SHFT_CONTENT: PluginContent = {
       body: "Arm any step's repeat bar and it stutters in place — blue for tight forward rolls, red for reverse backspin fills, green for a granular cloud that smears the grain into texture. Dial pitch, scatter and grain size across the board, then add chaos for glitches that never land the same way twice.",
       media: {
         kind: "image",
-        src: "/shft/sc2.png",
-        alt: "shft sequencer with colour-coded beat-repeat, reverse and granular steps",
+        src: "/shft/chop.webp",
+        alt: "shft's sequencer in its light skin, with repeat bars armed under the steps — green for granular, red for reverse, blue for forward",
       },
     },
     {

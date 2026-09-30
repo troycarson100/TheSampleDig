@@ -65,7 +65,20 @@ async function run() {
   // Hovering must NOT stop the drift. Uses a raw mouse move rather than
   // .hover(): the cards are perpetually animating, so Playwright's
   // "wait for stable" actionability check can never be satisfied.
-  const trackBox = await feedback.locator("[data-marquee-track]").first().boundingBox()
+  // Brought into view and waited on first: read straight after load - or after
+  // a rebuild - the track can have no box yet, and a null here used to end the
+  // whole run before any check below it had reported.
+  // The section is scrolled, not the track: the track never stops moving, and
+  // Playwright's own scroll waits for it to.
+  const track = feedback.locator("[data-marquee-track]").first()
+  await feedback.evaluate((el) => el.scrollIntoView({ block: "center" }))
+  await page.waitForFunction(
+    () => (document.querySelector('section[aria-labelledby="shft-feedback-title"] [data-marquee-track]')?.getBoundingClientRect().height ?? 0) > 0,
+    null,
+    { timeout: 30000 },
+  )
+  const trackBox = await track.boundingBox()
+  if (!trackBox) throw new Error("the marquee track has no box to hover")
   await page.mouse.move(trackBox.x + Math.min(trackBox.width / 2, 400), trackBox.y + trackBox.height / 2)
   await page.waitForTimeout(300)
   const hovered = await feedback
@@ -186,6 +199,49 @@ async function run() {
     .evaluate((el) => getComputedStyle(el).animationName)
   check("marquee animation disabled under reduced motion", ranim === "none", `animation-name: ${ranim}`)
   await rpage.screenshot({ path: `${OUT}/reduced-motion.png`, fullPage: true })
+
+  // ---- Order and bands under the hero -------------------------------------
+  // Reels on the page's ink, the walkthrough on cream, the feedback on ink
+  // again - and drft's reels, the same component, still on its own page.
+  console.log("\nbands")
+  const bands = await browser.newContext({ viewport: { width: 1440, height: 900 } })
+  const bpage = await bands.newPage()
+  await bpage.goto(`${BASE}/shft`, { waitUntil: "networkidle", timeout: 90000 })
+  const order = await bpage.evaluate(() => {
+    const parse = (c) => { const m = c.match(/[\d.]+/g).map(Number); return { r: m[0], g: m[1], b: m[2], a: m[3] ?? 1 } }
+    const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
+    const main = document.querySelector("main[data-plugin]")
+    const page = parse(getComputedStyle(main.parentElement).backgroundColor)
+    const ground = (el) => { const c = parse(getComputedStyle(el).backgroundColor); return c.a === 0 ? page : c }
+    const kids = [...main.children]
+    const at = (sel) => kids.findIndex((k) => k.matches(sel))
+    const reels = main.querySelector("[data-reels]")
+    const dots = [...reels.querySelectorAll("[aria-label^='Go to reel']")]
+    const dot = dots.map((d) => ({ colour: getComputedStyle(d).backgroundColor, opacity: +getComputedStyle(d).opacity }))
+    return {
+      hero: at("section:first-of-type"),
+      reels: at("[data-reels]"),
+      walkthrough: at('section[aria-labelledby="shft-walkthrough-title"]'),
+      feedback: at('section[aria-labelledby="shft-feedback-title"]'),
+      reelsLum: lum(ground(reels)),
+      walkLum: lum(ground(main.querySelector('section[aria-labelledby="shft-walkthrough-title"]'))),
+      feedLum: lum(ground(main.querySelector('section[aria-labelledby="shft-feedback-title"]'))),
+      dot,
+    }
+  })
+  check("under the hero: reels, then walkthrough, then feedback", order.hero === 0 && order.reels === 1 && order.walkthrough === 2 && order.feedback === 3,
+    JSON.stringify(order))
+  check("the reels sit on a dark band", order.reelsLum < 0.05, order.reelsLum.toFixed(3))
+  check("the walkthrough sits on the light page between two dark bands", order.walkLum > 0.6 && order.feedLum < 0.05,
+    `walkthrough ${order.walkLum.toFixed(3)}, feedback ${order.feedLum.toFixed(3)}`)
+  check("the reel dots are white", order.dot.length > 1 && order.dot.every((d) => d.colour === "rgb(255, 255, 255)"), JSON.stringify(order.dot[0]))
+  check("the dot for the reel showing stands out from the rest",
+    order.dot.length > 1 && order.dot[0].opacity >= 0.9 && order.dot.slice(1).every((d) => d.opacity <= 0.4), order.dot.map((d) => d.opacity).join(", "))
+
+  await bpage.goto(`${BASE}/drft`, { waitUntil: "networkidle", timeout: 90000 })
+  const drftReels = await bpage.locator("[data-reels]").evaluate((el) => ({ bg: getComputedStyle(el).backgroundColor, tone: el.dataset.tone }))
+  check("drft's reels keep their light default", drftReels.tone === "light" && drftReels.bg === "rgba(0, 0, 0, 0)", JSON.stringify(drftReels))
+  await bands.close()
 
   await browser.close()
 

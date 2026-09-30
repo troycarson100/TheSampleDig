@@ -9,6 +9,7 @@
 // verbatim (same viewBox/stroke/path data) from the pre-template
 // DrftLanding.tsx.
 import type { PluginContent } from "@/components/plugin-page/types"
+import { DRFT_PANEL } from "./panel"
 import { PRICING } from "@/lib/products"
 
 /* ---- capability icons (thin-line, matching the hardware look) ------------ */
@@ -69,19 +70,14 @@ export const DRFT_CONTENT: PluginContent = {
   hero: {
     badge: "out now",
     description: "VHS / CRT circuit-bend FX",
-    caption: "One-time purchase • macOS & Windows • VST3 / AU / Standalone",
-    media: {
-      kind: "video",
-      src: "/drft/hero.mp4",
-      poster: "/drft/hero-poster.jpg",
-      alt: "drft running on a video clip",
-    },
-  },
-
-  intro: {
-    eyebrow: "INSIDE DRFT",
-    title: "A dying deck in your chain",
+    // Was the body of the "INSIDE DRFT" intro section below the hero. It says
+    // what the plugin is, so it belongs with the name; the intro section is gone.
     body: "Tape wow, head burn, tracking wash, dropouts and snow - six knobs of damage on whatever you run through it, over a CRT that shows you every bit of what it does.",
+    caption: "One-time purchase • macOS & Windows • VST3 / AU / Standalone",
+    panel: DRFT_PANEL,
+    // No `media` for now, the same as shft: the hero clip (/drft/hero.mp4,
+    // poster /drft/hero-poster.jpg) is parked. Set `media` again and it plays
+    // in its own section under the hero, with a link down to it.
   },
 
   blocks: [

@@ -1,6 +1,6 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { introWindow } from "./plugins"
+import { BUNDLE_OFFER_ENDS, bundleWindow, introWindow } from "./plugins"
 
 const NOW = new Date("2026-10-01T12:00:00.000Z")
 
@@ -32,4 +32,18 @@ test("introWindow: a past deadline is not live, but still reports its date", () 
 test("introWindow: exactly at the deadline is not live", () => {
   const w = introWindow(NOW, NOW.toISOString())
   assert.equal(w.live, false)
+})
+
+test("bundleWindow: runs up to its deadline and not past it", () => {
+  assert.equal(bundleWindow(NOW, "2026-10-31T23:59:59-07:00").live, true)
+  assert.equal(bundleWindow(new Date("2026-11-01T07:00:00.000Z"), "2026-10-31T23:59:59-07:00").live, false)
+  assert.equal(bundleWindow(NOW, null).live, false)
+})
+
+// A date with no offset is read in each visitor's own timezone, so the offer
+// would end at a different moment for every one of them.
+test("BUNDLE_OFFER_ENDS: unset, or a real date that says which timezone it is in", () => {
+  if (BUNDLE_OFFER_ENDS === null) return
+  assert.match(BUNDLE_OFFER_ENDS, /(Z|[+-]\d{2}:\d{2})$/)
+  assert.notEqual(bundleWindow(NOW, BUNDLE_OFFER_ENDS).endsAt, null)
 })

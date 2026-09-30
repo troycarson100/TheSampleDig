@@ -1,6 +1,20 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { checkoutUrls } from "./plugin-checkout-logic"
+import { checkoutUrls, sessionDiscount } from "./plugin-checkout-logic"
+
+test("sessionDiscount: a code from the site is applied, and Stripe's own promo box is left off", () => {
+  // Stripe rejects a session that sets both, so the second assertion is what
+  // keeps checkout from failing outright for anyone who entered a code.
+  const params = sessionDiscount("promo_123")
+  assert.deepEqual(params, { discounts: [{ promotion_code: "promo_123" }] })
+  assert.equal("allow_promotion_codes" in params, false)
+})
+
+test("sessionDiscount: with no code, Stripe's promo box stays, exactly as before", () => {
+  for (const none of [null, undefined, ""]) {
+    assert.deepEqual(sessionDiscount(none), { allow_promotion_codes: true })
+  }
+})
 
 test("checkoutUrls: success lands on /thanks with the session placeholder, product and price", () => {
   const urls = checkoutUrls("https://sampleroll.com", "shft", 19, "/shft")

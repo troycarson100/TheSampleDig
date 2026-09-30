@@ -10,7 +10,7 @@ export interface PluginMeta {
   id: PluginId
   /** Lowercase, as it is set everywhere on the site. */
   name: string
-  /** The line under the name in the hero, e.g. "trance gate". */
+  /** The line under the name in the hero, e.g. "gated multi fx". */
   category: string
   /** One sentence. Used on the plugin card and the hero. */
   tagline: string
@@ -28,7 +28,7 @@ export const PLUGINS: Record<PluginId, PluginMeta> = {
   shft: {
     id: "shft",
     name: "shft",
-    category: "trance gate",
+    category: "gated multi fx",
     tagline: "Sixteen steps chop your audio into living rhythm.",
     href: "/shft",
     ground: "#efe9dc",
@@ -43,7 +43,7 @@ export const PLUGINS: Record<PluginId, PluginMeta> = {
     category: "vhs / crt fx",
     tagline: "Your sound through a dying tape machine, picture and all.",
     href: "/drft",
-    ground: "#e0c69f",
+    ground: "#e7d2b0",
     ink: "#1c140f",
     accent: "#ef1f71",
     accent2: "#d99a2b",
@@ -110,4 +110,19 @@ export function introWindow(now: Date = new Date(), raw: string | null = FLTR_IN
   const endsAt = new Date(raw)
   if (Number.isNaN(endsAt.getTime())) return { endsAt: null, live: false }
   return { endsAt, live: endsAt.getTime() > now.getTime() }
+}
+
+/** When the three-plugin bundle price ends, as an ISO date-time string with a
+ *  timezone offset (the same rule as FLTR_INTRO_ENDS above, for the same
+ *  reason). This is what puts the clock in the sale strip. The clock is a
+ *  promise: on this date `PRICING.bundle.price` and the Stripe price behind it
+ *  have to go up, or the date has to be moved *before* it passes — a clock
+ *  that runs out on a price that then stays put was never a deadline. Past
+ *  the date the strip drops the clock and keeps the offer. `null` turns the
+ *  clock off. */
+export const BUNDLE_OFFER_ENDS: string | null = "2026-10-31T23:59:59-07:00"
+
+/** The bundle deadline, read by the same rules as the intro deadline. */
+export function bundleWindow(now: Date = new Date(), raw: string | null = BUNDLE_OFFER_ENDS): IntroWindow {
+  return introWindow(now, raw)
 }

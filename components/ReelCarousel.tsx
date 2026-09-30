@@ -67,12 +67,17 @@ function PauseIcon() {
 export default function ReelCarousel({
   reels,
   label = "Made with shft",
+  tone = "light",
 }: {
   reels: Reel[]
   /** Accessible name for the section. The deck has no visible heading, so this
       is the only thing naming it to a screen reader - it must say which
       product the clips belong to. */
   label?: string
+  /** "dark" sets the deck on the page's ink, as its own band, with white dots.
+      shft's page alternates dark and cream bands below its hero; drft's keeps
+      the light default. */
+  tone?: "light" | "dark"
 }) {
   const [active, setActive] = useState(0)
   const [muted, setMuted] = useState(false)
@@ -175,7 +180,12 @@ export default function ReelCarousel({
      so it isn't an anonymous region to a screen reader, and data-reels gives
      tooling a selector that doesn't depend on the copy. */
   return (
-    <section className={styles.section} aria-label={label} data-reels>
+    <section
+      className={`${styles.section}${tone === "dark" ? ` ${styles.sectionDark}` : ""}`}
+      aria-label={label}
+      data-reels
+      data-tone={tone}
+    >
       <div
         className={styles.deck}
         ref={deckRef}

@@ -4,6 +4,11 @@
   --strip-ground: #14110e;
   --strip-ink: #efe9dc;
   --hot: linear-gradient(90deg, #a6633c 0%, #d9a040 100%);
+  /* The bundle's red, and the cream that sits on it. Set once here because the
+     rail's bundle button and the saving in the sale strip both wear it, and
+     they have to stay the same red. */
+  --bundle-red: linear-gradient(90deg, #a82216 0%, #ba2a19 55%, #c93018 100%);
+  --bundle-cream: #f7f3ec;
   /* This wrapper exists only to scope the custom properties above and must not
      generate its own box: a normal block box here is sized to its two children
      (strip + rail) with no slack, which caps how far .rail's position: sticky
@@ -33,12 +38,48 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* For the light and the rule below, both of which are painted inside it. */
+  position: relative; overflow: hidden;
+  --strip-line: var(--hot);
+  --strip-glow: rgba(217, 160, 64, 0.2);
+}
+.strip[data-strip-variant="bundle"] {
+  --strip-line: var(--bundle-red);
+  --strip-glow: rgba(201, 48, 24, 0.3);
+}
+/* A rule along the foot of the band, in the offer's own colour, so the band
+   ends on something rather than just stopping at the cream below it. Painted
+   inside the band, not added as a border: the band stays 64px. */
+.strip[data-strip-variant]::after {
+  content: "";
+  position: absolute; left: 0; right: 0; bottom: 0; height: 2px;
+  background: var(--strip-line);
+  pointer-events: none;
+}
+/* One soft light crossing the band behind the offer, slowly — the same idea as
+   the pass on the bundle button, at the pace of something in the background.
+   Only an offer gets it: the empty band shown while ownership is still unknown
+   has nothing to draw the eye to. */
+.strip[data-strip-variant]::before {
+  content: "";
+  position: absolute; top: 0; bottom: 0; left: 0; width: 46%;
+  background: radial-gradient(ellipse 50% 140% at 50% 50%, var(--strip-glow) 0%, transparent 70%);
+  pointer-events: none;
+  transform: translate3d(-100%, 0, 0);
+  animation: stripGlow 11s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  will-change: transform;
+}
+@keyframes stripGlow {
+  0% { transform: translate3d(-100%, 0, 0); }
+  100% { transform: translate3d(218%, 0, 0); }
 }
 .stripInner {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 16px; text-decoration: none; color: inherit;
+  /* Over the light, never under it. */
+  position: relative; z-index: 1;
+  display: flex; align-items: center; gap: 30px;
+  padding: 10px 20px; text-decoration: none; color: inherit;
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
-  font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  font-size: 13px; letter-spacing: 0.16em; text-transform: uppercase;
 }
 /* Only the bundle variant renders .stripInner as a <button> (it opens the
    cart rather than navigating) — the intro and partial variants stay <a>
@@ -47,20 +88,51 @@
    outline alone so the same default focus-visible ring the anchor variants
    already relied on (no bespoke rule existed for .stripInner) still shows. */
 .stripButton { border: none; background: none; cursor: pointer; }
-.stripLabel { opacity: 0.85; }
+/* The row reads in four parts — what it is, what it costs, how long it runs,
+   and the way in — with more room between the parts than inside them. */
+.stripLabel { font-weight: 600; }
 .stripNames { opacity: 0.85; text-transform: none; letter-spacing: 0.04em; }
-.stripPrice { font-variant-numeric: tabular-nums; font-weight: 600; }
+.stripOffer { display: flex; align-items: center; gap: 10px; letter-spacing: 0.06em; }
+.stripPrice { font-size: 16px; font-weight: 700; color: #fff; font-variant-numeric: tabular-nums; }
 .stripWas { opacity: 0.5; font-variant-numeric: tabular-nums; }
-.stripSave { color: #d9a040; }
+/* The saving wears the bundle button's red, as a filled tag with the button's
+   cream on it, rather than as red lettering: that red on this near-black
+   ground is 3.5:1 at best, under the 4.5:1 floor for text this size, while
+   cream on the red clears it at every stop. */
+.stripSave {
+  margin-left: 4px;
+  padding: 4px 10px 3px; border-radius: 999px;
+  background: var(--bundle-red); color: var(--bundle-cream);
+  font-size: 12px; font-weight: 600; letter-spacing: 0.12em;
+  font-variant-numeric: tabular-nums;
+}
+/* Said, not shown: beside a price a clock already reads as "ends in", and the
+   words were the widest thing in the row. They stay for a screen reader, for
+   which four numbers on their own say nothing. */
+.stripEnds {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap; border: 0;
+}
+.stripCta { display: flex; align-items: center; gap: 8px; font-weight: 700; }
+.stripCtaWords {
+  padding-bottom: 3px;
+  box-shadow: inset 0 -2px 0 0 currentColor;
+}
 .stripArrow { transition: transform 160ms ease; }
 .stripInner:hover .stripArrow { transform: translateX(3px); }
 
-/* The clock sits inline with the label and price, slightly raised so its
-   small labels do not drag the row's optical centre down. */
-.stripClock { margin: 0 4px; }
+.stripClock { margin: 0; }
 .stripNew {
   color: #d9a040;
   font-weight: 600;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stripArrow { transition: none; }
+  .stripInner:hover .stripArrow { transform: none; }
+  /* Removed outright rather than stopped: a light parked part-way across the
+     band would read as a smudge on it. */
+  .strip[data-strip-variant]::before { display: none; animation: none; }
 }
 
 /* ---- pill rail: sticky ------------------------------------------------ */
@@ -109,7 +181,15 @@
   background: rgba(36, 33, 29, 0.07);
   border-color: var(--pill-accent);
 }
-.chrome .rail .pill[data-active="true"]:hover { color: var(--chrome-ground); }
+/* The active pill does not answer a hover — it is the page already showing,
+   and there is nowhere for a click on it to go. All three properties are
+   restated, not just the colour: the hover rule above has one more class than
+   the active rule below and so outranks it, which is how the active pill used
+   to take the hover's pale tint and border while keeping its own cream label,
+   and read as cream on cream. */
+.chrome .rail .pill[data-active="true"]:hover {
+  background: var(--chrome-ink); color: var(--chrome-ground); border-color: var(--chrome-ink);
+}
 .rail .pill[data-active="true"] {
   background: var(--chrome-ink); color: var(--chrome-ground); border-color: var(--chrome-ink);
 }
@@ -121,16 +201,24 @@
   display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
   padding: 8px 16px; border-radius: 999px; text-decoration: none;
   cursor: pointer;
+  /* Never narrower than its contents. `overflow: hidden` below drops a flex
+     item's automatic minimum width to zero, so on a phone the rail squeezed
+     this pill until it read "ALL" and cut off there. The rail scrolls sideways
+     when it runs out of room; this makes the pill scroll with it, whole. */
+  flex-shrink: 0;
   /* Containing block and clip for the sweep below. `overflow` clips only
      descendants, so the offset shadow and the focus outline both survive it. */
   position: relative; overflow: hidden;
+  /* Its own stacking context at rest, not only once :hover adds a transform,
+     so the sweep's overlay blend always resolves against this gradient. */
+  isolation: isolate;
   /* A vivid red rather than the house burnt orange, which read as heavy rather
      than pressable. Red is the one warm hue dark enough to carry cream text and
      still register as an action — an amber or vermilion bright enough to feel
      clickable drops cream to 1.7:1. Every stop here clears AA for the 13px bold
      label. It is also what the reference storefront used for its own bundle. */
-  background: linear-gradient(90deg, #a82216 0%, #ba2a19 55%, #c93018 100%);
-  color: #f7f3ec; font-weight: 700;
+  background: var(--bundle-red);
+  color: var(--bundle-cream); font-weight: 700;
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
   font-size: 13px; letter-spacing: 0.04em;
   font-variant-numeric: tabular-nums;
@@ -155,36 +243,48 @@
 .rail .bundlePill:focus-visible { outline: 2px solid var(--chrome-ink); outline-offset: 3px; }
 
 /* The control has to pull the eye without being clicked first, so it carries
-   one light pass on a loop. Shaped as a playhead rather than a soft gaussian
-   bloom: a hard bright leading edge with the glow trailing behind it, which is
-   the same figure shft's sequencer draws crossing its 16 steps. The cycle is
-   2s — one bar at 120bpm — so the pass lands on the downbeat rather than at
-   some arbitrary interval, and the band rests for two thirds of it.
-   Peak alpha stays at 0.38: the crest crosses the label for ~200ms and a
-   brighter one would wash the cream text out as it passed. */
+   one light pass on a loop. A wide symmetric band, feathered over nine stops
+   so neither edge is ever visible — the earlier playhead shape had a hard
+   leading edge, and at linear speed that edge read as a line being dragged
+   across rather than as light. The pass eases in and out over the first third
+   of a 5.2s cycle and rests for the remainder, so it arrives as an event and
+   not as a flicker.
+   Blended as `overlay` rather than painted as white: overlay pushes the red
+   hotter and more saturated where plain white turned it chalky pink, and it
+   costs the cream label less contrast at the crest than the old 0.38 white
+   did. */
 .rail .bundlePill::after {
   content: "";
   position: absolute;
-  top: 0; bottom: 0; left: 0; width: 44%;
+  /* Overshoots top and bottom so the 104deg slant never exposes a corner. */
+  top: -20%; bottom: -20%; left: 0; width: 56%;
   pointer-events: none;
   z-index: 0;
   background: linear-gradient(
-    100deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 238, 214, 0.08) 58%,
-    rgba(255, 244, 228, 0.24) 86%,
-    rgba(255, 252, 245, 0.38) 96%,
-    rgba(255, 255, 255, 0) 100%
+    104deg,
+    rgba(255, 236, 224, 0) 0%,
+    rgba(255, 236, 224, 0.04) 18%,
+    rgba(255, 236, 224, 0.16) 32%,
+    rgba(255, 236, 224, 0.42) 46%,
+    rgba(255, 244, 236, 0.62) 50%,
+    rgba(255, 236, 224, 0.42) 54%,
+    rgba(255, 236, 224, 0.16) 68%,
+    rgba(255, 236, 224, 0.04) 82%,
+    rgba(255, 236, 224, 0) 100%
   );
-  transform: translateX(-130%);
-  animation: bundleSweep 2s linear infinite;
+  mix-blend-mode: overlay;
+  opacity: 0.9;
+  transform: translate3d(-110%, 0, 0);
+  animation: bundleSweep 5.2s cubic-bezier(0.62, 0.02, 0.34, 1) infinite;
+  will-change: transform;
 }
 /* Behind the label, never over it: the pill's children are all spans, so one
    stacking bump keeps every one of them above the band. */
 .rail .bundlePill > * { position: relative; z-index: 1; }
+/* The band is 56% of the pill, so 190% of its own width clears the far end. */
 @keyframes bundleSweep {
-  0%, 10% { transform: translateX(-130%); }
-  45%, 100% { transform: translateX(240%); }
+  0% { transform: translate3d(-110%, 0, 0); }
+  34%, 100% { transform: translate3d(190%, 0, 0); }
 }
 
 .bundleGlyphs { display: inline-flex; align-items: center; gap: 4px; color: #f7f3ec; }
@@ -247,7 +347,63 @@
   font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums;
 }
 
-@media (max-width: 520px) {
-  .stripInner { gap: 8px; font-size: 11px; padding: 9px 12px; }
-  .stripWas, .stripSave { display: none; }
+/* ---- pill rail: narrow ------------------------------------------------
+   Two rows rather than one that scrolls. Below about 700px the three pills,
+   the bundle and the cart no longer fit side by side, and a row that scrolls
+   sideways hid the bundle and the cart — the two controls that sell — off the
+   right edge. The pills keep the first row to themselves; the bundle and the
+   cart sit under them, the cart pushed to the far side.
+
+   These rules sit at the end of the rail's section on purpose: each one
+   overrides a rule of the same specificity above, and would lose to it on
+   order if it came first.
+
+   Spacing. The sides are the page's own gutter (`--pad` in
+   plugin-page.module.css, repeated here because the rail sits outside the
+   element that defines it), so the first pill sits on the same left edge as
+   the hero under it. Top, between the rows, and bottom are all 12px; the bottom is written as 15 because the
+   bundle's hard shadow hangs 3px below it and would otherwise eat a quarter of
+   the space. The bundle gives up 2px from each of its gaps and its sides,
+   which is what lets it share a row with the cart at 375px. */
+@media (max-width: 700px) {
+  .rail {
+    flex-wrap: wrap; overflow-x: visible;
+    gap: 12px 10px;
+    padding: 12px clamp(20px, 5vw, 64px) 15px;
+  }
+  .rail .pills { flex: 1 0 100%; }
+  .rail .bundlePill { gap: 6px; padding: 8px 14px; }
+  .rail .cartButton { margin-left: auto; }
+}
+/* The narrowest phones: even trimmed, the bundle and the cart are too wide to
+   share a row, and the cart dropped to a third. The three marks are what gives
+   — the label beside them already says "all three", and the price and the
+   saving are the part that has to stay. */
+@media (max-width: 370px) {
+  .rail .bundleGlyphs { display: none; }
+}
+
+/* The whole row is 827px wide, so it gives things up in steps as the screen
+   narrows, the least-missed first: the words of the way in (the arrow still
+   says it, and the whole band is the control), then the wording and the list
+   price that only repeat what the row already shows, then on a phone the
+   arrow, and on the narrowest phones the saving. What is left — the offer,
+   its price, how long it runs — stays on one line. */
+@media (max-width: 880px) {
+  .stripCtaWords { display: none; }
+}
+@media (max-width: 740px) {
+  .stripInner { gap: 22px; }
+  .stripWas, .stripLabelMore { display: none; }
+}
+@media (max-width: 560px) {
+  .stripInner { gap: 12px; font-size: 11px; padding: 9px 12px; }
+  .stripPrice { font-size: 14px; }
+  .stripSave { font-size: 11px; padding: 4px 8px 3px; letter-spacing: 0.1em; }
+}
+@media (max-width: 430px) {
+  .stripCta { display: none; }
+}
+@media (max-width: 370px) {
+  .stripSave { display: none; }
 }

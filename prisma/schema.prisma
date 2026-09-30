@@ -161,6 +161,66 @@ model ReleaseAnnouncement {
   @@map("release_announcements")
 }
 
+// A one-off discount mailed to the people who already have an account - the
+// "$10 off any plugin" thank-you at fltr's launch. One row per offer. Like
+// ReleaseAnnouncement, it is claimed (inserted) BEFORE anything is created in
+// Stripe or mailed, so a second press of Send cannot start a second offer:
+// the unique slug refuses it.
+//
+// `cutoffAt` is the moment Send was first pressed. Only accounts created at or
+// before it are offered a code, however long the send takes to finish, so an
+// account made mid-send - or next week - never gets one.
+model MemberOffer {
+  id             String    @id @default(cuid())
+  slug           String    @unique
+  amountOffCents Int       @map("amount_off_cents")
+  // The Stripe coupon every code in this offer points at. Set on claim.
+  couponId       String?   @map("coupon_id")
+  cutoffAt       DateTime  @map("cutoff_at")
+  expiresAt      DateTime  @map("expires_at")
+  // Snapshotted on claim, with placeholders for the per-person parts - the
+  // record of what was actually mailed. See lib/email.ts.
+  subject        String
+  bodyHtml       String    @map("body_html")
+  sentByEmail    String?   @map("sent_by_email")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  // Null while a send is mid-flight or was stopped partway.
+  completedAt    DateTime? @map("completed_at")
+
+  codes MemberOfferCode[]
+
+  @@map("member_offers")
+}
+
+// One person's code in a MemberOffer. Written before the Stripe promotion code
+// is created and before the email goes, so a batch that dies partway is
+// resumed rather than repeated: the (offer, user) pair is unique, the code is
+// derived from them (lib/member-offer-logic.ts), and Stripe is asked with an
+// idempotency key - a retry lands on the same code every time.
+//
+// Also what the cart asks when a signed-in member has something in it: a sent,
+// unexpired code here is applied without being typed.
+model MemberOfferCode {
+  id              String      @id @default(cuid())
+  offerId         String      @map("offer_id")
+  offer           MemberOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  userId          String      @map("user_id")
+  // As it was when the code was made, for the admin's record of who was
+  // mailed. The cart looks codes up by user id, never by address.
+  email           String
+  code            String      @unique
+  promotionCodeId String?     @map("promotion_code_id")
+  sentAt          DateTime?   @map("sent_at")
+  // The last send that failed, for the admin screen. Cleared by a later
+  // success.
+  failedAt        DateTime?   @map("failed_at")
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  @@unique([offerId, userId])
+  @@index([userId])
+  @@map("member_offer_codes")
+}
+
 model Channel {
   id          String   @id @default(cuid())
   channelId   String   @unique @map("channel_id")

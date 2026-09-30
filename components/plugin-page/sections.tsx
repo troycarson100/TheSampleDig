@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import PluginGlyph from "./PluginGlyph"
 import BuyButton from "./BuyButton"
+import PluginPanel, { isWidePanel } from "./PluginPanel"
 import { PLUGINS, type PluginId } from "@/lib/plugins"
 import type { Capability, FaqItem, FeatureBlock, Media, PluginContent } from "./types"
 import styles from "./plugin-page.module.css"
@@ -144,8 +145,11 @@ export function MediaSlot({ media, className = "" }: { media?: Media; className?
 
 export function Hero({ id, hero }: { id: PluginId; hero: PluginContent["hero"] }) {
   const p = PLUGINS[id]
+  // A wide panel needs more than half the hero to be legible, so it takes the
+  // wider of two unequal columns.
+  const wide = hero.panel ? isWidePanel(hero.panel) : false
   return (
-    <section className={styles.hero}>
+    <section className={`${styles.hero} ${hero.panel ? styles.heroPanel : ""} ${wide ? styles.heroWide : ""}`} data-hero-wide={wide ? "" : undefined}>
       <div className={styles.heroCopy}>
         <p className={styles.eyebrow}>
           <PluginGlyph id={id} animate />
@@ -154,17 +158,49 @@ export function Hero({ id, hero }: { id: PluginId; hero: PluginContent["hero"] }
         </p>
         <h1 className={styles.name}>{p.name}</h1>
         <p className={styles.heroDesc}>{hero.description}</p>
+        {hero.body ? <p className={styles.heroBody}>{hero.body}</p> : null}
         <div className={styles.heroCta}>
           <BuyButton id={id} />
+          {/* A still can't show a gate moving. When the panel has taken the
+              video's place, this is the way down to it. */}
+          {hero.panel && hero.media ? (
+            <a className={styles.heroWatch} href={`#${loopId(id)}`} data-hero-watch>
+              <svg viewBox="0 0 16 16" width="12" height="12" fill="currentColor" aria-hidden>
+                <path d="M4 2.5 13 8l-9 5.5Z" />
+              </svg>
+              Watch it run
+            </a>
+          ) : null}
           <span className={styles.heroMeta}>{hero.caption ?? "One-time purchase · free updates"}</span>
         </div>
       </div>
-      <MediaSlot media={hero.media} className={styles.heroMedia} />
+      {hero.panel ? (
+        <PluginPanel
+          panel={hero.panel}
+          className={styles.heroPanelFit}
+          fallback={<MediaFallback alt={hero.panel.views[0]?.shot.alt ?? ""} className={styles.heroMedia} />}
+        />
+      ) : (
+        <MediaSlot media={hero.media} className={styles.heroMedia} />
+      )}
     </section>
   )
 }
 
-export function Intro({ intro }: { intro: PluginContent["intro"] }) {
+/** The anchor the hero's "Watch it run" link points at. */
+const loopId = (id: PluginId) => `${id}-loop`
+
+/** The hero's clip, in its own section directly under the hero. Only rendered
+    when a panel has taken the clip's place in the hero itself. */
+export function Loop({ id, media }: { id: PluginId; media: Media }) {
+  return (
+    <section className={styles.loop} id={loopId(id)} data-hero-loop>
+      <MediaSlot media={media} className={styles.loopMedia} />
+    </section>
+  )
+}
+
+export function Intro({ intro }: { intro: NonNullable<PluginContent["intro"]> }) {
   return (
     <section className={styles.intro}>
       {intro.eyebrow ? <p className={styles.eyebrow}>{intro.eyebrow}</p> : null}

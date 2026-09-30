@@ -45,8 +45,10 @@ export default function ShftLanding() {
         content={SHFT_CONTENT}
         afterIntro={
           <>
-            <ReelCarousel reels={REELS} />
-            <TestimonialMarquee items={TESTIMONIALS} />
+            {/* Three bands below the hero, alternating: the reels on the
+                page's ink, the walkthrough on cream, then the feedback on ink
+                again. */}
+            <ReelCarousel reels={REELS} tone="dark" />
             <section className={styles.walkthrough} aria-labelledby="shft-walkthrough-title">
               <div className={styles.walkthroughHead}>
                 <p className={styles.eyebrow}>Walkthrough</p>
@@ -67,6 +69,7 @@ export default function ShftLanding() {
                 poster={WALKTHROUGH.poster}
               />
             </section>
+            <TestimonialMarquee items={TESTIMONIALS} />
           </>
         }
       />

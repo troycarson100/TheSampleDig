@@ -32,7 +32,43 @@
   font-size: clamp(3.5rem, 9vw, 7rem); margin: 0 0 20px;
 }
 .heroDesc { font-size: clamp(16px, 1.6vw, 19px); line-height: 1.55; max-width: var(--measure); margin: 0 0 28px; opacity: 0.85; }
+/* The description keeps its own 28px gap to the CTA when it stands alone; with
+   a body under it the two read as one block, so the gap moves below the body. */
+.heroDesc:has(+ .heroBody) { margin-bottom: 12px; }
+.heroBody { font-size: 16px; line-height: 1.6; max-width: var(--measure); margin: 0 0 28px; opacity: 0.8; }
+/* A panel is a screenshot with a bar of help under it, and the two only make
+   sense seen together — so in the two-up hero the panel is sized from the
+   window's height, not the column's width, and the hero gives up most of its
+   own padding to make room.
+   290px is everything else on the first screen: the site header, sale strip
+   and pill rail (180), the hero's top padding (24), the help bar at its
+   tallest (about 75), and a little air under it. What is left is the
+   screenshot's height; times its aspect ratio (set by PluginPanel) is the
+   panel's width.
+   Never under 340px — below that the knob labels stop being legible, and a
+   short window scrolls instead. */
+@media (min-width: 861px) {
+  .heroPanel { padding-block: 24px clamp(24px, 4vw, 48px); }
+  .heroPanelFit {
+    width: min(100%, max(340px, calc((100svh - 290px) * var(--panel-ratio, 1.2))));
+    justify-self: center;
+  }  /* A wide panel in half the hero is a third of its real size, and nothing
+     printed on it can be read. It takes about two thirds instead, and the copy
+     beside it - a name, two sentences and a button - has room in the rest. */
+  .heroWide { grid-template-columns: minmax(0, 0.6fr) minmax(0, 1.4fr); }
+}
 .heroCta { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.heroWatch {
+  display: inline-flex; align-items: center; gap: 8px; min-height: 44px;
+  color: var(--plugin-ink); text-decoration: underline; text-underline-offset: 4px;
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 13px; letter-spacing: 0.04em;
+}
+.heroWatch:hover { color: var(--plugin-accent); }
+.heroWatch:focus-visible { outline: 2px solid var(--plugin-accent); outline-offset: 3px; }
+/* The caption takes its own line once the link is beside the button — three
+   items on one wrapping row broke mid-caption at most widths. */
+.heroWatch ~ .heroMeta { flex-basis: 100%; }
 .heroMeta {
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
   font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; opacity: 0.55;
@@ -58,6 +94,12 @@
 .buyIdle { min-width: 170px; min-height: 46px; background: transparent; border: 1px dashed rgba(128,128,128,0.3); }
 .buyPrice { font-weight: 700; }
 .buyWas { opacity: 0.5; }
+
+/* The hero's clip, moved down by a panel. 130px of scroll margin clears the
+   fixed site header (56px) and the sticky pill rail under it, so the link from
+   the hero lands with the clip's top edge in view rather than behind them. */
+.loop { padding: 0 var(--pad) clamp(40px, 6vw, 88px); scroll-margin-top: 130px; }
+.loopMedia { max-width: 1100px; margin: 0 auto; aspect-ratio: auto 16 / 11; box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28); }
 
 .intro { padding: clamp(40px, 6vw, 88px) var(--pad); max-width: 900px; }
 .introTitle { font-family: var(--font-geist-sans), system-ui, sans-serif; font-weight: 800; letter-spacing: -0.02em; font-size: clamp(1.8rem, 3.4vw, 2.6rem); margin: 0 0 16px; }
@@ -140,5 +182,10 @@
 
 @media (max-width: 860px) {
   .hero, .block { grid-template-columns: 1fr; }
+  /* A wide panel is the whole of a 1280px interface, and on a phone every
+     pixel of width it can have is one more that can be read. So it runs from
+     one edge of the screen to the other, past the page's own margin, and
+     squares its corners to meet them. */
+  .heroWide .heroPanelFit { margin-inline: calc(-1 * var(--pad)); border-radius: 0; }
   .blockAlt { direction: ltr; }
 }

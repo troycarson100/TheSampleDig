@@ -314,6 +314,98 @@ export async function sendReleaseAnnouncementEmail(
   })
 }
 
+/** The per-person parts of a member-offer email, substituted at send time like
+ *  UNSUBSCRIBE_PLACEHOLDER: the body is snapshotted once per offer, the code and
+ *  its link are each recipient's own. */
+export const CODE_PLACEHOLDER = "{{CODE}}"
+export const OFFER_URL_PLACEHOLDER = "{{OFFER_URL}}"
+
+/** The picture of fltr at the top of the member-offer email. Served by the site
+ *  itself, so it is only there once the site is deployed - a test sent from a
+ *  local dev server points at localhost. A JPEG, not the WebP the plugin page
+ *  uses, because Outlook shows no WebP; 960px wide, so it is sharp at the
+ *  432px the email draws it on a high-density screen. The picture is the
+ *  close-up render of fltr's morph bar and curve, not a screenshot. */
+export const MEMBER_OFFER_IMAGE = `${APP_URL}/fltr/email.jpg`
+
+export function memberOfferSubject(amountOff: string) {
+  return `${amountOff} off any Sample Roll plugin - thanks for being here`
+}
+
+/** The link in a member-offer email. It carries the code, so following it
+ *  puts the code on the visitor's cart whether or not they are signed in - see
+ *  lib/use-cart.ts. It lands on fltr, the plugin the email is about. */
+export function memberOfferUrl(code: string) {
+  return `${APP_URL}/fltr?promo=${encodeURIComponent(code)}`
+}
+
+/** The member-offer email, with CODE_PLACEHOLDER, OFFER_URL_PLACEHOLDER and
+ *  UNSUBSCRIBE_PLACEHOLDER where each person's own parts go. */
+export function renderMemberOfferHtml(opts: { amountOff: string; expires: string }) {
+  const amount = escapeHtml(opts.amountOff)
+  const expires = escapeHtml(opts.expires)
+  return `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+        <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 16px;">
+          ${amount} off any plugin, for you
+        </h1>
+        <a href="${OFFER_URL_PLACEHOLDER}" style="display: block; margin: 0 0 20px; text-decoration: none;">
+          <img src="${MEMBER_OFFER_IMAGE}" width="432" alt="fltr, close up: the morph bar sliding from A to B above a glowing filter curve"
+               style="display: block; width: 100%; max-width: 432px; height: auto; border: 0; border-radius: 10px;">
+        </a>
+        <p style="color: #555; margin-bottom: 16px; line-height: 1.5;">
+          fltr is out - a morphing filter that plays in key. You were on Sample Roll before it
+          launched, so here is ${amount} off it, or off shft, drft or all three together.
+        </p>
+        <p style="margin: 0 0 6px; color: #999; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase;">
+          Your code
+        </p>
+        <p style="margin: 0 0 20px; font-family: monospace; font-size: 22px; font-weight: 700; letter-spacing: 0.08em;">
+          ${CODE_PLACEHOLDER}
+        </p>
+        <p style="color: #555; margin-bottom: 24px; line-height: 1.5;">
+          You don't need to type it. It is taken off at checkout by itself when you're signed in
+          with this email address, or when you follow the button below. It works once, and
+          until ${expires}.
+        </p>
+        <a href="${OFFER_URL_PLACEHOLDER}" style="display: inline-block; background: #1a1a1a; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 8px; font-weight: 500;">
+          See fltr, ${amount} off
+        </a>
+        <p style="color: #ccc; font-size: 12px; margin-top: 16px;">
+          Or copy this link: ${OFFER_URL_PLACEHOLDER}
+        </p>
+        <p style="color: #ccc; font-size: 12px; margin-top: 24px; border-top: 1px solid #eee; padding-top: 16px;">
+          You're getting this because you have a Sample Roll account.
+          <a href="${UNSUBSCRIBE_PLACEHOLDER}" style="color: #999;">Unsubscribe from product emails</a>
+          - you'll still get receipts and account emails.
+        </p>
+      </div>
+    `
+}
+
+/** Sends one member-offer email over an already-open pooled transporter.
+ *  Throws on failure so the caller can record it and carry on. */
+export async function sendMemberOfferEmail(
+  transporter: nodemailer.Transporter,
+  email: string,
+  opts: { subject: string; html: string; code: string; unsubscribeUrl: string }
+) {
+  const html = opts.html
+    .split(CODE_PLACEHOLDER).join(escapeHtml(opts.code))
+    .split(OFFER_URL_PLACEHOLDER).join(memberOfferUrl(opts.code))
+    .split(UNSUBSCRIBE_PLACEHOLDER).join(opts.unsubscribeUrl)
+  await transporter.sendMail({
+    from: FROM,
+    to: email,
+    subject: opts.subject,
+    html,
+    headers: {
+      "List-Unsubscribe": `<${opts.unsubscribeUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+  })
+}
+
 export async function sendPasswordResetEmail(email: string, token: string) {
   const url = `${APP_URL}/reset-password?token=${token}`
 

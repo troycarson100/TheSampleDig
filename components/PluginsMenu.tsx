@@ -83,11 +83,34 @@ export function PluginsMenuRows({ onNavigate, menuRole = false }: { onNavigate?:
 
 const CLOSE_DELAY_MS = 120
 
-/** Desktop nav trigger + floating panel. */
+// True from a click on "Plugins" until the pointer next leaves it. A click
+// navigates, and the pointer is still sitting on the link when the new page
+// arrives — the browser reports that as the pointer entering it, which would
+// open the panel over the page that was just asked for. While this is set,
+// hover does not open the panel; moving away and back does.
+//
+// Module-level rather than a ref: every page mounts its own SiteNav, so the
+// nav that was clicked and the nav the pointer ends up over are two different
+// instances, and a ref set on the first is gone by the time the second reads
+// it.
+let hoverSpentOnClick = false
+
+/**
+ * Desktop nav trigger + floating panel.
+ *
+ * The trigger is a link, not a button: clicking "Plugins" goes to the first
+ * plugin's page, the way clicking any other item in the nav goes somewhere.
+ * The panel is what hovering or tabbing onto it adds — a shortcut to the other
+ * plugins and the bundle — and every plugin page carries the pill rail, so
+ * someone who only ever clicks still reaches all of them.
+ */
 export default function PluginsMenu({ active, className = "" }: { active: boolean; className?: string }) {
   const [open, setOpen] = useState(false)
   const wrapRef = useRef<HTMLDivElement>(null)
-  const triggerRef = useRef<HTMLButtonElement>(null)
+  const triggerRef = useRef<HTMLAnchorElement>(null)
+  // The first in display order, never a literal: reorder PLUGIN_ORDER and
+  // this follows.
+  const first = pluginList()[0]
   const closeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // When the panel was opened by hover (not focus), the trigger has no focus
   // yet, so Escape's own `triggerRef.current?.focus()` below fires a genuine
@@ -178,8 +201,15 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
     <div
       ref={wrapRef}
       className={styles.wrap}
-      onMouseEnter={() => { cancelClose(); setOpen(true) }}
-      onMouseLeave={scheduleClose}
+      onMouseEnter={() => {
+        if (hoverSpentOnClick) return
+        cancelClose()
+        setOpen(true)
+      }}
+      onMouseLeave={() => {
+        hoverSpentOnClick = false
+        scheduleClose()
+      }}
       onFocus={() => {
         if (suppressFocusOpen.current) { suppressFocusOpen.current = false; return }
         cancelClose()
@@ -195,9 +225,9 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
       }}
       onKeyDown={onPanelKeyDown}
     >
-      <button
+      <Link
         ref={triggerRef}
-        type="button"
+        href={first.href}
         // "nav-link-active" (not a styles.* class) is the sitewide active-tab
         // treatment SiteNav's own Dig / My Crate / Plugins links use — reusing
         // it here, rather than inventing a bespoke active style, is what makes
@@ -208,31 +238,18 @@ export default function PluginsMenu({ active, className = "" }: { active: boolea
         aria-haspopup="menu"
         aria-controls="plugins-menu-panel"
         aria-current={active ? "page" : undefined}
-        // Open, don't toggle: onFocus/onMouseEnter above already open the panel
-        // on hover and keyboard focus, and in browsers where a mouse click also
-        // focuses the button (Chromium, Firefox/Windows) that focus event fires
-        // before this click — toggling here would immediately re-close a panel
-        // that had just opened from the same click. Touch has no hover, so the
-        // first tap still opens it (there is nothing to toggle away from).
-        onClick={() => setOpen(true)}
-        // Enter/Space need to be a real toggle — a screen-reader user hears
-        // "expanded" and expects collapsing it back to work — but they can't
-        // just flip `open` here: both keys also fire this same button's native
-        // click after keydown, which would immediately undo the toggle via the
-        // onClick above. preventDefault() on the keydown cancels that synthetic
-        // click for keyboard activation (Enter *and* Space; the browser only
-        // dispatches click as a *default action* here, not a separate event),
-        // so this is the only place the toggle happens. Mouse/touch stay
-        // open-only, which is what dodges the race explained above.
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault()
-            setOpen((o) => !o)
-          }
+        // A click is a navigation, so the panel it was hovered open from goes
+        // with it. The route change below closes it too, but not when the
+        // click lands on the page already showing — then nothing changes
+        // route, and the panel would sit open over the page just asked for.
+        // Enter on the focused link is the same click, from the keyboard.
+        onClick={() => {
+          hoverSpentOnClick = true
+          setOpen(false)
         }}
       >
         Plugins
-      </button>
+      </Link>
 
       <div
         id="plugins-menu-panel"

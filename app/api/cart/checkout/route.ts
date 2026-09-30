@@ -3,7 +3,8 @@ import Stripe from "stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { createPluginCheckoutSession, readAffiliateCodeFromCookie, buyerFromSession } from "@/lib/plugin-checkout"
-import { resolveCartIdentity, decideCartContents } from "@/lib/cart-checkout-decision"
+import { resolveCartIdentity, decideCartContents, readPromoRequest, decideCartPromo } from "@/lib/cart-checkout-decision"
+import { lookupPromo } from "@/lib/cart-promo-lookup"
 import { PLUGIN_PRODUCTS, type PluginProduct } from "@/lib/plugin-products"
 import { SlidingWindowLimiter } from "@/lib/resend-rate-limit"
 
@@ -67,7 +68,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Checkout opens at launch." }, { status: 503 })
   }
 
-  const body: { ids?: unknown; email?: unknown } = (await request.json().catch(() => null)) ?? {}
+  const body: { ids?: unknown; email?: unknown; promoCode?: unknown } = (await request.json().catch(() => null)) ?? {}
   const ids: string[] = Array.isArray(body.ids) ? body.ids.filter((x): x is string => typeof x === "string") : []
   const postedEmail = typeof body.email === "string" ? body.email.trim().toLowerCase() : ""
 
@@ -124,7 +125,7 @@ export async function POST(request: Request) {
   // Rule 4: one line item at the bundle price when the sellable set is every
   // plugin, otherwise one line item per plugin at its own price.
   const priced = decision.bundleApplied
-    ? { product: "bundle" as const, lineItems: [withPrice(process.env.STRIPE_BUNDLE3_PRICE_ID)] }
+    ? { product: "bundle" as const, lineItems: [withPrice(process.env.STRIPE_BUNDLE69_PRICE_ID)] }
     : { product: decision.sellable[0], lineItems: decision.sellable.map((id) => withPrice(SINGLE_PRICE_ENV[id])) }
 
   // Rule 5: a charge must never go out at the wrong price. If any price this
@@ -133,17 +134,50 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Checkout opens at launch." }, { status: 503 })
   }
 
+  const stripe = new Stripe(secret)
+
+  // Rule 6: a promo code is looked up here, now, for this order. The page
+  // sends the code and nothing else about it — what it is worth is Stripe's
+  // answer at this moment, not whatever the page was told when the code was
+  // typed in. A code that no longer holds is refused out loud (409) rather
+  // than dropped: the buyer was shown a discounted total, and sending them to
+  // pay the full one without a word would be charging a price they never
+  // agreed to. The page clears the code, shows the real total, and asks again.
+  // See lib/cart-checkout-decision.ts for both decisions.
+  const promoRequest = readPromoRequest(body.promoCode)
+  let promotionCodeId: string | null = null
+  let paid = decision.paid
+  if (promoRequest.kind === "malformed") {
+    return NextResponse.json({ reason: "promo_invalid" }, { status: 409 })
+  }
+  if (promoRequest.kind === "lookup") {
+    let found: Awaited<ReturnType<typeof lookupPromo>>
+    try {
+      found = await lookupPromo(stripe, promoRequest.code)
+    } catch (e) {
+      console.error("[cart checkout] promo lookup failed", e)
+      return NextResponse.json({ error: "Checkout failed" }, { status: 502 })
+    }
+    const promo = decideCartPromo({ found, sellable: decision.sellable })
+    if (promo.kind === "refused") {
+      return NextResponse.json({ reason: "promo_invalid" }, { status: 409 })
+    }
+    promotionCodeId = promo.promotionCodeId
+    paid = promo.paid
+  }
+
   const affiliateCode = await readAffiliateCodeFromCookie("cart checkout")
 
   try {
-    const checkout = await createPluginCheckoutSession(new Stripe(secret), {
+    const checkout = await createPluginCheckoutSession(stripe, {
       product: priced.product,
       lineItems: priced.lineItems as { price: string; quantity: number }[],
       // The /thanks pixel must report what was actually charged, which is
       // the (possibly bundle-discounted) cart total, not the sum of list
       // prices for whatever was requested.
-      paid: decision.paid,
+      paid,
       cancelPath: "/checkout",
+      promotionCodeId,
       buyer,
       affiliateCode,
       // A guest's email was just checked, above, for exactly this cart. Binding
@@ -169,15 +203,26 @@ export async function POST(request: Request) {
       console.error("[cart checkout] Stripe rejected the guest email", e)
       return NextResponse.json({ error: "Enter a valid email address." }, { status: 400 })
     }
+    // Stripe has rules of its own about who may use a code (first purchase
+    // only, for one) that a lookup cannot see. A session it refuses over the
+    // discount is the same outcome as a code that failed the lookup above.
+    if (e instanceof Stripe.errors.StripeInvalidRequestError && e.param?.startsWith("discounts")) {
+      console.error("[cart checkout] Stripe refused the promo code", e)
+      return NextResponse.json({ reason: "promo_invalid" }, { status: 409 })
+    }
     console.error("[cart checkout]", e)
     return NextResponse.json({ error: e instanceof Error ? e.message : "Checkout failed" }, { status: 500 })
   }
 }
 
+// Each price's setting is named for the amount it charges, so a stale price id
+// left in the environment fails closed ("Checkout opens at launch.") rather
+// than charging the old amount against the new one on the page. fltr and the
+// bundle were renamed when they moved to $29 and $69 on 2026-09-30.
 const SINGLE_PRICE_ENV: Record<PluginProduct, string | undefined> = {
   shft: process.env.STRIPE_SHFT29_PRICE_ID,
   drft: process.env.STRIPE_DRFT29_PRICE_ID,
-  fltr: process.env.STRIPE_FLTR_PRICE_ID,
+  fltr: process.env.STRIPE_FLTR29_PRICE_ID,
 }
 
 function withPrice(priceId: string | undefined): { price: string; quantity: number } | null {

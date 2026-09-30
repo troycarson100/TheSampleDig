@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState } from "react"
 import Countdown from "@/components/Countdown"
 import PluginGlyph from "@/components/plugin-page/PluginGlyph"
 import styles from "@/components/plugin-chrome.module.css"
-import { countWord, introWindow, pluginList, PLUGIN_ORDER, PLUGINS, type PluginId } from "@/lib/plugins"
+import { bundleWindow, countWord, introWindow, pluginList, PLUGIN_ORDER, PLUGINS, type PluginId } from "@/lib/plugins"
 import { PRICING } from "@/lib/products"
 import { usePluginOwnership } from "@/lib/use-plugin-ownership"
 import { trackMeta } from "@/lib/meta-pixel"
@@ -16,6 +16,20 @@ function nameList(ids: PluginId[]): string {
   const names = ids.map((id) => PLUGINS[id].name)
   if (names.length <= 1) return names[0] ?? ""
   return `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]}`
+}
+
+/**
+ * introWindow() and bundleWindow() return a fresh Date instance on every call,
+ * and the strip re-renders on every unrelated change to `hovered` below (the
+ * rail's own hover state) — without memoising, Countdown's effect (keyed on
+ * [endsAt, onExpire]) would see a "new" endsAt on every pill hover and tear
+ * down + rebuild its interval for no reason. Keyed on the timestamp, not the
+ * Date object, since the raw source is stable but the instances it mints are
+ * not.
+ */
+function useStableDate(date: Date | null): Date | null {
+  const ms = date?.getTime() ?? null
+  return useMemo(() => (ms === null ? null : new Date(ms)), [ms])
 }
 
 /** The dark offer band. Never offers a visitor something they already own. */
@@ -30,15 +44,9 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
   // branch for this visitor, without a reload.
   const [, setExpiredAt] = useState<number | null>(null)
   const intro = introWindow()
-  // introWindow() returns a fresh Date instance on every call, and this
-  // component re-renders on every unrelated change to `hovered` below (the
-  // rail's own hover state) — without memoising, Countdown's effect (keyed on
-  // [endsAt, onExpire]) would see a "new" endsAt and onExpire on every pill
-  // hover and tear down + rebuild its interval for no reason. Keyed on the
-  // timestamp, not the Date object, since introWindow's raw source (env) is
-  // stable but the instances it mints are not.
-  const introEndsMs = intro.endsAt?.getTime() ?? null
-  const endsAt = useMemo(() => (introEndsMs === null ? null : new Date(introEndsMs)), [introEndsMs])
+  const bundle = bundleWindow()
+  const introEndsAt = useStableDate(intro.endsAt)
+  const bundleEndsAt = useStableDate(bundle.endsAt)
   const onExpire = useCallback(() => setExpiredAt(Date.now()), [])
   const { addAll, open: openCart } = useCart()
 
@@ -54,21 +62,27 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
   //    raised to (or past) its MSRP before the deadline passed, this would
   //    otherwise keep advertising a "sale" that no longer saves anyone money —
   //    $49 struck against $49, clock still running.
-  if (!owned.fltr && intro.live && endsAt && PRICING.fltr.price < PRICING.fltr.msrp) {
+  if (!owned.fltr && intro.live && introEndsAt && PRICING.fltr.price < PRICING.fltr.msrp) {
     return (
       <div className={styles.strip} data-sale-strip data-strip-variant="intro">
         <Link href={PLUGINS.fltr.href} className={styles.stripInner}>
-          <span className={styles.stripNew}>New</span>
-          <span className={styles.stripLabel}>{PLUGINS.fltr.name} intro price</span>
-          <span className={styles.stripPrice}>${PRICING.fltr.price}</span>
-          <s className={styles.stripWas}>${PRICING.fltr.msrp}</s>
+          <span className={styles.stripLabel}>
+            <span className={styles.stripNew}>New</span> · {PLUGINS.fltr.name} intro price
+          </span>
+          <span className={styles.stripOffer}>
+            <span className={styles.stripPrice}>${PRICING.fltr.price}</span>
+            <s className={styles.stripWas}>${PRICING.fltr.msrp}</s>
+          </span>
+          <span className={styles.stripEnds}>Ends in</span>
           <Countdown
-            endsAt={endsAt}
+            endsAt={introEndsAt}
             onExpire={onExpire}
             className={styles.stripClock}
           />
-          <span className={styles.stripLabel}>Get {PLUGINS.fltr.name}</span>
-          <span className={styles.stripArrow} aria-hidden>→</span>
+          <span className={styles.stripCta}>
+            <span className={styles.stripCtaWords}>Get {PLUGINS.fltr.name}</span>
+            <span className={styles.stripArrow} aria-hidden>→</span>
+          </span>
         </Link>
       </div>
     )
@@ -86,7 +100,9 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
           </span>
           <span className={styles.stripNames}>{nameList(missing)}</span>
           <span className={styles.stripPrice}>${total}</span>
-          <span className={styles.stripArrow} aria-hidden>→</span>
+          <span className={styles.stripCta}>
+            <span className={styles.stripArrow} aria-hidden>→</span>
+          </span>
         </Link>
       </div>
     )
@@ -102,11 +118,26 @@ function SaleStrip({ loading, error, owned, ownedCount, missing }: {
         className={`${styles.stripInner} ${styles.stripButton}`}
         onClick={() => { addAll(); openCart() }}
       >
-        <span className={styles.stripLabel}>All three plugins</span>
-        <span className={styles.stripPrice}>${PRICING.bundle.price}</span>
-        <s className={styles.stripWas}>${PRICING.bundle.compareAt}</s>
-        <span className={styles.stripSave}>Save ${save}</span>
-        <span className={styles.stripArrow} aria-hidden>→</span>
+        <span className={styles.stripLabel}>
+          All three<span className={styles.stripLabelMore}> plugins</span>
+        </span>
+        <span className={styles.stripOffer}>
+          <span className={styles.stripPrice}>${PRICING.bundle.price}</span>
+          <s className={styles.stripWas}>${PRICING.bundle.compareAt}</s>
+          <span className={styles.stripSave} data-strip-save>Save ${save}</span>
+        </span>
+        {/* Only while the deadline is still ahead. When it passes the clock
+            goes and the offer stays, rather than a row of zeroes. */}
+        {bundle.live && bundleEndsAt ? (
+          <>
+            <span className={styles.stripEnds}>Ends in</span>
+            <Countdown endsAt={bundleEndsAt} onExpire={onExpire} className={styles.stripClock} />
+          </>
+        ) : null}
+        <span className={styles.stripCta}>
+          <span className={styles.stripCtaWords}>Get all {countWord(PLUGIN_ORDER.length).toLowerCase()}</span>
+          <span className={styles.stripArrow} aria-hidden>→</span>
+        </span>
       </button>
     </div>
   )

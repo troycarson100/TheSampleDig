@@ -15,12 +15,14 @@ const DRFT_INSTALLER_WIN_KEY = process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-
 // when controls change. v1.1 is the manual for every 1.1.x build.
 const DRFT_MANUAL_KEY        = process.env.DRFT_MANUAL_KEY        || "drft/drft-manual-v1.1.pdf"
 
-// fltr is macOS-only at launch - no installer-win key, on purpose. Adding one
-// that points at a file that doesn't exist would hand buyers a broken download;
-// /products only renders the Windows install note when an "installer-win"
-// asset is present, so omitting the asset is what keeps that note away.
-const FLTR_INSTALLER_KEY = process.env.FLTR_INSTALLER_KEY || "fltr/fltr-1.0.0.pkg"
-const FLTR_MANUAL_KEY    = process.env.FLTR_MANUAL_KEY    || "fltr/fltr-manual-v1.0.pdf"
+// fltr's three files, uploaded to the bucket's fltr/ folder for v1.0.0 on
+// 2026-09-30: macOS, Windows (it ships on both - decided 2026-09-29) and the
+// manual. The names here are the ones a v1 release follows by the pattern
+// shft's and drft's set; if the uploaded files are named otherwise, set the
+// matching env var in DO rather than renaming the objects.
+const FLTR_INSTALLER_KEY     = process.env.FLTR_INSTALLER_KEY     || "fltr/fltr-1.0.0.pkg"
+const FLTR_INSTALLER_WIN_KEY = process.env.FLTR_INSTALLER_WIN_KEY || "fltr/fltr-1.0.0-setup.exe"
+const FLTR_MANUAL_KEY        = process.env.FLTR_MANUAL_KEY        || "fltr/fltr-manual-v1.0.pdf"
 
 const basename = (key: string) => key.slice(key.lastIndexOf("/") + 1)
 
@@ -30,11 +32,13 @@ const basename = (key: string) => key.slice(key.lastIndexOf("/") + 1)
 export const PRICING = {
   shft: { price: 29, msrp: 49 },
   drft: { price: 29, msrp: 49 },
-  // Introductory price with no announced end date. Raised by editing this line.
-  fltr: { price: 19, msrp: 49 },
+  // The same price as the other two since 2026-09-30. It was an intro price
+  // before that; the intro is gone, so nothing on the site calls it one.
+  fltr: { price: 29, msrp: 49 },
   // All three. Struck against the combined MSRP (3 x $49), like every other
   // price on the site strikes list price — not against the three sale prices.
-  bundle: { price: 59, compareAt: 147 },
+  // Raised on 2026-09-30, when fltr came up to the same price as the others.
+  bundle: { price: 69, compareAt: 147 },
 } as const
 
 export interface ProductAsset {
@@ -229,12 +233,12 @@ export const PRODUCTS: Record<string, ProductDef> = {
     id: "fltr",
     name: "fltr",
     version: "1.0.0",
-    blurb: "Morphing filter that plays in key — macOS (VST3 / AU / Standalone).",
+    blurb: "Morphing filter that plays in key — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
       {
         version: "1.0.0",
         notes: [
-          "First release. Twelve filter characters over two cores, with a Shape control that morphs each one's response.",
+          "First release. Nine filter characters over two cores, with a Shape control that morphs each one's response.",
           "Chord and Harmony turn whatever passes through into a chord in your key, following a root and one of 14 scales.",
           "Four modulation sources — Follow, Move, Draw and Macro — routed by dragging them onto whatever they should move.",
           "The Push layer tunes the filter to the scale, feeds it back into itself, and freezes it.",
@@ -244,6 +248,7 @@ export const PRODUCTS: Record<string, ProductDef> = {
     ],
     assets: [
       { id: "installer", label: "fltr installer — macOS", key: FLTR_INSTALLER_KEY, filename: basename(FLTR_INSTALLER_KEY) },
+      { id: "installer-win", label: "fltr installer — Windows", key: FLTR_INSTALLER_WIN_KEY, filename: basename(FLTR_INSTALLER_WIN_KEY) },
       { id: "manual", label: "User manual (PDF)", key: FLTR_MANUAL_KEY, filename: basename(FLTR_MANUAL_KEY) },
     ],
   },

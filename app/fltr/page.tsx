@@ -8,13 +8,13 @@ import { PLUGINS } from "@/lib/plugins"
 export const metadata: Metadata = {
   title: "fltr — Morphing Filter That Plays In Key | Sample Roll",
   description:
-    `fltr is a morphing filter with twelve characters over two cores, four drag-routed modulation ` +
+    `fltr is a morphing filter with nine characters over two cores, four drag-routed modulation ` +
     `sources, and a Push layer that tunes it to a scale, feeds it back into itself and freezes it. ` +
     `Chord and Harmony turn what passes through into a chord in your key. $${PRICING.fltr.price}. ` +
-    `VST3 / AU / Standalone for macOS.`,
+    `VST3 / AU / Standalone for macOS and Windows.`,
   openGraph: {
     title: "fltr — a filter that plays in key",
-    description: "Twelve characters, two cores, and a chord engine that follows your key.",
+    description: "Nine characters, two cores, and a chord engine that follows your key.",
     images: ["/fltr/hero.png"],
     type: "website",
   },

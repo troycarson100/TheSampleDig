@@ -1,0 +1,184 @@
+/* The panel is drawn in the plugin's colours, not the page's. The screenshot
+   is the plugin's own dark fascia, and the bar under it is the plugin's own
+   help strip — on shft's cream ground a themed bar would look like a second,
+   unrelated component. These three are shft's; a plugin with a different skin
+   sets its own through `Panel.theme`, and every other colour below is mixed
+   from them so it follows. */
+.panel {
+  --panel-ground: #0b111b;
+  --panel-ink: #e6e9ef;
+  --panel-accent: #38d6f5;
+  display: flex; flex-direction: column;
+  min-width: 0;
+  border-radius: 12px; overflow: hidden;
+  background: var(--panel-ground);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  /* The bar's narrow layout keys off the panel's own width, not the
+     viewport's: in the hero the panel is sized to fit the window's height,
+     so it can be narrow on a wide screen. */
+  container-type: inline-size;
+}
+
+/* Not `.stage`: globals.css styles every class containing "tag", and a CSS
+   module keeps the name inside the class it generates. */
+.screen { position: relative; overflow: hidden; background: var(--panel-ground); }
+/* Stacked, and cross-faded by opacity: swapping `src` on one <img> would flash
+   empty while the next screenshot decodes. */
+.shot {
+  position: absolute; inset: 0;
+  display: block; width: 100%; height: 100%;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+.shotOn { opacity: 1; }
+
+/* The hit areas. Invisible: the ring below is what shows. */
+.spot {
+  position: absolute; box-sizing: border-box;
+  margin: 0; padding: 0; border: none; border-radius: 8px;
+  background: transparent; cursor: help;
+}
+.spot.round { border-radius: 50%; }
+/* A page tab is a way somewhere, and says so. */
+.door { cursor: pointer; }
+.spot:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+/* A knob on a phone is 20 to 30px across. Where there is no pointer to aim
+   with, each spot's target grows from its own centre toward 44px - but only as
+   far as PluginPanel's `growth` says there is room, which is half the gap to
+   whatever is beside it. It is part of the button, so a tap on it is a tap on
+   the button; with a pointer it has no size at all. */
+.reach { display: none; }
+@media (hover: none) {
+  .reach {
+    display: block; position: absolute; left: 50%; top: 50%;
+    width: min(max(100%, 44px), var(--reach-x));
+    height: min(max(100%, 44px), var(--reach-y));
+    transform: translate(-50%, -50%);
+  }
+}
+
+/* What marks the control the bar is describing: an outline in the colour of
+   its own section of the panel, with that colour's glow — the same thing the
+   plugin's knobs do when they are lit. */
+.ring {
+  position: absolute; box-sizing: border-box; pointer-events: none;
+  border: 2px solid var(--tone); border-radius: 8px;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 16%, transparent), 0 0 22px color-mix(in srgb, var(--tone) 70%, transparent);
+}
+.ring.round { border-radius: 50%; }
+
+/* The way to another page gets a mark of its own, so it can be found without
+   hovering everything first: a dot on the tab's corner, and a slow ping from
+   it. Under reduced motion the dot stays and the ping is removed. */
+.door::before {
+  content: ""; position: absolute; right: -3px; top: -3px;
+  width: 7px; height: 7px; border-radius: 50%;
+  background: var(--panel-accent);
+  box-shadow: 0 0 0 2px var(--panel-ground);
+}
+.door::after {
+  content: ""; position: absolute; right: -3px; top: -3px;
+  width: 7px; height: 7px; border-radius: 50%;
+  border: 1.5px solid var(--panel-accent);
+  animation: ping 2.6s cubic-bezier(0.2, 0.6, 0.3, 1) infinite;
+}
+@keyframes ping {
+  0% { transform: scale(1); opacity: 0.9; }
+  70%, 100% { transform: scale(3.4); opacity: 0; }
+}
+
+/* ---- the bar ---------------------------------------------------------------
+   Two lines of text and no more, on a panel of ordinary width. The bar is a
+   caption: the screenshot is what the hero is for, and a bar a quarter of its
+   height was taking the eye off it.
+
+   To say everything in two lines, the name, the sentence, "try" and the tip
+   run on as one paragraph instead of each starting a line of its own, and the
+   two sentences are set in the page's sans rather than the mono of the
+   labels - mono spends about a third more width on the same words. The
+   handful of controls with the most to say lose the end of their tip to an
+   ellipsis before the bar grows a line for them. */
+.bar {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 10px 16px 11px;
+  border-top: 1px solid color-mix(in srgb, var(--panel-ink) 12%, transparent);
+  background: var(--panel-ground); color: var(--panel-ink);
+}
+
+.pages { display: none; gap: 6px; font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace; }
+@media (hover: none) {
+  .pages { display: flex; }
+  /* A wide panel is fltr's, and its pages are the nine characters: too many
+     for a row, so they take the three-by-three of the plugin's own grid. */
+  .panel[data-panel-wide] .pages { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .panel[data-panel-wide] .page { padding: 0 6px; }
+  /* And its doors are those same nine cells, each a few millimetres across on
+     a phone - a dot on every one would cover the grid it is marking. The
+     buttons above are the way between pages here. */
+  .panel[data-panel-wide] .door::before,
+  .panel[data-panel-wide] .door::after { display: none; animation: none; }
+}
+.page {
+  flex: 0 1 auto; min-width: 44px; height: 44px; margin: 0; padding: 0 14px;
+  border-radius: 999px; border: 1px solid color-mix(in srgb, var(--panel-ink) 28%, transparent);
+  background: transparent; color: color-mix(in srgb, var(--panel-ink) 86%, var(--panel-ground)); cursor: pointer;
+  font: inherit; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.pageOn { background: var(--panel-accent); border-color: var(--panel-accent); color: var(--panel-ground); }
+.page:focus-visible { outline: 2px solid #fff; outline-offset: 2px; }
+
+.texts { display: grid; --lines: 2; }
+.text {
+  grid-area: 1 / 1; visibility: hidden; margin: 0;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: var(--lines); line-clamp: var(--lines);
+  overflow: hidden;
+  /* Every text is as tall as the bar's allowance, however short it is: the
+     bar's height is then the allowance, not whichever control spoke last. */
+  min-height: calc(var(--lines) * 1.45em);
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-size: 12px; line-height: 1.45;
+  color: var(--panel-ink);
+}
+.textOn { visibility: visible; }
+.name, .try {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  text-transform: uppercase; letter-spacing: 0.12em;
+}
+.name { margin-right: 8px; font-size: 11px; font-weight: 700; }
+.try {
+  margin: 0 6px 0 10px; font-size: 10px;
+  color: color-mix(in srgb, var(--panel-ink) 62%, var(--panel-ground));
+}
+.tip { color: color-mix(in srgb, var(--panel-ink) 74%, var(--panel-ground)); }
+
+.idle {
+  text-align: center; letter-spacing: 0.02em;
+  color: color-mix(in srgb, var(--panel-ink) 78%, var(--panel-ground));
+  /* One line of text in a bar two lines tall: set in the middle of it. */
+  display: flex; align-items: center; justify-content: center;
+}
+.idleTouch { display: none; }
+@media (hover: none) {
+  .idleHover { display: none; }
+  .idleTouch { display: inline; }
+}
+
+/* A narrower panel fits fewer words to the line, and gets a line more to fit
+   them on. */
+@container (max-width: 480px) {
+  .bar { padding: 9px 14px 10px; }
+  .texts { --lines: 3; }
+}
+@container (max-width: 360px) {
+  .texts { --lines: 4; }
+}
+@container (max-width: 300px) {
+  .texts { --lines: 5; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .shot { transition: none; }
+  .door::after { display: none; animation: none; }
+}

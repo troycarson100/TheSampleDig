@@ -1,5 +1,6 @@
 import { checkCart } from "./cart-ownership"
 import { cartTotals } from "./cart-pricing"
+import { normalizePromoCode, quotePromo, type PromoOffer } from "./cart-promo"
 import type { CompProduct, PluginProduct } from "./plugin-products"
 
 // The money decision for POST /api/cart/checkout, pulled out of the route so
@@ -68,4 +69,49 @@ export function decideCartContents(input: {
     bundleApplied: totals.bundleApplied,
     paid: totals.total,
   }
+}
+
+export type PromoRequest =
+  /** The order came without a code. */
+  | { kind: "none" }
+  /** It came with something in the code's place that cannot be a code. */
+  | { kind: "malformed" }
+  | { kind: "lookup"; code: string }
+
+/**
+ * What the request says about a promo code, before anything is looked up.
+ * Absent, null and "" all mean no code — the three ways a page can say so.
+ * Anything else has to be a code; an object, a number or a string Stripe would
+ * not accept is refused rather than ignored, so a page that thinks it sent a
+ * code never has its order go through at full price without one.
+ */
+export function readPromoRequest(raw: unknown): PromoRequest {
+  if (raw === undefined || raw === null || raw === "") return { kind: "none" }
+  const code = normalizePromoCode(raw)
+  return code ? { kind: "lookup", code } : { kind: "malformed" }
+}
+
+export type CartPromoDecision =
+  | { kind: "refused" }
+  | { kind: "apply"; promotionCodeId: string; paid: number }
+
+/**
+ * Whether the code Stripe was just asked about goes on this order, and what
+ * the order costs with it.
+ *
+ * Refused means refused out loud: the buyer was shown a discounted total, so a
+ * code that does not hold — not found, or an order too small for it — stops
+ * the checkout instead of being dropped from it. `paid` is what the /thanks
+ * pixel reports. A code limited to certain products is priced by Stripe, not
+ * here, so for that one case it stays the undiscounted total: the nearest
+ * figure this side can stand behind.
+ */
+export function decideCartPromo(input: {
+  found: { id: string; offer: PromoOffer } | null
+  sellable: readonly PluginProduct[]
+}): CartPromoDecision {
+  if (!input.found) return { kind: "refused" }
+  const quote = quotePromo(cartTotals(input.sellable), input.found.offer)
+  if (quote.kind === "none" || quote.kind === "below-minimum") return { kind: "refused" }
+  return { kind: "apply", promotionCodeId: input.found.id, paid: quote.totalCents / 100 }
 }

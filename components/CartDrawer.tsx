@@ -16,7 +16,11 @@ import { createPortal } from "react-dom"
 import Link from "next/link"
 import { useCart } from "@/components/CartProvider"
 import PluginGlyph from "@/components/plugin-page/PluginGlyph"
-import { PLUGINS, type PluginId } from "@/lib/plugins"
+import PromoCodeField from "@/components/PromoCodeField"
+import { formatCents } from "@/lib/cart-promo"
+import { cartSuggestions } from "@/lib/cart-suggestions"
+import { countWord, PLUGIN_ORDER, PLUGINS, type PluginId } from "@/lib/plugins"
+import { usePluginOwnership } from "@/lib/use-plugin-ownership"
 import styles from "./cart-drawer.module.css"
 
 const FOCUSABLE_SELECTOR = [
@@ -46,7 +50,8 @@ function CloseGlyph() {
 }
 
 export default function CartDrawer() {
-  const { isOpen, close, totals, remove, dropped, clearDropped } = useCart()
+  const { isOpen, close, totals, quote, remove, dropped, clearDropped, ids, removed, add, addAll } = useCart()
+  const ownership = usePluginOwnership()
 
   // No client-mounted gate needed here (unlike GoProModal/FeatureGateModal,
   // which take `open` as a prop): useCartState() always seeds isOpen as
@@ -146,6 +151,10 @@ export default function CartDrawer() {
   if (!isOpen || !portalNode) return null
 
   const hasLines = totals.lines.length > 0
+  const offer = cartSuggestions({
+    ids, removed, owned: ownership.owned, known: !ownership.loading && !ownership.error,
+  })
+  const hasOffer = offer.items.length > 0
 
   return createPortal(
     <div className={styles.root}>
@@ -205,20 +214,92 @@ export default function CartDrawer() {
               )}
             </ul>
           ) : (
-            <div className={styles.empty}>
+            <div className={`${styles.empty} ${hasOffer ? styles.emptyWithOffer : ""}`}>
               <p className={styles.emptyText}>Your cart is where plugins wait until you check out.</p>
               <Link href="/shft" className={styles.emptyLink} onClick={close}>
                 Browse plugins →
               </Link>
             </div>
           )}
+
+          {/* What was taken out, offered back - and the bundle, where it
+              would save money. Adding from here keeps the drawer open: the
+              visitor is still deciding. */}
+          {hasOffer && (
+            <section className={styles.offer} aria-labelledby="cart-offer-title" data-cart-offer>
+              <h3 id="cart-offer-title" className={styles.offerTitle}>
+                {offer.items.every((s) => removed.includes(s.id)) ? "Add back to your order" : hasLines ? "Add to your order" : "Start with one of these"}
+              </h3>
+
+              {offer.bundle && (
+                <div className={styles.offerBundle} data-cart-offer-bundle>
+                  <span className={styles.offerBundleText}>
+                    <span className={styles.offerBundleName}>
+                      All {countWord(PLUGIN_ORDER.length).toLowerCase()} for ${offer.bundle.price}
+                    </span>
+                    <span className={styles.offerBundleNote}>
+                      {hasLines
+                        ? `$${offer.bundle.extra} more than your cart · save $${offer.bundle.saving}`
+                        : `save $${offer.bundle.saving} on buying them one by one`}
+                    </span>
+                  </span>
+                  <button type="button" className={styles.offerBundleAdd} onClick={addAll}>
+                    Add all {countWord(PLUGIN_ORDER.length).toLowerCase()}
+                  </button>
+                </div>
+              )}
+
+              <ul className={styles.lines}>
+                {offer.items.map((s) => {
+                  const plugin = PLUGINS[s.id]
+                  return (
+                    <li
+                      key={s.id}
+                      className={`${styles.line} ${styles.offerLine}`}
+                      style={{ ["--row-accent" as string]: plugin.accent }}
+                      data-cart-offer-item={s.id}
+                    >
+                      <PluginGlyph id={s.id} className={styles.lineGlyph} />
+                      <span className={styles.lineText}>
+                        <span className={styles.lineName}>{plugin.name}</span>
+                        <span className={styles.lineCategory}>
+                          {s.completesBundle ? "completes the bundle" : plugin.category}
+                        </span>
+                      </span>
+                      <span className={styles.linePrice}>
+                        {s.completesBundle ? (
+                          <>
+                            <span className={styles.price}>+${s.extra}</span>
+                            <span className={styles.msrp}>${s.price}</span>
+                          </>
+                        ) : (
+                          <span className={styles.price}>${s.price}</span>
+                        )}
+                      </span>
+                      <button
+                        type="button"
+                        className={styles.offerAdd}
+                        onClick={() => add(s.id)}
+                        aria-label={`Add ${plugin.name} to your cart`}
+                      >
+                        Add
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+            </section>
+          )}
         </div>
 
         {hasLines && (
           <div className={styles.footer}>
+            {/* Above the total, which it changes, and above the Checkout
+                link, which stays the last control in the dialog. */}
+            <PromoCodeField idPrefix="cart" className={styles.promo} />
             <div className={styles.totalRow}>
               <span className={styles.totalLabel}>Total</span>
-              <span className={styles.totalValue}>${totals.total}</span>
+              <span className={styles.totalValue} data-cart-total>{formatCents(quote.totalCents)}</span>
             </div>
             <Link href="/checkout" className={styles.checkout} onClick={close}>
               Checkout →

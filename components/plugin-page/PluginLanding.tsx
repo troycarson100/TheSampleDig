@@ -1,5 +1,5 @@
 import type { ReactNode } from "react"
-import { Blocks, Buy, Caps, Faq, Hero, Intro } from "./sections"
+import { Blocks, Buy, Caps, Faq, Hero, Intro, Loop } from "./sections"
 import StickyBuy from "./StickyBuy"
 import type { PluginContent } from "./types"
 import { PLUGINS, type PluginId } from "@/lib/plugins"
@@ -32,7 +32,8 @@ export default function PluginLanding({
     >
       <StickyBuy id={id} />
       <Hero id={id} hero={content.hero} />
-      <Intro intro={content.intro} />
+      {content.hero.panel && content.hero.media ? <Loop id={id} media={content.hero.media} /> : null}
+      {content.intro ? <Intro intro={content.intro} /> : null}
       {afterIntro}
       <Blocks blocks={content.blocks} />
       <Caps caps={content.caps} />

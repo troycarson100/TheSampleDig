@@ -7,6 +7,7 @@
 // The intro-countdown checks need NEXT_PUBLIC_FLTR_INTRO_ENDS set to a future
 // date in .env.local and the dev server restarted; without it the script checks
 // the unset behaviour instead and says so.
+import { readFileSync } from "node:fs"
 import { chromium, devices } from "playwright"
 
 const BASE = process.env.BASE_URL || "http://127.0.0.1:3000"
@@ -23,7 +24,8 @@ page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()) })
 await page.goto(BASE + "/shft", { waitUntil: "networkidle" })
 
 // --- dropdown ---------------------------------------------------------------
-const trigger = page.locator('button[aria-controls="plugins-menu-panel"]')
+const TRIGGER = 'a[aria-controls="plugins-menu-panel"]'
+const trigger = page.locator(TRIGGER)
 check("trigger present", await trigger.count() === 1)
 check("panel starts closed", await trigger.getAttribute("aria-expanded") === "false")
 
@@ -43,6 +45,14 @@ for (const id of ["shft", "drft", "fltr"]) {
 }
 check("panel offers the bundle to a signed-out visitor",
   await page.locator('#plugins-menu-panel [data-menu-row="bundle"]').count() === 1)
+
+// "Plugins" is itself a link, to whichever plugin the menu lists first. Read
+// off the menu rather than written here as "/shft", so this still means
+// something if the order ever changes.
+const firstPlugin = await page.locator("#plugins-menu-panel a[data-menu-row]").first().getAttribute("href")
+check("Plugins links to the first plugin in the menu",
+  !!firstPlugin && (await trigger.getAttribute("href")) === firstPlugin,
+  `trigger ${await trigger.getAttribute("href")}, first row ${firstPlugin}`)
 
 await page.keyboard.press("Escape")
 await page.waitForTimeout(120)
@@ -64,6 +74,62 @@ await page.keyboard.press("ArrowDown")
 check("ArrowDown moves into the rows",
   await page.evaluate(() => document.activeElement?.getAttribute("role")) === "menuitem")
 
+// --- clicking "Plugins" -------------------------------------------------------
+// Each from a page that is NOT the first plugin's, so landing there is the
+// click's doing.
+{
+  const other = await page.locator("#plugins-menu-panel a[data-menu-row]").nth(1).getAttribute("href")
+  const nav = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+  await nav.goto(BASE + other, { waitUntil: "networkidle" })
+  const link = nav.locator(TRIGGER)
+
+  // The way a mouse gets there: over it first, which opens the panel.
+  await link.hover()
+  await nav.waitForTimeout(200)
+  check("before the click: hovering has the panel open", await link.getAttribute("aria-expanded") === "true")
+  await link.click()
+  await nav.waitForURL(BASE + firstPlugin, { timeout: 10000 }).catch(() => {})
+  check("clicking Plugins goes to the first plugin's page", nav.url() === BASE + firstPlugin, nav.url())
+  // The pointer is still on the link, now on a new page with a new nav under
+  // it, and the browser reports that as the pointer entering the link: a
+  // `mouseover` a few milliseconds after the new nav mounts. Left to the
+  // browser that event arrives before the page is listening in roughly one
+  // run in three (measured: the panel reopened in 5 runs of 8 with the guard
+  // in PluginsMenu removed), so a check that waited for it would pass or fail
+  // by luck. This sends the same event itself, once the page is settled.
+  // `relatedTarget: null` — arriving from nowhere — is what makes React treat
+  // it as the pointer entering; from any element React itself rendered, it
+  // waits for that element's `mouseout` instead and this would test nothing.
+  await nav.waitForLoadState("networkidle")
+  await nav.locator(TRIGGER).evaluate((el) => {
+    el.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, relatedTarget: null }))
+  })
+  await nav.waitForTimeout(250)
+  check("and the panel does not open over it while the pointer rests on the link",
+    await nav.locator(TRIGGER).getAttribute("aria-expanded") === "false")
+
+  // On the page it already points at there is no route change to close the
+  // panel, so the click has to.
+  await nav.mouse.move(5, 400)
+  await nav.waitForTimeout(250)
+  await nav.locator(TRIGGER).hover()
+  await nav.waitForTimeout(200)
+  check("moving away and back opens the panel again", await nav.locator(TRIGGER).getAttribute("aria-expanded") === "true")
+  await nav.locator(TRIGGER).click()
+  await nav.waitForTimeout(250)
+  check("clicking Plugins on the first plugin's own page closes the panel and stays put",
+    await nav.locator(TRIGGER).getAttribute("aria-expanded") === "false" && nav.url() === BASE + firstPlugin,
+    `${await nav.locator(TRIGGER).getAttribute("aria-expanded")} at ${nav.url()}`)
+
+  // From the keyboard: Enter on the focused link is a click.
+  await nav.goto(BASE + other, { waitUntil: "networkidle" })
+  await nav.locator(TRIGGER).focus()
+  await nav.keyboard.press("Enter")
+  await nav.waitForURL(BASE + firstPlugin, { timeout: 10000 }).catch(() => {})
+  check("Enter on Plugins goes to the first plugin's page", nav.url() === BASE + firstPlugin, nav.url())
+  await nav.close()
+}
+
 // --- ticker -----------------------------------------------------------------
 const variant = await page.locator("[data-sale-strip]").getAttribute("data-strip-variant")
 const hasClock = await page.locator("[data-countdown]").count() === 1
@@ -73,7 +139,13 @@ if (process.env.NEXT_PUBLIC_FLTR_INTRO_ENDS) {
 } else {
   console.log("  note  NEXT_PUBLIC_FLTR_INTRO_ENDS unset — checking fallback behaviour")
   check("intro unset: ticker falls back to the bundle", variant === "bundle", `variant=${variant}`)
-  check("intro unset: no clock renders", !hasClock)
+  // The bundle runs to a deadline of its own (BUNDLE_OFFER_ENDS in
+  // lib/plugins.ts), so a clock here is the bundle's — and there is one
+  // exactly while that deadline is still ahead.
+  const raw = readFileSync(new URL("../lib/plugins.ts", import.meta.url), "utf8")
+    .match(/export const BUNDLE_OFFER_ENDS[^=]*=\s*(?:"([^"]+)"|null)/)
+  const bundleLive = Boolean(raw?.[1]) && new Date(raw[1]).getTime() > Date.now()
+  check(`intro unset: ${bundleLive ? "the bundle's clock renders" : "no clock renders"}`, hasClock === bundleLive)
 }
 
 const stripBox = await page.locator("[data-sale-strip]").boundingBox()
@@ -86,6 +158,12 @@ const mobile = await browser.newPage({ ...devices["iPhone SE"] })
 await mobile.goto(BASE + "/shft", { waitUntil: "networkidle" })
 check("375px: page does not scroll sideways",
   await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1))
+// The drawer's own "Plugins" link, which goes to the same place as the one in
+// the desktop nav.
+const drawerLink = mobile.locator("a.nav-drawer-link").filter({ hasText: /^\s*Plugins\s*$/ })
+check("drawer: Plugins links to the first plugin in the menu",
+  (await drawerLink.count()) === 1 && (await drawerLink.getAttribute("href")) === firstPlugin,
+  `${await drawerLink.count()} link(s), href ${await drawerLink.first().getAttribute("href").catch(() => null)}`)
 await mobile.close()
 
 await browser.close()

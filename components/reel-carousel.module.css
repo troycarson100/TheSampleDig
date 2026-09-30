@@ -199,6 +199,25 @@ a.handle:hover {
   transform: scale(1.25);
 }
 
+/* A band of its own, on the page's ink - the reverse of the default, which
+   sits straight on the page. It needs its own top padding for that reason:
+   nothing above it supplies the gap any more. The dots go white, faint until
+   they are the one showing. The arrows are cream already and read on either. */
+.sectionDark {
+  background: var(--ink, #24211d);
+  padding-top: clamp(56px, 8vw, 96px);
+}
+.sectionDark .dot {
+  background: #fff;
+  opacity: 0.32;
+}
+.sectionDark .dotOn {
+  opacity: 0.95;
+}
+.sectionDark .deck:focus-visible {
+  outline-color: #fff;
+}
+
 @media (max-width: 760px) {
   .deck {
     /* Neighbours only peek — a wide spread wastes the narrow viewport. */

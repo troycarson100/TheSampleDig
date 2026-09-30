@@ -1,6 +1,7 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { resolveCartIdentity, decideCartContents } from "./cart-checkout-decision"
+import { resolveCartIdentity, decideCartContents, readPromoRequest, decideCartPromo } from "./cart-checkout-decision"
+import { PRICING } from "./products"
 
 // --- resolveCartIdentity -----------------------------------------------------
 
@@ -101,4 +102,56 @@ test("decideCartContents: owning fltr elsewhere doesn't block buying shft+drft, 
   if (r.kind !== "priced") return
   assert.equal(r.bundleApplied, false)
   assert.deepEqual(r.sellable, ["shft", "drft"])
+})
+
+// --- readPromoRequest --------------------------------------------------------
+
+test("readPromoRequest: absent, null and empty all mean the order has no code", () => {
+  for (const none of [undefined, null, ""]) {
+    assert.deepEqual(readPromoRequest(none), { kind: "none" })
+  }
+})
+
+test("readPromoRequest: a code is looked up as sent, trimmed", () => {
+  assert.deepEqual(readPromoRequest(" SAVE20 "), { kind: "lookup", code: "SAVE20" })
+})
+
+test("readPromoRequest: anything else in the code's place is refused, never treated as no code", () => {
+  // Treating these as "none" would send the buyer to pay full price on an
+  // order their page showed them discounted.
+  for (const bad of ["not a code!", "  ", "ab", 20, true, ["SAVE20"], { code: "SAVE20", percentOff: 100 }]) {
+    assert.deepEqual(readPromoRequest(bad), { kind: "malformed" }, JSON.stringify(bad))
+  }
+})
+
+// --- decideCartPromo ---------------------------------------------------------
+
+const twentyOff = { code: "SAVE20", percentOff: 20, amountOffCents: null, minimumCents: null, restricted: false }
+/** Dollars left after 20% off, worked in cents the way the code under test
+ *  does — `price * 0.8` in floating point is not quite the same number. */
+const lessTwenty = (dollars: number) => (dollars * 100 - Math.round(dollars * 100 * 0.2)) / 100
+
+test("decideCartPromo: a code Stripe did not find is refused", () => {
+  assert.deepEqual(decideCartPromo({ found: null, sellable: ["shft"] }), { kind: "refused" })
+})
+
+test("decideCartPromo: a good code is applied by its Stripe id, and paid is the discounted total", () => {
+  const r = decideCartPromo({ found: { id: "promo_123", offer: twentyOff }, sellable: ["shft"] })
+  assert.deepEqual(r, { kind: "apply", promotionCodeId: "promo_123", paid: lessTwenty(PRICING.shft.price) })
+})
+
+test("decideCartPromo: on the whole catalog the discount comes off the bundle price", () => {
+  const r = decideCartPromo({ found: { id: "promo_123", offer: twentyOff }, sellable: ["shft", "drft", "fltr"] })
+  assert.deepEqual(r, { kind: "apply", promotionCodeId: "promo_123", paid: lessTwenty(PRICING.bundle.price) })
+})
+
+test("decideCartPromo: an order under the code's minimum is refused, not sold at full price", () => {
+  const offer = { ...twentyOff, minimumCents: PRICING.shft.price * 100 + 1 }
+  assert.deepEqual(decideCartPromo({ found: { id: "promo_123", offer }, sellable: ["shft"] }), { kind: "refused" })
+})
+
+test("decideCartPromo: a code limited to certain products is applied, with paid left undiscounted", () => {
+  const offer = { ...twentyOff, restricted: true }
+  const r = decideCartPromo({ found: { id: "promo_123", offer }, sellable: ["shft", "drft"] })
+  assert.deepEqual(r, { kind: "apply", promotionCodeId: "promo_123", paid: PRICING.shft.price + PRICING.drft.price })
 })

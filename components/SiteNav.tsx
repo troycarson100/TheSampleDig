@@ -270,12 +270,14 @@ export default function SiteNav() {
                 My Crate
               </button>
             )}
+            {/* The first plugin in display order, the same place the desktop
+                "Plugins" link goes — see PluginsMenu. */}
             <Link
-              href="/shft"
+              href={pluginList()[0].href}
               className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${onPluginPage ? navLinkActive : ""}`}
               style={navLinkStyle}
               onClick={closeMenu}
-              aria-current={pathname === "/shft" ? "page" : undefined}
+              aria-current={pathname === pluginList()[0].href ? "page" : undefined}
             >
               Plugins
             </Link>
