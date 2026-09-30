@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { PLUGIN_PRODUCTS } from "@/lib/plugin-products"
 import { SlidingWindowLimiter } from "@/lib/resend-rate-limit"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 // What does this email already own? Used by the checkout page before payment,
 // so a returning buyer's cart can be trimmed of what they already have before
@@ -39,11 +40,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ owned: [] })
   }
 
-  // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
-  // compiles to an unescaped ILIKE and lets "%"/"_" in the address act as
-  // wildcards ("%@%.%" would match anyone, defeating the rate limit above).
-  // Safe because every write to User.email normalises to lowercase first -
-  // see the identical comment on findByEmail in lib/plugin-purchase-grant.ts.
+  // Never Prisma's `mode: "insensitive"`: its unescaped ILIKE lets "%"/"_" in
+  // the address act as wildcards ("%@%.%" would match anyone, defeating the
+  // rate limit above). Case is ignored all the same - see
+  // lib/account-by-email.ts.
   //
   // Wrapped because a shape that still passes the regex above (e.g. an
   // embedded NUL byte) can make Postgres itself raise on the query - that is
@@ -51,10 +51,8 @@ export async function POST(request: Request) {
   // no-match, not a fault worth a 500.
   let user: { id: string } | null
   try {
-    user = await prisma.user.findFirst({
-      where: { email },
-      select: { id: true },
-    })
+    const accountId = await accountIdByEmail(prisma, email)
+    user = accountId ? { id: accountId } : null
   } catch (e) {
     console.error("[cart owned] lookup failed", e)
     return NextResponse.json({ owned: [] })

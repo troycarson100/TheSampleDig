@@ -1,4 +1,5 @@
 import CredentialsProvider from "next-auth/providers/credentials"
+import { accountIdByEmail } from "@/lib/account-by-email"
 import bcrypt from "bcryptjs"
 
 // Lazy load prisma to avoid initialization issues
@@ -97,17 +98,16 @@ export const authOptions = {
         try {
           const prisma = await getPrisma()
           const email = String(credentials.email).trim().toLowerCase()
-          // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`,
-          // which compiles to an unescaped ILIKE and lets "%"/"_" in the
-          // posted address act as wildcards (e.g. "john_smith@x.com" would
-          // match "johnXsmith@x.com"'s row, running the password check
-          // against the wrong user). Safe because every write to User.email
-          // normalises to lowercase first - see findByEmail in
-          // lib/plugin-purchase-grant.ts.
+          // Found ignoring case: some accounts are stored with capitals, and
+          // an exact lowercase match locked every one of them out. Never
+          // Prisma's `mode: "insensitive"`, whose unescaped ILIKE would let
+          // "%"/"_" in the typed address match someone else's account and run
+          // the password check against it - see lib/account-by-email.ts.
           //
           // Explicit select so login works even if optional columns (e.g. email_marketing_opt_in) are missing before migrate.
-          const user = await prisma.user.findFirst({
-            where: { email },
+          const accountId = await accountIdByEmail(prisma, email)
+          const user = accountId ? await prisma.user.findUnique({
+            where: { id: accountId },
             select: {
               id: true,
               email: true,
@@ -115,7 +115,7 @@ export const authOptions = {
               emailVerified: true,
               name: true,
             },
-          })
+          }) : null
 
           if (!user) {
             return null

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/db"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,13 +11,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ unverified: false, needsPassword: false })
     }
 
-    // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
-    // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
-    // because every write to User.email normalises to lowercase first - see
-    // findByEmail in lib/plugin-purchase-grant.ts.
-    const user = await prisma.user.findFirst({
-      where: { email: String(email).trim().toLowerCase() },
-    })
+    // Ignoring case, and never as a pattern - see lib/account-by-email.ts.
+    const accountId = await accountIdByEmail(prisma, email)
+    const user = accountId ? await prisma.user.findUnique({ where: { id: accountId } }) : null
 
     if (!user) return NextResponse.json({ unverified: false, needsPassword: false })
 

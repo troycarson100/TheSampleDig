@@ -4,6 +4,7 @@ import { sendPluginPurchaseEmail } from "@/lib/email"
 import { isPluginProduct, type PluginProduct } from "@/lib/plugin-products"
 import { SlidingWindowLimiter } from "@/lib/resend-rate-limit"
 import { mintSetPasswordUrl } from "@/lib/set-password"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 // Re-sends the purchase receipt (keys, download links, how to get onto the
 // account) to an address. No sign-in - this is the fallback for a buyer whose
@@ -40,20 +41,17 @@ export async function POST(request: Request) {
 
   const ok = NextResponse.json({ ok: true })
   try {
-    // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
-    // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
-    // because `email` above is already lowercased and every write to
-    // User.email normalises to lowercase first - see findByEmail in
-    // lib/plugin-purchase-grant.ts.
-    const user = await prisma.user.findFirst({
-      where: { email },
+    // Ignoring case, and never as a pattern - see lib/account-by-email.ts.
+    const accountId = await accountIdByEmail(prisma, email)
+    const user = accountId ? await prisma.user.findUnique({
+      where: { id: accountId },
       select: {
         id: true,
         email: true,
         passwordSetAt: true,
         purchases: { select: { product: true, licenseKey: true } },
       },
-    })
+    }) : null
     if (!user) return ok
 
     const items = user.purchases

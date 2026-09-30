@@ -4,6 +4,7 @@ import { requireAdmin } from "@/lib/admin"
 import { generateDashboardToken, getAffiliateStats } from "@/lib/affiliate"
 import { normalizeAffiliateCode } from "@/lib/affiliate-logic"
 import { refreshPayoutStatus } from "@/lib/affiliate-stripe"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 export async function GET() {
   if (!(await requireAdmin())) return NextResponse.json({ error: "forbidden" }, { status: 403 })
@@ -53,12 +54,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Flat rate must be between $0.01 and $500 per sale." }, { status: 400 })
   }
   // Invite-only: if they already have a SampleRoll account, link it up front.
-  // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
-  // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
-  // because `email` above is already lowercased and every write to
-  // User.email normalises to lowercase first - see findByEmail in
-  // lib/plugin-purchase-grant.ts.
-  const linkedUser = await prisma.user.findFirst({ where: { email } })
+  // Ignoring case, and never as a pattern - see lib/account-by-email.ts.
+  const linkedUserId = await accountIdByEmail(prisma, email)
+  const linkedUser = linkedUserId ? { id: linkedUserId } : null
   try {
     const affiliate = await prisma.affiliate.create({
       data: {

@@ -13,6 +13,7 @@ import { isCompProduct } from "@/lib/plugin-products"
 import { buyerLookupFor, isAccountFromSession } from "@/lib/plugin-purchase-logic"
 import { SlidingWindowLimiter } from "@/lib/resend-rate-limit"
 import { mintSetPasswordUrl } from "@/lib/set-password"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 // Ask to move an account to a different email address. Nothing changes here:
 // we record the request and email a confirmation link to the NEW address, so a
@@ -58,15 +59,15 @@ async function resolveOwner(sessionId: unknown): Promise<Owner | null> {
             select: { id: true, email: true, passwordSetAt: true, createdAt: true },
           })
         : lookup.kind === "email"
-          ? // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`,
-            // which compiles to an unescaped ILIKE and lets "%"/"_" act as
-            // wildcards. Safe because buyerLookupFor already lowercases
-            // `lookup.email` and every write to User.email normalises to
-            // lowercase first - see findByEmail in lib/plugin-purchase-grant.ts.
-            await prisma.user.findFirst({
-              where: { email: lookup.email },
-              select: { id: true, email: true, passwordSetAt: true, createdAt: true },
-            })
+          ? // Ignoring case, and never as a pattern - see lib/account-by-email.ts.
+            await accountIdByEmail(prisma, lookup.email).then((accountId) =>
+              accountId
+                ? prisma.user.findUnique({
+                    where: { id: accountId },
+                    select: { id: true, email: true, passwordSetAt: true, createdAt: true },
+                  })
+                : null,
+            )
           : null
     if (!user) return null
     // Only an account this checkout created. Anything older belongs to someone
@@ -104,19 +105,10 @@ export async function POST(request: Request) {
   }
 
   const requested = normalizeNewEmail(body.newEmail)
-  // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
-  // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
-  // because normalizeNewEmail already lowercases `requested` and every write
-  // to User.email normalises to lowercase first - see findByEmail in
-  // lib/plugin-purchase-grant.ts.
-  const taken = requested
-    ? Boolean(
-        await prisma.user.findFirst({
-          where: { email: requested, id: { not: owner.id } },
-          select: { id: true },
-        }),
-      )
-    : false
+  // Taken by anyone else, ignoring case - "Troy@x.com" is taken if
+  // "troy@x.com" has an account - and never as a pattern. See
+  // lib/account-by-email.ts.
+  const taken = requested ? Boolean(await accountIdByEmail(prisma, requested, owner.id)) : false
 
   const decision = decideEmailChange(owner.email, requested, taken)
   if (decision.action === "refuse") {

@@ -7,6 +7,7 @@ import { resolveCartIdentity, decideCartContents, readPromoRequest, decideCartPr
 import { lookupPromo } from "@/lib/cart-promo-lookup"
 import { PLUGIN_PRODUCTS, type PluginProduct } from "@/lib/plugin-products"
 import { SlidingWindowLimiter } from "@/lib/resend-rate-limit"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 // Checkout for an arbitrary cart of plugins, built from a cart's worth of
 // localStorage state or a hand-crafted request body - neither is trusted for
@@ -234,23 +235,18 @@ function withPrice(priceId: string | undefined): { price: string; quantity: numb
  *  or no email at all all resolve to "owns nothing", the same shape checkCart
  *  already treats a brand-new buyer as.
  *
- *  Looked up with a plain, pre-lowercased equals - not Prisma's
- *  `mode: "insensitive"`, which compiles to an unescaped ILIKE, letting "%"
- *  and "_" in the posted address act as wildcards ("rev_y@x.com" would match
- *  "revXy@x.com"; "%@%.%" would match anyone, defeating the rate limit
- *  below). Safe because every write to User.email normalises to lowercase
- *  first - see the identical comment on findByEmail in
- *  lib/plugin-purchase-grant.ts, which this mirrors on purpose. */
+ *  The email is matched ignoring case - a buyer stored as "Troy@x.com" owns
+ *  what they own when they type "troy@x.com" - and never with Prisma's
+ *  `mode: "insensitive"`, whose unescaped ILIKE would let "%" and "_" in the
+ *  posted address act as wildcards ("%@%.%" would match anyone, defeating
+ *  the rate limit below). See lib/account-by-email.ts. */
 async function ownedProductsFor(userId: string | null, email: string): Promise<string[]> {
   let ownerId = userId
   if (!ownerId) {
     if (!email) return []
-    const user = await prisma.user.findFirst({
-      where: { email: email.trim().toLowerCase() },
-      select: { id: true },
-    })
-    if (!user) return []
-    ownerId = user.id
+    const accountId = await accountIdByEmail(prisma, email)
+    if (!accountId) return []
+    ownerId = accountId
   }
   const purchases = await prisma.purchase.findMany({
     where: { userId: ownerId, product: { in: [...PLUGIN_PRODUCTS] } },

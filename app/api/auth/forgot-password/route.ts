@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import crypto from "crypto"
 import { prisma } from "@/lib/db"
 import { isEmailConfigured, sendPasswordResetEmail } from "@/lib/email"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 export async function POST(req: NextRequest) {
   try {
@@ -19,12 +20,9 @@ export async function POST(req: NextRequest) {
       { status: 200 }
     )
 
-    // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
-    // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
-    // because normalizedEmail above is already lowercased and every write to
-    // User.email normalises to lowercase first - see findByEmail in
-    // lib/plugin-purchase-grant.ts.
-    const user = await prisma.user.findFirst({ where: { email: normalizedEmail } })
+    // Ignoring case, and never as a pattern - see lib/account-by-email.ts.
+    const accountId = await accountIdByEmail(prisma, normalizedEmail)
+    const user = accountId ? await prisma.user.findUnique({ where: { id: accountId } }) : null
     if (!user) {
       return genericResponse
     }

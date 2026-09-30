@@ -7,6 +7,7 @@ import { generateLicenseKey } from "@/lib/license-key"
 import { recordAffiliateReferral } from "@/lib/affiliate"
 import { snapshotForVisitor } from "@/lib/attribution-snapshot"
 import { buyerLookupFor, isDuplicateGrant, isAccountFromSession } from "@/lib/plugin-purchase-logic"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 // The one place a paid Stripe Checkout Session becomes Purchase rows. Called by
 // the webhook and by /api/plugins/claim, in either order, any number of times:
@@ -39,17 +40,16 @@ const buyerSelect = { id: true, email: true, passwordSetAt: true, createdAt: tru
 const isUniqueViolation = (e: unknown) =>
   typeof e === "object" && e !== null && (e as { code?: string }).code === "P2002"
 
-// Case-insensitive by comparing a pre-lowercased value, not Prisma's
-// `mode: "insensitive"` - that compiles to ILIKE, and Prisma does not escape
-// the value, so "%" and "_" in an address are live wildcards. "rev_y@x.com"
-// would match "revXy@x.com"; "%@%.%" would match anyone. That is bad enough
-// as an ownership leak, and worse here: this function is on the purchase
-// grant path, so it would grant one buyer's payment onto a stranger's
-// account. Safe to compare with a plain equals because every write to
-// User.email normalises to lowercase first (register, and the guest-account
-// create just below) - confirmed against production data before this change.
+// Ignoring case, and never Prisma's `mode: "insensitive"` - its unescaped
+// ILIKE makes "%" and "_" in an address live wildcards ("rev_y@x.com" matches
+// "revXy@x.com"; "%@%.%" matches anyone), and on this path that would grant
+// one buyer's payment onto a stranger's account. Case has to be ignored all
+// the same: some accounts are stored with capitals, and an exact lowercase
+// match missed them - a returning buyer got a second, empty account instead.
+// See lib/account-by-email.ts.
 async function findByEmail(email: string): Promise<Buyer | null> {
-  return prisma.user.findFirst({ where: { email: email.trim().toLowerCase() }, select: buyerSelect })
+  const accountId = await accountIdByEmail(prisma, email)
+  return accountId ? prisma.user.findUnique({ where: { id: accountId }, select: buyerSelect }) : null
 }
 
 async function resolveBuyer(session: Stripe.Checkout.Session): Promise<Buyer | null> {

@@ -4,6 +4,7 @@ import crypto from "crypto"
 import { prisma } from "@/lib/db"
 import { isEmailConfigured, sendVerificationEmail } from "@/lib/email"
 import { readAttributionSnapshot } from "@/lib/attribution-snapshot"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,12 +23,9 @@ export async function POST(req: NextRequest) {
 
     const normalizedEmail = String(email).trim().toLowerCase()
 
-    // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
-    // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
-    // because normalizedEmail above is already lowercased and every write to
-    // User.email normalises to lowercase first - see findByEmail in
-    // lib/plugin-purchase-grant.ts.
-    const existing = await prisma.user.findFirst({ where: { email: normalizedEmail } })
+    // Ignoring case, so "Troy@x.com" cannot open a second account beside
+    // "troy@x.com" - and never as a pattern. See lib/account-by-email.ts.
+    const existing = await accountIdByEmail(prisma, normalizedEmail)
     if (existing) {
       return NextResponse.json({ error: "An account with that email already exists." }, { status: 409 })
     }

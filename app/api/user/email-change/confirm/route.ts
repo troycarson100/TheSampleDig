@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
 import { sendEmailChangedNoticeEmail } from "@/lib/email"
+import { accountIdByEmail } from "@/lib/account-by-email"
 
 // Opened from the confirmation email. Consuming this link is what proves the
 // person can receive mail at the new address, so this is where the account
@@ -50,17 +51,9 @@ export async function GET(request: Request) {
   // Re-check: another account could have claimed this address while the
   // change sat pending.
   //
-  // Plain, pre-lowercased equals - not Prisma's `mode: "insensitive"`, which
-  // compiles to an unescaped ILIKE and lets "%"/"_" act as wildcards. Safe
-  // because pendingEmail is only ever written from normalizeNewEmail's
-  // already-lowercased output (see mintEmailChangeToken's one caller in
-  // app/api/user/email-change/route.ts) and every write to User.email
-  // normalises to lowercase first - see findByEmail in
-  // lib/plugin-purchase-grant.ts.
-  const taken = await prisma.user.findFirst({
-    where: { email: user.pendingEmail, id: { not: user.id } },
-    select: { id: true },
-  })
+  // Ignoring case - "Troy@x.com" is taken if "troy@x.com" has an account -
+  // and never as a pattern. See lib/account-by-email.ts.
+  const taken = await accountIdByEmail(prisma, user.pendingEmail, user.id)
   if (taken) {
     await prisma.user.update({
       where: { id: user.id },
