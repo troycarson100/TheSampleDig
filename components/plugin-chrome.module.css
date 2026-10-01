@@ -316,7 +316,10 @@
   font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
   font-size: 12px; letter-spacing: 0.08em;
 }
-.rail .ownedLink:hover { opacity: 1; }
+/* The colour is restated on hover: globals.css's `.theme-vinyl nav a:hover`
+   (0,2,2) outranks the base rule above (0,2,0) and turned the label the nav's
+   near-white - invisible on the cream rail. Same fix as the active pill's. */
+.rail .ownedLink:hover { color: var(--chrome-ink); opacity: 1; }
 
 /* A <button>, not an <a> — same reset as .bundlePill, same visual weight as
    a .pill (border, transparent ground) rather than the .bundlePill's hot

@@ -309,5 +309,37 @@ for (const width of [320, 371, 375, 640]) {
   await mobile.close()
 }
 
+// "My products" stands where the bundle button would for someone who owns a
+// plugin. Like the pills, it has to stay readable while it is hovered: the
+// sitewide nav hover colour is near-white and once won here.
+{
+  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } })
+  await page.route("**/api/plugins/ownership", (r) => r.fulfill({
+    status: 200, contentType: "application/json",
+    body: JSON.stringify({ signedIn: true, owned: { shft: true, drft: false, fltr: false } }),
+  }))
+  await page.goto(BASE + "/shft", { waitUntil: "networkidle" })
+  const link = page.locator('[data-plugin-rail] a[href="/products"]')
+  check("an owner sees My products in the rail", await link.count() === 1)
+  const ratio = async () => link.evaluate((el) => {
+    const parse = (c) => { const m = c.match(/[\d.]+/g).map(Number); return { r: m[0], g: m[1], b: m[2], a: m[3] ?? 1 } }
+    const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
+    const rail = parse(getComputedStyle(el.closest("[data-plugin-rail]")).backgroundColor)
+    const ink = parse(getComputedStyle(el).color)
+    const a = (ink.a ?? 1) * +getComputedStyle(el).opacity
+    const shown = { r: ink.r * a + rail.r * (1 - a), g: ink.g * a + rail.g * (1 - a), b: ink.b * a + rail.b * (1 - a) }
+    const [hi, lo] = [lum(shown), lum(rail)].sort((x, y) => y - x)
+    return (hi + 0.05) / (lo + 0.05)
+  })
+  if (await link.count()) {
+    await page.mouse.move(5, 500)
+    await link.hover()
+    await page.waitForTimeout(250)
+    const r = await ratio()
+    check("My products is readable while hovered", r >= 4.5, `${r.toFixed(2)}:1`)
+  }
+  await page.close()
+}
+
 await browser.close()
 process.exit(failures.length ? 1 : 0)
