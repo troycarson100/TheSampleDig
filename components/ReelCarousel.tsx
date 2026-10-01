@@ -76,8 +76,9 @@ export default function ReelCarousel({
   label?: string
   /** "dark" sets the deck on the page's ink, as its own band, with white dots.
       shft's page alternates dark and cream bands below its hero; drft's keeps
-      the light default. */
-  tone?: "light" | "dark"
+      the light default. "grey" is a light grey band of its own, for fltr's
+      near-black page. */
+  tone?: "light" | "dark" | "grey"
 }) {
   const [active, setActive] = useState(0)
   const [muted, setMuted] = useState(false)
@@ -181,7 +182,7 @@ export default function ReelCarousel({
      tooling a selector that doesn't depend on the copy. */
   return (
     <section
-      className={`${styles.section}${tone === "dark" ? ` ${styles.sectionDark}` : ""}`}
+      className={`${styles.section}${tone === "dark" ? ` ${styles.sectionDark}` : tone === "grey" ? ` ${styles.sectionGrey}` : ""}`}
       aria-label={label}
       data-reels
       data-tone={tone}

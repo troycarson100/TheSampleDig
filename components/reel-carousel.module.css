@@ -218,6 +218,15 @@ a.handle:hover {
   outline-color: #fff;
 }
 
+/* A light grey band of its own, for a page whose ground is near-black (fltr):
+   it breaks the page up, and is a shade darker than fltr's "hear it" band
+   above it so the two read as two sections. The dots and the focus ring stay
+   the default ink, which is what reads on grey. */
+.sectionGrey {
+  background: #dcdfe5;
+  padding-top: clamp(56px, 8vw, 96px);
+}
+
 @media (max-width: 760px) {
   .deck {
     /* Neighbours only peek — a wide spread wastes the narrow viewport. */

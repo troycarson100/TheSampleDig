@@ -138,6 +138,42 @@ for (const [name, options] of [
   })
 }
 
+// ---- fltr's reels: straight after the player, on a light grey band ---------
+await section("/fltr reels", { viewport: { width: 1280, height: 900 } }, async (page) => {
+  await page.goto(BASE + "/fltr", { waitUntil: "networkidle" })
+  const r = await page.locator("[data-reels]").evaluate((el) => {
+    const parse = (c) => { const m = c.match(/[\d.]+/g).map(Number); return { r: m[0], g: m[1], b: m[2], a: m[3] ?? 1 } }
+    const lum = ({ r, g, b }) => { const f = (v) => { v /= 255; return v <= 0.03928 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4 }; return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b) }
+    const ab = el.previousElementSibling
+    const band = parse(getComputedStyle(el).backgroundColor)
+    const above = parse(getComputedStyle(ab).backgroundColor)
+    const grey = Math.max(band.r, band.g, band.b) - Math.min(band.r, band.g, band.b) <= 12
+    const poster = el.querySelector("img, video")
+    const link = el.querySelector('a[href*="instagram.com"]')
+    return {
+      afterPlayer: ab?.hasAttribute("data-fltr-ab") ?? false,
+      label: el.getAttribute("aria-label"),
+      band: lum(band), above: lum(above), grey, opaque: band.a === 1,
+      src: el.querySelector("video")?.getAttribute("src") ?? el.querySelector("img")?.getAttribute("src"),
+      poster: poster?.getAttribute("poster") ?? poster?.getAttribute("src"),
+      link: link?.getAttribute("href") ?? null,
+    }
+  })
+  check("/fltr: the reels come straight after the player", r.afterPlayer)
+  check("/fltr: and are named for screen readers", r.label === "Made with fltr", r.label)
+  check("/fltr: on a light grey band", r.opaque && r.grey && r.band > 0.6, `luminance ${r.band.toFixed(3)}`)
+  check("/fltr: a shade apart from the player's band above", r.above - r.band > 0.05, `${r.above.toFixed(3)} above, ${r.band.toFixed(3)} here`)
+  const files = await page.evaluate(async (urls) => Promise.all(urls.map((u) => fetch(u, { method: "HEAD" }).then((x) => x.status))),
+    ["/fltr/reels/Dd7UhVySifQ.mp4", "/fltr/reels/Dd7UhVySifQ.jpg"])
+  check("/fltr: the reel and its poster are there", files.every((x) => x === 200), files.join())
+  await page.locator('[data-reels] button[aria-label="Play reel"]').click()
+  await page.waitForFunction(() => { const v = document.querySelector("[data-reels] video"); return v && !v.paused && v.currentTime > 0.5 }, null, { timeout: 15000 }).catch(() => {})
+  const playing = await page.locator("[data-reels] video").evaluate((v) => ({ paused: v.paused, t: v.currentTime }))
+  check("/fltr: the reel plays", !playing.paused && playing.t > 0.5, JSON.stringify(playing))
+  const link = await page.locator('[data-reels] a[href*="instagram.com"]').getAttribute("href").catch(() => null)
+  check("/fltr: and links to the post on Instagram", link === "https://www.instagram.com/reel/Dd7UhVySifQ/", String(link))
+})
+
 await browser.close()
 console.log(`\nverify-ab-compare: ${failures.length ? `${failures.length} failed` : "all passed"}`)
 process.exit(failures.length ? 1 : 0)
