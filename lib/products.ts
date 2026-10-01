@@ -9,9 +9,8 @@ export type ProductAssetId = "installer" | "installer-win" | "manual"
 // and the filename was not, so pointing at a new build used to hand buyers a
 // file still labelled with the old version. Deriving it makes that class of
 // mismatch impossible - whatever object is served, the name matches it.
-// 1.1.4 was a Windows-only fix, so macOS still serves the 1.1.3 package.
-const DRFT_INSTALLER_KEY     = process.env.DRFT_INSTALLER_KEY     || "drft/drft-1.1.3.pkg"
-const DRFT_INSTALLER_WIN_KEY = process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-1.1.4-setup.exe"
+const DRFT_INSTALLER_KEY     = process.env.DRFT_INSTALLER_KEY     || "drft/drft-1.1.5.pkg"
+const DRFT_INSTALLER_WIN_KEY = process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-1.1.5-setup.exe"
 // The manual tracks the MINOR line, not the patch - it only needs rebuilding
 // when controls change. v1.1 is the manual for every 1.1.x build.
 const DRFT_MANUAL_KEY        = process.env.DRFT_MANUAL_KEY        || "drft/drft-manual-v1.1.pdf"
@@ -174,9 +173,13 @@ export const PRODUCTS: Record<string, ProductDef> = {
   drft: {
     id: "drft",
     name: "drft",
-    version: "1.1.4",
+    version: "1.1.5",
     blurb: "VHS / CRT circuit-bend video-sound effect — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.1.5",
+        notes: ["Improved Windows export speed - exports with a video loaded are now many times faster."],
+      },
       {
         version: "1.1.4",
         notes: ["Fixed Windows export bug."],
