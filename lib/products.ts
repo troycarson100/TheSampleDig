@@ -38,8 +38,9 @@ export const PRICING = {
   fltr: { price: 29, msrp: 49 },
   // All three. Struck against the combined MSRP (3 x $49), like every other
   // price on the site strikes list price — not against the three sale prices.
-  // Raised on 2026-09-30, when fltr came up to the same price as the others.
-  bundle: { price: 69, compareAt: 147 },
+  // Set on 2026-10-01 to about the price of two (2 x 29 = 58), so the pitch
+  // is "all three for the price of two". Briefly higher before that.
+  bundle: { price: 59, compareAt: 147 },
 } as const
 
 export interface ProductAsset {

@@ -266,7 +266,7 @@ const browser = await chromium.launch()
 const PROMO_KEY = "sampleroll_cart_promo_v1"
 const TWENTY_OFF = { code: "SAVE20", percentOff: 20, amountOffCents: null, minimumCents: null, restricted: false }
 
-/** "$47.20" / "$69" / "−$11.80" -> cents, or null when there is no figure. */
+/** "$47.20" / "$59" / "−$11.80" -> cents, or null when there is no figure. */
 function centsIn(text) {
   const m = text.match(/\$(\d+)(?:\.(\d{2}))?/)
   return m ? Number(m[1]) * 100 + Number(m[2] ?? 0) : null

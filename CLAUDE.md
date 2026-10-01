@@ -142,7 +142,7 @@ Before that branch can launch:
 
 - [ ] Create the Stripe price objects and set `STRIPE_SHFT29_PRICE_ID`,
       `STRIPE_DRFT29_PRICE_ID`, `STRIPE_FLTR29_PRICE_ID` ($29 each) and
-      `STRIPE_BUNDLE69_PRICE_ID` ($69). The names change with the prices so
+      `STRIPE_BUNDLE59_PRICE_ID` ($59). The names change with the prices so
       stale config fails closed rather than charging the old amount.
 - [ ] Member offer ($10 off any plugin, one single-use code per existing
       account, 30 days). `prisma/migrations/manual/20260930_member_offers.sql`
@@ -152,7 +152,7 @@ Before that branch can launch:
       the same SMTP account as everything else, so a Gmail daily cap stops it
       partway; Resume the next day picks up where it stopped.
 - [ ] The bundle's countdown ends at `BUNDLE_OFFER_ENDS` in `lib/plugins.ts`.
-      On that date the $69 goes up (here and in Stripe) or the date moves.
+      On that date the $59 goes up (here and in Stripe) or the date moves.
 - `NEXT_PUBLIC_FLTR_INTRO_ENDS` is not to be set: fltr has no intro price any
       more ($29, like the others, since 2026-09-30).
 - [ ] Confirm the stray production row is gone:

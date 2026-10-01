@@ -126,7 +126,7 @@ export async function POST(request: Request) {
   // Rule 4: one line item at the bundle price when the sellable set is every
   // plugin, otherwise one line item per plugin at its own price.
   const priced = decision.bundleApplied
-    ? { product: "bundle" as const, lineItems: [withPrice(process.env.STRIPE_BUNDLE69_PRICE_ID)] }
+    ? { product: "bundle" as const, lineItems: [withPrice(process.env.STRIPE_BUNDLE59_PRICE_ID)] }
     : { product: decision.sellable[0], lineItems: decision.sellable.map((id) => withPrice(SINGLE_PRICE_ENV[id])) }
 
   // Rule 5: a charge must never go out at the wrong price. If any price this
@@ -218,8 +218,9 @@ export async function POST(request: Request) {
 
 // Each price's setting is named for the amount it charges, so a stale price id
 // left in the environment fails closed ("Checkout opens at launch.") rather
-// than charging the old amount against the new one on the page. fltr and the
-// bundle were renamed when they moved to $29 and $69 on 2026-09-30.
+// than charging the old amount against the new one on the page. fltr's was
+// renamed when it moved to $29 (2026-09-30), and the bundle's each time its
+// price moved - most recently to $59, as STRIPE_BUNDLE59_PRICE_ID (2026-10-01).
 const SINGLE_PRICE_ENV: Record<PluginProduct, string | undefined> = {
   shft: process.env.STRIPE_SHFT29_PRICE_ID,
   drft: process.env.STRIPE_DRFT29_PRICE_ID,

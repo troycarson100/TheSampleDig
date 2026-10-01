@@ -20,15 +20,16 @@ function grep(pattern) {
 const cross = grep("crossgrade|Crossgrade|CROSSGRADE")
 check("no crossgrade identifiers remain", cross.length === 0, cross.slice(0, 5).join(" | "))
 
-// 19 and 59 were fltr's intro price and the bundle's, until 2026-09-30.
-const literals = grep("\\$(19|34|15|39|59)\\b")
+// 19 was fltr's intro price until 2026-09-30, and 69 the bundle's until
+// 2026-10-01, when the bundle came down to 59.
+const literals = grep("\\$(19|34|15|39|69)\\b")
 check("no stale price literals remain", literals.length === 0, literals.slice(0, 5).join(" | "))
 
 const { PRICING } = await import("../lib/products.ts")
 check("shft is $29 / $49", PRICING.shft.price === 29 && PRICING.shft.msrp === 49)
 check("drft is $29 / $49", PRICING.drft.price === 29 && PRICING.drft.msrp === 49)
 check("fltr is $29 / $49", PRICING.fltr.price === 29 && PRICING.fltr.msrp === 49)
-check("bundle is $69 / $147", PRICING.bundle.price === 69 && PRICING.bundle.compareAt === 147)
+check("bundle is $59 / $147", PRICING.bundle.price === 59 && PRICING.bundle.compareAt === 147)
 check("crossgrade is gone from PRICING", !("crossgrade" in PRICING))
 
 process.exit(failures.length ? 1 : 0)
