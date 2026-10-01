@@ -46,6 +46,22 @@ export function memberOfferCode(secret: string, slug: string, userId: string): s
   return out
 }
 
+/** Codes made for a test send start with this instead, so a test code can
+ *  never be mistaken for, or collide with, a member's own. */
+export const TEST_CODE_PREFIX = "SRTEST"
+
+/** A working code for a test send to the admin: random, since it belongs to
+ *  nobody and is never made twice. `pick` is injectable for tests. */
+export function testOfferCode(pick: (max: number) => number): string {
+  let out = TEST_CODE_PREFIX
+  for (let i = 0; i < 6; i++) out += ALPHABET[pick(ALPHABET.length)]
+  return out
+}
+
+/** How long a test code works: long enough to try it out properly, short
+ *  enough that one forwarded by mistake is soon worth nothing. */
+export const TEST_CODE_DAYS = 3
+
 export interface Candidate {
   userId: string
   email: string

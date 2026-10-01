@@ -7,12 +7,15 @@ import {
   renderMemberOfferHtml,
   sendMemberOfferEmail,
 } from "@/lib/email"
+import { randomInt } from "crypto"
 import {
   MEMBER_OFFER,
+  TEST_CODE_DAYS,
   formatOfferDate,
   isMemberOfferRecipient,
   memberOfferCode,
   memberOfferExpiry,
+  testOfferCode,
 } from "@/lib/member-offer-logic"
 import { PLUGIN_ORDER, type PluginId } from "@/lib/plugins"
 import { unsubscribeUrl } from "@/lib/unsubscribe-token"
@@ -323,6 +326,60 @@ export async function sendMemberOfferBatch(offerId: string, now: Date = new Date
     // the loop instead of spinning on the same people.
     done: finished || (sent === 0 && failed > 0),
   }
+}
+
+/**
+ * A real, working code sent to one address, to try the whole thing before the
+ * real send: the same email, a single-use $10 code in Stripe that the promo box
+ * and checkout take, and a link that puts it on the cart. It does not start
+ * the offer - no cutoff is fixed, nothing is recorded, nobody else is mailed -
+ * and it is not tied to any account, so it applies through the link (or typed
+ * into the box), not by being signed in.
+ *
+ * Its own coupon, named as a test, so test redemptions never count against the
+ * offer's in Stripe. Expires in TEST_CODE_DAYS.
+ */
+export async function sendMemberOfferTestCode(
+  to: string,
+  unsubscribeFor: string,
+  now: Date = new Date(),
+): Promise<{ code: string; expiresAt: Date }> {
+  const stripe = stripeClient()
+  const expiresAt = new Date(now.getTime() + TEST_CODE_DAYS * 86_400_000)
+  const coupon = await stripe.coupons.create(
+    {
+      amount_off: MEMBER_OFFER.amountOffCents,
+      currency: "usd",
+      duration: "once",
+      name: `${MEMBER_OFFER.couponName} (test)`,
+      metadata: { memberOffer: MEMBER_OFFER.slug, test: "1" },
+    },
+    // One test coupon a day is plenty; the key makes a second test that day
+    // reuse it rather than make another.
+    { idempotencyKey: `member-offer-test-coupon:${MEMBER_OFFER.slug}:${now.toISOString().slice(0, 10)}` },
+  )
+  const code = testOfferCode(randomInt)
+  await stripe.promotionCodes.create({
+    promotion: { type: "coupon", coupon: coupon.id },
+    code,
+    max_redemptions: 1,
+    expires_at: Math.floor(expiresAt.getTime() / 1000),
+    metadata: { memberOffer: MEMBER_OFFER.slug, test: "1", sentTo: to },
+  })
+
+  const email = draft(memberOfferExpiry(now))
+  const transporter = createBulkTransporter()
+  try {
+    await sendMemberOfferEmail(transporter, to, {
+      subject: `[TEST] ${email.subject}`,
+      html: email.bodyHtml,
+      code,
+      unsubscribeUrl: unsubscribeUrl(APP_URL, unsubscribeFor),
+    })
+  } finally {
+    transporter.close()
+  }
+  return { code, expiresAt }
 }
 
 /** The code a signed-in member's cart applies by itself: theirs, mailed, and

@@ -55,7 +55,8 @@ const fmtDate = (d: string) => new Date(d).toLocaleString(undefined, { dateStyle
 
 export default function AdminMemberOffer() {
   const [preview, setPreview] = useState<Preview | null>(null)
-  const [busy, setBusy] = useState<"test" | "send" | null>(null)
+  const [busy, setBusy] = useState<"test" | "test-code" | "send" | null>(null)
+  const [testTo, setTestTo] = useState("")
   const [progress, setProgress] = useState("")
   const [error, setError] = useState("")
   const [notice, setNotice] = useState("")
@@ -79,14 +80,27 @@ export default function AdminMemberOffer() {
     }
   }, [])
 
-  const post = async (action: string, offerId?: string) =>
+  const post = async (action: string, offerId?: string, to?: string) =>
     readJson(
       await fetch("/api/admin/offers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action, offerId }),
+        body: JSON.stringify({ action, offerId, to }),
       }),
     )
+
+  async function sendTestCode() {
+    setError("")
+    setNotice("")
+    setBusy("test-code")
+    const { ok, data, message } = await post("test-code", undefined, testTo)
+    setBusy(null)
+    if (!ok || !data) return setError(message || "The test code could not be sent.")
+    setNotice(
+      `A working code, ${String(data.code)}, is on its way to ${String(data.sentTo)}. It is real - single use, $10 off - ` +
+        `and expires ${fmtDate(String(data.expiresAt))}. The offer itself has not started.`,
+    )
+  }
 
   async function sendTest() {
     setError("")
@@ -203,6 +217,34 @@ export default function AdminMemberOffer() {
         </details>
 
         {progress && <p className="text-sm mb-3" style={{ color: "var(--primary)" }}>{progress}</p>}
+
+        <div className="mb-4 rounded-lg border p-3" style={{ borderColor: "var(--border)" }}>
+          <p className="text-sm mb-2" style={labelStyle}>
+            Try it for real first: the same email, with a working single-use code, to one address. It does not start the
+            offer. The code applies through the email&apos;s link, or typed into the promo box - not by signing in.
+          </p>
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault()
+              void sendTestCode()
+            }}
+          >
+            <input
+              type="email"
+              value={testTo}
+              onChange={(e) => setTestTo(e.target.value)}
+              placeholder="you@example.com"
+              aria-label="Send a working test code to"
+              className="flex-1 rounded-lg border px-3 py-1.5 text-sm"
+              style={{ borderColor: "var(--border)", background: "transparent", color: "var(--foreground)" }}
+              data-offer-test-to
+            />
+            <button type="submit" className={btnCls} style={btnStyle} disabled={busy !== null || !testTo.trim()} data-offer-test-code>
+              {busy === "test-code" ? "Sending..." : "Send a working code"}
+            </button>
+          </form>
+        </div>
 
         <div className="flex gap-2">
           <button className={btnCls} style={btnStyle} disabled={busy !== null} onClick={sendTest}>

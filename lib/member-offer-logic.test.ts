@@ -7,6 +7,8 @@ import {
   isMemberOfferRecipient,
   memberOfferCode,
   memberOfferExpiry,
+  TEST_CODE_PREFIX,
+  testOfferCode,
   type Candidate,
 } from "./member-offer-logic"
 import { normalizePromoCode } from "./cart-promo"
@@ -89,4 +91,18 @@ test("isMemberOfferRecipient: owning all of it is - there is nothing left to tak
 test("formatOfferDate: the date as it is in Pacific time", () => {
   // 03:00 on 1 November in UTC is still 31 October in Los Angeles.
   assert.equal(formatOfferDate(new Date("2026-11-01T03:00:00.000Z")), "October 31")
+})
+
+test("testOfferCode: marked as a test, never shaped like a member's code", () => {
+  let n = 0
+  const code = testOfferCode(() => n++ % 31)
+  assert.ok(code.startsWith(TEST_CODE_PREFIX))
+  assert.ok(!code.startsWith(MEMBER_CODE_PREFIX))
+  assert.equal(normalizePromoCode(code), code)
+  assert.doesNotMatch(code.slice(TEST_CODE_PREFIX.length), /[01OIL]/)
+})
+
+test("testOfferCode: a different code every time", () => {
+  const seen = new Set(Array.from({ length: 200 }, () => testOfferCode((max) => Math.floor(Math.random() * max))))
+  assert.ok(seen.size > 195)
 })

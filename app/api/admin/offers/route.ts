@@ -3,7 +3,7 @@ import { requireAdmin } from "@/lib/admin"
 import { prisma } from "@/lib/db"
 import { createBulkTransporter, sendMemberOfferEmail } from "@/lib/email"
 import { MEMBER_OFFER } from "@/lib/member-offer-logic"
-import { claimMemberOffer, memberOfferPreview, sendMemberOfferBatch } from "@/lib/member-offer"
+import { claimMemberOffer, memberOfferPreview, sendMemberOfferBatch, sendMemberOfferTestCode } from "@/lib/member-offer"
 import { unsubscribeUrl } from "@/lib/unsubscribe-token"
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"
@@ -19,8 +19,11 @@ type Body = {
   //           works nowhere; nothing is made in Stripe or recorded
   // "claim" - start the offer: fixes who it goes to and when it expires
   // "batch" - make codes for and mail the next few people
+  // "test-code" - the real email, with a real single-use code, to one address
+  //               (`to`); the offer itself is not started
   action?: unknown
   offerId?: unknown
+  to?: unknown
 }
 
 export async function POST(request: Request) {
@@ -55,6 +58,23 @@ export async function POST(request: Request) {
       transporter.close()
     }
     return NextResponse.json({ ok: true, sentTo: adminEmail })
+  }
+
+  if (body.action === "test-code") {
+    const to = typeof body.to === "string" ? body.to.trim().toLowerCase() : ""
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      return NextResponse.json({ error: "Enter the email address to send the test code to." }, { status: 400 })
+    }
+    if (!session.user?.id) return NextResponse.json({ error: "No admin account to unsubscribe." }, { status: 400 })
+    try {
+      // The unsubscribe link is the admin's own: the address may belong to no
+      // account, and a test must never opt anyone else out.
+      const { code, expiresAt } = await sendMemberOfferTestCode(to, session.user.id)
+      return NextResponse.json({ ok: true, sentTo: to, code, expiresAt: expiresAt.toISOString() })
+    } catch (error) {
+      console.error("[offers] test code failed:", error)
+      return NextResponse.json({ error: "The test code could not be made or sent. Check Stripe and the SMTP settings." }, { status: 500 })
+    }
   }
 
   if (body.action === "claim") {
