@@ -36,7 +36,7 @@ if (!opts.installer && !opts.installerWin && !opts.manual && argv.length >= 2 &&
 
 const uploads = []
 if (opts.installer)    uploads.push({ path: opts.installer,    key: process.env.DRFT_INSTALLER_KEY     || "drft/drft-1.1.3.pkg",       type: "application/octet-stream" })
-if (opts.installerWin) uploads.push({ path: opts.installerWin, key: process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-1.1.3-setup.exe",  type: "application/octet-stream" })
+if (opts.installerWin) uploads.push({ path: opts.installerWin, key: process.env.DRFT_INSTALLER_WIN_KEY || "drft/drft-1.1.4-setup.exe",  type: "application/octet-stream" })
 if (opts.manual)       uploads.push({ path: opts.manual,       key: process.env.DRFT_MANUAL_KEY        || "drft/drft-manual-v1.1.pdf",  type: "application/pdf" })
 
 if (uploads.length === 0) {
