@@ -95,6 +95,17 @@ function IconTicket({ className }: { className?: string }) {
   )
 }
 
+/** A gift box: the member offer - $10 off for everyone with an account. */
+function IconGift({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="3.5" y="8.5" width="17" height="4" rx="1" />
+      <path d="M5 12.5v7.5h14v-7.5M12 8.5V20" />
+      <path d="M12 8.5c-1.6-3.6-5.5-3.6-5.5-1.4 0 1.4 2.7 1.4 5.5 1.4ZM12 8.5c1.6-3.6 5.5-3.6 5.5-1.4 0 1.4-2.7 1.4-5.5 1.4Z" />
+    </svg>
+  )
+}
+
 function IconPaperPlane({ className }: { className?: string }) {
   return (
     <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -273,6 +284,20 @@ export function SiteSettingsMenu() {
                   >
                     <IconPaperPlane className="shrink-0 opacity-85" />
                     <span>Release emails</span>
+                  </Link>
+                ) : null}
+                {/* Admin-only: the $10-off member offer - send it, and test it first. */}
+                {href === "/products" && isAdmin ? (
+                  <Link
+                    href="/admin/offers"
+                    role="menuitem"
+                    className="flex items-center gap-3 px-3.5 py-2.5 text-[13px] no-underline transition-colors hover:bg-white/6"
+                    style={{ color: "var(--cream)", fontFamily: "var(--font-ibm-mono), IBM Plex Mono, monospace" }}
+                    onClick={() => setOpen(false)}
+                    data-admin-link="offers"
+                  >
+                    <IconGift className="shrink-0 opacity-85" />
+                    <span>Member offer</span>
                   </Link>
                 ) : null}
               </Fragment>
