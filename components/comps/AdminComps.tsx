@@ -204,10 +204,6 @@ export default function AdminComps() {
 
   return (
     <div style={{ color: "var(--foreground)" }}>
-      <p className="text-xs uppercase tracking-widest mb-1" style={labelStyle}>
-        shft comp codes
-      </p>
-      <h1 className="text-2xl font-bold mb-2">Comp codes</h1>
       <p className="text-sm mb-8" style={{ opacity: 0.7 }}>
         Generate one-time retrieval codes to give away working copies of a plugin. A code is redeemed
         at /redeem by whoever submits it first.

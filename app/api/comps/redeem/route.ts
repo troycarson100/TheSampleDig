@@ -57,7 +57,10 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "That code doesn't look right." }, { status: 400 })
   }
 
-  const row = await prisma.compCode.findUnique({ where: { code } })
+  // A gift link is claimed from its own page (/gift/<code>), never typed in
+  // here: that page is what binds it to the browser that claimed it.
+  const found = await prisma.compCode.findUnique({ where: { code } })
+  const row = found?.kind === "link" ? null : found
 
   // What this code grants. A bundle grants three products, so ownership is
   // only a refusal when the redeemer already owns EVERY product it would
