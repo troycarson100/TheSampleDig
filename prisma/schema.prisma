@@ -187,7 +187,8 @@ model MemberOffer {
   // Null while a send is mid-flight or was stopped partway.
   completedAt    DateTime? @map("completed_at")
 
-  codes MemberOfferCode[]
+  codes     MemberOfferCode[]
+  reminders MemberOfferReminder[]
 
   @@map("member_offers")
 }
@@ -219,6 +220,64 @@ model MemberOfferCode {
   @@unique([offerId, userId])
   @@index([userId])
   @@map("member_offer_codes")
+}
+
+// A second email about a MemberOffer, to the people it was sent to who have
+// neither used their code nor bought fltr since. One row per reminder, claimed
+// (inserted) before anyone is mailed, like the offer itself: the unique slug
+// refuses a second press of Send.
+//
+// Two emails are snapshotted, because there are two kinds of reader: someone
+// who owns nothing can buy all three at the bundle price, and someone who owns
+// one already cannot - the bundle is every plugin in one cart - so theirs is
+// about fltr alone. See lib/offer-reminder-logic.ts.
+model MemberOfferReminder {
+  id            String      @id @default(cuid())
+  offerId       String      @map("offer_id")
+  offer         MemberOffer @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  slug          String      @unique
+  // What went to someone who owns none of the range.
+  subject       String
+  bodyHtml      String      @map("body_html")
+  // What went to someone who owns something, but not fltr.
+  ownerSubject  String      @map("owner_subject")
+  ownerBodyHtml String      @map("owner_body_html")
+  sentByEmail   String?     @map("sent_by_email")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  // Null while a send is mid-flight or was stopped partway.
+  completedAt   DateTime?   @map("completed_at")
+
+  sends MemberOfferReminderSend[]
+
+  @@map("member_offer_reminders")
+}
+
+// One person on a reminder's list. The whole list is written when the reminder
+// is claimed - who had not used their code, as Stripe had it at that moment -
+// so the batches that follow never ask Stripe anything, and the count shown
+// before sending is the list that is mailed.
+model MemberOfferReminderSend {
+  id         String              @id @default(cuid())
+  reminderId String              @map("reminder_id")
+  reminder   MemberOfferReminder @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+  userId     String              @map("user_id")
+  // As it was when the list was made, for the admin's record.
+  email      String
+  // Their own code from the offer: the email shows it and its link carries it.
+  code       String
+  // "bundle" | "fltr" - which of the two emails they are down for.
+  variant    String
+  sentAt     DateTime?           @map("sent_at")
+  // The last send that failed. Cleared by a later success.
+  failedAt   DateTime?           @map("failed_at")
+  // Dropped at send time: they bought fltr, or stopped taking email, after the
+  // list was made. Never mailed, and not tried again.
+  skippedAt  DateTime?           @map("skipped_at")
+  createdAt  DateTime            @default(now()) @map("created_at")
+
+  @@unique([reminderId, userId])
+  @@index([reminderId, sentAt])
+  @@map("member_offer_reminder_sends")
 }
 
 model Channel {
