@@ -179,7 +179,7 @@ Before that branch can launch:
 - [ ] Decide the in-plugin `sift` → `fltr` rename.
 - [x] fltr's three files are in the bucket's `fltr/` folder (2026-09-30), named
       as `lib/products.ts` expects: `fltr-1.0.0.pkg`, `fltr-1.0.0-setup.exe`,
-      `fltr-manual-v1.0.pdf`.
+      `fltr-manual-v1.0.pdf`. 1.0.1's two installers joined them on 2026-10-02.
 
 Not started: the interactive hotspot hero (spec C) — a product image where each
 control explains itself, with the video loop moved below. Needs per-control copy
