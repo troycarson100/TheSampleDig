@@ -164,6 +164,12 @@ Before that branch can launch:
       Someone who owns shft or drft cannot buy the bundle, so they get an email
       about fltr alone. Both buttons land on `/fltr?promo=<code>`; the bundle is
       added from the sale strip there - no link fills the cart by itself.
+- [ ] Gift links (`/admin/comps?tab=gifts`, `lib/gift-link.ts`): run
+      `prisma/migrations/manual/20261002_gift_links.sql` on production BEFORE
+      deploying them. Prisma selects every column, so until it is applied the
+      Comp codes page and /redeem fail. Accounts a gift makes before an email
+      is put on it live at `@gifts.sampleroll.invalid` with both email
+      switches off; `scripts/verify-gift-links.ts` covers the flow.
 - [ ] The bundle's countdown ends at `BUNDLE_OFFER_ENDS` in `lib/plugins.ts`.
       On that date the $59 goes up (here and in Stripe) or the date moves.
 - `NEXT_PUBLIC_FLTR_INTRO_ENDS` is not to be set: fltr has no intro price any

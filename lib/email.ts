@@ -87,12 +87,43 @@ export async function sendVerificationEmail(email: string, token: string) {
 const PLUGIN_EMAIL_COPY: Record<string, { formats: string }> = {
   shft: { formats: "macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone)" },
   drft: { formats: "macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone)" },
-  // macOS-only at launch - see the note by FLTR_INSTALLER_KEY in lib/products.ts.
-  fltr: { formats: "macOS (VST3 / AU / Standalone)" },
+  fltr: { formats: "macOS (VST3 / AU / Standalone) or Windows (VST3 / Standalone)" },
 }
 
 const escapeHtml = (s: string) =>
   s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
+
+/** One licence key per item, each followed by its download links. Those links
+ *  carry the key as their credential, so they work without signing in. Items
+ *  with no key are left out rather than printing an empty box. */
+function keyBlocksHtml(items: { product: PluginProduct; licenseKey: string | null }[]): string {
+  return items
+    .filter((i) => i.licenseKey)
+    .map((i) => {
+      const links = downloadsFor(i.product, i.licenseKey!)
+        .map((d) => `<a href="${APP_URL}${d.href}" style="${linkChipStyle}">↓ ${d.label}</a>`)
+        .join("")
+      return `
+        <p style="color: #555; margin-bottom: 8px; font-size: 14px;">Your ${i.product} licence key</p>
+        <p style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px;
+                  letter-spacing: 1px; background: #f4f4f4; border: 1px solid #e4e4e4;
+                  border-radius: 8px; padding: 12px 16px; margin: 0 0 12px;">
+          ${i.licenseKey}
+        </p>
+        <p style="color: #555; margin-bottom: 12px; font-size: 14px;">
+          Paste it into ${i.product} the first time you open it. It activates up to 3 machines,
+          and you can free one any time from My Products.
+        </p>
+        <div style="margin: 0 0 24px;">${links}</div>`
+    })
+    .join("")
+}
+
+function downloadLinesHtml(items: { product: PluginProduct }[]): string {
+  return items
+    .map((i) => `<strong>${i.product}</strong> for ${PLUGIN_EMAIL_COPY[i.product]?.formats ?? "macOS & Windows"}`)
+    .join(" and ")
+}
 
 export type PurchaseEmailOptions = {
   /** Present when the account has no human-chosen password (it was created by
@@ -122,30 +153,9 @@ export async function sendPluginPurchaseEmail(
   const names = items.map((i) => i.product).join(" + ")
   const safeEmail = escapeHtml(email)
 
-  const keyBlocks = items
-    .filter((i) => i.licenseKey)
-    .map((i) => {
-      const links = downloadsFor(i.product, i.licenseKey!)
-        .map((d) => `<a href="${APP_URL}${d.href}" style="${linkChipStyle}">↓ ${d.label}</a>`)
-        .join("")
-      return `
-        <p style="color: #555; margin-bottom: 8px; font-size: 14px;">Your ${i.product} licence key</p>
-        <p style="font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 18px;
-                  letter-spacing: 1px; background: #f4f4f4; border: 1px solid #e4e4e4;
-                  border-radius: 8px; padding: 12px 16px; margin: 0 0 12px;">
-          ${i.licenseKey}
-        </p>
-        <p style="color: #555; margin-bottom: 12px; font-size: 14px;">
-          Paste it into ${i.product} the first time you open it. It activates up to 3 machines,
-          and you can free one any time from My Products.
-        </p>
-        <div style="margin: 0 0 24px;">${links}</div>`
-    })
-    .join("")
+  const keyBlocks = keyBlocksHtml(items)
 
-  const downloadLines = items
-    .map((i) => `<strong>${i.product}</strong> for ${PLUGIN_EMAIL_COPY[i.product]?.formats ?? "macOS & Windows"}`)
-    .join(" and ")
+  const downloadLines = downloadLinesHtml(items)
 
   const account = opts.setPasswordUrl
     ? `
@@ -186,6 +196,51 @@ export async function sendPluginPurchaseEmail(
         ${keyBlocks}
         ${account}
         ${duplicateNote}
+        <p style="color: #999; font-size: 13px; margin-top: 24px;">
+          Reply here if you hit any trouble and we'll sort you out.
+        </p>
+      </div>
+    `,
+  })
+}
+
+/** The email a gift link's recipient asks for: the keys and downloads, so it
+ *  is useful the moment it lands, plus one link that saves the gift to this
+ *  address - as a new account, or into the one the address already has. */
+export async function sendGiftEmail(
+  email: string,
+  items: { product: PluginProduct; licenseKey: string | null }[],
+  opts: { confirmUrl: string; privateUrl: string; message: string | null; existingAccount: boolean },
+) {
+  const names = items.map((i) => i.product).join(" + ")
+  const note = opts.message
+    ? `<p style="color: #1a1a1a; background: #f6f4ef; border-radius: 8px; padding: 14px 16px; margin: 0 0 24px; white-space: pre-line;">${escapeHtml(opts.message)}</p>`
+    : ""
+  const save = opts.existingAccount
+    ? `This address already has a Sample Roll account. Confirm and the gift is added to it, next to
+       everything else on My Products.`
+    : `Confirm this address and set a password to keep them on My Products, where you can
+       re-download and manage your machines any time.`
+
+  await sendMailWithFallback({
+    from: FROM,
+    to: email,
+    subject: `Your gift from Sample Roll: ${names}`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+        <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">${names}, on us</h1>
+        <p style="color: #555; margin-bottom: 24px;">
+          Here are your licence ${items.length === 1 ? "key" : "keys"} and the downloads for
+          ${downloadLinesHtml(items)}, plus the user manual.
+        </p>
+        ${note}
+        ${keyBlocksHtml(items)}
+        <p style="color: #555; margin: 0 0 12px; font-size: 14px;">${save}</p>
+        <a href="${opts.confirmUrl}" style="${buttonStyle}">Save to my account</a>
+        <p style="color: #999; font-size: 13px; margin-top: 12px;">
+          That button works for 24 hours. Your keys and downloads above keep working either way, and
+          so does <a href="${opts.privateUrl}" style="color: #555;">your gift page</a>.
+        </p>
         <p style="color: #999; font-size: 13px; margin-top: 24px;">
           Reply here if you hit any trouble and we'll sort you out.
         </p>

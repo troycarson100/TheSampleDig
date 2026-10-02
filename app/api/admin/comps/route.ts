@@ -4,39 +4,18 @@ import { requireAdmin } from "@/lib/admin"
 import { generateCompCode } from "@/lib/comp-code"
 import { compCodeStatus } from "@/lib/comp-code-redemption"
 import { asCompProduct, isCompProduct } from "@/lib/plugin-products"
+import { parseExpiresAt } from "@/lib/comp-expiry"
 
 const MAX_BATCH = 100
 const MAX_NOTE_LEN = 200
 const MAX_BULK_IDS = 200
 
-type ExpiresAtResult = { ok: true; value: Date | null } | { ok: false; error: string }
-
-// The admin form sends a date-only string (e.g. "2026-08-20") from an
-// <input type="date">, which Date parses as UTC MIDNIGHT — the evening
-// before in US timezones, and compCodeStatus treats <= now as expired.
-// Bump a date-only value to the END of that day (UTC) so "expires Aug 20"
-// actually covers Aug 20 everywhere. This codebase doesn't track an admin's
-// timezone anywhere, so end-of-day-UTC is simple and sufficient rather than
-// true per-timezone handling. Shared by POST (set on create) and PATCH (bulk
-// edit) so the two can never drift apart on this.
-function parseExpiresAt(input: unknown): ExpiresAtResult {
-  if (typeof input !== "string" || !input.trim()) return { ok: true, value: null }
-
-  const parsed = new Date(input)
-  if (Number.isNaN(parsed.getTime())) return { ok: false, error: "Invalid expiration date." }
-
-  const dateOnly = /^\d{4}-\d{2}-\d{2}$/.test(input.trim())
-  if (dateOnly) parsed.setUTCHours(23, 59, 59, 999)
-
-  if (parsed.getTime() <= Date.now()) return { ok: false, error: "Expiration date is already in the past." }
-
-  return { ok: true, value: parsed }
-}
-
 export async function GET() {
   if (!(await requireAdmin())) return NextResponse.json({ error: "forbidden" }, { status: 403 })
 
+  // Gift links have their own tab (/api/admin/gifts).
   const rows = await prisma.compCode.findMany({
+    where: { kind: "code" },
     orderBy: { createdAt: "desc" },
     include: { redeemedByUser: { select: { email: true } } },
   })
@@ -152,7 +131,7 @@ export async function PATCH(request: Request) {
   // (compCodeStatus checks redeemed/revoked before expired), so this can
   // never silently do something the status logic would then ignore.
   const result = await prisma.compCode.updateMany({
-    where: { id: { in: ids }, redeemedAt: null, revokedAt: null },
+    where: { id: { in: ids }, kind: "code", redeemedAt: null, revokedAt: null },
     data: { expiresAt: expiresAtResult.value },
   })
 

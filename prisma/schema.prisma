@@ -110,7 +110,16 @@ model CompCode {
   // Defaults to shft so codes minted before this column existed - all of
   // which were shft - keep granting exactly what they always did.
   product          String    @default("shft")
+  // "code": typed in at /redeem by a signed-in account. "link": a gift link,
+  // claimed at /gift/<code> with one tap and no account. See lib/gift-link.ts.
+  kind             String    @default("code")
   note             String?
+  // Gift links only: shown to the recipient above the Claim button.
+  message          String?
+  // Gift links only: sha256 of the claim token held by the browser that
+  // claimed it (and carried in its private link). A claimed link with this
+  // null was reopened by an admin: the next Claim rebinds it, same keys.
+  claimTokenHash   String?   @unique @map("claim_token_hash")
   // The admin who generated it (from requireAdmin()'s session) — cheap audit
   // trail on a tool that hands out free product.
   createdByEmail   String?   @map("created_by_email")

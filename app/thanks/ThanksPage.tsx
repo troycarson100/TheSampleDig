@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
-import WindowsInstallNote from "@/components/WindowsInstallNote"
+import PluginKeyCard from "@/components/PluginKeyCard"
 import EmailChangeForm from "@/components/EmailChangeForm"
 import { useCart } from "@/components/CartProvider"
 import { trackMeta } from "@/lib/meta-pixel"
@@ -42,60 +42,9 @@ const card = { borderColor: "var(--border)" } as const
 const primaryBtn =
   "inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold no-underline"
 const primaryBtnStyle = { background: "var(--primary)", color: "var(--primary-foreground, #fff)" } as const
-const ghostBtn = "inline-flex items-center rounded-lg px-3 py-2 text-[13px] font-medium border"
-const ghostBtnStyle = { borderColor: "var(--border)", color: "var(--foreground)" } as const
 
 function fallbackPaid(product: string): number {
   return PRICING[product as keyof typeof PRICING]?.price ?? PRICING.shft.price
-}
-
-function KeyRow({ value }: { value: string }) {
-  const [copied, setCopied] = useState(false)
-  async function copy() {
-    await navigator.clipboard.writeText(value)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 1600)
-  }
-  return (
-    <div className="flex items-center gap-2 flex-wrap">
-      <code
-        className="text-[15px] tracking-wider rounded-lg px-3 py-2 border"
-        style={{ borderColor: "var(--border)", color: "var(--foreground)" }}
-      >
-        {value}
-      </code>
-      <button type="button" onClick={copy} className={ghostBtn} style={ghostBtnStyle}>
-        {copied ? "Copied" : "Copy"}
-      </button>
-    </div>
-  )
-}
-
-function ItemCard({ item }: { item: Item }) {
-  return (
-    <section className="rounded-xl border p-5 sm:p-6" style={card}>
-      <h2 className="text-lg font-semibold mb-3" style={{ color: "var(--foreground)" }}>
-        {item.product}
-      </h2>
-      <p className="text-[13px] font-medium mb-2" style={{ color: "var(--foreground)", opacity: 0.7 }}>
-        Licence key
-      </p>
-      <KeyRow value={item.licenseKey} />
-      <p className="text-[14px] mt-3 mb-4" style={muted}>
-        Paste it into {item.product} the first time you open it. One key covers 3 machines.
-      </p>
-      <div className="flex flex-wrap gap-3">
-        {item.downloads.map((d) => (
-          <a key={d.id} href={d.href} className={primaryBtn} style={primaryBtnStyle}>
-            ↓ {d.label}
-          </a>
-        ))}
-      </div>
-      {item.downloads.some((d) => d.id === "installer-win") && (
-        <WindowsInstallNote product={item.product} />
-      )}
-    </section>
-  )
 }
 
 function AccountBlock({ claim }: { claim: Claim }) {
@@ -309,7 +258,7 @@ export default function ThanksPage() {
 
       <div className="space-y-5">
         {claim.items.map((item) => (
-          <ItemCard key={item.product} item={item} />
+          <PluginKeyCard key={item.product} item={item} />
         ))}
         <AccountBlock claim={claim} />
       </div>
