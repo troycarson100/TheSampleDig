@@ -1,6 +1,7 @@
 import { REMINDER_IMAGES } from "./offer-reminder-email"
 import { PRICING } from "./products"
 import { VIDEO_EMAIL } from "./video-email-logic"
+import { COMPLETE_SET_PRICE } from "./complete-set-logic"
 
 // The video email, drawn. Pure. Same rules as the other member emails
 // (lib/offer-reminder-email.ts): tables, inline styles, no web fonts, JPEGs
@@ -39,7 +40,7 @@ export function renderVideoEmailTemplate(o: { amountOffCents: number; codeExpire
   const off = o.amountOffCents / 100
   const single = PRICING.fltr.price - off
   const bundle = PRICING.bundle.price - off
-  const setPrice = 39
+  const setPrice = COMPLETE_SET_PRICE[2]
   const setWas = PRICING.drft.price + PRICING.fltr.price
 
   return `

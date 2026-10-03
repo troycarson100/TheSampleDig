@@ -1,6 +1,9 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { COMPLETE_SET_PRICE } from "@/lib/complete-set-logic"
+
+const SET = `$${COMPLETE_SET_PRICE[2]}`
 
 type Variant = "code" | "set" | "code+set"
 
@@ -100,7 +103,7 @@ export default function AdminVideoEmail() {
     const { ok, data, message } = await post("test")
     setBusy(null)
     if (!ok || !data) return setError(message || "Test send failed.")
-    setNotice(`All three versions sent to ${String(data.sentTo)}. The code is an example and works nowhere, and the $39 button goes to the fltr page.`)
+    setNotice(`All three versions sent to ${String(data.sentTo)}. The code is an example and works nowhere, and the ${SET} button goes to the fltr page.`)
   }
 
   async function send(p: Preview) {
@@ -175,7 +178,7 @@ export default function AdminVideoEmail() {
         <h1 className="text-xl font-semibold mb-1">Third email - the fltr video</h1>
         <p className="text-sm" style={labelStyle}>
           The deep-dive video, with each person&apos;s own offers: their $10 code if it&apos;s unused, and the other two
-          plugins for $39 (until October 31) if they own exactly one. Anyone with neither isn&apos;t sent it, and
+          plugins for {SET} (until October 31) if they own exactly one. Anyone with neither isn&apos;t sent it, and
           neither is anyone who has unsubscribed.
         </p>
       </div>
@@ -199,7 +202,7 @@ export default function AdminVideoEmail() {
             </p>
           )}
           <p style={labelStyle} data-video-variants>
-            {v.code} get their code, {v.set} get the $39 offer, {v["code+set"]} get both.
+            {v.code} get their code, {v.set} get the {SET} offer, {v["code+set"]} get both.
           </p>
           {x && (
             <p style={labelStyle}>

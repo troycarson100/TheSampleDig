@@ -1,4 +1,5 @@
 import { PLUGIN_ORDER, type PluginId } from "./plugins"
+import { COMPLETE_SET_PRICE } from "./complete-set-logic"
 
 // The third member email: fltr's deep-dive video, with whichever offers each
 // reader still has. The rules, pure - lib/video-email.ts does the I/O and
@@ -6,7 +7,7 @@ import { PLUGIN_ORDER, type PluginId } from "./plugins"
 //
 // One email, put together per person from two optional parts:
 //   - their $10 member code, if they have one and it is unused
-//   - the rest of the set for $39, if they own exactly one plugin
+//   - the other two plugins at the complete-set price, if they own exactly one
 // Someone with neither is not written to. Like every send before it, it goes
 // only to accounts that still take both kinds of email.
 
@@ -18,14 +19,14 @@ export const VIDEO_EMAIL = {
   offerSlug: "members-10-off-2026-10",
   videoUrl: "https://www.youtube.com/watch?v=GLvR3ZmPgws",
   videoTitle: "I Made a Filter That Turns Drums Into Chords",
-  /** When the $39 link stops working: the end of the bundle sale, Pacific. */
+  /** When the complete-set link stops working: the end of the bundle sale, Pacific. */
   setEndsAt: new Date("2026-10-31T23:59:59-07:00"),
 } as const
 
 export type VideoParts = {
   /** Show their member code. Which pitch goes with it follows from `owns`. */
   code: boolean
-  /** Show "the other two for $39". */
+  /** Show "the other two" at the complete-set price. */
   set: boolean
 }
 
@@ -56,11 +57,11 @@ export function videoVariant(p: VideoParts): string {
 }
 
 export function videoSubject(p: VideoParts): string {
-  if (p.set) return "fltr, in depth - and the other two plugins for $39"
+  if (p.set) return `fltr, in depth - and the other two plugins for $${COMPLETE_SET_PRICE[2]}`
   return "fltr, in depth - and your $10 code is still waiting"
 }
 
-/** The two plugins someone who owns `owns` would get from the $39 offer. */
+/** The two plugins someone who owns `owns` would get from the complete-set offer. */
 export function setMissing(owns: readonly string[]): PluginId[] {
   return PLUGIN_ORDER.filter((id) => !owns.includes(id))
 }
