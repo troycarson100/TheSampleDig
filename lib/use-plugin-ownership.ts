@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { PLUGIN_ORDER, type PluginId } from "@/lib/plugins"
+import { useOwnershipViewer } from "@/lib/use-owns-shft"
 
 const NONE = Object.fromEntries(PLUGIN_ORDER.map((id) => [id, false])) as Record<PluginId, boolean>
 
@@ -30,23 +31,29 @@ interface OwnershipData {
 // Module-level cache + in-flight dedupe, same shape as lib/use-owns-shft.ts.
 // Every consumer on a page (PluginChrome, StickyBuy, BuyButton — twice on a
 // product page — and PluginsStore plus one BuyButton per card) shares this,
-// so one page load makes one request instead of one per consumer.
-let cached: OwnershipData | "error" | null = null
-let inFlight: Promise<OwnershipData | "error"> | null = null
+// so one page load makes one request instead of one per consumer. Kept per
+// account, like lib/use-owns-shft.ts and for the same reason: signing in
+// does not reload the page, and an answer from before it is someone else's.
+type Result = OwnershipData | "error"
+let cache: { who: string; result: Result } | null = null
+let inFlight: { who: string; promise: Promise<Result> } | null = null
 
-function fetchOwnership(): Promise<OwnershipData | "error"> {
-  if (cached !== null) return Promise.resolve(cached)
-  if (inFlight) return inFlight
-  inFlight = fetch("/api/plugins/ownership")
+function fetchOwnership(who: string): Promise<Result> {
+  if (cache?.who === who) return Promise.resolve(cache.result)
+  if (inFlight?.who === who) return inFlight.promise
+  const promise = fetch("/api/plugins/ownership")
     .then((r) => (r.ok ? r.json() : Promise.reject(new Error(`ownership fetch: ${r.status}`))))
     .then((d): OwnershipData => ({ owned: d.owned, signedIn: Boolean(d.signedIn) }))
     .catch((): "error" => "error")
     .then((result) => {
-      cached = result
-      inFlight = null
+      if (inFlight?.who === who) {
+        cache = { who, result }
+        inFlight = null
+      }
       return result
     })
-  return inFlight
+  inFlight = { who, promise }
+  return promise
 }
 
 /**
@@ -63,19 +70,21 @@ function fetchOwnership(): Promise<OwnershipData | "error"> {
  * placeholder rather than a purchase control.
  */
 export function usePluginOwnership(): PluginOwnership {
-  const [result, setResult] = useState<OwnershipData | "error" | null>(cached)
+  const who = useOwnershipViewer()
+  const [state, setState] = useState<{ who: string; result: Result } | null>(cache)
 
   useEffect(() => {
-    if (cached !== null) return
+    if (!who) return
     let live = true
-    void fetchOwnership().then((r) => {
-      if (live) setResult(r)
+    void fetchOwnership(who).then((r) => {
+      if (live) setState({ who, result: r })
     })
     return () => {
       live = false
     }
-  }, [])
+  }, [who])
 
+  const result = who !== null && state?.who === who ? state.result : null
   const loading = result === null
   const error = result === "error"
   const owned = loading || error ? NONE : result.owned
