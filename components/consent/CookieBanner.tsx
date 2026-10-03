@@ -25,8 +25,8 @@ export default function CookieBanner() {
         color: "var(--foreground)",
       }}
     >
-      <div className="max-w-4xl mx-auto flex flex-col sm:flex-row sm:items-center gap-3">
-        <p className="text-sm flex-1">
+      <div className="max-w-4xl mx-auto flex flex-row items-center gap-3">
+        <p className="text-xs sm:text-sm flex-1">
           We use cookies to keep you signed in and to understand how people find us.{" "}
           <Link href="/cookies" className="underline" style={{ color: "var(--primary)" }}>
             Cookie Policy

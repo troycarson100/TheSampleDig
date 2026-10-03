@@ -5,6 +5,7 @@ import { normalizeAffiliateCode } from "@/lib/affiliate-logic"
 import { readAttributionMetadata } from "@/lib/attribution-snapshot"
 import type { CompProduct, PluginProduct } from "@/lib/plugin-products"
 import { checkoutUrls, sessionDiscount, type CancelPath } from "@/lib/plugin-checkout-logic"
+import { cartRecoveryEnabled, recoverySessionParams } from "@/lib/cart-recovery-logic"
 
 // Shared by the shft, drft and bundle checkout routes. Each route still picks
 // its own price and runs its own ownership guards; this is the part that was
@@ -127,6 +128,9 @@ export async function createPluginCheckoutSession(
      *  order. Applied to the session, which takes Stripe's own promo box off
      *  the payment page — see sessionDiscount. */
     promotionCodeId?: string | null
+    /** A Stripe coupon the caller applies itself - the complete-your-set
+     *  price (lib/complete-set.ts). Takes the place of a promotion code. */
+    couponId?: string | null
     metadata?: Record<string, string>
   },
 ): Promise<Stripe.Checkout.Session> {
@@ -145,7 +149,9 @@ export async function createPluginCheckoutSession(
     customer_creation: "always",
     ...(customerEmail ? { customer_email: customerEmail } : {}),
     billing_address_collection: "auto",
-    ...sessionDiscount(opts.promotionCodeId),
+    ...(opts.couponId ? { discounts: [{ coupon: opts.couponId }] } : sessionDiscount(opts.promotionCodeId)),
+    // Abandoned-cart reminders, once switched on: see lib/cart-recovery-logic.ts.
+    ...(cartRecoveryEnabled() ? recoverySessionParams(Date.now()) : {}),
     ...(buyer ? { client_reference_id: buyer.id } : {}),
     metadata: {
       ...withoutReservedKeys(opts.metadata),

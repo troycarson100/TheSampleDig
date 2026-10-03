@@ -258,7 +258,9 @@ if (BUNDLE_ENDS && await (async () => {
     check(`${width}px: the saving is ${width > 370 ? "shown" : "left out"}`, /save/i.test(row.text) === (width > 370), row.text)
     check(`${width}px: the strip's offer fits the screen`, row.left >= 0 && row.right <= row.screen, `${row.left} to ${row.right} of ${row.screen}`)
     check(`${width}px: no label in the strip breaks onto a second line`, row.lines === 1, `${row.lines} lines`)
-    check(`${width}px: the strip is 64px tall`, Math.abs(row.h - 64) <= 2, `h=${row.h}`)
+    // 64px on a wide screen; on a phone it gives up ten-odd of them so the
+    // plugin itself reaches the first screen.
+    check(`${width}px: the strip is ${width > 560 ? "64px" : "under 56px"} tall`, width > 560 ? Math.abs(row.h - 64) <= 2 : row.h <= 56, `h=${row.h}`)
     check(`${width}px: the strip still names the offer and its price`, /all three/i.test(row.text) && row.text.includes(PRICES.bundle), row.text)
     await phone.close()
   }
@@ -266,46 +268,43 @@ if (BUNDLE_ENDS && await (async () => {
   console.log("  note  the bundle has no deadline, or fltr's intro has the strip — skipping the bundle clock checks")
 }
 
-// Narrow viewports: the rail wraps onto two rows — the pills, then the bundle
-// and the cart under them — rather than scrolling sideways, which hid the two
-// controls that sell off the right edge. 320 is the narrowest phone still in
-// use; 371 is the narrowest at which the bundle keeps its three marks, so the
-// width at which the second row is tightest; 375 is the common one; 640 is
-// wide enough for the bundle to fit beside the pills, where only the rule that
-// gives the pills the whole first row keeps it under them.
+// Narrow viewports: the rail is one row - the three pills and the cart - and
+// the bundle button goes, because the sale strip right above it is the same
+// offer and opens the same cart. A second row of chrome was what kept the
+// plugin itself off a phone's first screen. 320 is the narrowest phone still
+// in use (the pills drop their marks there), 375 the common one, and 640 the
+// widest that still takes the phone layout.
 for (const width of [320, 371, 375, 640]) {
   const mobile = await browser.newPage({ ...devices["iPhone SE"], viewport: { width, height: 667 } })
   await mobile.goto(BASE + "/shft", { waitUntil: "networkidle" })
   const rail = await mobile.locator('[data-plugin-rail]').evaluate((el) => {
-    const box = (sel) => { const r = el.querySelector(sel).getBoundingClientRect(); return { top: r.top, bottom: r.bottom, right: r.right, mid: r.top + r.height / 2 } }
     const pills = [...el.querySelectorAll('[data-pill]')].map((p) => p.getBoundingClientRect())
+    const cart = el.querySelector('[data-cart-button]').getBoundingClientRect()
     const bundle = el.querySelector('[data-bundle-pill]')
     return {
-      top: el.getBoundingClientRect().top,
-      pillsTop: Math.min(...pills.map((p) => p.top)),
       pillsLeft: Math.min(...pills.map((p) => p.left)),
       heroLeft: document.querySelector('main[data-plugin] h1').getBoundingClientRect().left,
-      pillsBottom: Math.max(...pills.map((p) => p.bottom)),
-      pillRows: new Set(pills.map((p) => Math.round(p.top))).size,
-      bundle: box('[data-bundle-pill]'),
-      cart: box('[data-cart-button]'),
-      furthestRight: Math.max(...[...el.querySelectorAll('[data-pill], [data-bundle-pill], [data-cart-button]')].map((n) => n.getBoundingClientRect().right)),
+      rows: new Set([...pills, cart].map((p) => Math.round(p.top + p.height / 2))).size,
+      bundleShown: bundle ? bundle.getBoundingClientRect().width > 0 : false,
+      height: el.getBoundingClientRect().height,
+      furthestRight: Math.max(...[...el.querySelectorAll('[data-pill], [data-cart-button]')].map((n) => n.getBoundingClientRect().right)),
       screen: window.innerWidth,
-      label: { scrollW: bundle.scrollWidth, clientW: bundle.clientWidth },
     }
   })
-  check(`${width}px: the three pills share the first row`, rail.pillRows === 1, `${rail.pillRows} rows`)
-  check(`${width}px: the bundle sits under the pills`, rail.bundle.top >= rail.pillsBottom, `bundle top ${rail.bundle.top}, pills end ${rail.pillsBottom}`)
-  check(`${width}px: the cart shares the bundle's row`, Math.abs(rail.cart.mid - rail.bundle.mid) < 6, `cart ${rail.cart.mid}, bundle ${rail.bundle.mid}`)
+  check(`${width}px: the pills and the cart share one row`, rail.rows === 1, `${rail.rows} rows`)
+  check(`${width}px: the bundle button gives way to the strip above`, !rail.bundleShown)
+  check(`${width}px: so the rail is one row high`, rail.height <= 60, `h=${rail.height}`)
   check(`${width}px: the first pill sits on the hero's left edge`, Math.abs(rail.pillsLeft - rail.heroLeft) <= 1, `pill ${rail.pillsLeft}, hero ${rail.heroLeft}`)
-  const above = rail.pillsTop - rail.top, between = rail.bundle.top - rail.pillsBottom
-  check(`${width}px: the space between the rows matches the space above them`, Math.abs(above - between) <= 1.5, `${above} above, ${between} between`)
   check(`${width}px: nothing in the rail runs past the screen`, rail.furthestRight <= rail.screen, `${rail.furthestRight} of ${rail.screen}`)
-  // The bundle pill clips its own overflow (for the light sweep), so a pill the
-  // rail has squeezed doesn't wrap or spill — it just loses the end of its label.
-  check(`${width}px: the bundle pill shows its whole label`, rail.label.scrollW <= rail.label.clientW, `${rail.label.scrollW}px of content in ${rail.label.clientW}px`)
   check(`${width}px: page itself does not scroll sideways`,
     await mobile.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth + 1))
+  // The point of all of it: the plugin is on the first screen.
+  const visualTop = await mobile.evaluate(() => {
+    const hero = document.querySelector('main[data-plugin] section')
+    const visual = [...hero.children].find((c) => !String(c.className).includes("heroCopy"))
+    return visual.getBoundingClientRect().top
+  })
+  check(`${width}px: the plugin starts on the first screen`, visualTop < 667 - 120, `top ${Math.round(visualTop)} of 667`)
   await mobile.close()
 }
 

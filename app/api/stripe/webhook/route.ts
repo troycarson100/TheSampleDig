@@ -8,6 +8,8 @@ import { adminEmails } from "@/lib/admin-emails"
 import { grantPluginPurchase } from "@/lib/plugin-purchase-grant"
 import { mintSetPasswordUrl } from "@/lib/set-password"
 import { reverseTransferForRefund } from "@/lib/affiliate-stripe"
+import { handleExpiredCheckout } from "@/lib/cart-recovery"
+import { completeSetFor } from "@/lib/complete-set"
 
 export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET
@@ -66,9 +68,12 @@ export async function POST(request: Request) {
             // where the buyer gets the link to set one. An account with a real
             // password is told to sign in instead - never handed a reset link.
             const setPasswordUrl = result.needsPassword ? await mintSetPasswordUrl(result.userId) : null
+            // The rest of the set, for a day. Never holds up the receipt.
+            const completeSet = await completeSetFor(result.userId).catch(() => null)
             await sendPluginPurchaseEmail(result.email, result.items, {
               setPasswordUrl,
               duplicates: result.duplicates,
+              completeSet,
             })
           } catch (e) {
             console.error("[Stripe webhook] plugin purchase email failed:", e)
@@ -134,6 +139,22 @@ export async function POST(request: Request) {
             subscriptionCurrentPeriodEnd: periodEnd ?? undefined,
           },
         })
+        break
+      }
+
+      // A plugin checkout left unpaid: maybe one reminder email, with Stripe's
+      // link back to the same cart. Only sessions made while recovery was on
+      // carry that link, and handleExpiredCheckout never throws, so this can
+      // never make Stripe retry and send a second.
+      case "checkout.session.expired": {
+        const session = event.data.object as Stripe.Checkout.Session
+        if (isCompProduct(session.metadata?.product)) {
+          try {
+            await handleExpiredCheckout(new Stripe(secret), session)
+          } catch (e) {
+            console.error("[Stripe webhook] cart recovery failed:", e)
+          }
+        }
         break
       }
 

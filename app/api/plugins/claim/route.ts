@@ -5,6 +5,7 @@ import { isCompProduct } from "@/lib/plugin-products"
 import { grantPluginPurchase } from "@/lib/plugin-purchase-grant"
 import { buyerLookupFor, downloadsFor } from "@/lib/plugin-purchase-logic"
 import { mintSetPasswordUrl } from "@/lib/set-password"
+import { completeSetFor } from "@/lib/complete-set"
 
 // Called by /thanks with the Stripe checkout session id. Confirms the session
 // is a paid plugin purchase, grants it (self-healing if the webhook is slow,
@@ -102,6 +103,13 @@ export async function POST(request: Request) {
     // here, and only when it was created by this purchase (checked above).
     const setPasswordUrl = result.needsPassword ? await mintSetPasswordUrl(result.userId) : null
 
+    // The rest of the set, for a day, to whoever may see this account's keys.
+    // Best effort: the purchase is what this page is for.
+    const completeSet = await completeSetFor(result.userId).catch((e) => {
+      console.error("[plugins claim] complete-set offer failed", e)
+      return null
+    })
+
     return NextResponse.json({
       ok: true,
       product,
@@ -113,6 +121,15 @@ export async function POST(request: Request) {
       duplicates: result.duplicates,
       items: result.items.map((i) => ({ ...i, downloads: downloadsFor(i.product, i.licenseKey) })),
       purchasedIds: result.items.map((i) => i.product),
+      completeSet: completeSet
+        ? {
+            missing: completeSet.missing,
+            price: completeSet.price,
+            compareAt: completeSet.compareAt,
+            endsAt: completeSet.endsAt.toISOString(),
+            token: completeSet.token,
+          }
+        : null,
     })
   } catch (e) {
     console.error("[plugins claim]", e)

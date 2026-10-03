@@ -170,6 +170,17 @@ Before that branch can launch:
       Someone who owns shft or drft cannot buy the bundle, so they get an email
       about fltr alone. Both buttons land on `/fltr?promo=<code>`; the bundle is
       added from the sale strip there - no link fills the cart by itself.
+- [ ] Abandoned-cart reminders (`lib/cart-recovery*.ts`) are OFF until
+      `STRIPE_CART_RECOVERY=on` is set in DO. Before setting it: accept the
+      promotional-email terms at dashboard.stripe.com/settings/checkout (Stripe
+      refuses every checkout that asks for consent until then - verified in
+      test mode 2026-10-02), and add `checkout.session.expired` to the webhook
+      endpoint's events. With it on, checkouts expire after 3 hours and opted-in
+      buyers get one reminder with Stripe's link back to the same cart.
+- Complete your set (`lib/complete-set*.ts`): after a purchase, the plugins
+      still missing for $39 (two) or $19 (one), for 24 hours, on /thanks and in
+      the receipt. Its Stripe coupons (`sr-complete-set-<cents>`) make
+      themselves on first use; nothing to set up.
 - [ ] The bundle's countdown ends at `BUNDLE_OFFER_ENDS` in `lib/plugins.ts`.
       On that date the $59 goes up (here and in Stripe) or the date moves.
 - `NEXT_PUBLIC_FLTR_INTRO_ENDS` is not to be set: fltr has no intro price any

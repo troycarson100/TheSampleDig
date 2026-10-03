@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import Link from "next/link"
 import PluginKeyCard from "@/components/PluginKeyCard"
+import CompleteSetCard, { type CompleteSetCardOffer } from "@/components/CompleteSetCard"
 import EmailChangeForm from "@/components/EmailChangeForm"
 import { useCart } from "@/components/CartProvider"
 import { trackMeta } from "@/lib/meta-pixel"
@@ -29,6 +30,9 @@ type Claim = {
    *  they just bought - so it is safe to use for clearing the cart even when
    *  keys and download links are not. */
   purchasedIds: PluginId[]
+  /** The rest of the set at the complete-your-set price, for a day; null
+   *  when they own none or all of it. */
+  completeSet?: CompleteSetCardOffer | null
 }
 
 type State =
@@ -260,6 +264,7 @@ export default function ThanksPage() {
         {claim.items.map((item) => (
           <PluginKeyCard key={item.product} item={item} />
         ))}
+        {claim.completeSet ? <CompleteSetCard offer={claim.completeSet} /> : null}
         <AccountBlock claim={claim} />
       </div>
     </>

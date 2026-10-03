@@ -368,22 +368,25 @@
    bundle's hard shadow hangs 3px below it and would otherwise eat a quarter of
    the space. The bundle gives up 2px from each of its gaps and its sides,
    which is what lets it share a row with the cart at 375px. */
+/* On a phone the rail is one row: the three pills and the cart. The bundle
+   button goes - the sale strip directly above it is the same offer, the same
+   red, and opens the same cart - because a second row of chrome was what kept
+   the plugin itself off the first screen. Smaller pills are what let the
+   cart share their row at 375px. */
 @media (max-width: 700px) {
   .rail {
     flex-wrap: wrap; overflow-x: visible;
-    gap: 12px 10px;
-    padding: 12px clamp(20px, 5vw, 64px) 15px;
+    gap: 10px 8px;
+    padding: 10px clamp(20px, 5vw, 64px);
   }
-  .rail .pills { flex: 1 0 100%; }
-  .rail .bundlePill { gap: 6px; padding: 8px 14px; }
+  .rail .pills { flex: 1 1 auto; gap: 6px; }
+  .rail .pill { gap: 6px; padding: 6px 11px; font-size: 12px; }
+  .rail .bundlePill { display: none; }
   .rail .cartButton { margin-left: auto; }
 }
-/* The narrowest phones: even trimmed, the bundle and the cart are too wide to
-   share a row, and the cart dropped to a third. The three marks are what gives
-   — the label beside them already says "all three", and the price and the
-   saving are the part that has to stay. */
 @media (max-width: 370px) {
-  .rail .bundleGlyphs { display: none; }
+  .rail .pill { padding: 6px 9px; }
+  .rail .pillGlyph { display: none; }
 }
 
 /* The whole row is 827px wide, so it gives things up in steps as the screen
@@ -400,6 +403,7 @@
   .stripWas, .stripLabelMore { display: none; }
 }
 @media (max-width: 560px) {
+  .strip { min-height: 48px; }
   .stripInner { gap: 12px; font-size: 11px; padding: 9px 12px; }
   .stripPrice { font-size: 14px; }
   .stripSave { font-size: 11px; padding: 4px 8px 3px; letter-spacing: 0.1em; }

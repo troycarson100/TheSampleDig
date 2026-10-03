@@ -223,6 +223,12 @@ export function Blocks({ blocks }: { blocks: FeatureBlock[] }) {
             {b.osdTag ? <p className={styles.blockOsd} aria-hidden>{b.osdTag}</p> : null}
             <h2 className={styles.blockTitle}>{b.title}</h2>
             <p className={styles.blockBody}>{b.body}</p>
+            {b.more ? (
+              <details className={styles.blockMore}>
+                <summary>Full details</summary>
+                <p>{b.more}</p>
+              </details>
+            ) : null}
           </div>
           <MediaSlot media={b.media} className={styles.blockMedia} />
         </section>

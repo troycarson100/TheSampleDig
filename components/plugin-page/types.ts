@@ -11,6 +11,8 @@ export interface Media {
 export interface FeatureBlock {
   title: string
   body: string
+  /** The full detail behind `body`, folded under a "Full details" toggle. */
+  more?: string
   media?: Media
   /** Small mono label above the title, e.g. "TRK 01". Renders nothing when absent. */
   osdTag?: string

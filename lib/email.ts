@@ -132,6 +132,9 @@ export type PurchaseEmailOptions = {
   /** Products this address already owned before this checkout. The charge is
    *  a duplicate and is refunded by hand. */
   duplicates?: readonly string[]
+  /** The rest of the set at the complete-your-set price, for a day - see
+   *  lib/complete-set-logic.ts. */
+  completeSet?: { missing: readonly string[]; price: number; compareAt: number; url: string } | null
 }
 
 const buttonStyle =
@@ -182,6 +185,24 @@ export async function sendPluginPurchaseEmail(
         </p>`
     : ""
 
+  const set = opts.completeSet
+  const completeSet = set
+    ? `
+        <div style="border: 2px solid #1a1a1a; border-radius: 12px; padding: 18px 20px; margin: 28px 0 0;">
+          <p style="font-size: 12px; letter-spacing: 1px; text-transform: uppercase; color: #96562f; margin: 0 0 6px;">
+            Complete your set - next 24 hours
+          </p>
+          <p style="font-size: 17px; font-weight: 600; margin: 0 0 6px;">
+            Add ${set.missing.map(escapeHtml).join(" + ")} for $${set.price}
+            <span style="color: #999; font-weight: 400; text-decoration: line-through;">$${set.compareAt}</span>
+          </p>
+          <p style="color: #555; font-size: 14px; margin: 0 0 14px;">
+            The rest of Sample Roll's plugins, at a price that's only here until this time tomorrow.
+          </p>
+          <a href="${set.url}" style="${buttonStyle}">Get ${set.missing.length === 1 ? "it" : "both"} for $${set.price}</a>
+        </div>`
+    : ""
+
   await sendMailWithFallback({
     from: FROM,
     to: email,
@@ -196,6 +217,7 @@ export async function sendPluginPurchaseEmail(
         ${keyBlocks}
         ${account}
         ${duplicateNote}
+        ${completeSet}
         <p style="color: #999; font-size: 13px; margin-top: 24px;">
           Reply here if you hit any trouble and we'll sort you out.
         </p>
@@ -247,6 +269,11 @@ export async function sendGiftEmail(
       </div>
     `,
   })
+}
+
+/** The abandoned-cart reminder. The HTML is drawn by lib/cart-recovery-email.ts. */
+export async function sendCartRecoveryEmail(email: string, subject: string, html: string) {
+  await sendMailWithFallback({ from: FROM, to: email, subject, html })
 }
 
 /** Placeholder in a stored ReleaseAnnouncement.bodyHtml. The body is snapshotted

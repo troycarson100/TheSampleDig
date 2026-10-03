@@ -114,7 +114,7 @@ export default function SiteNav() {
               alt="Sample Roll"
               width={1384}
               height={279}
-              className="h-6 w-auto object-contain"
+              className="h-5 min-[400px]:h-6 w-auto object-contain"
               priority
             />
           </Link>
@@ -156,15 +156,22 @@ export default function SiteNav() {
         <div className="flex items-center justify-end shrink-0 gap-0.5 sm:gap-2">
           <SiteAlertsPopover />
           <SiteSettingsMenu />
+          {/* Pro is the crate-digging subscription. On a plugin page it is a
+              second thing to buy competing with the one the page is selling,
+              and on a phone it pushed the bell over the logo - so there it
+              shows from tablet width up only. The wrapper carries the hiding,
+              not the button: .support-btn sets its own display and would win. */}
           {!hideTryProCta ? (
-            <button
-              type="button"
-              className="support-btn cursor-pointer border-0 bg-transparent"
-              aria-label="Try Sample Roll Pro"
-              onClick={() => openProModal()}
-            >
-              Try Pro
-            </button>
+            <span className={onPluginPage ? "hidden md:contents" : "contents"}>
+              <button
+                type="button"
+                className="support-btn cursor-pointer border-0 bg-transparent"
+                aria-label="Try Sample Roll Pro"
+                onClick={() => openProModal()}
+              >
+                Try Pro
+              </button>
+            </span>
           ) : null}
           {session ? (
             <div className="hidden md:flex items-center gap-2 shrink-0">
