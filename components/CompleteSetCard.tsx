@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react"
 import { PLUGINS, type PluginId } from "@/lib/plugins"
+import { usePageRestore } from "@/lib/use-page-restore"
 
 // "Complete your set" on /thanks: the plugins this buyer still doesn't own,
 // at the complete-set price, for a day. See lib/complete-set-logic.ts.
@@ -43,6 +44,9 @@ export default function CompleteSetCard({ offer }: { offer: CompleteSetCardOffer
   const names = offer.missing.map((id) => PLUGINS[id].name).join(" + ")
   const end = useMemo(() => () => setEnded(true), [])
   const left = useTimeLeft(endsAt, end)
+  // Back from Stripe restores this page with the button at "Opening
+  // checkout…". See lib/use-page-restore.ts.
+  usePageRestore(() => setBusy(false))
 
   async function buy() {
     setBusy(true)

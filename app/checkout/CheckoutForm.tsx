@@ -36,10 +36,13 @@ import PromoCodeField from "@/components/PromoCodeField"
 import { formatCents } from "@/lib/cart-promo"
 import { PLUGIN_ORDER, PLUGINS, type PluginId } from "@/lib/plugins"
 import { trackMeta } from "@/lib/meta-pixel"
+import { usePageRestore } from "@/lib/use-page-restore"
 import styles from "./checkout.module.css"
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const CALLBACK_URL = "/checkout"
+/** Past this, the button gives up and says so rather than spinning on. */
+const CHECKOUT_TIMEOUT_MS = 30_000
 
 const isPluginId = (v: unknown): v is PluginId =>
   typeof v === "string" && (PLUGIN_ORDER as readonly string[]).includes(v)
@@ -91,6 +94,9 @@ export default function CheckoutForm() {
   const [ownershipStatus, setOwnershipStatus] = useState<OwnershipStatus>("idle")
   const [ownedNotice, setOwnedNotice] = useState<PluginId[] | null>(null)
   const [phase, setPhase] = useState<Phase>({ kind: "form" })
+  // Back from Stripe restores this page as it was left - mid-submit, button
+  // at "…". Put it back to the form. See lib/use-page-restore.ts.
+  usePageRestore(() => setPhase((p) => (p.kind === "submitting" ? { kind: "form" } : p)))
 
   // Guards re-checking the same address twice (e.g. blurring email then
   // confirm-email with nothing changed in between) without needing an effect.
@@ -215,8 +221,12 @@ export default function CheckoutForm() {
   // — one place to read every status this route can return.
   async function submitCheckout(payload: { ids: PluginId[]; email?: string }) {
     setPhase({ kind: "submitting" })
+    // A request that never answers would leave the button at "…" for good.
+    const abort = new AbortController()
+    const timer = window.setTimeout(() => abort.abort(), CHECKOUT_TIMEOUT_MS)
     try {
       const res = await fetch("/api/cart/checkout", {
+        signal: abort.signal,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // The code and nothing about what it is worth: the server asks Stripe
@@ -282,6 +292,8 @@ export default function CheckoutForm() {
       setPhase({ kind: "error", message: "That didn't go through — check your details and try again." })
     } catch {
       setPhase({ kind: "error", message: "That didn't go through — check your connection and try again." })
+    } finally {
+      window.clearTimeout(timer)
     }
   }
 
