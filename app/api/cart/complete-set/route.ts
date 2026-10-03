@@ -3,7 +3,7 @@ import Stripe from "stripe"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { readCompleteSetToken } from "@/lib/complete-set-logic"
-import { completeSetFor, completeSetSecret, ensureCompleteSetCoupon } from "@/lib/complete-set"
+import { completeSetSecret, completeSetUntil, ensureCompleteSetCoupon } from "@/lib/complete-set"
 import { buyerFromSession, createPluginCheckoutSession, readAffiliateCodeFromCookie } from "@/lib/plugin-checkout"
 import type { PluginProduct } from "@/lib/plugin-products"
 
@@ -11,7 +11,8 @@ import type { PluginProduct } from "@/lib/plugin-products"
 // path: the button on /thanks POSTs the token and is sent the Checkout URL;
 // the receipt's link GETs here and is redirected to it.
 //
-// The token names the account and when the offer ends. What is sold is
+// The token names the account and when the offer ends - signed, so only this
+// site can say either. What is sold is
 // worked out now, from what that account owns now - a link from yesterday
 // never sells a plugin they have since bought, and the price follows how many
 // are left. The checkout is bound to the account: its own id when its owner
@@ -35,7 +36,9 @@ async function checkoutFor(token: unknown): Promise<Result> {
   if (!claim) return { error: "This offer has ended.", status: 410 }
 
   const account = await prisma.user.findUnique({ where: { id: claim.userId }, select: { id: true, email: true } })
-  const offer = account ? await completeSetFor(account.id) : null
+  // Until the link's own end: a day after a purchase for the thanks page and
+  // the receipt, the campaign's end for a campaign email.
+  const offer = account ? await completeSetUntil(account.id, claim.endsAt) : null
   if (!account || !offer) return { error: "This offer has ended.", status: 410 }
 
   const lineItems = offer.missing.map((p) => SINGLE_PRICE_ENV[p])

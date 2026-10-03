@@ -32,10 +32,18 @@ export type CompleteSetOffer = {
  * or the day has passed.
  */
 export function completeSetOffer(owned: readonly string[], openedAt: Date, now: Date = new Date()): CompleteSetOffer | null {
+  return completeSetOfferUntil(owned, new Date(openedAt.getTime() + COMPLETE_SET_HOURS * 3_600_000), now)
+}
+
+/**
+ * The same offer, running until a given moment rather than for a day from a
+ * purchase - what a signed link carries. The purchase links end a day after
+ * the purchase; a link in a campaign email ends when the campaign does.
+ */
+export function completeSetOfferUntil(owned: readonly string[], endsAt: Date, now: Date = new Date()): CompleteSetOffer | null {
   const missing = PLUGIN_PRODUCTS.filter((p) => !owned.includes(p))
   const price = COMPLETE_SET_PRICE[missing.length]
   if (price === undefined || missing.length === PLUGIN_PRODUCTS.length) return null
-  const endsAt = new Date(openedAt.getTime() + COMPLETE_SET_HOURS * 3_600_000)
   if (endsAt.getTime() <= now.getTime()) return null
   const compareAt = missing.reduce((sum, p) => sum + PRICING[p].price, 0)
   if (price >= compareAt) return null

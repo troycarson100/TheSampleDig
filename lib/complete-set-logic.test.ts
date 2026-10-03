@@ -4,6 +4,7 @@ import {
   COMPLETE_SET_HOURS,
   COMPLETE_SET_PRICE,
   completeSetOffer,
+  completeSetOfferUntil,
   completeSetToken,
   readCompleteSetToken,
 } from "./complete-set-logic"
@@ -71,4 +72,12 @@ test("tokens: stop working when the offer ends", () => {
 test("tokens: no secret, no token", () => {
   assert.throws(() => completeSetToken("", "user_1", OPENED))
   assert.equal(readCompleteSetToken("", "a.b", OPENED), null)
+})
+
+test("completeSetOfferUntil: runs to the given end, whatever the purchase date", () => {
+  const end = new Date("2026-11-01T06:59:59.000Z")
+  const o = completeSetOfferUntil(["drft"], end, OPENED)
+  assert.equal(o?.endsAt.getTime(), end.getTime())
+  assert.deepEqual(o?.missing, ["shft", "fltr"])
+  assert.equal(completeSetOfferUntil(["drft"], end, end), null)
 })

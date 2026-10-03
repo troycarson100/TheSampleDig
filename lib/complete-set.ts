@@ -1,7 +1,7 @@
 import type Stripe from "stripe"
 import { prisma } from "@/lib/db"
 import { PLUGIN_PRODUCTS } from "@/lib/plugin-products"
-import { completeSetOffer, completeSetToken, type CompleteSetOffer } from "@/lib/complete-set-logic"
+import { completeSetOffer, completeSetOfferUntil, completeSetToken, type CompleteSetOffer } from "@/lib/complete-set-logic"
 
 // "Complete your set", the I/O. The rules are in lib/complete-set-logic.ts.
 
@@ -27,6 +27,25 @@ export async function completeSetFor(userId: string, now: Date = new Date()): Pr
   if (!offer || !secret) return null
   const token = completeSetToken(secret, userId, offer.endsAt)
   return { ...offer, token, url: `${APP_URL}/api/cart/complete-set?t=${encodeURIComponent(token)}` }
+}
+
+async function ownedBy(userId: string): Promise<string[]> {
+  const rows = await prisma.purchase.findMany({ where: { userId, product: { in: [...PLUGIN_PRODUCTS] } }, select: { product: true } })
+  return rows.map((r) => r.product)
+}
+
+/** The offer a signed link names: this account, what it owns now, until the
+ *  link's own end. What /api/cart/complete-set sells. */
+export async function completeSetUntil(userId: string, endsAt: Date, now: Date = new Date()): Promise<CompleteSetOffer | null> {
+  return completeSetOfferUntil(await ownedBy(userId), endsAt, now)
+}
+
+/** A link to the offer for this account that works until `endsAt`, for a
+ *  campaign email. Null when the account has no offer to make. */
+export async function completeSetLink(userId: string, endsAt: Date, now: Date = new Date()): Promise<string | null> {
+  const secret = completeSetSecret()
+  if (!secret || !(await completeSetUntil(userId, endsAt, now))) return null
+  return `${APP_URL}/api/cart/complete-set?t=${encodeURIComponent(completeSetToken(secret, userId, endsAt))}`
 }
 
 /**

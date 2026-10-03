@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { requireAdmin } from "@/lib/admin"
 import AdminMemberOffer from "@/components/offers/AdminMemberOffer"
 import AdminOfferReminder from "@/components/offers/AdminOfferReminder"
+import AdminVideoEmail from "@/components/offers/AdminVideoEmail"
 import SiteNav from "@/components/SiteNav"
 
 export const dynamic = "force-dynamic"
@@ -21,6 +22,9 @@ export default async function AdminOffersPage() {
         <AdminMemberOffer />
         <div className="mt-12">
           <AdminOfferReminder />
+        </div>
+        <div className="mt-12">
+          <AdminVideoEmail />
         </div>
       </main>
     </div>
