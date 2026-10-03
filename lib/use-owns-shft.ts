@@ -43,9 +43,13 @@ function fetchOwnership(who: string): Promise<boolean> {
 
 /** Who is asking: an account id, "anon", or null while the session loads. */
 export function useOwnershipViewer(): string | null {
-  const { data, status } = useSession()
-  if (status === "loading") return null
-  return data?.user?.id ?? data?.user?.email ?? "anon"
+  // Undefined on a page rendered outside SessionProvider (/prelaunch is one;
+  // prerendering it is where this broke the build, 2026-10-03). No provider
+  // means no session to have, so the visitor is anonymous.
+  const session = useSession() as ReturnType<typeof useSession> | undefined
+  if (!session) return "anon"
+  if (session.status === "loading") return null
+  return session.data?.user?.id ?? session.data?.user?.email ?? "anon"
 }
 
 export function useOwnsShft(): OwnershipState {
