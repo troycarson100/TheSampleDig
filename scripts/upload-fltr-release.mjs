@@ -35,8 +35,8 @@ if (!opts.installer && !opts.installerWin && !opts.manual && argv.length >= 2 &&
 }
 
 const uploads = []
-if (opts.installer)    uploads.push({ path: opts.installer,    key: process.env.FLTR_INSTALLER_KEY     || "fltr/fltr-1.0.0.pkg",       type: "application/octet-stream" })
-if (opts.installerWin) uploads.push({ path: opts.installerWin, key: process.env.FLTR_INSTALLER_WIN_KEY || "fltr/fltr-1.0.0-setup.exe",  type: "application/octet-stream" })
+if (opts.installer)    uploads.push({ path: opts.installer,    key: process.env.FLTR_INSTALLER_KEY     || "fltr/fltr-1.0.1.pkg",       type: "application/octet-stream" })
+if (opts.installerWin) uploads.push({ path: opts.installerWin, key: process.env.FLTR_INSTALLER_WIN_KEY || "fltr/fltr-1.0.1-setup.exe",  type: "application/octet-stream" })
 if (opts.manual)       uploads.push({ path: opts.manual,       key: process.env.FLTR_MANUAL_KEY        || "fltr/fltr-manual-v1.0.pdf",  type: "application/pdf" })
 
 if (uploads.length === 0) {

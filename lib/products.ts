@@ -17,11 +17,12 @@ const DRFT_MANUAL_KEY        = process.env.DRFT_MANUAL_KEY        || "drft/drft-
 
 // fltr's three files, uploaded to the bucket's fltr/ folder for v1.0.0 on
 // 2026-09-30: macOS, Windows (it ships on both - decided 2026-09-29) and the
-// manual. The names here are the ones a v1 release follows by the pattern
+// manual. Both installers moved to 1.0.1 on 2026-10-02; the manual tracks the
+// minor line, as drft's does, so v1.0 covers every 1.0.x build. The names here are the ones a v1 release follows by the pattern
 // shft's and drft's set; if the uploaded files are named otherwise, set the
 // matching env var in DO rather than renaming the objects.
-const FLTR_INSTALLER_KEY     = process.env.FLTR_INSTALLER_KEY     || "fltr/fltr-1.0.0.pkg"
-const FLTR_INSTALLER_WIN_KEY = process.env.FLTR_INSTALLER_WIN_KEY || "fltr/fltr-1.0.0-setup.exe"
+const FLTR_INSTALLER_KEY     = process.env.FLTR_INSTALLER_KEY     || "fltr/fltr-1.0.1.pkg"
+const FLTR_INSTALLER_WIN_KEY = process.env.FLTR_INSTALLER_WIN_KEY || "fltr/fltr-1.0.1-setup.exe"
 const FLTR_MANUAL_KEY        = process.env.FLTR_MANUAL_KEY        || "fltr/fltr-manual-v1.0.pdf"
 
 const basename = (key: string) => key.slice(key.lastIndexOf("/") + 1)
@@ -241,9 +242,13 @@ export const PRODUCTS: Record<string, ProductDef> = {
   fltr: {
     id: "fltr",
     name: "fltr",
-    version: "1.0.0",
+    version: "1.0.1",
     blurb: "Morphing filter that plays in key — macOS (VST3 / AU / Standalone) & Windows (VST3 / Standalone).",
     changelog: [
+      {
+        version: "1.0.1",
+        notes: ["Space now follows Mix: with Mix all the way down there's no reverb, and at 100% it sounds as it did."],
+      },
       {
         version: "1.0.0",
         notes: [
