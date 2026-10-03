@@ -1,0 +1,44 @@
+/* The deep-dive video on /fltr, in the shape of shft's walkthrough
+   (app/shft/shft.module.css): a centred head and the click-to-load player. It
+   sits on the page's own dark ground, between the light grey reels band above
+   and the feature blocks below. */
+.walkthrough {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: clamp(56px, 8vw, 96px) 20px;
+}
+.head {
+  text-align: center;
+  margin-bottom: clamp(28px, 4vw, 44px);
+}
+.eyebrow {
+  font-family: var(--font-ibm-mono), "IBM Plex Mono", monospace;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--plugin-accent);
+  margin: 0 0 16px;
+}
+.title {
+  font-family: var(--font-geist-sans), system-ui, sans-serif;
+  font-weight: 800;
+  font-size: clamp(32px, 5vw, 58px);
+  line-height: 1;
+  letter-spacing: -0.03em;
+  margin: 0;
+  color: var(--plugin-ink);
+}
+.sub {
+  font-size: clamp(16px, 2vw, 20px);
+  line-height: 1.5;
+  color: var(--plugin-ink);
+  opacity: 0.72;
+  max-width: 600px;
+  margin: 18px auto 0;
+}
+.frame {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(238, 240, 246, 0.12);
+  box-shadow: 0 40px 80px -40px rgba(0, 0, 0, 0.7);
+}

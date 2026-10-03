@@ -17,7 +17,7 @@ export const VIDEO_EMAIL = {
   /** The member offer whose codes it carries. */
   offerSlug: "members-10-off-2026-10",
   videoUrl: "https://www.youtube.com/watch?v=GLvR3ZmPgws",
-  videoTitle: "fltr: the best filter?",
+  videoTitle: "I Made a Filter That Turns Drums Into Chords",
   /** When the $39 link stops working: the end of the bundle sale, Pacific. */
   setEndsAt: new Date("2026-10-31T23:59:59-07:00"),
 } as const
