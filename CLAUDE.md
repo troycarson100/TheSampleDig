@@ -84,6 +84,10 @@ node scripts/verify-plugin-ownership.mjs   # never sell what someone owns
 node scripts/verify-plugin-pricing.mjs     # no stale prices in copy
 ```
 
+`scripts/verify-offer-reminder.ts` is the odd one out: `npx tsx`, no dev server,
+no browser. It runs the member-offer reminder end to end against the local
+database with Stripe and the mail server faked, and deletes what it seeds.
+
 **Mutation-prove every new assertion.** Break the thing the check covers,
 confirm the check goes red, restore. Five shipped assertions could not fail
 before this was enforced — including one that compared a pre-scroll position to
@@ -157,6 +161,15 @@ Before that branch can launch:
       Comp codes page and /redeem fail. Accounts a gift makes before an email
       is put on it live at `@gifts.sampleroll.invalid` with both email
       switches off; `scripts/verify-gift-links.ts` covers the flow.
+- [ ] Member offer reminder (2026-10-02): a second, designed email - the bundle
+      sale, fltr and each person's own code again - to the people the offer
+      went to who have neither used their code (Stripe's word) nor bought fltr.
+      `lib/offer-reminder*.ts`, the lower half of `/admin/offers`. Apply
+      `prisma/migrations/manual/20261002_member_offer_reminders.sql` to
+      production BEFORE deploying, then "Send both tests to me", then Send.
+      Someone who owns shft or drft cannot buy the bundle, so they get an email
+      about fltr alone. Both buttons land on `/fltr?promo=<code>`; the bundle is
+      added from the sale strip there - no link fills the cart by itself.
 - [ ] The bundle's countdown ends at `BUNDLE_OFFER_ENDS` in `lib/plugins.ts`.
       On that date the $59 goes up (here and in Stripe) or the date moves.
 - `NEXT_PUBLIC_FLTR_INTRO_ENDS` is not to be set: fltr has no intro price any

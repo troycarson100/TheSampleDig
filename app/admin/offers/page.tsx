@@ -2,6 +2,7 @@ import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { requireAdmin } from "@/lib/admin"
 import AdminMemberOffer from "@/components/offers/AdminMemberOffer"
+import AdminOfferReminder from "@/components/offers/AdminOfferReminder"
 import SiteNav from "@/components/SiteNav"
 
 export const dynamic = "force-dynamic"
@@ -18,6 +19,9 @@ export default async function AdminOffersPage() {
       </header>
       <main className="max-w-4xl mx-auto px-3 sm:px-4 mt-[56px] py-8">
         <AdminMemberOffer />
+        <div className="mt-12">
+          <AdminOfferReminder />
+        </div>
       </main>
     </div>
   )
