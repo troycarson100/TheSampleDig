@@ -151,7 +151,7 @@ export async function createPluginCheckoutSession(
     billing_address_collection: "auto",
     ...(opts.couponId ? { discounts: [{ coupon: opts.couponId }] } : sessionDiscount(opts.promotionCodeId)),
     // Abandoned-cart reminders, once switched on: see lib/cart-recovery-logic.ts.
-    ...(cartRecoveryEnabled() ? recoverySessionParams(Date.now()) : {}),
+    ...(cartRecoveryEnabled() ? recoverySessionParams(Date.now(), Boolean(opts.couponId || opts.promotionCodeId)) : {}),
     ...(buyer ? { client_reference_id: buyer.id } : {}),
     metadata: {
       ...withoutReservedKeys(opts.metadata),

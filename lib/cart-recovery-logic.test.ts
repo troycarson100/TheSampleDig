@@ -26,8 +26,13 @@ test("cartRecoveryEnabled: only when switched on by name", () => {
   assert.equal(cartRecoveryEnabled({ STRIPE_CART_RECOVERY: "on" }), true)
 })
 
+test("recoverySessionParams: a discounted session's recovered copy takes no promo code - Stripe refuses both", () => {
+  assert.equal(recoverySessionParams(0, true).after_expiration.recovery.allow_promotion_codes, false)
+  assert.equal(recoverySessionParams(0, false).after_expiration.recovery.allow_promotion_codes, true)
+})
+
 test("recoverySessionParams: asks for consent, keeps the link, and expires in three hours", () => {
-  const p = recoverySessionParams(1_000_000)
+  const p = recoverySessionParams(1_000_000, false)
   assert.equal(p.consent_collection.promotions, "auto")
   assert.equal(p.after_expiration.recovery.enabled, true)
   assert.equal(p.expires_at, 1_000 + RECOVERY_SESSION_TTL_S)

@@ -22,11 +22,18 @@ export function cartRecoveryEnabled(env: Record<string, string | undefined> = pr
  *  after three hours. Someone who pays inside that never notices. */
 export const RECOVERY_SESSION_TTL_S = 3 * 60 * 60
 
-/** What a plugin Checkout Session adds when recovery is on. */
-export function recoverySessionParams(nowMs: number) {
+/**
+ * What a plugin Checkout Session adds when recovery is on. `discounted` is
+ * whether the session already carries a discount (a promo code, a member's
+ * code, the complete-your-set coupon): Stripe refuses a session that has
+ * `discounts` and also lets the recovered copy take a promo code, and that
+ * refusal broke every discounted checkout the day recovery went live
+ * (2026-10-03). The recovered copy keeps the session's own discount anyway.
+ */
+export function recoverySessionParams(nowMs: number, discounted: boolean) {
   return {
     consent_collection: { promotions: "auto" as const },
-    after_expiration: { recovery: { enabled: true, allow_promotion_codes: true } },
+    after_expiration: { recovery: { enabled: true, allow_promotion_codes: !discounted } },
     expires_at: Math.floor(nowMs / 1000) + RECOVERY_SESSION_TTL_S,
   }
 }
