@@ -64,7 +64,8 @@ test("fillVideoEmail: the code part only, with the pitch for someone who owns no
   assert.match(html, /all three plugins for \$49/)
   assert.doesNotMatch(html, /any plugin you don't have yet/)
   assert.doesNotMatch(html, /Get both for/)
-  assert.match(html, />Your \$10 code/)
+  assert.match(html, />Your code - until/)
+  assert.match(html, /\$10 off<\/span> anything/)
 })
 
 test("fillVideoEmail: the set part only, naming what they own and what they'd get", () => {
@@ -77,7 +78,7 @@ test("fillVideoEmail: the set part only, naming what they own and what they'd ge
 test("fillVideoEmail: both parts, the code offered as the alternative", () => {
   const html = fill({ code: "SR10ABCDEF", offerUrl: "https://x/o", setUrl: "https://x/s", setOwned: "shft", setNames: "drft + fltr" })
   assert.match(html, /Get both for \$39/)
-  assert.match(html, />Or use your \$10 code/)
+  assert.match(html, />Or use your code - until/)
   assert.match(html, /any plugin you don't have yet/)
 })
 

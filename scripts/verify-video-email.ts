@@ -120,7 +120,7 @@ async function main() {
     check("everyone listed is mailed once", (["nothing", "one", "oneused", "nocode", "two", "buysmore"] as Who[]).every((w) => mailTo(w).length === 1))
     check("every email links the video and shows its play image", outbox.filter((m) => m.to.startsWith(TAG)).every((m) => m.html.includes(VIDEO_EMAIL.videoUrl) && m.html.includes("fltr-video.jpg")))
     check("nothing-owned gets their code and the bundle pitch, no $39", mailTo("nothing")[0]?.html.includes(code("nothing")) && mailTo("nothing")[0]?.html.includes("all three plugins for $49") && !mailTo("nothing")[0]?.html.includes("Get both for"))
-    check("an owner of one gets both, the code as the alternative", Boolean(one?.html.includes("You have shft. Get drft + fltr for $39") && one?.html.includes(code("one")) && one?.html.includes("Or use your")))
+    check("an owner of one gets both, the code as the alternative", Boolean(one?.html.includes("You have shft. Get drft + fltr for $39") && one?.html.includes(code("one")) && one?.html.includes("Or use your code")))
     check("its subject leads with the $39 offer", Boolean(one?.subject.includes("$39")))
     check("used code: the $39 offer, no code", Boolean(mailTo("oneused")[0]?.html.includes("You have fltr. Get shft + drft for $39") && !mailTo("oneused")[0]?.html.includes("Use my $10 code")))
     check("an owner of two gets the code, not the $39 offer", Boolean(mailTo("two")[0]?.html.includes(code("two")) && !mailTo("two")[0]?.html.includes("Get both for")))

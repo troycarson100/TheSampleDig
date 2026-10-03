@@ -26,7 +26,7 @@ export const PH = {
 
 const SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
 const MONO = "'SF Mono', Menlo, Consolas, 'Courier New', monospace"
-const C = { page: "#efe9dc", card: "#ffffff", ink: "#24211d", body: "#5c564c", faint: "#6b6457", rust: "#96562f", ticket: "#fdf6e3" } as const
+const C = { page: "#efe9dc", card: "#ffffff", ink: "#24211d", body: "#5c564c", faint: "#6b6457", rust: "#96562f", ticket: "#fdf6e3", red: "#b02818" } as const
 
 function esc(text: string) {
   return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
@@ -49,10 +49,10 @@ export function renderVideoEmailTemplate(o: { amountOffCents: number; codeExpire
         <img src="${REMINDER_IMAGES.logo}" width="120" alt="Sample Roll" style="display: block; border: 0;">
       </td></tr>
       <tr><td style="padding: 12px 28px 0; font-family: ${SANS};">
-        <h1 style="margin: 0 0 8px; font-size: 23px; line-height: 1.25; color: ${C.ink};">fltr, in depth</h1>
+        <h1 style="margin: 0 0 8px; font-size: 23px; line-height: 1.25; color: ${C.ink};">There's a new deep dive on fltr</h1>
         <p style="margin: 0 0 18px; font-size: 15px; line-height: 1.55; color: ${C.body};">
-          There's a new deep dive on fltr up on YouTube: what each part of it does, and how it
-          sounds on real material. It shows the plugin better than any page can.
+          It's up on YouTube now: what each part of fltr does, and how it sounds on real material.
+          It shows the plugin better than any page can.
         </p>
       </td></tr>
       <tr><td style="padding: 0 28px;">
@@ -80,9 +80,10 @@ export function renderVideoEmailTemplate(o: { amountOffCents: number; codeExpire
 <!--/set-->
 <!--code-->
       <tr><td style="padding: 24px 28px 0; font-family: ${SANS};">
-        <div style="background: ${C.ticket}; border-radius: 12px; padding: 18px 20px;">
-          <p style="margin: 0 0 6px; font-family: ${MONO}; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: ${C.rust};"><!--set-->Or use your<!--/set--><!--noset-->Your<!--/noset--> $${off} code - until ${esc(o.codeExpires)}</p>
-          <p style="margin: 0 0 8px; font-family: ${MONO}; font-size: 22px; font-weight: 700; letter-spacing: 2px; color: ${C.ink};">${PH.code}</p>
+        <div style="background: ${C.ticket}; border: 2px dashed ${C.rust}; border-radius: 12px; padding: 20px 20px 18px;">
+          <p style="margin: 0 0 4px; font-family: ${MONO}; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: ${C.rust};"><!--set-->Or use your code<!--/set--><!--noset-->Your code<!--/noset--> - until ${esc(o.codeExpires)}</p>
+          <p style="margin: 0 0 14px; font-family: ${SANS}; font-size: 34px; line-height: 1.05; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; color: ${C.ink};"><span style="color: ${C.red};">$${off} off</span> anything</p>
+          <p style="margin: 0 0 12px;"><span style="display: inline-block; font-family: ${MONO}; font-size: 20px; font-weight: 700; letter-spacing: 3px; color: ${C.ink}; background: #ffffff; border: 1px solid #e6dcc4; border-radius: 8px; padding: 8px 14px;">${PH.code}</span></p>
           <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.5; color: ${C.body};">
 <!--owns-none-->            $${off} off anything: all three plugins for $${bundle} instead of $${PRICING.bundle.price}, or any one for $${single}.<!--/owns-none-->
 <!--owns-some-->            $${off} off any plugin you don't have yet - $${single} instead of $${PRICING.fltr.price}.<!--/owns-some-->
