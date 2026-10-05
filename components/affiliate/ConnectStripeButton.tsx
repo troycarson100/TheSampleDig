@@ -16,8 +16,10 @@ export default function ConnectStripeButton({ token, label }: { token?: string; 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(token ? { token } : {}),
       })
-      const data = await res.json()
-      if (!res.ok || !data.url) throw new Error(data.error || "Stripe setup is unavailable right now.")
+      // An error page in place of JSON (a proxy's, or a crash) still gets a
+      // readable message rather than a parse error.
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.url) throw new Error(data.error || `Stripe setup is unavailable right now (${res.status}). Try again in a minute.`)
       window.location.href = data.url
     } catch (e) {
       setError(e instanceof Error ? e.message : "Stripe setup is unavailable right now.")

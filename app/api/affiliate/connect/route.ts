@@ -34,7 +34,15 @@ export async function POST(request: Request) {
     return NextResponse.json({ url })
   } catch (e) {
     console.error("[affiliate connect]", e)
-    const message = e instanceof Error ? e.message : "Stripe setup is unavailable right now."
-    return NextResponse.json({ error: message }, { status: 503 })
+    const raw = e instanceof Error ? e.message : ""
+    // Stripe's words when the platform hasn't finished Connect's own setup.
+    // That is ours to fix, not the creator's, so they are told it in theirs.
+    const message = /signed up for Connect|connect.*(not|isn't) (enabled|activated)/i.test(raw)
+      ? "Payouts aren't switched on yet - Sample Roll is finishing setting them up. Your earnings still collect here in the meantime."
+      : raw || "Stripe setup is unavailable right now."
+    // 422, never 503: DigitalOcean swaps a 503 for its own HTML error page,
+    // so the reason never reached the button, which then failed to parse it
+    // ("Unexpected token '<'", 2026-10-05).
+    return NextResponse.json({ error: message }, { status: 422 })
   }
 }
