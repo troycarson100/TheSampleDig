@@ -8,13 +8,13 @@ import { PRICING } from "./products"
 const who = { emailMarketingOptIn: true, productUpdateOptIn: true, owns: [] as string[], code: "SR10ABCDEF", codeRedeemed: false }
 
 test("bundleParts: owns nothing - the bundle, and the code if unused", () => {
-  assert.deepEqual(bundleParts(who), { offer: "bundle", code: true, missing: ["shft", "drft", "fltr"] })
+  assert.deepEqual(bundleParts(who), { offer: "bundle", code: true, missing: ["fltr", "shft", "drft"] })
   assert.equal((bundleParts({ ...who, codeRedeemed: true }) as { code: boolean }).code, false)
   assert.equal((bundleParts({ ...who, code: null }) as { code: boolean }).code, false)
 })
 
 test("bundleParts: owns one or two - the rest of the set", () => {
-  assert.deepEqual(bundleParts({ ...who, owns: ["drft"] }), { offer: "set", code: true, missing: ["shft", "fltr"] })
+  assert.deepEqual(bundleParts({ ...who, owns: ["drft"] }), { offer: "set", code: true, missing: ["fltr", "shft"] })
   assert.deepEqual(bundleParts({ ...who, owns: ["shft", "fltr"], code: null }), { offer: "set", code: false, missing: ["drft"] })
 })
 
@@ -43,6 +43,12 @@ const fill = (o: Partial<BundleFill>) =>
     setPrice: null, setWas: null, unsubscribeUrl: "https://x/u?a=1&b=2", ...o,
   })
 
+test("fill: fltr leads - in the heading and in the plugin sections", () => {
+  const html = fill({})
+  assert.ok(html.includes("fltr + shft + drft"))
+  assert.ok(html.indexOf("Get fltr &middot;") < html.indexOf("Get shft &middot;") && html.indexOf("Get shft &middot;") < html.indexOf("Get drft &middot;"))
+})
+
 test("fill: owns nothing - the bundle at its price, every plugin with its price, no set", () => {
   const html = fill({})
   assert.ok(html.includes(`$${PRICING.bundle.price}`) && html.includes(`Save $${PRICING.bundle.compareAt - PRICING.bundle.price}`))
@@ -62,7 +68,7 @@ test("fill: owns nothing with a code - the code, and the bundle at the code's pr
 
 test("fill: owns one - the set at its price, the owned plugin marked, the others priced", () => {
   const html = fill({ offer: "set", owns: ["shft"], missing: ["drft", "fltr"], setUrl: "https://x/set?t=a&b=c", setPrice: TWO, setWas: 58 })
-  assert.ok(html.includes("You have shft. Add") && html.includes("drft + fltr") && html.includes(`$${TWO}`) && html.includes("$58"))
+  assert.ok(html.includes("You have shft. Add") && html.includes("fltr + drft") && html.includes(`$${TWO}`) && html.includes("$58"))
   assert.ok(html.includes("https://x/set?t=a&amp;b=c"))
   assert.ok(html.includes(`Get both for $${TWO}`))
   assert.equal((html.match(/In your collection/g) ?? []).length, 1)

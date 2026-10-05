@@ -20,11 +20,15 @@ export const BUNDLE_EMAIL = {
   endsAt: new Date("2026-10-31T23:59:59-07:00"),
 } as const
 
+/** The order the plugins appear in, wherever this email lists them: fltr
+ *  first - the newest, and the one the other emails were about. */
+export const BUNDLE_EMAIL_ORDER: readonly PluginId[] = ["fltr", "shft", "drft"]
+
 export type BundleParts = {
   /** "none" only when a complete-set link could not be made for them. */
   offer: "bundle" | "set" | "none"
   code: boolean
-  /** The plugins they don't own, in range order. */
+  /** The plugins they don't own, in BUNDLE_EMAIL_ORDER. */
   missing: PluginId[]
 }
 
@@ -38,7 +42,7 @@ export function bundleParts(p: {
   codeRedeemed: boolean
 }): BundleParts | BundleExclusion {
   if (!p.emailMarketingOptIn || !p.productUpdateOptIn) return "opted-out"
-  const missing = PLUGIN_ORDER.filter((id) => !p.owns.includes(id))
+  const missing = BUNDLE_EMAIL_ORDER.filter((id) => !p.owns.includes(id))
   if (missing.length === 0) return "owns-everything"
   return {
     offer: missing.length === PLUGIN_ORDER.length ? "bundle" : "set",

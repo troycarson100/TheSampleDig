@@ -1,4 +1,5 @@
 import { PLUGIN_ORDER, PLUGINS, type PluginId } from "./plugins"
+import { BUNDLE_EMAIL_ORDER } from "./bundle-email-logic"
 import { PRICING } from "./products"
 
 // The fourth member email, drawn: dark, like the fltr page, where the first
@@ -96,7 +97,7 @@ export function renderBundleEmailTemplate(o: { amountOffCents: number; codeExpir
   const off = o.amountOffCents / 100
   const bundle = PRICING.bundle
   const save = bundle.compareAt - bundle.price
-  const thumbs = PLUGIN_ORDER.map(
+  const thumbs = BUNDLE_EMAIL_ORDER.map(
     (id) => `<td width="33%" style="padding: 0 4px;"><img src="${BUNDLE_IMAGES.thumb[id]}" width="160" alt="${esc(PLUGINS[id].name)}" style="display: block; width: 100%; height: auto; border: 0; border-radius: 8px;"></td>`,
   ).join("")
 
@@ -114,7 +115,7 @@ export function renderBundleEmailTemplate(o: { amountOffCents: number; codeExpir
 <!--bundle-->
       <tr><td style="padding: 22px 28px 26px; font-family: ${SANS};">
         ${kicker("The bundle &middot; all three plugins")}
-        <p style="margin: 0 0 14px; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.5px; color: ${C.ink};">shft + drft + fltr</p>
+        <p style="margin: 0 0 14px; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.5px; color: ${C.ink};">${BUNDLE_EMAIL_ORDER.map((id) => PLUGINS[id].name).join(" + ")}</p>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="margin: 0 0 16px;"><tr>${thumbs}</tr></table>
         <p style="margin: 0 0 6px; color: ${C.ink};">
           <span style="font-size: 56px; line-height: 1; font-weight: 900; letter-spacing: -2px;">$${bundle.price}</span>
@@ -161,7 +162,7 @@ export function renderBundleEmailTemplate(o: { amountOffCents: number; codeExpir
       <tr><td style="padding: 6px 28px 18px; font-family: ${SANS};">
         <p style="margin: 0; padding-top: 22px; border-top: 1px solid ${C.line};">${kicker("The plugins", C.dim)}</p>
       </td></tr>
-${PLUGIN_ORDER.map(pluginSection).join("")}
+${BUNDLE_EMAIL_ORDER.map(pluginSection).join("")}
       <tr><td style="padding: 4px 28px 28px; font-family: ${SANS};">
         <p style="margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: ${C.dim};">
           Thanks for being on Sample Roll. Questions about any of it? Just reply.
@@ -190,7 +191,8 @@ export type BundleFill = {
 const cut = (html: string, name: string, keep: boolean) =>
   html.replace(new RegExp(`<!--${name}-->([\\s\\S]*?)<!--/${name}-->`, "g"), keep ? "$1" : "")
 
-const names = (ids: readonly PluginId[]) => ids.map((id) => PLUGINS[id].name).join(" + ")
+const names = (ids: readonly PluginId[]) =>
+  BUNDLE_EMAIL_ORDER.filter((id) => ids.includes(id)).map((id) => PLUGINS[id].name).join(" + ")
 
 /** One person's email from the template. A part whose link is missing is
  *  cut too, so no button points nowhere. */

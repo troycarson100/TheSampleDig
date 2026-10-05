@@ -114,8 +114,8 @@ async function main() {
     check("owns nothing: the bundle at $59, $49 with their code", nothing.includes("$59") && nothing.includes("it's <strong>$49</strong>") && nothing.includes(code("nothing")))
     check("owns nothing, no code: the bundle, no code part", Boolean(mailTo("nocode")[0]?.html.includes("Get all three") && !mailTo("nocode")[0]?.html.includes("Use my $10 code")))
     const one = mailTo("one")[0]?.html ?? ""
-    check("owns one: drft + fltr for $39, shft marked owned", one.includes("You have shft. Add") && one.includes("drft + fltr") && one.includes("Get both for $39") && one.includes("In your collection"))
-    check("its subject names the deal", Boolean(mailTo("one")[0]?.subject.includes("drft + fltr for $39")))
+    check("owns one: drft + fltr for $39, shft marked owned", one.includes("You have shft. Add") && one.includes("fltr + drft") && one.includes("Get both for $39") && one.includes("In your collection"))
+    check("its subject names the deal", Boolean(mailTo("one")[0]?.subject.includes("fltr + drft for $39")))
     const two = mailTo("two")[0]?.html ?? ""
     check("owns two, code used: fltr for $19, no code", two.includes("Get it for $19") && !two.includes("Use my $10 code"))
     check("bought a plugin since the list: the set offer, not the bundle", Boolean(mailTo("buysone")[0]?.html.includes("Get both for $39") && !mailTo("buysone")[0]?.html.includes("Get all three")))
