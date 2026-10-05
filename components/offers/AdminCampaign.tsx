@@ -1,19 +1,15 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { COMPLETE_SET_PRICE } from "@/lib/complete-set-logic"
 
-const SET = `$${COMPLETE_SET_PRICE[2]}`
-
-type Variant = "code" | "set" | "code+set"
 
 interface Preview {
   slug: string
   unavailable: string | null
   samples: { variant: string; subject: string; html: string }[]
   recipientCount: number
-  byVariant: Record<Variant, number>
-  excluded: { "opted-out": number; "nothing-to-offer": number } | null
+  byVariant: Record<string, number>
+  excluded: Record<string, number> | null
   send: {
     id: string
     createdAt: string
@@ -43,7 +39,6 @@ const primaryBtnStyle = { borderColor: "var(--primary)", color: "var(--primary)"
 const btnCls =
   "rounded-lg border px-3 py-1.5 text-sm font-medium transition hover:opacity-75 disabled:opacity-40 cursor-pointer"
 
-const URL = "/api/admin/offers/video"
 
 // Same defensive read as AdminMemberOffer: an HTML error page must not turn
 // into an exception that tells the admin nothing.
@@ -61,7 +56,20 @@ async function readJson(res: Response): Promise<{ ok: boolean; data: Json | null
 const fmtDate = (d: string) => new Date(d).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" })
 const people = (n: number) => `${n} account${n === 1 ? "" : "s"}`
 
-export default function AdminVideoEmail() {
+// A member campaign's panel on /admin/offers (lib/member-campaign.ts): its
+// versions to preview, who gets which, a test send, and Send / Resume.
+export default function AdminCampaign({
+  url: URL,
+  title,
+  description,
+  testNote,
+}: {
+  url: string
+  title: string
+  description: React.ReactNode
+  /** What the test emails' example values are, said after a test send. */
+  testNote: string
+}) {
   const [preview, setPreview] = useState<Preview | null>(null)
   const [busy, setBusy] = useState<"test" | "send" | null>(null)
   const [progress, setProgress] = useState("")
@@ -70,7 +78,7 @@ export default function AdminVideoEmail() {
 
   async function load() {
     const { ok, data, message } = await readJson(await fetch(URL))
-    if (!ok || !data) return setError(message || "Could not load the video email.")
+    if (!ok || !data) return setError(message || "Could not load the email.")
     setPreview(data.preview as Preview)
   }
 
@@ -79,13 +87,13 @@ export default function AdminVideoEmail() {
     ;(async () => {
       const { ok, data, message } = await readJson(await fetch(URL))
       if (cancelled) return
-      if (!ok || !data) return setError(message || "Could not load the video email.")
+      if (!ok || !data) return setError(message || "Could not load the email.")
       setPreview(data.preview as Preview)
     })()
     return () => {
       cancelled = true
     }
-  }, [])
+  }, [URL])
 
   const post = async (action: string, id?: string) =>
     readJson(
@@ -103,7 +111,7 @@ export default function AdminVideoEmail() {
     const { ok, data, message } = await post("test")
     setBusy(null)
     if (!ok || !data) return setError(message || "Test send failed.")
-    setNotice(`All three versions sent to ${String(data.sentTo)}. The code is an example and works nowhere, and the ${SET} button goes to the fltr page.`)
+    setNotice(`Every version sent to ${String(data.sentTo)}. ${testNote}`)
   }
 
   async function send(p: Preview) {
@@ -111,7 +119,7 @@ export default function AdminVideoEmail() {
     setNotice("")
     if (!p.send) {
       const confirmed = window.confirm(
-        `Email the fltr video to ${people(p.recipientCount)}?\n\n` +
+        `Email "${title}" to ${people(p.recipientCount)}?\n\n` +
           `The list is fixed now. Each person is checked again as they're sent to, so someone who uses their code or buys in the meantime gets the right version, or nothing. This cannot be undone.`,
       )
       if (!confirmed) return
@@ -162,7 +170,7 @@ export default function AdminVideoEmail() {
   if (!preview) {
     return (
       <p className="text-sm" style={labelStyle}>
-        Working out who the video email goes to - asking Stripe which codes have been used...
+        Working out who it goes to - asking Stripe which codes have been used...
       </p>
     )
   }
@@ -170,16 +178,12 @@ export default function AdminVideoEmail() {
   const r = preview.send
   const left = r ? preview.recipientCount - r.sentCount - r.skippedCount : preview.recipientCount
   const x = preview.excluded
-  const v = preview.byVariant
-
   return (
-    <div className="space-y-6" data-admin-video-email>
+    <div className="space-y-6" data-admin-campaign={preview.slug}>
       <div>
-        <h1 className="text-xl font-semibold mb-1">Third email - the fltr video</h1>
+        <h1 className="text-xl font-semibold mb-1">{title}</h1>
         <p className="text-sm" style={labelStyle}>
-          The deep-dive video, with each person&apos;s own offers: their $10 code if it&apos;s unused, and the other two
-          plugins for {SET} (until October 31) if they own exactly one. Anyone with neither isn&apos;t sent it, and
-          neither is anyone who has unsubscribed.
+          {description}
         </p>
       </div>
 
@@ -189,8 +193,8 @@ export default function AdminVideoEmail() {
 
       <section className="rounded-xl border p-5" style={{ borderColor: "var(--border)" }}>
         <div className="flex items-baseline justify-between mb-3">
-          <h2 className="text-lg font-medium">fltr, in depth</h2>
-          <span className="text-sm" style={labelStyle} data-video-count>
+          <h2 className="text-lg font-medium">{preview.samples[0]?.subject}</h2>
+          <span className="text-sm" style={labelStyle} data-campaign-count>
             {people(preview.recipientCount)}
           </span>
         </div>
@@ -201,12 +205,15 @@ export default function AdminVideoEmail() {
               {r.completedAt ? `Sent ${fmtDate(r.completedAt)}` : `Started ${fmtDate(r.createdAt)} - not finished`}
             </p>
           )}
-          <p style={labelStyle} data-video-variants>
-            {v.code} get their code, {v.set} get the {SET} offer, {v["code+set"]} get both.
+          <p style={labelStyle} data-campaign-variants>
+            {Object.entries(preview.byVariant)
+              .filter(([, n]) => n > 0)
+              .map(([k, n]) => `${n} ${k}`)
+              .join(", ") || "Nobody yet"}
           </p>
-          {x && (
+          {x && Object.keys(x).length > 0 && (
             <p style={labelStyle}>
-              Left out: {x["nothing-to-offer"]} with nothing left to offer, {x["opted-out"]} unsubscribed.
+              Left out: {Object.entries(x).map(([k, n]) => `${n} ${k.replace(/-/g, " ")}`).join(", ")}.
             </p>
           )}
           {r && (
@@ -236,14 +243,14 @@ export default function AdminVideoEmail() {
 
         <div className="flex gap-2 mt-4">
           <button className={btnCls} style={btnStyle} disabled={busy !== null} onClick={sendTest}>
-            {busy === "test" ? "Sending..." : "Send all three tests to me"}
+            {busy === "test" ? "Sending..." : `Send ${preview.samples.length} tests to me`}
           </button>
           <button
             className={btnCls}
             style={primaryBtnStyle}
             disabled={busy !== null || left <= 0 || Boolean(r?.completedAt) || Boolean(preview.unavailable)}
             onClick={() => send(preview)}
-            data-video-send
+            data-campaign-send
           >
             {busy === "send"
               ? "Sending..."
