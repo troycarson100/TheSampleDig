@@ -22,8 +22,20 @@ export async function ensureOnboardingUrl(affiliateId: string, returnUrl: string
 
   let accountId = affiliate.stripeAccountId
   if (!accountId) {
+    // Express, described the way Stripe now asks for it. `type: "express"` is
+    // a legacy account type that only platforms already using it may keep
+    // creating; a platform setting up Connect today is pointed at controller
+    // properties instead (docs.stripe.com/connect/migrate-to-controller-
+    // properties, 2026-10-05). These are its documented Express equivalent:
+    // the creator gets the Express Dashboard, the platform pays Stripe's fees
+    // and carries any negative balance - for an account that only ever
+    // receives commission transfers, there is nothing to go negative.
     const account = await stripe.accounts.create({
-      type: "express",
+      controller: {
+        stripe_dashboard: { type: "express" },
+        fees: { payer: "application" },
+        losses: { payments: "application" },
+      },
       country: "US",
       email: affiliate.email,
       capabilities: { transfers: { requested: true } },
