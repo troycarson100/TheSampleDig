@@ -36,7 +36,7 @@ export default async function AdminOffersPage() {
           <AdminCampaign
             url="/api/admin/offers/bundle"
             title="Fourth email - the bundle, dark"
-            description={`To everyone who takes email and doesn't own all three. Owns nothing: the bundle at its sale price. Owns one or two: the rest of the set at $${COMPLETE_SET_PRICE[2]} or $${COMPLETE_SET_PRICE[1]}. Plus their $10 code if it's unused, and a section for each plugin - owned, or its price. Everything ends October 31.`}
+            description={`To everyone who takes email and doesn't own all three. Owns nothing: the bundle at its sale price. Owns one or two: the rest of the set at $${COMPLETE_SET_PRICE[2]} or $${COMPLETE_SET_PRICE[1]}. Their $10 code appears only beside the bundle, the one deal it stacks with ($49). And a section for each plugin - owned, or its price. Everything ends October 31.`}
             testNote="The code is an example and works nowhere, and the complete-your-set button goes to the fltr page."
           />
         </div>

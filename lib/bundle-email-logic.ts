@@ -7,11 +7,17 @@ import { PRICING } from "./products"
 // campaign and lib/bundle-email-html.ts draws it.
 //
 // Its lead offer follows what they own:
-//   none of the three  -> the bundle, all three for $59
+//   none of the three  -> the bundle, all three for $59 - and with their $10
+//                         member code, if unused, $49
 //   one or two         -> the rest of the set at the complete-set price
-// and below it their $10 member code, if they have one unused, and a section
-// for each plugin - owned, or its price. Someone who owns all three has
-// nothing to buy and is not written to; nor is anyone who has unsubscribed.
+// and a section for each plugin - owned, or its price.
+//
+// The code is shown only beside the bundle, the one deal it stacks with. The
+// complete-set checkout takes no promo code, so a "$10 OFF ANYTHING" under the
+// complete-set price read as ten dollars less to anyone skimming - and the
+// code never beat that offer anyway: more for the other two, the same for the
+// last one. Someone who owns all three has nothing to buy and is not written
+// to; nor is anyone who has unsubscribed.
 
 export const BUNDLE_EMAIL = {
   slug: "members-bundle-2026-10",
@@ -46,7 +52,7 @@ export function bundleParts(p: {
   if (missing.length === 0) return "owns-everything"
   return {
     offer: missing.length === PLUGIN_ORDER.length ? "bundle" : "set",
-    code: Boolean(p.code) && !p.codeRedeemed,
+    code: missing.length === PLUGIN_ORDER.length && Boolean(p.code) && !p.codeRedeemed,
     missing,
   }
 }
@@ -55,7 +61,7 @@ export function bundleVariant(p: BundleParts): string {
   return p.code ? `${p.offer}+code` : p.offer
 }
 
-export const BUNDLE_VARIANTS = ["bundle", "bundle+code", "set", "set+code", "none", "none+code"] as const
+export const BUNDLE_VARIANTS = ["bundle", "bundle+code", "set", "none"] as const
 
 const names = (ids: readonly PluginId[]) => ids.map((id) => PLUGINS[id].name).join(" + ")
 

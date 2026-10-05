@@ -37,7 +37,7 @@ const address = (who: string) => `${TAG}-${who}@example.com`
 // who        owns          code       before their batch     -> gets
 // nothing    -             unused     -                      bundle + code
 // nocode     -             none       -                      bundle
-// one        shft          unused     -                      set ($39) + code
+// one        shft          unused     -                      set ($39), no code part
 // two        shft, drft    used       -                      set ($19)
 // all        all three     unused                            left off: owns everything
 // optout     -             unused     (unsubscribed)         not considered
@@ -97,7 +97,7 @@ async function main() {
     const listed = (who: Who) => rows.find((r) => r.userId === ids[who])
     check("owns nothing, code unused: bundle + code", listed("nothing")?.variant === "bundle+code")
     check("owns nothing, no code: bundle", listed("nocode")?.variant === "bundle")
-    check("owns one, code unused: set + code", listed("one")?.variant === "set+code")
+    check("owns one, code unused: the set, without the code", listed("one")?.variant === "set")
     check("owns two, code used: set", listed("two")?.variant === "set" && listed("two")?.code === "")
     check("owns all three: left off", !listed("all"))
     check("unsubscribed: left off", !listed("optout"))
@@ -116,6 +116,7 @@ async function main() {
     const one = mailTo("one")[0]?.html ?? ""
     check("owns one: drft + fltr for $39, shft marked owned", one.includes("You have shft. Add") && one.includes("fltr + drft") && one.includes("Get both for $39") && one.includes("In your collection"))
     check("its subject names the deal", Boolean(mailTo("one")[0]?.subject.includes("fltr + drft for $39")))
+    check("and no $10 code beside the $39 offer", !one.includes(code("one")) && !one.includes("Use my $10 code"))
     const two = mailTo("two")[0]?.html ?? ""
     check("owns two, code used: fltr for $19, no code", two.includes("Get it for $19") && !two.includes("Use my $10 code"))
     check("bought a plugin since the list: the set offer, not the bundle", Boolean(mailTo("buysone")[0]?.html.includes("Get both for $39") && !mailTo("buysone")[0]?.html.includes("Get all three")))

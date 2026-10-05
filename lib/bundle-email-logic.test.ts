@@ -13,8 +13,8 @@ test("bundleParts: owns nothing - the bundle, and the code if unused", () => {
   assert.equal((bundleParts({ ...who, code: null }) as { code: boolean }).code, false)
 })
 
-test("bundleParts: owns one or two - the rest of the set", () => {
-  assert.deepEqual(bundleParts({ ...who, owns: ["drft"] }), { offer: "set", code: true, missing: ["fltr", "shft"] })
+test("bundleParts: owns one or two - the rest of the set, and never the code beside it", () => {
+  assert.deepEqual(bundleParts({ ...who, owns: ["drft"] }), { offer: "set", code: false, missing: ["fltr", "shft"] })
   assert.deepEqual(bundleParts({ ...who, owns: ["shft", "fltr"], code: null }), { offer: "set", code: false, missing: ["drft"] })
 })
 
@@ -31,7 +31,7 @@ test("setPrices: the complete-set price against the usual one", () => {
 test("bundleSubject and bundleVariant follow the offer", () => {
   assert.ok(bundleSubject({ offer: "bundle", code: false, missing: ["shft", "drft", "fltr"] }).includes(`$${PRICING.bundle.price}`))
   assert.ok(bundleSubject({ offer: "set", code: false, missing: ["fltr"] }).includes(`fltr for $${COMPLETE_SET_PRICE[1]}`))
-  assert.equal(bundleVariant({ offer: "set", code: true, missing: ["fltr"] }), "set+code")
+  assert.equal(bundleVariant({ offer: "bundle", code: true, missing: ["fltr", "shft", "drft"] }), "bundle+code")
 })
 
 const tpl = renderBundleEmailTemplate({ amountOffCents: 1000, codeExpires: "October 31", setEnds: "October 31" })
@@ -86,6 +86,12 @@ test("fill: no set link, no set part - and never a dead button", () => {
   const html = fill({ offer: "set", owns: ["shft"], missing: ["drft", "fltr"], setUrl: null, setPrice: 39, setWas: 58 })
   assert.doesNotMatch(html, /Complete your set/)
   assert.doesNotMatch(fill({ code: "SR10ABCDEF" }), /Use my \$10 code/)
+})
+
+test("fill: a set offer never shows the code, even when one is passed", () => {
+  const html = fill({ offer: "set", owns: ["shft"], missing: ["fltr", "drft"], setUrl: "https://x/s", setPrice: TWO, setWas: 58, code: "SR10ABCDEF", offerUrl: "https://x/o" })
+  assert.doesNotMatch(html, /\$10 off<\/span> anything/)
+  assert.ok(!html.includes("SR10ABCDEF"))
 })
 
 test("fill: no marker or placeholder is left in any version", () => {

@@ -151,8 +151,7 @@ export function renderBundleEmailTemplate(o: { amountOffCents: number; codeExpir
           <p style="margin: 0 0 12px; font-size: 30px; line-height: 1.05; font-weight: 900; text-transform: uppercase; color: ${C.ink};"><span style="color: ${C.red};">$${off} off</span> anything</p>
           <p style="margin: 0 0 12px;"><span style="display: inline-block; font-family: ${MONO}; font-size: 20px; font-weight: 700; letter-spacing: 3px; color: ${C.ink}; border: 1px solid ${C.line}; background: ${C.card}; border-radius: 8px; padding: 8px 14px;">${BPH.code}</span></p>
           <p style="margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: ${C.dim};">
-<!--code-on-bundle-->            Use it on the bundle - all three for $${bundle.price - off} - or $${PRICING.fltr.price - off} off a single plugin.<!--/code-on-bundle-->
-<!--code-on-single-->            Or take it off any plugin you don't have yet - $${PRICING.fltr.price - off} instead of $${PRICING.fltr.price}.<!--/code-on-single-->
+            Use it on the bundle - all three for $${bundle.price - off} - or for $${PRICING.fltr.price - off} off a single plugin.
             It comes off by itself at checkout when you're signed in.
           </p>
           ${outlineButton(BPH.offerUrl, `Use my $${off} code &rarr;`, C.ink)}
@@ -197,7 +196,8 @@ const names = (ids: readonly PluginId[]) =>
 /** One person's email from the template. A part whose link is missing is
  *  cut too, so no button points nowhere. */
 export function fillBundleEmail(template: string, f: BundleFill): string {
-  const code = Boolean(f.code && f.offerUrl)
+  // Only ever beside the bundle: see the note in bundle-email-logic.ts.
+  const code = f.offer === "bundle" && Boolean(f.code && f.offerUrl)
   const set = f.offer === "set" && Boolean(f.setUrl && f.setPrice)
   const bundle = f.offer === "bundle"
   let html = template
@@ -205,8 +205,6 @@ export function fillBundleEmail(template: string, f: BundleFill): string {
     html = cut(html, `owns-${id}`, f.owns.includes(id))
     html = cut(html, `lacks-${id}`, !f.owns.includes(id))
   }
-  html = cut(html, "code-on-bundle", bundle)
-  html = cut(html, "code-on-single", !bundle)
   html = cut(html, "bundle", bundle)
   html = cut(html, "set", set)
   html = cut(html, "code", code)
