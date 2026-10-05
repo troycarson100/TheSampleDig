@@ -40,7 +40,7 @@ const ONE = COMPLETE_SET_PRICE[1]
 const fill = (o: Partial<BundleFill>) =>
   fillBundleEmail(tpl, {
     offer: "bundle", owns: [], missing: ["shft", "drft", "fltr"], code: null, offerUrl: null, setUrl: null,
-    setPrice: null, setWas: null, unsubscribeUrl: "https://x/u?a=1&b=2", ...o,
+    setPrice: null, setWas: null, email: "reader@example.com", unsubscribeUrl: "https://x/u?a=1&b=2", ...o,
   })
 
 test("fill: fltr leads - in the heading and in the plugin sections", () => {
@@ -74,6 +74,13 @@ test("fill: owns one - the set at its price, the owned plugin marked, the others
   assert.equal((html.match(/In your collection/g) ?? []).length, 1)
   assert.doesNotMatch(html, /Get shft &middot;/)
   assert.doesNotMatch(html, /Get all three/)
+})
+
+test("fill: each offer is a coupon reserved for the reader", () => {
+  const set = fill({ offer: "set", owns: ["shft"], missing: ["fltr", "drft"], setUrl: "https://x/s", setPrice: TWO, setWas: 58 })
+  assert.ok(set.includes("Your personal offer") && set.includes("Reserved for reader@example.com &middot; one order"))
+  const code = fill({ code: "SR10ABCDEF", offerUrl: "https://x/o" })
+  assert.ok(code.includes("Your personal code") && code.includes("Reserved for reader@example.com &middot; works once"))
 })
 
 test("fill: owns two - the last one, said as one", () => {

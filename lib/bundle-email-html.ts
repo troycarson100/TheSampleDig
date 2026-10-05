@@ -32,6 +32,7 @@ export const BPH = {
   setPrice: "{{SET_PRICE}}",
   setWas: "{{SET_WAS}}",
   setCta: "{{SET_CTA}}",
+  email: "{{EMAIL}}",
   promoQs: "{{PROMO_QS}}",
   unsubscribe: "{{UNSUBSCRIBE_URL}}",
 } as const
@@ -66,6 +67,18 @@ const lightButton = (href: string, label: string) =>
 
 const outlineButton = (href: string, label: string, color: string = C.ink) =>
   `<a href="${href}" style="display: inline-block; border: 1px solid ${color}; color: ${color}; text-decoration: none; padding: 10px 18px; border-radius: 999px; font-family: ${MONO}; font-size: 13px; letter-spacing: 0.5px;">${label}</a>`
+
+/**
+ * A coupon: a dashed ticket on a step-up ground, and under a perforation a
+ * stub saying whose it is. The offers in this email are each reader's own -
+ * a link or a code made for their account - and drawn as plain prices they
+ * read like anyone's (2026-10-05).
+ */
+const coupon = (color: string, body: string, stub: string) => `
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background: ${C.panel}; border: 2px dashed ${color}; border-radius: 14px;">
+          <tr><td style="padding: 20px 20px 18px; font-family: ${SANS};">${body}</td></tr>
+          <tr><td style="border-top: 2px dashed ${C.line}; padding: 11px 20px; font-family: ${MONO}; font-size: 11px; line-height: 1.5; letter-spacing: 1px; text-transform: uppercase; color: ${C.dim};">${stub}</td></tr>
+        </table>`
 
 /** A second line for each plugin's section, beside its tagline. */
 const MORE: Record<PluginId, string> = {
@@ -146,32 +159,38 @@ export function renderBundleEmailTemplate(o: { amountOffCents: number; codeExpir
       </td></tr>
 <!--/bundle-->
 <!--set-->
-      <tr><td style="padding: 22px 28px 26px; font-family: ${SANS};">
-        ${kicker("Complete your set")}
-        <p style="margin: 0 0 4px; font-size: 15px; color: ${C.dim};">You have ${BPH.setOwned}. Add</p>
-        <p style="margin: 0 0 12px; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.5px; color: ${C.ink};">${BPH.setNames}</p>
-        <p style="margin: 0 0 6px; color: ${C.ink};">
-          <span style="font-size: 56px; line-height: 1; font-weight: 900; letter-spacing: -2px;">$${BPH.setPrice}</span>
-          <span style="font-size: 20px; color: ${C.faint}; text-decoration: line-through; padding-left: 8px;">$${BPH.setWas}</span>
-        </p>
-        <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: ${C.dim};">
-          The rest of Sample Roll's plugins at a price that's only through this link, until ${esc(o.setEnds)}.
-        </p>
-        ${lightButton(BPH.setUrl, BPH.setCta)}
+      <tr><td style="padding: 22px 28px 28px;">
+        ${coupon(
+          C.teal,
+          `${kicker("Your personal offer &middot; complete your set")}
+          <p style="margin: 0 0 4px; font-size: 15px; color: ${C.dim};">You have ${BPH.setOwned}. Add</p>
+          <p style="margin: 0 0 12px; font-size: 30px; line-height: 1.1; font-weight: 800; letter-spacing: -0.5px; color: ${C.ink};">${BPH.setNames}</p>
+          <p style="margin: 0 0 6px; color: ${C.ink};">
+            <span style="font-size: 56px; line-height: 1; font-weight: 900; letter-spacing: -2px;">$${BPH.setPrice}</span>
+            <span style="font-size: 20px; color: ${C.faint}; text-decoration: line-through; padding-left: 8px;">$${BPH.setWas}</span>
+          </p>
+          <p style="margin: 0 0 18px; font-size: 14px; line-height: 1.5; color: ${C.dim};">
+            Made for your account - this price is only through the button below.
+          </p>
+          ${lightButton(BPH.setUrl, BPH.setCta)}`,
+          `Reserved for ${BPH.email} &middot; one order &middot; ends ${esc(o.setEnds)}`,
+        )}
       </td></tr>
 <!--/set-->
 <!--code-->
-      <tr><td style="padding: 0 28px 28px; font-family: ${SANS};">
-        <div style="background: ${C.panel}; border: 1px dashed ${C.red}; border-radius: 12px; padding: 18px 20px;">
-          ${kicker(`Your code &middot; until ${esc(o.codeExpires)}`, C.red)}
+      <tr><td style="padding: 0 28px 28px;">
+        ${coupon(
+          C.red,
+          `${kicker("Your personal code", C.red)}
           <p style="margin: 0 0 12px; font-size: 30px; line-height: 1.05; font-weight: 900; text-transform: uppercase; color: ${C.ink};"><span style="color: ${C.red};">$${off} off</span> anything</p>
-          <p style="margin: 0 0 12px;"><span style="display: inline-block; font-family: ${MONO}; font-size: 20px; font-weight: 700; letter-spacing: 3px; color: ${C.ink}; border: 1px solid ${C.line}; background: ${C.card}; border-radius: 8px; padding: 8px 14px;">${BPH.code}</span></p>
+          <p style="margin: 0 0 12px;"><span style="display: inline-block; font-family: ${MONO}; font-size: 20px; font-weight: 700; letter-spacing: 3px; color: ${C.ink}; border: 1px solid ${C.line}; background: ${C.page}; border-radius: 8px; padding: 8px 14px;">${BPH.code}</span></p>
           <p style="margin: 0 0 14px; font-size: 14px; line-height: 1.5; color: ${C.dim};">
-            Use it on the bundle - all three for $${bundle.price - off} - or for $${PRICING.fltr.price - off} off a single plugin.
+            Use it on the bundle - all three for $${bundle.price - off} - or on any single plugin, $${PRICING.fltr.price - off} instead of $${PRICING.fltr.price}.
             It comes off by itself at checkout when you're signed in.
           </p>
-          ${outlineButton(BPH.offerUrl, `Use my $${off} code &rarr;`, C.ink)}
-        </div>
+          ${outlineButton(BPH.offerUrl, `Use my $${off} code &rarr;`, C.ink)}`,
+          `Reserved for ${BPH.email} &middot; works once &middot; ends ${esc(o.codeExpires)}`,
+        )}
       </td></tr>
 <!--/code-->
       <tr><td style="padding: 6px 28px 18px; font-family: ${SANS};">
@@ -202,6 +221,8 @@ export type BundleFill = {
   setUrl: string | null
   setPrice: number | null
   setWas: number | null
+  /** Whose the offers are, printed on their stubs. */
+  email: string
   unsubscribeUrl: string
 }
 
@@ -239,6 +260,7 @@ export function fillBundleEmail(template: string, f: BundleFill): string {
     .split(BPH.setPrice).join(String(f.setPrice ?? ""))
     .split(BPH.setWas).join(String(f.setWas ?? ""))
     .split(BPH.setCta).join(esc(`Get ${f.missing.length === 1 ? "it" : "both"} for $${f.setPrice ?? ""}`) + " &rarr;")
+    .split(BPH.email).join(esc(f.email))
     .split(BPH.promoQs).join(code && f.code ? `?promo=${encodeURIComponent(f.code)}` : "")
     .split(BPH.unsubscribe).join(esc(f.unsubscribeUrl))
 }

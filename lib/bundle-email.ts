@@ -51,6 +51,7 @@ export const BUNDLE_CAMPAIGN: Campaign<BundleParts> = {
       setUrl: links.setUrl,
       setPrice: prices?.price ?? null,
       setWas: prices?.was ?? null,
+      email: person.email,
       unsubscribeUrl: links.unsubscribeUrl,
     })
   },
@@ -72,6 +73,7 @@ export const BUNDLE_CAMPAIGN: Campaign<BundleParts> = {
           setUrl: p.offer === "set" ? `${APP_URL}/fltr` : null,
           setPrice: prices?.price ?? null,
           setWas: prices?.was ?? null,
+          email: "you@example.com",
           unsubscribeUrl: SAMPLE_UNSUBSCRIBE,
         }),
       }
