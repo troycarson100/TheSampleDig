@@ -38,11 +38,13 @@ export const BPH = {
 
 const SANS = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif"
 const MONO = "'SF Mono', Menlo, Consolas, 'Courier New', monospace"
-// fltr's night, a step up for the card, and the inks on it. `dim` keeps
-// 4.5:1 on the card; `red` is the bundle's red, lifted a shade for the dark.
+// One ground, fltr's night, edge to edge: no card on a page on the mail
+// app's white - three backgrounds read as boxes inside boxes on a phone
+// (2026-10-05). `panel` is the code ticket, a step up from the ground. `dim`
+// keeps 4.5:1 on the ground; `red` is the bundle's red, lifted for the dark.
 const C = {
-  page: "#050608",
-  card: "#0d0f16",
+  page: "#0b0c13",
+  card: "#0b0c13",
   panel: "#141824",
   line: "#232838",
   ink: "#eef0f6",
@@ -101,9 +103,23 @@ export function renderBundleEmailTemplate(o: { amountOffCents: number; codeExpir
     (id) => `<td width="33%" style="padding: 0 4px;"><img src="${BUNDLE_IMAGES.thumb[id]}" width="160" alt="${esc(PLUGINS[id].name)}" style="display: block; width: 100%; height: auto; border: 0; border-radius: 8px;"></td>`,
   ).join("")
 
-  return `
-  <div style="background: ${C.page}; padding: 32px 12px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px; margin: 0 auto; background: ${C.card}; border: 1px solid ${C.line}; border-radius: 16px;">
+  // A whole document, not a fragment: a fragment leaves the page behind it to
+  // the mail app, which paints it white. The body and the outer table both
+  // carry the ground (Apple Mail reads the body, Gmail drops it and keeps the
+  // table), and color-scheme says it is already dark, so a phone in dark mode
+  // leaves it alone. format-detection stops iOS underlining the end date.
+  return `<!doctype html>
+<html lang="en" style="background: ${C.page};">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+<meta name="format-detection" content="telephone=no, date=no, address=no, email=no">
+</head>
+<body bgcolor="${C.page}" style="margin: 0; padding: 0; background: ${C.page}; min-height: 100%;">
+<table role="presentation" width="100%" bgcolor="${C.page}" cellpadding="0" cellspacing="0" style="background: ${C.page};"><tr><td align="center" style="padding: 12px 0 24px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width: 560px; margin: 0 auto; background: ${C.page};">
       <tr><td style="padding: 26px 28px 6px;">
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0"><tr>
           <td><img src="${BUNDLE_IMAGES.logo}" width="110" alt="Sample Roll" style="display: block; border: 0;"></td>
@@ -172,7 +188,9 @@ ${BUNDLE_EMAIL_ORDER.map(pluginSection).join("")}
         </p>
       </td></tr>
     </table>
-  </div>`
+</td></tr></table>
+</body>
+</html>`
 }
 
 export type BundleFill = {
