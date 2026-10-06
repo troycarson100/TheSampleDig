@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { APPLICATION_PLUGINS, APPLICATION_PLUGIN_LABEL } from "@/lib/affiliate-application-logic"
+import { APPLICATION_PLUGINS, APPLICATION_PLUGIN_LABEL, MAX_SOCIALS } from "@/lib/affiliate-application-logic"
 import { CREATOR_COUNTRIES } from "@/lib/creator-countries"
 
 // The application on /creators. Every rule is also checked by the server
@@ -14,6 +14,7 @@ const muted = { color: "var(--foreground)", opacity: 0.7 } as const
 
 export default function CreatorApplyForm() {
   const [form, setForm] = useState({ name: "", email: "", country: "", plugin: "", message: "", website: "" })
+  const [socials, setSocials] = useState<string[]>([""])
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState("")
   const [done, setDone] = useState(false)
@@ -28,7 +29,7 @@ export default function CreatorApplyForm() {
       const res = await fetch("/api/creators/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, socials }),
       })
       const data = await res.json().catch(() => ({}))
       if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : "Couldn't send your application. Try again.")
@@ -102,6 +103,58 @@ export default function CreatorApplyForm() {
         </div>
       </div>
 
+      <fieldset>
+        <legend className={label} style={{ color: "var(--foreground)" }}>
+          Social links
+        </legend>
+        <p className="text-[12px] -mt-0.5 mb-2" style={muted}>
+          1 to {MAX_SOCIALS} links to where you post - YouTube, Instagram, TikTok or anywhere else.
+        </p>
+        <div className="space-y-2">
+          {socials.map((s, i) => (
+            <div key={i} className="flex gap-2">
+              <input
+                id={i === 0 ? "apply-social" : undefined}
+                aria-label={`Social link ${i + 1}`}
+                required={i === 0}
+                inputMode="url"
+                autoCapitalize="off"
+                autoCorrect="off"
+                spellCheck={false}
+                maxLength={300}
+                placeholder={["youtube.com/@yourchannel", "instagram.com/you", "tiktok.com/@you"][i]}
+                className={field}
+                style={fieldStyle}
+                value={s}
+                onChange={(e) => setSocials((all) => all.map((v, j) => (j === i ? e.target.value : v)))}
+              />
+              {socials.length > 1 && (
+                <button
+                  type="button"
+                  aria-label={`Remove social link ${i + 1}`}
+                  className="shrink-0 rounded-lg border px-3 text-[18px] leading-none cursor-pointer"
+                  style={{ borderColor: "var(--border)", color: "var(--foreground)", background: "transparent" }}
+                  onClick={() => setSocials((all) => all.filter((_, j) => j !== i))}
+                >
+                  &times;
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+        {socials.length < MAX_SOCIALS && (
+          <button
+            type="button"
+            className="mt-2 text-[14px] font-medium underline cursor-pointer"
+            style={{ color: "var(--foreground)", background: "none", border: "none", padding: 0 }}
+            onClick={() => setSocials((all) => [...all, ""])}
+            data-add-social
+          >
+            + Add another link
+          </button>
+        )}
+      </fieldset>
+
       <div>
         <label className={label} htmlFor="apply-message" style={{ color: "var(--foreground)" }}>
           Message
@@ -112,7 +165,7 @@ export default function CreatorApplyForm() {
           minLength={10}
           maxLength={2000}
           rows={5}
-          placeholder="Your channel or socials, what you make, and the video you have in mind."
+          placeholder="What you make, who watches it, and the video you have in mind."
           className={field}
           style={fieldStyle}
           value={form.message}

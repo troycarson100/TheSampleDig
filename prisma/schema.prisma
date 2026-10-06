@@ -453,6 +453,8 @@ model AffiliateApplication {
   country     String
   // "shft" | "drft" | "fltr" | "all": what they want to make a video about.
   plugin      String
+  // 1-3 absolute http(s) URLs to where they post (lib/affiliate-application-logic.ts).
+  socials     String[]  @default([])
   message     String
   // "pending" | "approved" | "declined"
   status      String    @default("pending")

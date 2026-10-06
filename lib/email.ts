@@ -279,7 +279,7 @@ export async function sendCartRecoveryEmail(email: string, subject: string, html
 /** To the admins: someone applied to the creator program on /creators. */
 export async function sendCreatorApplicationNotice(
   to: string[],
-  app: { name: string; email: string; country: string; plugin: string; message: string },
+  app: { name: string; email: string; country: string; plugin: string; socials: string[]; message: string },
 ) {
   if (to.length === 0) return
   await sendMailWithFallback({
@@ -292,6 +292,7 @@ export async function sendCreatorApplicationNotice(
         <h1 style="font-size: 18px; margin: 0 0 12px;">New creator application</h1>
         <p style="margin: 0 0 4px;"><strong>${escapeHtml(app.name)}</strong> &lt;${escapeHtml(app.email)}&gt;</p>
         <p style="margin: 0 0 4px; color: #555;">${escapeHtml(app.country)} &middot; wants to make a video on ${escapeHtml(app.plugin)}</p>
+        ${app.socials.map((url) => `<p style="margin: 8px 0 0;"><a href="${escapeHtml(url)}" style="color: #1a1a1a;">${escapeHtml(url)}</a></p>`).join("")}
         <p style="margin: 16px 0; white-space: pre-line; background: #f4f4f4; border-radius: 8px; padding: 12px 14px;">${escapeHtml(app.message)}</p>
         <a href="${APP_URL}/admin/affiliates" style="${buttonStyle}">Review it</a>
         <p style="color: #999; font-size: 13px; margin-top: 16px;">Reply to this email to write to them directly.</p>

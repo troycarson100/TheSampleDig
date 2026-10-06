@@ -77,7 +77,7 @@ export async function approveApplication(id: string): Promise<DecideResult> {
         dashboardToken: generateDashboardToken(),
         // An account can back only one creator; a second stays unlinked.
         userId: userId && !linkedElsewhere ? userId : null,
-        notes: `Applied ${app.createdAt.toISOString().slice(0, 10)} for ${APPLICATION_PLUGIN_LABEL[app.plugin as ApplicationPlugin] ?? app.plugin}: ${app.message}`.slice(0, 2000),
+        notes: `Applied ${app.createdAt.toISOString().slice(0, 10)} for ${APPLICATION_PLUGIN_LABEL[app.plugin as ApplicationPlugin] ?? app.plugin}. ${app.socials.join(" ")}\n${app.message}`.slice(0, 2000),
       },
     })
     await prisma.affiliateApplication.update({ where: { id }, data: { affiliateId: affiliate.id } })

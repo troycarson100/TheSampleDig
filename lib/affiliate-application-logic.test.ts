@@ -1,15 +1,15 @@
 import { test } from "node:test"
 import assert from "node:assert/strict"
-import { CREATOR_COMMISSION_PERCENT, readApplication, suggestCode } from "./affiliate-application-logic"
+import { CREATOR_COMMISSION_PERCENT, readApplication, readSocials, suggestCode } from "./affiliate-application-logic"
 import { CREATOR_COUNTRIES, isCreatorCountry } from "./creator-countries"
 import { normalizeAffiliateCode } from "./affiliate-logic"
 
-const good = { email: " Maker@Example.com ", name: "  DJ   Mo ", country: "GB", plugin: "fltr", message: "I make beat videos on YouTube." }
+const good = { email: " Maker@Example.com ", name: "  DJ   Mo ", country: "GB", plugin: "fltr", socials: ["youtube.com/@djmo"], message: "I make beat videos on YouTube." }
 
 test("readApplication: a good application, tidied", () => {
   const r = readApplication(good)
   assert.ok(r.ok)
-  assert.deepEqual(r.value, { email: "maker@example.com", name: "DJ Mo", country: "GB", plugin: "fltr", message: "I make beat videos on YouTube." })
+  assert.deepEqual(r.value, { email: "maker@example.com", name: "DJ Mo", country: "GB", plugin: "fltr", socials: ["https://youtube.com/@djmo"], message: "I make beat videos on YouTube." })
 })
 
 test("readApplication: only countries Stripe can pay", () => {
@@ -49,4 +49,25 @@ test("suggestCode: a valid referral code from a name, never one that's taken", (
 
 test("the program pays 25%", () => {
   assert.equal(CREATOR_COMMISSION_PERCENT, 25)
+})
+
+test("readSocials: 1 to 3 links, each made a full web address", () => {
+  assert.deepEqual(readSocials(["youtube.com/@djmo", " https://www.instagram.com/djmo ", "", "http://tiktok.com/@djmo"]), {
+    ok: true,
+    value: ["https://youtube.com/@djmo", "https://www.instagram.com/djmo", "http://tiktok.com/@djmo"],
+  })
+  assert.deepEqual(readSocials(["youtube.com/@a", "https://youtube.com/@a"]), { ok: true, value: ["https://youtube.com/@a"] }, "a repeat counts once")
+})
+
+test("readSocials: none, too many, or not a web link is refused", () => {
+  for (const v of [undefined, [], ["", "  "], "youtube.com/@a"]) assert.equal(readSocials(v).ok, false, JSON.stringify(v))
+  assert.equal(readSocials(["a.com", "b.com", "c.com", "d.com"]).ok, false)
+  for (const bad of ["javascript:alert(1)", "mailto:a@b.com", "@djmo", "my channel", "ftp://files.com/x", "https://user:pw@evil.com", "x".repeat(301)]) {
+    assert.equal(readSocials([bad]).ok, false, bad)
+  }
+})
+
+test("readApplication: needs a social link", () => {
+  assert.equal(readApplication({ ...good, socials: [] }).ok, false)
+  assert.equal(readApplication({ ...good, socials: ["javascript:alert(1)"] }).ok, false)
 })

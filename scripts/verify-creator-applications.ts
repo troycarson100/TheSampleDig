@@ -34,7 +34,7 @@ async function main() {
   const Stripe = (await import("stripe")).default
   const opened: string[] = []
 
-  const base = { message: "I make beat videos and would love to cover fltr.", plugin: "fltr" }
+  const base = { message: "I make beat videos and would love to cover fltr.", plugin: "fltr", socials: ["https://youtube.com/@verify"] }
   try {
     console.log("\nthe form, through the dev server (nothing valid is sent, so nothing is mailed)")
     const post = (body: unknown) => fetch(`${BASE}/api/creators/apply`, { method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": `10.9.${Math.floor(Math.random() * 250)}.1` }, body: JSON.stringify(body) })
@@ -45,12 +45,17 @@ async function main() {
     check("a bad email is refused", r2.status === 400, r2.status)
     const r3 = await post({ ...good, plugin: "pro" })
     check("an unknown plugin is refused", r3.status === 400, r3.status)
+    const r5 = await post({ ...good, socials: [] })
+    check("no social link is refused", r5.status === 400, r5.status)
+    const r6 = await post({ ...good, socials: ["javascript:alert(1)"] })
+    check("a social link that isn't a web address is refused", r6.status === 400, r6.status)
     const r4 = await post({ ...good, website: "http://spam" })
     check("a bot filling the hidden field is told ok, and nothing is saved", r4.status === 200 && (await prisma.affiliateApplication.count({ where: { email: address("form") } })) === 0)
 
     console.log("\napplying")
     await submitApplication({ ...base, name: "Ana Maker", email: address("ana"), country: "IL" })
     const again = await submitApplication({ ...base, name: "Ana Maker", email: address("ana"), country: "IL", message: "hello??" })
+    check("their social links are kept", JSON.stringify((await prisma.affiliateApplication.findFirst({ where: { email: address("ana") } }))?.socials) === JSON.stringify(["https://youtube.com/@verify"]))
     check("a second application while one is open changes nothing", again.duplicate && (await prisma.affiliateApplication.count({ where: { email: address("ana") } })) === 1)
     await submitApplication({ ...base, name: "Bo Declined", email: address("bo"), country: "US", plugin: "all" })
     // Someone already holding the code Ana's name suggests.

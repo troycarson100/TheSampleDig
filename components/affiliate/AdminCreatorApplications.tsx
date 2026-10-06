@@ -14,6 +14,7 @@ type Application = {
   name: string
   country: string
   plugin: string
+  socials: string[]
   message: string
   status: string
   createdAt: string
@@ -109,6 +110,17 @@ export default function AdminCreatorApplications({ onApproved }: { onApproved: (
               <p className="text-sm mt-0.5" style={{ opacity: 0.75 }}>
                 {creatorCountryName(a.country)} &middot; video on {APPLICATION_PLUGIN_LABEL[a.plugin as ApplicationPlugin] ?? a.plugin}
               </p>
+              {a.socials.length > 0 && (
+                <ul className="mt-2 text-sm space-y-0.5" data-application-socials>
+                  {a.socials.map((url) => (
+                    <li key={url} className="truncate">
+                      <a href={url} target="_blank" rel="noopener noreferrer nofollow" className="underline" style={{ color: "var(--primary)" }}>
+                        {url.replace(/^https?:\/\/(www\.)?/, "").replace(/\/$/, "")}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              )}
               <p className="text-sm mt-2 whitespace-pre-line">{a.message}</p>
               <div className="mt-3 flex gap-2">
                 <button className={btnCls} style={{ borderColor: "var(--primary)", color: "var(--primary)", background: "transparent" }} disabled={busy !== null} onClick={() => decide(a, "approve")}>
