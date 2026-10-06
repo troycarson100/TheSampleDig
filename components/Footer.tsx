@@ -29,7 +29,7 @@ export default function Footer() {
           className="hover:underline focus:underline focus:outline-none"
           style={{ color: "var(--muted)" }}
         >
-          Creators
+          Creator Program
         </Link>
         <span aria-hidden>·</span>
         <Link

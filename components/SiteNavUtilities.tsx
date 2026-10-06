@@ -106,6 +106,15 @@ function IconGift({ className }: { className?: string }) {
   )
 }
 
+function IconVideo({ className }: { className?: string }) {
+  return (
+    <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+      <rect x="2.5" y="6" width="13" height="12" rx="2" />
+      <path d="m15.5 10.5 6-3.5v10l-6-3.5" />
+    </svg>
+  )
+}
+
 function IconPaperPlane({ className }: { className?: string }) {
   return (
     <svg className={className} width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
@@ -118,6 +127,7 @@ function IconPaperPlane({ className }: { className?: string }) {
 export const SITE_SETTINGS_MENU_ITEMS = [
   { href: "/products", label: "My Products", Icon: IconDownloadBox },
   { href: "/redeem", label: "Redeem a code", Icon: IconTicket },
+  { href: "/creators", label: "Creator program", Icon: IconVideo },
   { href: "/privacy", label: "Privacy Policy", Icon: IconShieldCheck },
   { href: "/cookies", label: "Cookie Policy", Icon: IconCookie },
   { href: "/terms", label: "Terms of Service", Icon: IconDocument },
