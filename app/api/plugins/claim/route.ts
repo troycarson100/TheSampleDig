@@ -83,19 +83,29 @@ export async function POST(request: Request) {
     // `items`, it carries no licence key, download link or set-password URL,
     // so it can safely clear the cart for a returning guest who is not
     // signed in as the account's owner.
+    //
+    // What this checkout itself paid for is a different matter, and is shown
+    // even then: those keys were minted for this purchase, and the person
+    // holding its session id is the person who paid for them. Without them a
+    // buyer whose receipt never arrived was left with nothing to download
+    // (2026-10-06). Only keys the account held before this checkout - its
+    // duplicates - stay withheld, along with the set-password link.
     const signedIn = viewerId === result.userId
     if (!signedIn && !result.accountFromThisPurchase) {
+      const fresh = result.items.filter((i) => !result.duplicates.includes(i.product))
       return NextResponse.json({
         ok: true,
         product,
         email: result.email,
         signedIn: false,
-        withheld: true,
+        withheld: fresh.length === 0,
+        existingAccount: true,
         needsPassword: false,
         setPasswordUrl: null,
-        duplicates: [],
-        items: [],
+        duplicates: result.duplicates,
+        items: fresh.map((i) => ({ ...i, downloads: downloadsFor(i.product, i.licenseKey) })),
         purchasedIds: result.items.map((i) => i.product),
+        completeSet: null,
       })
     }
 

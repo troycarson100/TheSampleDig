@@ -18,9 +18,13 @@ type Claim = {
   product: CompProduct
   email: string
   signedIn: boolean
-  /** The account predates this checkout and the viewer is not signed in as
-   *  its owner: keys and the set-password link were not returned. */
+  /** Nothing this checkout bought could be shown here: the account predates
+   *  it, the viewer is not its owner, and everything was already owned. */
   withheld: boolean
+  /** The account predates this checkout and the viewer is not signed in as
+   *  its owner. Only what this checkout itself bought is in `items`; the
+   *  account's other keys, and its set-password link, are not. */
+  existingAccount?: boolean
   needsPassword: boolean
   setPasswordUrl: string | null
   duplicates: string[]
@@ -51,17 +55,87 @@ function fallbackPaid(product: string): number {
   return PRICING[product as keyof typeof PRICING]?.price ?? PRICING.shft.price
 }
 
+/** This page's own address: it keeps working, so it is the buyer's private
+ *  download page until they make an account - the same idea as a gift link's
+ *  private link. */
+function SavePageCard() {
+  // Only ever rendered once the claim has come back, in the browser, so
+  // window is there. Without the pixel's `paid`/`product`: the session id is
+  // all the page needs.
+  const [url] = useState(() => {
+    const u = new URL(window.location.href)
+    return `${u.origin}${u.pathname}?session_id=${u.searchParams.get("session_id") ?? ""}`
+  })
+  const [copied, setCopied] = useState(false)
+  return (
+    <section className="rounded-xl border p-5 sm:p-6" style={card} data-save-page>
+      <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--foreground)" }}>
+        Save this page
+      </h2>
+      <p className="text-[14px] mb-3" style={muted}>
+        This link is your private download page until you have an account - bookmark it, or keep it
+        somewhere safe. It&apos;s your keys, so don&apos;t share it.
+      </p>
+      <div className="flex items-center gap-2">
+        <input
+          readOnly
+          value={url}
+          onFocus={(e) => e.target.select()}
+          aria-label="Your private download page"
+          className="rounded-lg border px-3 py-2 text-sm outline-none flex-1 min-w-0"
+          style={{ borderColor: "var(--border)", color: "var(--foreground)", background: "rgba(255,255,255,0.45)" }}
+        />
+        <button
+          type="button"
+          onClick={async () => {
+            await navigator.clipboard.writeText(url).catch(() => {})
+            setCopied(true)
+            setTimeout(() => setCopied(false), 1600)
+          }}
+          className="inline-flex items-center rounded-lg px-3 py-2 text-[13px] font-medium border cursor-pointer"
+          style={{ borderColor: "var(--border)", color: "var(--foreground)", background: "transparent" }}
+        >
+          {copied ? "Copied" : "Copy"}
+        </button>
+      </div>
+    </section>
+  )
+}
+
 function AccountBlock({ claim }: { claim: Claim }) {
   if (claim.needsPassword && claim.setPasswordUrl) {
     return (
-      <section className="rounded-xl border p-5 sm:p-6" style={card}>
+      <section className="rounded-xl border p-5 sm:p-6" style={card} data-account-block="create">
+        <h2 className="text-lg font-semibold mb-1" style={{ color: "var(--foreground)" }}>
+          Create your account
+        </h2>
         <p className="text-[15px] mb-3" style={{ color: "var(--foreground)" }}>
-          Your purchase is saved to <strong>{claim.email}</strong>. Set a password to see it on
-          My Products, manage your machines, and re-download any time.
+          Your plugins are saved to <strong>{claim.email}</strong>. Set a password to create your
+          account, so you can download them again any time, get updates and manage your machines.
         </p>
         <a href={claim.setPasswordUrl} className={primaryBtn} style={primaryBtnStyle}>
-          Set a password
+          Create my account
         </a>
+      </section>
+    )
+  }
+  if (claim.existingAccount && !claim.signedIn) {
+    return (
+      <section className="rounded-xl border p-5 sm:p-6" style={card} data-account-block="existing">
+        <p className="text-[15px] mb-3" style={{ color: "var(--foreground)" }}>
+          These are saved to your Sample Roll account, <strong>{claim.email}</strong>. Sign in to
+          download them again any time, get updates and manage your machines.
+        </p>
+        <Link href="/login?callbackUrl=%2Fproducts" className={primaryBtn} style={primaryBtnStyle}>
+          Sign in
+        </Link>
+        <p className="text-[13px] mt-3" style={muted}>
+          Never set a password, or forgotten it?{" "}
+          <Link href="/forgot-password" className="underline">
+            Reset it
+          </Link>{" "}
+          with that email.
+        </p>
       </section>
     )
   }
@@ -230,7 +304,7 @@ export default function ThanksPage() {
         <Link href="/lost-key" className="underline">resend it</Link>.
       </p>
       <div className="mb-8">
-        {!changingEmail ? (
+        {claim.existingAccount ? null : !changingEmail ? (
           <button
             type="button"
             onClick={() => setChangingEmail(true)}
@@ -266,6 +340,7 @@ export default function ThanksPage() {
         ))}
         {claim.completeSet ? <CompleteSetCard offer={claim.completeSet} /> : null}
         <AccountBlock claim={claim} />
+        {claim.signedIn ? null : <SavePageCard />}
       </div>
     </>
   )
