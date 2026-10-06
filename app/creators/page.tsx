@@ -9,7 +9,7 @@ import { PLUGINS, PLUGIN_ORDER } from "@/lib/plugins"
 
 export const metadata: Metadata = {
   title: "Creator program | Sample Roll",
-  description: `Make videos with Sample Roll plugins and earn ${CREATOR_COMMISSION_PERCENT}% of every sale made through your link.`,
+  description: `Make videos with Sample Roll plugins: get free licenses and earn ${CREATOR_COMMISSION_PERCENT}% of every sale made through your link.`,
 }
 
 const muted = { color: "var(--foreground)", opacity: 0.75 } as const
@@ -17,7 +17,11 @@ const card = { borderColor: "var(--border)" } as const
 
 const STEPS = [
   { n: "1", title: "Apply", body: "Tell us about you and what you'd make. We read every application." },
-  { n: "2", title: "Get your link", body: "Approved creators get a personal link and code, and a dashboard with their clicks and sales." },
+  {
+    n: "2",
+    title: "Get the plugins, free",
+    body: "Approved creators get free licenses to our plugins to make their videos with, plus a personal link, a code and a dashboard of their clicks and sales.",
+  },
   {
     n: "3",
     title: `Earn ${CREATOR_COMMISSION_PERCENT}%`,
@@ -40,7 +44,8 @@ export default function CreatorsPage() {
         </h1>
         <p className="text-[16px] mb-8" style={muted}>
           If you make music videos, tutorials or beats on YouTube, Instagram or TikTok, apply below. Approved
-          creators earn <strong>{CREATOR_COMMISSION_PERCENT}%</strong> of every purchase made with their link.
+          creators get <strong>free licenses</strong> to our plugins and earn{" "}
+          <strong>{CREATOR_COMMISSION_PERCENT}%</strong> of every purchase made with their link.
         </p>
 
         <ul className="grid gap-3 sm:grid-cols-3 mb-10">
