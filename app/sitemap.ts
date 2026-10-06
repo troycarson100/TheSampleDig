@@ -7,13 +7,16 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const lastModified = new Date()
 
   const staticRoutes: MetadataRoute.Sitemap = [
-    { url: `${base}/`, lastModified, changeFrequency: "weekly", priority: 1 },
+    // "/" redirects to the plugins; the crate-digging landing is /welcome.
+    { url: `${base}/welcome`, lastModified, changeFrequency: "weekly", priority: 1 },
     { url: `${base}/blog`, lastModified, changeFrequency: "weekly", priority: 0.9 },
     // /plugins is retired (a redirect to /shft, kept only for links already
     // in circulation) — advertising it here as well as /shft would just be
     // the same URL listed twice after a search engine follows the redirect.
     { url: `${base}/shft`, lastModified, changeFrequency: "weekly", priority: 0.9 },
     { url: `${base}/drft`, lastModified, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/fltr`, lastModified, changeFrequency: "weekly", priority: 0.9 },
+    { url: `${base}/creators`, lastModified, changeFrequency: "monthly", priority: 0.6 },
     { url: `${base}/about`, lastModified, changeFrequency: "monthly", priority: 0.7 },
     { url: `${base}/privacy`, lastModified, changeFrequency: "yearly", priority: 0.4 },
     { url: `${base}/terms`, lastModified, changeFrequency: "yearly", priority: 0.4 },

@@ -44,7 +44,10 @@ const MOBILE_MENU_OVERLAY_Z = 10000
 const MOBILE_MENU_DRAWER_Z = 10001
 
 export default function SiteNav() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
+  // Signed out, Dig opens the landing that explains it; signed in (or still
+  // finding out), the tool itself.
+  const digHref = status === "unauthenticated" ? "/welcome" : "/dig"
   const hideTryProCta = session?.user?.isPro === true
   const { openProModal } = useGoProModal()
   const [menuOpen, setMenuOpen] = useState(false)
@@ -121,7 +124,7 @@ export default function SiteNav() {
         </div>
         {/* Center: tabs */}
         <div className="hidden md:flex items-center h-full flex-1 justify-center">
-          <Link href="/dig" className={`${navLinkBase} ${isActive("/dig") ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/dig" ? "page" : undefined}>
+          <Link href={digHref} className={`${navLinkBase} ${isActive("/dig") || pathname === "/welcome" ? navLinkActive : ""}`} style={navLinkStyle} aria-current={pathname === "/dig" ? "page" : undefined}>
             Dig
           </Link>
           {/* Stem Splitter commented out (site free; no stem-splitting). Set STEM_SPLITTER_ENABLED = true in app/stem-splitter/page.tsx to re-enable, then uncomment these. */}
@@ -244,8 +247,8 @@ export default function SiteNav() {
               </div>
           <div className="flex flex-col items-start gap-1">
             <Link
-              href="/dig"
-              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/dig" ? navLinkActive : ""}`}
+              href={digHref}
+              className={`${navLinkBase} nav-drawer-link inline-block py-3 !h-auto !px-0 ${pathname === "/dig" || pathname === "/welcome" ? navLinkActive : ""}`}
               style={navLinkStyle}
               onClick={closeMenu}
               aria-current={pathname === "/dig" ? "page" : undefined}
