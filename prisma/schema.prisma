@@ -423,7 +423,10 @@ model Affiliate {
   commissionType       String              @default("percent") @map("commission_type")
   commissionFlatCents  Int?                @map("commission_flat_cents")
   dashboardToken       String              @unique @map("dashboard_token")
-  // Stripe Connect Express account for instant payouts (US-only in v1).
+  // ISO 3166 code the creator gets paid in: their Stripe account is opened
+  // there. Only countries in lib/creator-countries.ts can be paid.
+  country              String              @default("US")
+  // Stripe Connect account for instant payouts.
   stripeAccountId      String?             @unique @map("stripe_account_id")
   stripePayoutsEnabled Boolean             @default(false) @map("stripe_payouts_enabled")
   userId               String?             @unique @map("user_id")
@@ -437,6 +440,29 @@ model Affiliate {
   payouts              AffiliatePayout[]
 
   @@map("affiliates")
+}
+
+// Someone asking to join the creator program from the public /creators page.
+// Nothing is granted until an admin approves it, which creates the Affiliate
+// (lib/affiliate-application.ts).
+model AffiliateApplication {
+  id          String    @id @default(cuid())
+  email       String
+  name        String
+  // ISO 3166, one of lib/creator-countries.ts - the form offers no other.
+  country     String
+  // "shft" | "drft" | "fltr" | "all": what they want to make a video about.
+  plugin      String
+  message     String
+  // "pending" | "approved" | "declined"
+  status      String    @default("pending")
+  affiliateId String?   @unique @map("affiliate_id")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  decidedAt   DateTime? @map("decided_at")
+
+  @@index([status])
+  @@index([email])
+  @@map("affiliate_applications")
 }
 
 model AffiliateClick {

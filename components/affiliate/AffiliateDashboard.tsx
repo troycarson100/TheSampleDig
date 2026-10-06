@@ -32,6 +32,7 @@ export default function AffiliateDashboard({
   // URL would work.
   const storeLink = `${baseUrl}/shft?ref=${affiliate.code}`
   const pluginLinks = [
+    { name: "fltr", url: `${baseUrl}/fltr?ref=${affiliate.code}` },
     { name: "shft", url: `${baseUrl}/shft?ref=${affiliate.code}` },
     { name: "drft", url: `${baseUrl}/drft?ref=${affiliate.code}` },
   ]

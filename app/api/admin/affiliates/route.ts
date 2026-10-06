@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server"
+import { CREATOR_COMMISSION_PERCENT } from "@/lib/affiliate-application-logic"
+import { isCreatorCountry } from "@/lib/creator-countries"
 import { prisma } from "@/lib/db"
 import { requireAdmin } from "@/lib/admin"
 import { generateDashboardToken, getAffiliateStats } from "@/lib/affiliate"
@@ -26,6 +28,7 @@ export async function GET() {
         userId: a.userId,
         active: a.active,
         notes: a.notes,
+        country: a.country,
         stripeConnected: a.stripeAccountId !== null,
         stripePayoutsEnabled,
         stats: await getAffiliateStats(a.id),
@@ -41,9 +44,13 @@ export async function POST(request: Request) {
   const code = normalizeAffiliateCode(body?.code)
   const name = typeof body?.name === "string" ? body.name.trim() : ""
   const email = typeof body?.email === "string" ? body.email.trim().toLowerCase() : ""
-  const commissionPercent = Number.isInteger(body?.commissionPercent) ? body.commissionPercent : 30
+  const commissionPercent = Number.isInteger(body?.commissionPercent) ? body.commissionPercent : CREATOR_COMMISSION_PERCENT
   const commissionType = body?.commissionType === "flat" ? "flat" : "percent"
   const commissionFlatCents = Number.isInteger(body?.commissionFlatCents) ? body.commissionFlatCents : null
+  const country = typeof body?.country === "string" ? body.country.toUpperCase() : "US"
+  if (!isCreatorCountry(country)) {
+    return NextResponse.json({ error: "Stripe can't pay creators in that country." }, { status: 400 })
+  }
   if (!code || !name || !email) {
     return NextResponse.json({ error: "Need name, email, and a code (2-32 chars, a-z 0-9 -)." }, { status: 400 })
   }
@@ -69,6 +76,7 @@ export async function POST(request: Request) {
         dashboardToken: generateDashboardToken(),
         userId: linkedUser?.id ?? null,
         notes: typeof body?.notes === "string" && body.notes.trim() ? body.notes.trim() : null,
+        country,
       },
     })
     return NextResponse.json({ affiliate })

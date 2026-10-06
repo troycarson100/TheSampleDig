@@ -2,6 +2,9 @@
 
 import { useCallback, useEffect, useState } from "react"
 import type { AffiliateStats } from "@/lib/affiliate"
+import AdminCreatorApplications from "@/components/affiliate/AdminCreatorApplications"
+import { CREATOR_COMMISSION_PERCENT } from "@/lib/affiliate-application-logic"
+import { CREATOR_COUNTRIES, creatorCountryName } from "@/lib/creator-countries"
 
 interface AdminAffiliate {
   id: string
@@ -15,6 +18,7 @@ interface AdminAffiliate {
   userId: string | null
   active: boolean
   notes: string | null
+  country: string
   stripeConnected: boolean
   stripePayoutsEnabled: boolean
   stats: AffiliateStats
@@ -57,7 +61,8 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
   const [nEmail, setNEmail] = useState("")
   const [nCode, setNCode] = useState("")
   const [nType, setNType] = useState<"percent" | "flat">("percent")
-  const [nPercent, setNPercent] = useState(30)
+  const [nPercent, setNPercent] = useState<number>(CREATOR_COMMISSION_PERCENT)
+  const [nCountry, setNCountry] = useState("US")
   const [nFlatDollars, setNFlatDollars] = useState("5.00")
   const [nNotes, setNNotes] = useState("")
   const [createdLink, setCreatedLink] = useState("")
@@ -96,6 +101,7 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
           commissionPercent: nPercent,
           commissionFlatCents: nType === "flat" ? Math.round(parseFloat(nFlatDollars || "0") * 100) : null,
           notes: nNotes,
+          country: nCountry,
         }),
       })
       const data = await res.json()
@@ -104,7 +110,8 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
       setNName("")
       setNEmail("")
       setNCode("")
-      setNPercent(30)
+      setNPercent(CREATOR_COMMISSION_PERCENT)
+      setNCountry("US")
       setNNotes("")
       await load()
     } catch (e) {
@@ -217,12 +224,21 @@ export default function AdminAffiliates({ baseUrl }: { baseUrl: string }) {
         <p className="mb-4 rounded-lg border border-red-300 bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
       ) : null}
 
+      <AdminCreatorApplications onApproved={load} />
+
       <section className="rounded-xl border p-4 sm:p-5" style={{ borderColor: "var(--border)" }}>
         <h2 className="text-lg font-semibold">Invite a creator</h2>
         <div className="mt-3 flex flex-wrap gap-2">
           <input className={inputCls} style={fieldStyle} placeholder="Name" value={nName} onChange={(e) => setNName(e.target.value)} />
           <input className={inputCls} style={fieldStyle} placeholder="Email" value={nEmail} onChange={(e) => setNEmail(e.target.value)} />
           <input className={inputCls} style={fieldStyle} placeholder="Code (e.g. synthdad)" value={nCode} onChange={(e) => setNCode(e.target.value)} />
+          <select className={inputCls} style={fieldStyle} value={nCountry} onChange={(e) => setNCountry(e.target.value)} aria-label="Country they're paid in">
+            {CREATOR_COUNTRIES.map((c) => (
+              <option key={c.code} value={c.code}>
+                {c.name}
+              </option>
+            ))}
+          </select>
           <select
             className={inputCls}
             style={fieldStyle}
@@ -365,7 +381,7 @@ function AffiliateRow({
         <td className="px-4 py-2.5">
           {a.name}
           <span className="block text-xs" style={{ opacity: 0.55 }}>
-            {a.email}
+            {a.email} &middot; {creatorCountryName(a.country)}
           </span>
         </td>
         <td className="px-4 py-2.5" style={mono}>

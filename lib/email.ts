@@ -276,6 +276,61 @@ export async function sendCartRecoveryEmail(email: string, subject: string, html
   await sendMailWithFallback({ from: FROM, to: email, subject, html })
 }
 
+/** To the admins: someone applied to the creator program on /creators. */
+export async function sendCreatorApplicationNotice(
+  to: string[],
+  app: { name: string; email: string; country: string; plugin: string; message: string },
+) {
+  if (to.length === 0) return
+  await sendMailWithFallback({
+    from: FROM,
+    to: to.join(", "),
+    replyTo: app.email,
+    subject: `Creator application: ${app.name} (${app.country})`,
+    html: `
+      <div style="font-family: sans-serif; max-width: 520px; margin: 0 auto; padding: 24px; color: #1a1a1a;">
+        <h1 style="font-size: 18px; margin: 0 0 12px;">New creator application</h1>
+        <p style="margin: 0 0 4px;"><strong>${escapeHtml(app.name)}</strong> &lt;${escapeHtml(app.email)}&gt;</p>
+        <p style="margin: 0 0 4px; color: #555;">${escapeHtml(app.country)} &middot; wants to make a video on ${escapeHtml(app.plugin)}</p>
+        <p style="margin: 16px 0; white-space: pre-line; background: #f4f4f4; border-radius: 8px; padding: 12px 14px;">${escapeHtml(app.message)}</p>
+        <a href="${APP_URL}/admin/affiliates" style="${buttonStyle}">Review it</a>
+        <p style="color: #999; font-size: 13px; margin-top: 16px;">Reply to this email to write to them directly.</p>
+      </div>`,
+  })
+}
+
+/** To an approved applicant: they're in, with their private dashboard link. */
+export async function sendCreatorWelcomeEmail(
+  to: string,
+  o: { name: string; code: string; percent: number; dashboardUrl: string; shareUrl: string },
+) {
+  await sendMailWithFallback({
+    from: FROM,
+    to,
+    subject: "You're in - welcome to the Sample Roll creator program",
+    html: `
+      <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto; padding: 32px 24px; color: #1a1a1a;">
+        <h1 style="font-size: 20px; font-weight: 600; margin-bottom: 8px;">You're in, ${escapeHtml(o.name.split(" ")[0] ?? o.name)}</h1>
+        <p style="color: #555; margin-bottom: 20px; line-height: 1.5;">
+          Your application to the Sample Roll creator program is approved. You earn
+          <strong>${o.percent}%</strong> of every purchase made through your link or with your code.
+        </p>
+        <p style="color: #555; margin: 0 0 6px; font-size: 14px;">Your link</p>
+        <p style="font-family: ui-monospace, Menlo, monospace; background: #f4f4f4; border-radius: 8px; padding: 10px 14px; margin: 0 0 12px; word-break: break-all;">${escapeHtml(o.shareUrl)}</p>
+        <p style="color: #555; margin: 0 0 6px; font-size: 14px;">Your code - buyers can type it at checkout</p>
+        <p style="font-family: ui-monospace, Menlo, monospace; font-size: 18px; background: #f4f4f4; border-radius: 8px; padding: 10px 14px; margin: 0 0 24px;">${escapeHtml(o.code)}</p>
+        <p style="color: #555; margin: 0 0 12px; line-height: 1.5;">
+          Your private dashboard has every plugin's link, your clicks and sales, and where you
+          connect Stripe so your share is paid automatically after each sale.
+        </p>
+        <a href="${o.dashboardUrl}" style="${buttonStyle}">Open my dashboard</a>
+        <p style="color: #999; font-size: 13px; margin-top: 20px;">
+          Keep the dashboard link to yourself - it's your private page. Questions? Just reply.
+        </p>
+      </div>`,
+  })
+}
+
 /** Placeholder in a stored ReleaseAnnouncement.bodyHtml. The body is snapshotted
  *  once per blast, but the unsubscribe link is per-recipient, so it is
  *  substituted at send time rather than baked in. */

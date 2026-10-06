@@ -25,6 +25,14 @@ export default function Footer() {
         </Link>
         <span aria-hidden>·</span>
         <Link
+          href="/creators"
+          className="hover:underline focus:underline focus:outline-none"
+          style={{ color: "var(--muted)" }}
+        >
+          Creators
+        </Link>
+        <span aria-hidden>·</span>
+        <Link
           href="/privacy"
           className="hover:underline focus:underline focus:outline-none"
           style={{ color: "var(--muted)" }}

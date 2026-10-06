@@ -36,9 +36,14 @@ export async function ensureOnboardingUrl(affiliateId: string, returnUrl: string
         fees: { payer: "application" },
         losses: { payments: "application" },
       },
-      country: "US",
+      // Fixed for good once made - Stripe never changes an account's country.
+      country: affiliate.country,
       email: affiliate.email,
       capabilities: { transfers: { requested: true } },
+      // Outside the US, an account that only receives transfers has to be a
+      // payout-only "recipient" one - Stripe refuses it otherwise. A US
+      // account can't be, and takes the default.
+      ...(affiliate.country !== "US" ? { tos_acceptance: { service_agreement: "recipient" as const } } : {}),
       business_type: "individual",
       metadata: { affiliateId: affiliate.id, affiliateCode: affiliate.code },
     })
