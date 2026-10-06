@@ -39,7 +39,7 @@ async function main() {
     console.log("\nthe form, through the dev server (nothing valid is sent, so nothing is mailed)")
     const post = (body: unknown) => fetch(`${BASE}/api/creators/apply`, { method: "POST", headers: { "Content-Type": "application/json", "x-forwarded-for": `10.9.${Math.floor(Math.random() * 250)}.1` }, body: JSON.stringify(body) })
     const good = { ...base, name: "Form Person", email: address("form"), country: "GB" }
-    const r1 = await post({ ...good, country: "AU" })
+    const r1 = await post({ ...good, country: "BR" })
     check("a country Stripe can't pay is refused", r1.status === 400, r1.status)
     const r2 = await post({ ...good, email: "nope" })
     check("a bad email is refused", r2.status === 400, r2.status)
@@ -49,8 +49,8 @@ async function main() {
     check("a bot filling the hidden field is told ok, and nothing is saved", r4.status === 200 && (await prisma.affiliateApplication.count({ where: { email: address("form") } })) === 0)
 
     console.log("\napplying")
-    await submitApplication({ ...base, name: "Ana Maker", email: address("ana"), country: "DE" })
-    const again = await submitApplication({ ...base, name: "Ana Maker", email: address("ana"), country: "DE", message: "hello??" })
+    await submitApplication({ ...base, name: "Ana Maker", email: address("ana"), country: "IL" })
+    const again = await submitApplication({ ...base, name: "Ana Maker", email: address("ana"), country: "IL", message: "hello??" })
     check("a second application while one is open changes nothing", again.duplicate && (await prisma.affiliateApplication.count({ where: { email: address("ana") } })) === 1)
     await submitApplication({ ...base, name: "Bo Declined", email: address("bo"), country: "US", plugin: "all" })
     // Someone already holding the code Ana's name suggests.
@@ -63,7 +63,7 @@ async function main() {
     check("approve makes the creator", ok.ok && Boolean(ok.affiliate), ok)
     const made = ok.ok && ok.affiliate ? await prisma.affiliate.findUnique({ where: { id: ok.affiliate.id } }) : null
     check("at 25%, as a percent", made?.commissionType === "percent" && made?.commissionPercent === 25, made)
-    check("in the country they applied from", made?.country === "DE", made?.country)
+    check("in the country they applied from", made?.country === "IL", made?.country)
     check("with a code of their own, not the one already taken", Boolean(made?.code && made.code !== "ana-maker" && made.code.startsWith("ana-maker")), made?.code)
     check("linked to their Sample Roll account, whatever its case", made?.userId === user.id)
     check("their application points at them", (await prisma.affiliateApplication.findUnique({ where: { id: ana.id } }))?.affiliateId === made?.id)
@@ -87,7 +87,7 @@ async function main() {
         const acct = (await prisma.affiliate.findUnique({ where: { id: made.id } }))?.stripeAccountId
         if (acct) opened.push(acct)
         const account = acct ? await new Stripe(key).accounts.retrieve(acct) : null
-        check("a German creator gets a German, payout-only account", account?.country === "DE" && account?.tos_acceptance?.service_agreement === "recipient" && url.startsWith("https://"), { country: account?.country, agreement: account?.tos_acceptance?.service_agreement })
+        check("an Israeli creator gets an Israeli, payout-only account", account?.country === "IL" && account?.tos_acceptance?.service_agreement === "recipient" && url.startsWith("https://"), { country: account?.country, agreement: account?.tos_acceptance?.service_agreement })
         // And a US one keeps the default agreement, which is all a US account can have.
         await prisma.affiliate.update({ where: { id: holder.id }, data: { country: "US" } })
         await ensureOnboardingUrl(holder.id, `${BASE}/affiliate/x`)

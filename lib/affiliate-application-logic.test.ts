@@ -13,10 +13,10 @@ test("readApplication: a good application, tidied", () => {
 })
 
 test("readApplication: only countries Stripe can pay", () => {
-  for (const country of ["AU", "IL", "BR", "", "us", undefined]) {
+  for (const country of ["BR", "GI", "", "us", undefined]) {
     assert.equal(readApplication({ ...good, country }).ok, false, String(country))
   }
-  assert.equal(readApplication({ ...good, country: "US" }).ok, true)
+  for (const country of ["US", "AU", "IL"]) assert.equal(readApplication({ ...good, country }).ok, true, country)
 })
 
 test("readApplication: refuses what isn't there or isn't right", () => {
@@ -28,9 +28,10 @@ test("readApplication: refuses what isn't there or isn't right", () => {
   assert.equal(readApplication(null).ok, false)
 })
 
-test("creator countries: the US, UK, Canada, Switzerland and the EEA - not Australia or Israel", () => {
-  for (const c of ["US", "GB", "CA", "CH", "DE", "FR", "NO", "IS", "LI"]) assert.ok(isCreatorCountry(c), c)
-  for (const c of ["AU", "IL", "JP", "MX"]) assert.ok(!isCreatorCountry(c), c)
+test("creator countries: Stripe's US-platform payout list - not Brazil or Gibraltar, which it refused", () => {
+  for (const c of ["US", "GB", "CA", "CH", "DE", "FR", "NO", "IS", "LI", "AU", "IL", "JP", "MX", "IN"]) assert.ok(isCreatorCountry(c), c)
+  for (const c of ["BR", "GI", "RU", "CN"]) assert.ok(!isCreatorCountry(c), c)
+  assert.equal(CREATOR_COUNTRIES[0].code, "US")
   assert.equal(new Set(CREATOR_COUNTRIES.map((c) => c.code)).size, CREATOR_COUNTRIES.length)
 })
 
