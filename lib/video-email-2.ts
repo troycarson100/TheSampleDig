@@ -5,9 +5,9 @@ import { fillVideoEmail2, renderVideoEmail2Template } from "@/lib/video-email-2-
 import { VIDEO_EMAIL_2, videoSubject2 } from "@/lib/video-email-2-logic"
 import { setMissing, videoParts, videoVariant, type VideoParts } from "@/lib/video-email-logic"
 
-// The second video email (the fifth member email), as a campaign on the shared
+// The shft video email (the fifth member email), as a campaign on the shared
 // machinery in lib/member-campaign.ts. Who gets what is the third email's rule;
-// the words, the subject and the row of plugins are new.
+// the video, the words, the subject and the row of plugins are its own.
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"
 const EXAMPLE_CODE = "SR10TEST00"
@@ -28,7 +28,7 @@ export const VIDEO_2_CAMPAIGN: Campaign<VideoParts> = {
   fill: (tpl, p, person, links) =>
     fillVideoEmail2(tpl, {
       code: p.code ? person.code : null,
-      offerUrl: p.code ? links.offerUrl : `${APP_URL}${PLUGINS.fltr.href}`,
+      offerUrl: p.code ? links.offerUrl : `${APP_URL}${PLUGINS.shft.href}`,
       setUrl: p.set ? links.setUrl : null,
       setOwned: p.set ? names(person.owns) : null,
       setNames: p.set ? names(setMissing(person.owns)) : null,
@@ -39,7 +39,7 @@ export const VIDEO_2_CAMPAIGN: Campaign<VideoParts> = {
     const example = (p: VideoParts, owns: PluginId[]) =>
       fillVideoEmail2(tpl, {
         code: p.code ? EXAMPLE_CODE : null,
-        offerUrl: p.code ? memberOfferUrl(EXAMPLE_CODE) : `${APP_URL}${PLUGINS.fltr.href}`,
+        offerUrl: p.code ? memberOfferUrl(EXAMPLE_CODE) : `${APP_URL}${PLUGINS.shft.href}`,
         // A test's set button goes to the fltr page: a real link is one account's own.
         setUrl: p.set ? `${APP_URL}${PLUGINS.fltr.href}` : null,
         setOwned: p.set ? names(owns) : null,

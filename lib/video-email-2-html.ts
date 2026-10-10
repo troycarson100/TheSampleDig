@@ -2,15 +2,17 @@ import { REMINDER_IMAGES } from "./offer-reminder-email"
 import { PLUGINS, PLUGIN_ORDER, type PluginId } from "./plugins"
 import { PRICING } from "./products"
 import { COMPLETE_SET_PRICE } from "./complete-set-logic"
-import { VIDEO_IMAGE } from "./video-email-html"
 import { VIDEO_EMAIL_2 } from "./video-email-2-logic"
 
-// The second video email, drawn. Pure, and built like the first
+// The shft video email, drawn. Pure, and built like the fltr one
 // (lib/video-email-html.ts): a template drawn once when the send starts, each
 // person's parts put in at send time, the parts that are not theirs taken out
 // between <!--x--> markers. New here: a row of the plugins under the video -
 // all three with their prices for someone who owns none, only the missing
 // ones for an owner - cut per plugin with <!--p-<id>--> markers.
+
+const APP_URL = process.env.NEXT_PUBLIC_APP_URL || process.env.NEXTAUTH_URL || "http://localhost:3000"
+export const VIDEO_IMAGE_2 = `${APP_URL}${VIDEO_EMAIL_2.videoImagePath}`
 
 export const PH2 = {
   code: "{{CODE}}",
@@ -47,7 +49,7 @@ function cell(id: PluginId) {
 
 export function renderVideoEmail2Template(o: { amountOffCents: number; codeExpires: string; setEnds: string }): string {
   const off = o.amountOffCents / 100
-  const single = PRICING.fltr.price - off
+  const single = PRICING.shft.price - off
   const bundle = PRICING.bundle.price - off
   const setPrice = COMPLETE_SET_PRICE[2]
   const setWas = PRICING.drft.price + PRICING.fltr.price
@@ -59,15 +61,16 @@ export function renderVideoEmail2Template(o: { amountOffCents: number; codeExpir
         <img src="${REMINDER_IMAGES.logo}" width="120" alt="Sample Roll" style="display: block; border: 0;">
       </td></tr>
       <tr><td style="padding: 12px 28px 0; font-family: ${SANS};">
-        <h1 style="margin: 0 0 8px; font-size: 23px; line-height: 1.25; color: ${C.ink};">fltr, on video: drums in, chords out</h1>
+        <h1 style="margin: 0 0 8px; font-size: 23px; line-height: 1.25; color: ${C.ink};">shft, on video: any sound into a rhythm</h1>
         <p style="margin: 0 0 18px; font-size: 15px; line-height: 1.55; color: ${C.body};">
-          Nine characters, Chord and Harmony, the morph between A and B, and the Push effects, each one
-          heard on real material. If you've wondered what fltr actually does, this is the quickest way to find out.
+          Sixteen steps chop whatever you feed it - a pad, a vocal, a whole loop - into a pattern that
+          locks to your session, with a resonant filter, grit and granular on top. The video builds a beat
+          from one held chord, so you can hear what it does before you buy it.
         </p>
       </td></tr>
       <tr><td style="padding: 0 28px;">
         <a href="${VIDEO_EMAIL_2.videoUrl}" style="display: block; text-decoration: none;">
-          <img src="${VIDEO_IMAGE}" width="504" alt="Play the video: ${esc(VIDEO_EMAIL_2.videoTitle)}" style="display: block; width: 100%; max-width: 504px; height: auto; border: 0; border-radius: 10px;">
+          <img src="${VIDEO_IMAGE_2}" width="504" alt="Play the video: ${esc(VIDEO_EMAIL_2.videoTitle)}" style="display: block; width: 100%; max-width: 504px; height: auto; border: 0; border-radius: 10px;">
         </a>
         <p style="margin: 10px 0 0; font-family: ${SANS}; font-size: 13px; text-align: center;">
           <a href="${VIDEO_EMAIL_2.videoUrl}" style="color: ${C.rust}; font-weight: 600;">&#9654; Watch on YouTube</a>
@@ -102,8 +105,8 @@ export function renderVideoEmail2Template(o: { amountOffCents: number; codeExpir
           <p style="margin: 0 0 14px; font-family: ${SANS}; font-size: 34px; line-height: 1.05; font-weight: 900; letter-spacing: -0.5px; text-transform: uppercase; color: ${C.ink};"><span style="color: ${C.red};">$${off} off</span> anything</p>
           <p style="margin: 0 0 12px;"><span style="display: inline-block; font-family: ${MONO}; font-size: 20px; font-weight: 700; letter-spacing: 3px; color: ${C.ink}; background: #ffffff; border: 1px solid #e6dcc4; border-radius: 8px; padding: 8px 14px;">${PH2.code}</span></p>
           <p style="margin: 0 0 16px; font-size: 14px; line-height: 1.5; color: ${C.body};">
-<!--owns-none-->            All three plugins for $${bundle} instead of $${PRICING.bundle.price}, or any one for $${single}.<!--/owns-none-->
-<!--owns-some-->            $${off} off any plugin you don't have yet - $${single} instead of $${PRICING.fltr.price}.<!--/owns-some-->
+<!--owns-none-->            shft for $${single} instead of $${PRICING.shft.price} - or all three plugins for $${bundle} instead of $${PRICING.bundle.price}.<!--/owns-none-->
+<!--owns-some-->            $${off} off any plugin you don't have yet - $${single} instead of $${PRICING.shft.price}.<!--/owns-some-->
             It comes off by itself at checkout when you're signed in, or through this link.
           </p>
           ${button(PH2.offerUrl, `Use my $${off} code`)}
@@ -139,7 +142,7 @@ const cut = (html: string, name: string, keep: boolean) =>
 
 /** One person's email from the template: their parts kept, the rest taken
  *  out, their code and links put in. The plugins pictured are the ones they
- *  don't own; the pictures link where the code does, or to fltr's page. */
+ *  don't own; the pictures link where the code does, or to shft's page. */
 export function fillVideoEmail2(template: string, f: VideoFill2): string {
   const set = Boolean(f.setUrl && f.setNames && f.setOwned)
   const code = Boolean(f.code && f.offerUrl)
@@ -153,7 +156,7 @@ export function fillVideoEmail2(template: string, f: VideoFill2): string {
   html = cut(html, "set", set)
   return html
     .split(PH2.code).join(esc(f.code ?? ""))
-    .split(PH2.offerUrl).join(esc(f.offerUrl ?? `${PLUGINS.fltr.href}`))
+    .split(PH2.offerUrl).join(esc(f.offerUrl ?? `${PLUGINS.shft.href}`))
     .split(PH2.setUrl).join(esc(f.setUrl ?? ""))
     .split(PH2.setNames).join(esc(f.setNames ?? ""))
     .split(PH2.setOwned).join(esc(f.setOwned ?? ""))

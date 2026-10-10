@@ -15,9 +15,10 @@ const fill = (o: Partial<Parameters<typeof fillVideoEmail2>[1]>) =>
   })
 const text = (html: string) => html.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ")
 
-test("video 2: its own slug, the same video and offer as the third email", () => {
+test("video 2: its own slug and video, the same offer as the third email", () => {
   assert.notEqual(VIDEO_EMAIL_2.slug, VIDEO_EMAIL.slug)
-  assert.equal(VIDEO_EMAIL_2.videoUrl, VIDEO_EMAIL.videoUrl)
+  assert.notEqual(VIDEO_EMAIL_2.videoUrl, VIDEO_EMAIL.videoUrl)
+  assert.match(VIDEO_EMAIL_2.videoUrl, /youtube\.com\/watch\?v=KdBNYHwnRtI$/)
   assert.equal(VIDEO_EMAIL_2.offerSlug, VIDEO_EMAIL.offerSlug)
 })
 
@@ -33,10 +34,12 @@ test("video 2: new subjects, short enough, that never repeat the third email's",
 test("video 2, owns nothing with a code: the video, all three plugins priced, the bundle with the code", () => {
   const html = fill({ code: "SR10ABCDEF", offerUrl: "https://x/fltr?promo=SR10ABCDEF" })
   const t = text(html)
-  assert.match(html, /youtube\.com\/watch\?v=/)
+  assert.match(html, /youtube\.com\/watch\?v=KdBNYHwnRtI/)
+  assert.ok(html.includes("/email/shft-video.jpg"), "the shft video's own picture")
   for (const id of PLUGIN_ORDER) assert.ok(html.includes(`/email/${id}.jpg`), id)
   assert.ok(t.includes("The three plugins"))
-  assert.ok(t.includes(`All three plugins for $${PRICING.bundle.price - 10} instead of $${PRICING.bundle.price}`), t)
+  assert.ok(t.includes(`shft for $${PRICING.shft.price - 10} instead of $${PRICING.shft.price}`), t)
+  assert.ok(t.includes(`all three plugins for $${PRICING.bundle.price - 10} instead of $${PRICING.bundle.price}`), t)
   assert.ok(t.includes("SR10ABCDEF"))
   assert.equal(t.includes("Complete your set"), false)
   assert.equal(html.includes("<!--"), false, "a marker was left in")
