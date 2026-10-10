@@ -40,6 +40,14 @@ export default async function AdminOffersPage() {
             testNote="The code is an example and works nowhere, and the complete-your-set button goes to the fltr page."
           />
         </div>
+        <div className="mt-12">
+          <AdminCampaign
+            url="/api/admin/offers/video2"
+            title="Fifth email - shft's video"
+            description={`shft's video (any sound into a rhythm), to the same people and deals as the third email: their $10 code if it's still unused, and the other two plugins for $${COMPLETE_SET_PRICE[2]} (until October 31) if they own exactly one. A row of the plugins under the video - all three with prices for someone who owns none, only the missing ones for an owner. Anyone with neither deal isn't sent it, and neither is anyone who has unsubscribed.`}
+            testNote={`The code is an example and works nowhere, and the $${COMPLETE_SET_PRICE[2]} button goes to the fltr page.`}
+          />
+        </div>
       </main>
     </div>
   )
