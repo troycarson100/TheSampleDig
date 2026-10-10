@@ -61,11 +61,11 @@ export function renderVideoEmail2Template(o: { amountOffCents: number; codeExpir
         <img src="${REMINDER_IMAGES.logo}" width="120" alt="Sample Roll" style="display: block; border: 0;">
       </td></tr>
       <tr><td style="padding: 12px 28px 0; font-family: ${SANS};">
-        <h1 style="margin: 0 0 8px; font-size: 23px; line-height: 1.25; color: ${C.ink};">shft, on video: any sound into a rhythm</h1>
+        <h1 style="margin: 0 0 8px; font-size: 23px; line-height: 1.25; color: ${C.ink};">SHFT Deep Dive: Turn Any Sound Into a Rhythm</h1>
         <p style="margin: 0 0 18px; font-size: 15px; line-height: 1.55; color: ${C.body};">
-          Sixteen steps chop whatever you feed it - a pad, a vocal, a whole loop - into a pattern that
-          locks to your session, with a resonant filter, grit and granular on top. The video builds a beat
-          from one held chord, so you can hear what it does before you buy it.
+          Take a closer look at SHFT, SampleRoll's rhythmic multi-effects plugin. Explore its 16-step sequencer,
+          beat repeats, granular textures, modulation, and built-in effects as we transform simple sounds into
+          evolving rhythms and entirely new ideas.
         </p>
       </td></tr>
       <tr><td style="padding: 0 28px;">
